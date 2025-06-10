@@ -40,10 +40,16 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     axios
-      .post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
-        email: data.email,
-        password: data.password,
-      })
+      .post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
+        {
+          email: data.email,
+          password: data.password,
+        },
+        {
+          withCredentials: true,
+        }
+      )
       .then(
         (res: {
           data: {
