@@ -11,9 +11,9 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { GPClient } from '@/axios-instance';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
@@ -30,36 +30,15 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    axios
-      .post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
-        {
-          email: data.email,
-          password: data.password,
-        },
-        {
-          withCredentials: true,
-        }
-      )
-      .then(
-        (res: {
-          data: {
-            token: string;
-            user: {
-              id: number;
-              uuid: string;
-              name: string;
-              role: number;
-              email: string;
-            };
-          };
-        }) => {
-          toast('Inicio de sesión exitoso');
-          localStorage.setItem('token', res.data.token);
-          router.push('/transbel/interfaz');
-        }
-      )
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    await GPClient.post('/api/auth/login', {
+      email: data.email,
+      password: data.password,
+    })
+      .then(() => {
+        toast.success('Inicio de sesión exitoso');
+        router.push('/transbel/interfaz');
+      })
       .catch((error) => {
         if (error.response.data.message) {
           toast(error.response.data.message);

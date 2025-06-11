@@ -10,6 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { GPClient } from '@/axios-instance';
+import { Progress } from './ui/progress';
+import { Skeleton } from './ui/skeleton';
 
 // Define the type for our data
 type Reference = {
@@ -97,22 +100,19 @@ function DataTableInterfaz() {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await fetch(
-          'http://localhost:3000/api/transbel/getRefsPendingCE?initialDate=2024-01-01&finalDate=2024-01-31',
-          {
-            headers: {
-              Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXVpZCI6ImQ4YTlmYmQwLTlhNmMtNDQzMS04YzZhLTg4ZTQ2OTAzZmQ4OCIsIm5hbWUiOiJBbGljZSBCcm93biIsImVtYWlsIjoiYWxpY2UuYnJvd25AZXhhbXBsZS5jb20iLCJyb2xlIjoxLCJpYXQiOjE3NDkyNTM4ODEsImV4cCI6MTc0OTI1NzQ4MX0.UYUzL9oj_DtBLCdO95N1prB-GYg3mNijrRparGM5_oc`,
-            },
+      await GPClient.get(
+        '/api/transbel/getRefsPendingCE?initialDate=2024-01-01&finalDate=2024-01-31'
+      )
+
+        .then((res) => {
+          if (res.data) {
+            setData(res.data);
+            setLoading(!loading);
           }
-        );
-        const jsonData = await response.json();
-        setData(jsonData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     };
 
     fetchData();
@@ -125,50 +125,77 @@ function DataTableInterfaz() {
   });
 
   if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+    return (
+      <div className="p-6 space-y-4">
+        <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
+              ))}
+            </TableHeader>
+            <TableBody>
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  <p>Sin resultados.</p>
                 </TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  } else
+    return (
+      <div className="p-6 space-y-4">
+        <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
 }
 
 export default DataTableInterfaz;
