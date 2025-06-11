@@ -1,4 +1,10 @@
+import GPLayout from '@/components/gp-layout';
+
 function Deliveries() {
-  return <div>Deliveries</div>;
+  return (
+    <GPLayout>
+      <div>Deliveries</div>
+    </GPLayout>
+  );
 }
 export default Deliveries;

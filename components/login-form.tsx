@@ -1,10 +1,53 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { GPClient } from '@/axios-instance';
+
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
+  const router = useRouter();
+  const formSchema = z.object({
+    email: z.string().email({ message: 'Correo electrónico inválido' }),
+    password: z.string().min(8, { message: 'La contraseña debe de ser mayor a 8 caracteres' }),
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    await GPClient.post('/api/auth/login', {
+      email: data.email,
+      password: data.password,
+    })
+      .then(() => {
+        toast.success('Inicio de sesión exitoso');
+        router.push('/transbel/interfaz');
+      })
+      .catch((error) => {
+        if (error.response.data.message) {
+          toast(error.response.data.message);
+        } else {
+          toast('Error en el sistema');
+        }
+      });
+  }
+
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
@@ -15,40 +58,74 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Correo electrónico</Label>
-                <Input id="email" type="email" placeholder="m@ejemplo.com" required />
-              </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Contraseña</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </a>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <div className="flex flex-col gap-6">
+                <div className="grid gap-3">
+                  <Label htmlFor="email">Correo electrónico</Label>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="correo@ejemplo.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <Input id="password" type="password" required />
+                <div className="grid gap-3">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Contraseña</Label>
+                    <a
+                      href="#"
+                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </a>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            id="password"
+                            type="password"
+                            {...field}
+                            placeholder="Contraseña"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
+                    Iniciar sesión
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    Iniciar sesión con Google
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Iniciar sesión
-                </Button>
-                <Button variant="outline" className="w-full">
-                  Iniciar sesión con Google
-                </Button>
+              <div className="mt-4 text-center text-sm">
+                ¿No tienes una cuenta?{' '}
+                <a href="#" className="underline underline-offset-4">
+                  Regístrate
+                </a>
               </div>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              ¿No tienes una cuenta?{' '}
-              <a href="#" className="underline underline-offset-4">
-                Regístrate
-              </a>
-            </div>
-          </form>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
