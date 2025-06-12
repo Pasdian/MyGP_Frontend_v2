@@ -37,14 +37,10 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     })
       .then(() => {
         toast.success('Inicio de sesión exitoso');
-        router.push('/transbel/interfaz');
+        router.push('/dashboard');
       })
       .catch((error) => {
-        if (error.response.data.message) {
-          toast(error.response.data.message);
-        } else {
-          toast('Error en el sistema');
-        }
+        toast.error(error.message);
       });
   }
 

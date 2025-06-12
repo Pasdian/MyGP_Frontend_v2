@@ -4,12 +4,13 @@ import { NextRequest, NextResponse} from "next/server";
 export default async function middleware(req: NextRequest){
     const path = req.nextUrl.pathname
     const session_token = (await (cookies())).get("session_token")?.value
-    if(!session_token && !req.nextUrl.pathname.startsWith("/login")){
+
+    if (!session_token && !req.nextUrl.pathname.startsWith('/login')) {
         return NextResponse.redirect(new URL('/login', req.url))
     }
 
-    if(session_token && !req.nextUrl.pathname.startsWith("/transbel/interfaz")){
-        return NextResponse.redirect(new URL('/transbel/interfaz', req.url))
+    if(session_token && req.nextUrl.pathname.startsWith("/login")){
+        return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 
     return NextResponse.next()

@@ -37,7 +37,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="flex justify-between bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+    <header className="flex justify-between bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-1">
       <div className="flex align-center items-center">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />

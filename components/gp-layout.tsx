@@ -14,7 +14,7 @@ export default function GPLayout({ children }: { children: React.ReactNode }) {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="p-6 space-y-4">
         <SiteHeader />
         {children}
       </SidebarInset>
