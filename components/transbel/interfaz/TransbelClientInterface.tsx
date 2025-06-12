@@ -13,7 +13,7 @@ import { TransbelDataTable } from '@/components/transbel-datatable';
 import { TailwindSpinner } from '@/components/ui/tailwind-spinner';
 
 // Define the type for our data
-type Reference = {
+export type TTransbelData = {
   REFERENCIA: string;
   EE__GE: string;
   ADU_DESP: string;
@@ -26,8 +26,8 @@ type Reference = {
   CE_140: string | null;
 };
 
-// Define the columns
-const columns: ColumnDef<Reference>[] = [
+// Column definitions for data table
+const columns: ColumnDef<TTransbelData>[] = [
   {
     accessorKey: 'REFERENCIA',
     header: 'Referencia',
@@ -107,17 +107,18 @@ const columns: ColumnDef<Reference>[] = [
   },
 ];
 
+const today = new Date();
+
 export default function TransbelClientInterface() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [data, setData] = React.useState([]);
-  const [today] = React.useState(new Date());
+  const [data, setData] = React.useState<TTransbelData[]>([]);
 
   React.useEffect(() => {
     async function fetchData() {
       const today = new Date();
-      // Common mistakes
+      // Common mistakes that the user can do
       if (initialDate == undefined) {
         toast.error('Selecciona una fecha de inicio');
         return;
@@ -173,14 +174,6 @@ export default function TransbelClientInterface() {
 
   return (
     <div>
-      <div className="flex mb-4">
-        <div className="mr-4">
-          <InitialDatePicker date={initialDate} setDate={setInitialDate} />
-        </div>
-        <div>
-          <FinalDatePicker date={finalDate} setDate={setFinalDate} />
-        </div>
-      </div>
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
         <p className="text-2xl font-light tracking-tight mb-4">
@@ -191,69 +184,42 @@ export default function TransbelClientInterface() {
               )}`}
         </p>
       </div>
-      {isLoading ? (
-        <div className="flex w-full h-[25px] justify-center">
-          <TailwindSpinner />
+      <div>
+        <div className="md:mr-4 mb-2">
+          <DatePicker date={initialDate} setDate={setInitialDate} title={'Fecha de Inicio'} />
         </div>
-      ) : (
-        <TransbelDataTable columns={columns} data={data} />
-      )}
+        <div className="mb-4">
+          <DatePicker date={finalDate} setDate={setFinalDate} title={'Fecha de Termino'} />
+        </div>
+      </div>
+      <div>
+        {isLoading ? (
+          <div className="flex w-full h-[25px] justify-center">
+            <TailwindSpinner />
+          </div>
+        ) : (
+          <TransbelDataTable columns={columns} data={data} />
+        )}
+      </div>
     </div>
   );
 }
 
-function InitialDatePicker({
+function DatePicker({
   date,
   setDate,
+  title,
 }: {
   date: Date | undefined;
   setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+  title: string;
 }) {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <Label htmlFor="date" className="px-1">
-        Fecha de Inicio
-      </Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" id="date" className="w-48 justify-between font-normal">
-            {date ? date.toLocaleDateString('es-MX') : 'Selecciona una fecha'}
-            <ChevronDownIcon />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-          <Calendar
-            locale={es}
-            mode="single"
-            selected={date}
-            captionLayout="dropdown"
-            onSelect={(date) => {
-              setDate(date);
-              setOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
-
-// The same as above
-function FinalDatePicker({
-  date,
-  setDate,
-}: {
-  date: Date | undefined;
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
-}) {
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <div className="flex flex-col gap-3">
-      <Label htmlFor="date" className="px-1">
-        Fecha de Inicio
+        {title}
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
