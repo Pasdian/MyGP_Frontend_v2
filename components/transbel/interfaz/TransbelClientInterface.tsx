@@ -150,6 +150,7 @@ export default function TransbelClientInterface() {
         .then((res) => {
           if (res.data.length == 0) {
             toast.error('No hay resultados para las fechas seleccionadas');
+            setData(res.data);
             setIsLoading((oldState) => !oldState);
             return;
           }

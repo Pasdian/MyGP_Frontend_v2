@@ -37,7 +37,7 @@ import {
 const transbelCols: { accessorKey: string; placeholder: string }[] = [
   {
     accessorKey: 'REFERENCIA',
-    placeholder: 'Filtrar por referencia:',
+    placeholder: 'Filtrar por Referencia:',
   },
   {
     accessorKey: 'EE__GE',
@@ -45,15 +45,15 @@ const transbelCols: { accessorKey: string; placeholder: string }[] = [
   },
   {
     accessorKey: 'ADU_DESP',
-    placeholder: 'Filtrar por aduana:',
+    placeholder: 'Filtrar por Aduana:',
   },
   {
     accessorKey: 'REVALIDACION_073',
-    placeholder: 'Filtrar por revalidación:',
+    placeholder: 'Filtrar por Revalidación:',
   },
   {
     accessorKey: 'ULTIMO_DOCUMENTO_114',
-    placeholder: 'Filtrar por último Documento:',
+    placeholder: 'Filtrar por Último Documento:',
   },
   {
     accessorKey: 'ENTREGA_TRANSPORTE_138',
@@ -109,46 +109,48 @@ export function TransbelDataTable<TData, TValue>({
   return (
     <div>
       {/* Filter dialog starts here*/}
-      <div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-48 mb-3 rounded-md bg-indigo-500 hover:bg-indigo-600">
-              Filtrar Datos
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-dvh max-h-dvh overflow-y-auto rounded-none border-none sm:border sm:rounded-md sm:max-h-[95%]">
-            <DialogHeader>
-              <DialogTitle>Filtrar por columna</DialogTitle>
-              <DialogDescription>Aqui podrás filtrar por columna.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-2 md:grid-cols-2 bg-white">
-              {transbelCols.map((col) => {
-                return (
-                  <div key={col.accessorKey} className="mb-2">
-                    <Label className="mb-2" htmlFor={col.accessorKey}>
-                      {col.placeholder}
-                    </Label>
-                    <Input
-                      placeholder={col.placeholder}
-                      id={col.accessorKey}
-                      value={(table.getColumn(col.accessorKey)?.getFilterValue() as string) ?? ''}
-                      onChange={(event) => {
-                        console.log(event.target.value);
-                        table.getColumn(col.accessorKey)?.setFilterValue(event.target.value);
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button className="bg-indigo-500 hover:bg-indigo-600">Cerrar</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      {data.length == 0 ? null : (
+        <div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-48 mb-3 rounded-md bg-indigo-500 hover:bg-indigo-600">
+                Filtrar Datos
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-dvh max-h-dvh h-full overflow-y-auto rounded-none border-none sm:border sm:rounded-md sm:h-auto">
+              <DialogHeader>
+                <DialogTitle>Filtrar por columna</DialogTitle>
+                <DialogDescription>Aqui podrás filtrar por columna.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-2 md:grid-cols-2 bg-white">
+                {transbelCols.map((col) => {
+                  return (
+                    <div key={col.accessorKey} className="mb-2">
+                      <Label className="mb-2" htmlFor={col.accessorKey}>
+                        {col.placeholder}
+                      </Label>
+                      <Input
+                        placeholder={col.placeholder.substring(0, col.placeholder.length - 1)} // Remove ':' from string
+                        id={col.accessorKey}
+                        value={(table.getColumn(col.accessorKey)?.getFilterValue() as string) ?? ''}
+                        onChange={(event) => {
+                          console.log(event.target.value);
+                          table.getColumn(col.accessorKey)?.setFilterValue(event.target.value);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button className="bg-indigo-500 hover:bg-indigo-600">Cerrar</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
       {/* DataTable starts here*/}
       <div className="rounded-md border">
         <Table>
@@ -193,7 +195,9 @@ export function TransbelDataTable<TData, TValue>({
       {/* Pagination starts here*/}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button variant="outline" size="sm">
-          {`${pagination.pageIndex} / ${table.getPageCount()}`}
+          {`${pagination.pageIndex} / ${
+            table.getPageCount() > 1 ? table.getPageCount() - 1 : table.getPageCount()
+          }`}
         </Button>
         <Button
           variant="outline"
