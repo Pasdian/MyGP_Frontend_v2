@@ -39,9 +39,7 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'REVALIDACION_073',
     header: 'Revalidación',
     cell: ({ row }) => {
-      if (!row.original.REVALIDACION_073) {
-        return '-';
-      }
+      if (!row.original.REVALIDACION_073) return '-';
       // Set timezone to 00:00:00 for correct displaying
       const date = new Date(`${row.original.REVALIDACION_073}T00:00:00`);
       return date.toLocaleDateString('es-MX');
@@ -51,9 +49,7 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'ULTIMO_DOCUMENTO_114',
     header: 'Último Documento',
     cell: ({ row }) => {
-      if (!row.original.ULTIMO_DOCUMENTO_114) {
-        return '-';
-      }
+      if (!row.original.ULTIMO_DOCUMENTO_114) return '-';
       const date = new Date(`${row.original.ULTIMO_DOCUMENTO_114}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
@@ -62,9 +58,7 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'ENTREGA_TRANSPORTE_138',
     header: 'Entrega Transporte',
     cell: ({ row }) => {
-      if (!row.original.ENTREGA_TRANSPORTE_138) {
-        return '-';
-      }
+      if (!row.original.ENTREGA_TRANSPORTE_138) return '-';
       const date = new Date(`${row.original.ENTREGA_TRANSPORTE_138}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
@@ -77,9 +71,7 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'MSA_130',
     header: 'MSA',
     cell: ({ row }) => {
-      if (!row.original.MSA_130) {
-        return '-';
-      }
+      if (!row.original.MSA_130) return '-';
       const date = new Date(`${row.original.MSA_130}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
@@ -151,6 +143,7 @@ export default function TransbelClientInterface() {
           // Only get date as yyyy-mm-dd
           data.map((item: TTransbelData) => {
             if (item.MSA_130) item.MSA_130 = item.MSA_130.split('T')[0];
+            if (item.ENTREGA_CDP_140) item.ENTREGA_CDP_140 = item.ENTREGA_CDP_140.split('T')[0];
             if (item.REVALIDACION_073) item.REVALIDACION_073 = item.REVALIDACION_073.split('T')[0];
             if (item.ENTREGA_TRANSPORTE_138)
               item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138.split('T')[0];
