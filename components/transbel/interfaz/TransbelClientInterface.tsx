@@ -3,7 +3,7 @@ import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
-import { TransbelDataTable } from '@/components/transbel-datatable';
+import { TransbelInterfaceDT } from '@/components/transbel/interfaz/TransbelInterfaceDT';
 import { TailwindSpinner } from '@/components/ui/tailwind-spinner';
 import DatePicker from '@/components/date-picker';
 
@@ -172,31 +172,35 @@ export default function TransbelClientInterface() {
 
   return (
     <div>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
-        <p className="text-2xl font-light tracking-tight mb-4">
-          {isLoading || cond
-            ? null
-            : `De ${initialDate?.toLocaleDateString('es-MX')} hasta ${finalDate?.toLocaleDateString(
-                'es-MX'
-              )}`}
-        </p>
-      </div>
-      <div>
-        <div className="mb-2">
+      <div className="flex flex-col justify-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
+          <p className="text-2xl font-light tracking-tight mb-5">
+            {isLoading || cond
+              ? null
+              : `De ${initialDate?.toLocaleDateString(
+                  'es-MX'
+                )} hasta ${finalDate?.toLocaleDateString('es-MX')}`}
+          </p>
+        </div>
+        <div className="mb-5">
           <DatePicker date={initialDate} setDate={setInitialDate} title={'Fecha de Inicio'} />
         </div>
-        <div className="mb-4">
+        <div className="mb-5">
           <DatePicker date={finalDate} setDate={setFinalDate} title={'Fecha de Termino'} />
         </div>
       </div>
-      <div>
+      <div className="">
         {isLoading ? (
-          <div className="flex w-full h-[25px] justify-center">
+          <div>
             <TailwindSpinner />
           </div>
         ) : (
-          <TransbelDataTable columns={columns} data={data} />
+          <div>
+            <div>
+              <TransbelInterfaceDT columns={columns} data={data} />
+            </div>
+          </div>
         )}
       </div>
     </div>

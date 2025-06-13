@@ -49,7 +49,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
             'user_info',
             JSON.stringify({ name: res.data.user.name, email: res.data.user.email })
           );
-          router.push('/dashboard');
+          router.push('/transbel/dashboard');
         }
       )
       .catch((error) => {

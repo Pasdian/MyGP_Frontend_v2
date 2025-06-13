@@ -3,7 +3,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/site-header';
 import React from 'react';
 
-export default function GPLayout({ children }: { children: React.ReactNode }) {
+export default function TransbelLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider
       style={
@@ -14,9 +14,9 @@ export default function GPLayout({ children }: { children: React.ReactNode }) {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="p-6 space-y-4">
+      <SidebarInset>
         <SiteHeader />
-        {children}
+        <div className="h-full w-full p-3">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

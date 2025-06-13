@@ -1,11 +1,12 @@
-import GPLayout from '@/components/gp-layout';
+import { GPClient } from '@/axios-instance';
 import TransbelDeliveries from '@/components/transbel/entregas/TransbelDeliveries';
 
-function Deliveries() {
+export default async function Deliveries() {
   return (
-    <GPLayout>
+    <div>
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas</h1>
+      {/*Transbel Deliveries DataTable*/}
       <TransbelDeliveries />
-    </GPLayout>
+    </div>
   );
 }
-export default Deliveries;
