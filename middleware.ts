@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse} from "next/server";
 
 export default async function middleware(req: NextRequest){
-    const path = req.nextUrl.pathname
     const session_token = (await (cookies())).get("session_token")?.value
 
     if (!session_token && !req.nextUrl.pathname.startsWith('/login')) {

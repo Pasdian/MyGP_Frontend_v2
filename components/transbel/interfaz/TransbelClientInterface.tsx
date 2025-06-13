@@ -1,27 +1,22 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronDownIcon } from 'lucide-react';
-import { es } from 'react-day-picker/locale';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { TransbelDataTable } from '@/components/transbel-datatable';
 import { TailwindSpinner } from '@/components/ui/tailwind-spinner';
+import DatePicker from '@/components/date-picker';
 
 // Define the type for our data
 export type TTransbelData = {
   REFERENCIA: string;
   EE__GE: string;
   ADU_DESP: string;
-  REVALIDACION_073: string;
-  ULTIMO_DOCUMENTO_114: string;
-  ENTREGA_TRANSPORTE_138: string;
+  REVALIDACION_073: string | null;
+  ULTIMO_DOCUMENTO_114: string | null;
+  ENTREGA_TRANSPORTE_138: string | null;
   CE_138: string;
-  MSA_130: string;
+  MSA_130: string | null;
   ENTREGA_CDP_140: string | null;
   CE_140: string | null;
 };
@@ -44,10 +39,11 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'REVALIDACION_073',
     header: 'Revalidación',
     cell: ({ row }) => {
-      const date = new Date(row.original.REVALIDACION_073);
-      if (row.original.REVALIDACION_073 == null) {
+      if (!row.original.REVALIDACION_073) {
         return '-';
       }
+      // Set timezone to 00:00:00 for correct displaying
+      const date = new Date(`${row.original.REVALIDACION_073}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
   },
@@ -55,10 +51,10 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'ULTIMO_DOCUMENTO_114',
     header: 'Último Documento',
     cell: ({ row }) => {
-      const date = new Date(row.original.ULTIMO_DOCUMENTO_114);
-      if (row.original.ULTIMO_DOCUMENTO_114 == null) {
+      if (!row.original.ULTIMO_DOCUMENTO_114) {
         return '-';
       }
+      const date = new Date(`${row.original.ULTIMO_DOCUMENTO_114}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
   },
@@ -66,10 +62,10 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'ENTREGA_TRANSPORTE_138',
     header: 'Entrega Transporte',
     cell: ({ row }) => {
-      const date = new Date(row.original.ENTREGA_TRANSPORTE_138);
-      if (row.original.ENTREGA_TRANSPORTE_138 == null) {
+      if (!row.original.ENTREGA_TRANSPORTE_138) {
         return '-';
       }
+      const date = new Date(`${row.original.ENTREGA_TRANSPORTE_138}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
   },
@@ -81,10 +77,10 @@ const columns: ColumnDef<TTransbelData>[] = [
     accessorKey: 'MSA_130',
     header: 'MSA',
     cell: ({ row }) => {
-      const date = new Date(row.original.MSA_130);
-      if (date == null) {
+      if (!row.original.MSA_130) {
         return '-';
       }
+      const date = new Date(`${row.original.MSA_130}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
   },
@@ -93,10 +89,7 @@ const columns: ColumnDef<TTransbelData>[] = [
     header: 'Entrega CDP',
     cell: ({ row }) => {
       if (!row.original.ENTREGA_CDP_140) return '-';
-      const date = new Date(row.original.ENTREGA_CDP_140);
-      if (date == null) {
-        return '-';
-      }
+      const date = new Date(`${row.original.ENTREGA_CDP_140}T00:00:00`);
       return date.toLocaleDateString('es-MX');
     },
   },
@@ -147,14 +140,25 @@ export default function TransbelClientInterface() {
       await GPClient.get(
         `/api/transbel/getRefsPendingCE?initialDate=${formattedInitialDate}&finalDate=${formattedFinalDate}`
       )
-        .then((res) => {
-          if (res.data.length == 0) {
+        .then((res: { data: TTransbelData[] }) => {
+          const data = res.data;
+          if (data.length == 0) {
             toast.error('No hay resultados para las fechas seleccionadas');
-            setData(res.data);
+            setData(data); // Empty array
             setIsLoading((oldState) => !oldState);
             return;
           }
-          setData(res.data);
+          // Only get date as yyyy-mm-dd
+          data.map((item: TTransbelData) => {
+            if (item.MSA_130) item.MSA_130 = item.MSA_130.split('T')[0];
+            if (item.REVALIDACION_073) item.REVALIDACION_073 = item.REVALIDACION_073.split('T')[0];
+            if (item.ENTREGA_TRANSPORTE_138)
+              item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138.split('T')[0];
+            if (item.ULTIMO_DOCUMENTO_114)
+              item.ULTIMO_DOCUMENTO_114 = item.ULTIMO_DOCUMENTO_114.split('T')[0];
+          });
+
+          setData(data);
           setIsLoading((oldState) => !oldState);
         })
         .catch((error) => {
@@ -186,7 +190,7 @@ export default function TransbelClientInterface() {
         </p>
       </div>
       <div>
-        <div className="md:mr-4 mb-2">
+        <div className="mb-2">
           <DatePicker date={initialDate} setDate={setInitialDate} title={'Fecha de Inicio'} />
         </div>
         <div className="mb-4">
@@ -202,46 +206,6 @@ export default function TransbelClientInterface() {
           <TransbelDataTable columns={columns} data={data} />
         )}
       </div>
-    </div>
-  );
-}
-
-function DatePicker({
-  date,
-  setDate,
-  title,
-}: {
-  date: Date | undefined;
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
-  title: string;
-}) {
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor="date" className="px-1">
-        {title}
-      </Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" id="date" className="w-48 justify-between font-normal">
-            {date ? date.toLocaleDateString('es-MX') : 'Selecciona una fecha'}
-            <ChevronDownIcon />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-          <Calendar
-            locale={es}
-            mode="single"
-            selected={date}
-            captionLayout="dropdown"
-            onSelect={(date) => {
-              setDate(date);
-              setOpen(false);
-            }}
-          />
-        </PopoverContent>
-      </Popover>
     </div>
   );
 }

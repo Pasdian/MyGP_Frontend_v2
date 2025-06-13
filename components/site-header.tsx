@@ -32,6 +32,7 @@ export function SiteHeader() {
 
   async function logout() {
     await GPClient.post('/api/auth/logout');
+    localStorage.removeItem('user_info');
     toast.success('Cerraste sesión');
     router.refresh();
   }

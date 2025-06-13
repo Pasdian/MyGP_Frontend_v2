@@ -1,9 +1,10 @@
 import GPLayout from '@/components/gp-layout';
+import TransbelDeliveries from '@/components/transbel/entregas/TransbelDeliveries';
 
 function Deliveries() {
   return (
     <GPLayout>
-      <div>Deliveries</div>
+      <TransbelDeliveries />
     </GPLayout>
   );
 }

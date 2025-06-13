@@ -82,7 +82,7 @@ const transbelCols: { accessorKey: string; placeholder: string }[] = [
   /* Before modyfing, go to shadcn datatable documentation*/
 }
 
-export function TransbelDataTable<TData, TValue>({
+export function TransbelDataTable({
   columns,
   data,
 }: {
@@ -130,11 +130,22 @@ export function TransbelDataTable<TData, TValue>({
                         {col.placeholder}
                       </Label>
                       <Input
+                        type={
+                          col.accessorKey == 'ENTREGA_TRANSPORTE_138' ||
+                          col.accessorKey == 'MSA_130' ||
+                          col.accessorKey == 'REVALIDACION_073' ||
+                          col.accessorKey == 'ULTIMO_DOCUMENTO_114'
+                            ? 'date'
+                            : 'text'
+                        }
                         placeholder={col.placeholder.substring(0, col.placeholder.length - 1)} // Remove ':' from string
                         id={col.accessorKey}
                         value={(table.getColumn(col.accessorKey)?.getFilterValue() as string) ?? ''}
                         onChange={(event) => {
-                          console.log(event.target.value);
+                          console.log(
+                            event.target.value,
+                            data.filter((item) => item.ENTREGA_TRANSPORTE_138 == event.target.value)
+                          );
                           table.getColumn(col.accessorKey)?.setFilterValue(event.target.value);
                         }}
                       />
@@ -195,9 +206,7 @@ export function TransbelDataTable<TData, TValue>({
       {/* Pagination starts here*/}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button variant="outline" size="sm">
-          {`${pagination.pageIndex} / ${
-            table.getPageCount() > 1 ? table.getPageCount() - 1 : table.getPageCount()
-          }`}
+          {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
         </Button>
         <Button
           variant="outline"

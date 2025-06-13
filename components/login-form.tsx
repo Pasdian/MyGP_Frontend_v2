@@ -14,9 +14,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { GPClient } from '@/axios-instance';
+import React from 'react';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
+
   const formSchema = z.object({
     email: z.string().email({ message: 'Correo electrónico inválido' }),
     password: z.string().min(8, { message: 'La contraseña debe de ser mayor a 8 caracteres' }),
@@ -35,10 +37,21 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       email: data.email,
       password: data.password,
     })
-      .then(() => {
-        toast.success('Inicio de sesión exitoso');
-        router.push('/dashboard');
-      })
+      .then(
+        (res: {
+          data: {
+            token: string;
+            user: { id: number; uuid: number; name: string; email: string; role: string };
+          };
+        }) => {
+          toast.success('Inicio de sesión exitoso');
+          localStorage.setItem(
+            'user_info',
+            JSON.stringify({ name: res.data.user.name, email: res.data.user.email })
+          );
+          router.push('/dashboard');
+        }
+      )
       .catch((error) => {
         toast.error(error.message);
       });

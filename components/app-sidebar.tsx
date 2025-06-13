@@ -25,11 +25,6 @@ import {
 import NavCollapsible from './nav-collapsible';
 
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
   navSecondary: [
     {
       title: 'Settings',
@@ -57,6 +52,16 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [userInfo, setUserInfo] = React.useState({ name: '', email: '', avatar: '' });
+
+  React.useEffect(() => {
+    const jsonData = localStorage.getItem('user_info');
+    if (jsonData) {
+      const jsonObj: { name: string; email: string } = JSON.parse(jsonData);
+      setUserInfo((prevState) => ({ ...prevState, name: jsonObj.name, email: jsonObj.email }));
+    }
+  }, []);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -78,7 +83,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userInfo} />
       </SidebarFooter>
     </Sidebar>
   );
