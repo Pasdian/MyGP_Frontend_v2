@@ -27,24 +27,24 @@ import NavCollapsible from './nav-collapsible';
 const data = {
   navSecondary: [
     {
-      title: 'Settings',
+      title: 'Ajustes',
       url: '#',
       icon: IconSettings,
     },
   ],
   extras: [
     {
-      name: 'Data Library',
+      name: 'Apartado 1',
       url: '#',
       icon: IconDatabase,
     },
     {
-      name: 'Reports',
+      name: 'Apartado 2',
       url: '#',
       icon: IconReport,
     },
     {
-      name: 'Word Assistant',
+      name: 'Apartado 3',
       url: '#',
       icon: IconFileWord,
     },

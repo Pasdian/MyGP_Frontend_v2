@@ -53,7 +53,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
         }
       )
       .catch((error) => {
-        toast.error(error.message);
+        toast.error(error.response.data.message);
       });
   }
 

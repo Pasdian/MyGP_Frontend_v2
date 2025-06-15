@@ -6,6 +6,7 @@ import React from 'react';
 export default function TransbelLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider
+      className="overflow-hidden"
       style={
         {
           '--sidebar-width': 'calc(var(--spacing) * 72)',
@@ -14,10 +15,12 @@ export default function TransbelLayout({ children }: { children: React.ReactNode
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="h-full w-full p-3">{children}</div>
-      </SidebarInset>
+      <div className="max-w-full overflow-scroll">
+        <SidebarInset>
+          <SiteHeader />
+          <div className="p-6">{children}</div>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

@@ -190,18 +190,8 @@ export default function TransbelClientInterface() {
           <DatePicker date={finalDate} setDate={setFinalDate} title={'Fecha de Termino'} />
         </div>
       </div>
-      <div className="">
-        {isLoading ? (
-          <div>
-            <TailwindSpinner />
-          </div>
-        ) : (
-          <div>
-            <div>
-              <TransbelInterfaceDT columns={columns} data={data} />
-            </div>
-          </div>
-        )}
+      <div>
+        {isLoading ? <TailwindSpinner /> : <TransbelInterfaceDT columns={columns} data={data} />}
       </div>
     </div>
   );

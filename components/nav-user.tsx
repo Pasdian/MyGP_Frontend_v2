@@ -25,6 +25,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Skeleton } from './ui/skeleton';
+import { GPClient } from '@/axios-instance';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export function NavUser({
   user,
@@ -36,6 +39,14 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
+
+  async function logout() {
+    await GPClient.post('/api/auth/logout');
+    localStorage.removeItem('user_info');
+    toast.success('Cerraste sesión');
+    router.refresh();
+  }
 
   return (
     <SidebarMenu>
@@ -95,21 +106,21 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <IconUserCircle />
-                Account
+                Cuenta
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconCreditCard />
-                Billing
+                Facturación
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />
-                Notifications
+                Notificaciones
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <IconLogout />
-              Log out
+              Cerrar Sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

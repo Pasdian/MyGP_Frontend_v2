@@ -92,7 +92,7 @@ export function TransbelInterfaceDT({
   columns: ColumnDef<TTransbelData>[];
   data: TTransbelData[];
 }) {
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 12 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
@@ -110,7 +110,7 @@ export function TransbelInterfaceDT({
   });
 
   return (
-    <div>
+    <>
       {/* DataTable starts here*/}
       <Table>
         <TableHeader>
@@ -124,7 +124,7 @@ export function TransbelInterfaceDT({
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanFilter() ? (
                           <div>
-                            <Filter column={header.column} table={table} />
+                            <Filter column={header.column} />
                           </div>
                         ) : null}
                       </div>
@@ -157,33 +157,35 @@ export function TransbelInterfaceDT({
           )}
         </TableBody>
       </Table>
-      {/* Pagination starts here*/}
-      <div className="flex items-center justify-end space-x-2">
-        <Button variant="outline" size="sm">
-          {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div>
+        {/* Pagination starts here*/}
+        <div className="flex items-center justify-end space-x-2">
+          <Button variant="outline" size="sm">
+            {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
-function Filter({ column, table }: { column: Column<any, any>; table: TTable<any> }) {
+function Filter({ column }: { column: Column<any, any> }) {
   const columnFilterValue = column.getFilterValue();
 
   return (

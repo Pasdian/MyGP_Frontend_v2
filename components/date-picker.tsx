@@ -24,7 +24,7 @@ export default function DatePicker({
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" id="date" className="w-full justify-between font-normal">
+          <Button variant="outline" id="date" className="w-48 justify-between font-normal">
             {date ? date.toLocaleDateString('es-MX') : 'Selecciona una fecha'}
             <ChevronDownIcon />
           </Button>
