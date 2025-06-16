@@ -15,7 +15,7 @@ export default function TransbelLayout({ children }: { children: React.ReactNode
       }
     >
       <AppSidebar variant="inset" />
-      <div className="max-w-full overflow-scroll">
+      <div className="w-full max-w-full overflow-scroll">
         <SidebarInset>
           <SiteHeader />
           <div className="p-6">{children}</div>

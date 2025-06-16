@@ -1,4 +1,3 @@
-import { GPClient } from '@/axios-instance';
 import TransbelDeliveries from '@/components/transbel/entregas/TransbelDeliveries';
 
 export default async function Deliveries() {

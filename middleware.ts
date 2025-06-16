@@ -9,7 +9,7 @@ export default async function middleware(req: NextRequest){
     }
 
     if(session_token && req.nextUrl.pathname.startsWith("/login")){
-        return NextResponse.redirect(new URL('/dashboard', req.url))
+        return NextResponse.redirect(new URL('/transbel/dashboard', req.url))
     }
 
     return NextResponse.next()

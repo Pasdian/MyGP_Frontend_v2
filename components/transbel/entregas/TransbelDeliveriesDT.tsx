@@ -1,10 +1,13 @@
 'use client';
 
 import {
+  Column,
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
+  Table as TTable,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -19,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Deliveries } from './TransbelDeliveries';
+import { Input } from '@/components/ui/input';
 
 function useSkipper() {
   const shouldSkipRef = React.useRef(true);
@@ -53,7 +57,9 @@ export default function TransbelDeliveriesDT({
     columns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination,
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex,
     state: {
       pagination,
     },
@@ -79,17 +85,24 @@ export default function TransbelDeliveriesDT({
   return (
     <div>
       {/*Here starts the data table*/}
-      <div className="rounded-md border">
+      <div>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    <TableHead key={header.id} colSpan={header.colSpan}>
+                      {header.isPlaceholder ? null : (
+                        <div>
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getCanFilter() ? (
+                            <div>
+                              <Filter column={header.column} table={table} />
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
                     </TableHead>
                   );
                 })}
@@ -110,7 +123,7 @@ export default function TransbelDeliveriesDT({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  Sin resultados.
                 </TableCell>
               </TableRow>
             )}
@@ -140,5 +153,22 @@ export default function TransbelDeliveriesDT({
         </Button>
       </div>
     </div>
+  );
+}
+
+function Filter({ column }: { column: Column<any, any>; table: TTable<any> }) {
+  const columnFilterValue = column.getFilterValue();
+
+  return (
+    <Input
+      type={column.id == 'FEC_ETAP' ? 'date' : 'text'}
+      value={(columnFilterValue ?? '') as string}
+      onChange={(e) => {
+        console.log(e.target.value);
+        column.setFilterValue(e.target.value);
+      }}
+      placeholder={`Buscar...`}
+      className="w-36 border shadow rounded"
+    />
   );
 }

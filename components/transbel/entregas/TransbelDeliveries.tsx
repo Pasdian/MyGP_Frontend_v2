@@ -80,9 +80,9 @@ export default function TransbelDeliveries() {
             setIsLoading((oldState) => !oldState);
             return;
           }
+
           data.map((item) => {
             if (item.FEC_ETAP) item.FEC_ETAP = item.FEC_ETAP.split('T')[0];
-            if (item.HOR_ETAP) item.HOR_ETAP;
           });
           setData(data);
           setIsLoading((prevState) => !prevState);

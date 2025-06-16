@@ -140,6 +140,7 @@ export default function TransbelClientInterface() {
             setIsLoading((oldState) => !oldState);
             return;
           }
+
           // Only get date as yyyy-mm-dd
           data.map((item: TTransbelData) => {
             if (item.MSA_130) item.MSA_130 = item.MSA_130.split('T')[0];
