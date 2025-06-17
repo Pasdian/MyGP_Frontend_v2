@@ -11,28 +11,17 @@ import { Button } from '@/components/ui/button';
 import { ChevronDownIcon } from 'lucide-react';
 import { es } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
+import { TTransbelData } from '@/app/transbel/interfaz/page';
 
 // Define the type for our data
-export type TTransbelData = {
-  REFERENCIA: string;
-  EE__GE: string;
-  ADU_DESP: string;
-  REVALIDACION_073: string | null;
-  ULTIMO_DOCUMENTO_114: string | null;
-  ENTREGA_TRANSPORTE_138: string | null;
-  CE_138: string;
-  MSA_130: string | null;
-  ENTREGA_CDP_140: string | null;
-  CE_140: string | null;
-};
 
 const today = new Date();
 
-export default function TransbelClientInterface() {
+export default function TransbelClientInterface({ defaultData }: { defaultData: TTransbelData[] }) {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [data, setData] = React.useState<TTransbelData[]>([]);
+  const [data, setData] = React.useState<TTransbelData[]>(defaultData);
 
   React.useEffect(() => {
     async function fetchData() {

@@ -1,5 +1,5 @@
+import { TTransbelData } from '@/app/transbel/interfaz/page';
 import { ColumnDef } from '@tanstack/react-table';
-import { TTransbelData } from '../TransbelClientInterface';
 
 export const transbelInterfaceCD: ColumnDef<TTransbelData>[] = [
   {

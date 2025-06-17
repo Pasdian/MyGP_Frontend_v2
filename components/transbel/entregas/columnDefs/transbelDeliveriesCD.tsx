@@ -17,8 +17,7 @@ export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
     header: 'Fecha',
     cell: ({ row }) => {
       if (!row.original.FEC_ETAP) return '-';
-      const date = new Date(`${row.original.FEC_ETAP}T00:00:00`);
-      return date.toLocaleDateString('es-MX');
+      return row.original.FEC_ETAP;
     },
   },
   {
@@ -39,7 +38,7 @@ export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
   },
   {
     accessorKey: 'CVE_MODI',
-    header: 'CE MODI',
+    header: 'Usuario',
     cell: ({ row }) => {
       if (!row.original.CVE_MODI) return '-';
       return row.original.CVE_MODI;

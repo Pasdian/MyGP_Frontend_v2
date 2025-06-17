@@ -27,15 +27,15 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Deliveries } from '@/app/transbel/entregas/page';
 import React from 'react';
-import { ZDeliveriesSchema } from './schemas/ZDeliveriesSchema';
+import { ZUpdatePhaseSchema } from './schemas/ZDeliveriesSchemas';
 import { Row } from '@tanstack/react-table';
 
 export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof ZDeliveriesSchema>>({
-    resolver: zodResolver(ZDeliveriesSchema),
+  const form = useForm<z.infer<typeof ZUpdatePhaseSchema>>({
+    resolver: zodResolver(ZUpdatePhaseSchema),
     defaultValues: {
       NUM_REFE: row.original.NUM_REFE ? row.original.NUM_REFE : '',
       CVE_ETAP: row.original.CVE_ETAP ? row.original.CVE_ETAP : '',
@@ -46,17 +46,21 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
     },
   });
 
-  async function onSubmit(data: z.infer<typeof ZDeliveriesSchema>) {
+  async function onSubmit(data: z.infer<typeof ZUpdatePhaseSchema>) {
     await GPClient.post('/api/transbel/updatePhase', {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.CVE_ETAP,
-      date: `${data.FEC_ETAP}T${data.HOR_ETAP}:00.000Z`,
+      date: `${data.FEC_ETAP}T${data.HOR_ETAP}`,
       user: data.CVE_MODI,
     })
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
+          router.refresh();
+          setIsDialogOpen(() => false);
+        } else {
+          toast.error('No se pudieron actualizar tus datos');
           router.refresh();
           setIsDialogOpen(() => false);
         }
@@ -73,7 +77,7 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-full h-full max-h-full max-w-full rounded-none md:max-w-[500px] md:max-h-[650px] md:rounded-lg overflow-y-auto">
+        <DialogContent className="md:max-w-[500px] md:max-h-[650px] md:h-[650px] rounded-lg w-full h-[600px] max-h-full max-w-full overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Entrega</DialogTitle>
             <DialogDescription>
