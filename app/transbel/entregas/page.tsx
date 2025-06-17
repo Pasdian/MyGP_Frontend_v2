@@ -1,10 +1,11 @@
-import GPLayout from '@/components/gp-layout';
+import TransbelDeliveries from '@/components/transbel/entregas/TransbelDeliveries';
 
-function Deliveries() {
+export default async function Deliveries() {
   return (
-    <GPLayout>
-      <div>Deliveries</div>
-    </GPLayout>
+    <div>
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas</h1>
+      {/*Transbel Deliveries DataTable*/}
+      <TransbelDeliveries />
+    </div>
   );
 }
-export default Deliveries;

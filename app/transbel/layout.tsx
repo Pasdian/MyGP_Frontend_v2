@@ -3,9 +3,10 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/site-header';
 import React from 'react';
 
-export default function GPLayout({ children }: { children: React.ReactNode }) {
+export default function TransbelLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider
+      className="overflow-hidden"
       style={
         {
           '--sidebar-width': 'calc(var(--spacing) * 72)',
@@ -14,10 +15,12 @@ export default function GPLayout({ children }: { children: React.ReactNode }) {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
-        {children}
-      </SidebarInset>
+      <div className="w-full max-w-full overflow-scroll">
+        <SidebarInset>
+          <SiteHeader />
+          <div className="p-6">{children}</div>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }
