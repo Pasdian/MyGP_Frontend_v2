@@ -8,7 +8,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  Table as TTable,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -23,62 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Input } from '../../ui/input';
-import { Label } from '../../ui/label';
 import { TTransbelData } from './TransbelClientInterface';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Deliveries } from '../entregas/TransbelDeliveries';
-
-const transbelCols: { accessorKey: string; placeholder: string }[] = [
-  {
-    accessorKey: 'REFERENCIA',
-    placeholder: 'Filtrar por Referencia:',
-  },
-  {
-    accessorKey: 'EE__GE',
-    placeholder: 'Filtrar por EE/GE:',
-  },
-  {
-    accessorKey: 'ADU_DESP',
-    placeholder: 'Filtrar por Aduana:',
-  },
-  {
-    accessorKey: 'REVALIDACION_073',
-    placeholder: 'Filtrar por Revalidación:',
-  },
-  {
-    accessorKey: 'ULTIMO_DOCUMENTO_114',
-    placeholder: 'Filtrar por Último Documento:',
-  },
-  {
-    accessorKey: 'ENTREGA_TRANSPORTE_138',
-    placeholder: 'Filtrar por Entrega de Transporte:',
-  },
-  {
-    accessorKey: 'CE_138',
-    placeholder: 'Filtrar por CE 138:',
-  },
-  {
-    accessorKey: 'MSA_130',
-    placeholder: 'Filtrar por MSA:',
-  },
-  {
-    accessorKey: 'ENTREGA_CDP_140',
-    placeholder: 'Filtrar por Entrega CDP:',
-  },
-  {
-    accessorKey: 'CE_140',
-    placeholder: 'Filtrar por CE 140:',
-  },
-];
 
 {
   /* This datatable is only for displaying transbel interface data */
@@ -185,7 +129,7 @@ export function TransbelInterfaceDT({
   );
 }
 
-function Filter({ column }: { column: Column<any, any> }) {
+function Filter({ column }: { column: Column<TTransbelData, unknown> }) {
   const columnFilterValue = column.getFilterValue();
 
   return (
@@ -199,7 +143,7 @@ function Filter({ column }: { column: Column<any, any> }) {
           : 'text'
       }
       value={(columnFilterValue ?? '') as string}
-      onChange={(e) => column.setFilterValue(e.target.value)}
+      onChange={(e) => column.setFilterValue(e.target.value.trim())}
       placeholder={`Buscar...`}
       className="w-36 border shadow rounded"
     />

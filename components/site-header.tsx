@@ -11,10 +11,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export function SiteHeader() {
-  const router = useRouter();
   const pathname = usePathname();
 
   // Generate breadcrumbs from the current path
