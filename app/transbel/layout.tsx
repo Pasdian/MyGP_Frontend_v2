@@ -15,10 +15,10 @@ export default function TransbelLayout({ children }: { children: React.ReactNode
       }
     >
       <AppSidebar variant="inset" />
-      <div className="w-full max-w-full overflow-scroll">
-        <SidebarInset>
+      <div className="w-dvw h-dvh max-w-dvw max-h-dvh overflow-y-scroll bg-white">
+        <SidebarInset className="w-full h-full">
           <SiteHeader />
-          <div className="p-6">{children}</div>
+          <div className="h-full p-6 overflow-y-scroll">{children}</div>
         </SidebarInset>
       </div>
     </SidebarProvider>

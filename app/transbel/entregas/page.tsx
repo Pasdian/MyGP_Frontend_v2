@@ -47,7 +47,7 @@ export default async function Deliveries() {
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas</h1>
-      <TransbelAddPhase />
+      <TransbelAddPhase data={deliveries} />
       <TransbelDeliveries data={deliveries} />
     </div>
   );

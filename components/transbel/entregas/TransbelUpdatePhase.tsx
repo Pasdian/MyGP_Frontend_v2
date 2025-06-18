@@ -8,14 +8,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-import { ChevronDownIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 
 import { Input } from '@/components/ui/input';
 import { z } from 'zod';
-import { ControllerRenderProps, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,8 +31,10 @@ import { Deliveries } from '@/app/transbel/entregas/page';
 import React from 'react';
 import { ZUpdatePhaseSchema } from './schemas/ZDeliveriesSchemas';
 import { Row } from '@tanstack/react-table';
+import { Label } from '@/components/ui/label';
 
 export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
+  const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
 
@@ -47,7 +46,7 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
       FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP : '',
       HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP : '',
       OBS_ETAP: row.original.OBS_ETAP ? row.original.OBS_ETAP : '',
-      CVE_MODI: row.original.CVE_MODI ? row.original.CVE_MODI : '',
+      CVE_MODI: row.original.CVE_MODI ? 'MYGP' : '',
     },
   });
 
@@ -66,6 +65,7 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
           router.refresh();
+          setIsChecked((old) => (old ? !old : old));
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron actualizar tus datos');
@@ -80,12 +80,15 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
 
   return (
     <div>
-      <Button className="bg-yellow-400 hover:bg-yellow-500" onClick={() => setIsDialogOpen(true)}>
+      <Button
+        className="cursor-pointer bg-yellow-400 hover:bg-yellow-500"
+        onClick={() => setIsDialogOpen(true)}
+      >
         Modificar
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="md:max-w-[500px] md:max-h-[650px] md:h-[650px] rounded-lg w-full h-[600px] max-h-full max-w-full overflow-y-auto">
+        <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Entrega</DialogTitle>
             <DialogDescription>
@@ -173,12 +176,33 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
                     <FormItem>
                       <FormLabel>C.E Modi</FormLabel>
                       <FormControl>
-                        <Input placeholder="CVE Modi..." className="mb-4" {...field} />
+                        <Input
+                          disabled={!isChecked}
+                          placeholder="CVE Modi..."
+                          className="mb-4"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                <div>
+                  <Label className="mb-3 hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950">
+                    <Checkbox
+                      id="toggle-2"
+                      checked={isChecked}
+                      className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
+                      onClick={() => setIsChecked(!isChecked)}
+                    />
+                    <div className="grid gap-1.5 font-normal">
+                      <p className="text-sm leading-none font-medium">Modificar usuario</p>
+                      <p className="text-muted-foreground text-sm">
+                        Puedes colocar el nombre del usuario que realice el cambio
+                      </p>
+                    </div>
+                  </Label>
+                </div>
               </div>
               <DialogFooter>
                 <DialogClose asChild>

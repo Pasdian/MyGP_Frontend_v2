@@ -25,7 +25,7 @@ import { transbelDeliveriesCD } from './columnDefs/transbelDeliveriesCD';
 import { transbelInterfaceCD } from '../interfaz/columnDefs/transbelInterfaceCD';
 
 export default function TransbelDeliveries({ data }: { data: Deliveries[] }) {
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 12 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
     data,

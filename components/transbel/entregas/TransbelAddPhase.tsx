@@ -26,12 +26,29 @@ import {
 import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { ZAddPhaseSchema } from './schemas/ZDeliveriesSchemas';
 import React from 'react';
+import { Deliveries } from '@/app/transbel/entregas/page';
 
-export default function TransbelAddPhase() {
+export default function TransbelAddPhase({ data }: { data: Deliveries[] }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
+
+  const ZAddPhaseSchema = z.object({
+    NUM_REFE: z.string().refine((val) => data.some((deliverie) => deliverie.NUM_REFE == val), {
+      message: 'La referencia no existe',
+    }),
+    CVE_ETAP: z
+      .string({ message: 'El C.E de la etapa debe de ser una cadena de caracteres' })
+      .min(2, { message: 'El C.E de la etapa debe de ser de mínimo 2 caracteres' })
+      .max(15, { message: 'El C.E de la etapa debe de ser de mínimo 15 caracteres' }),
+    OBS_ETAP: z
+      .string({ message: 'Las observaciones deben de ser una cadena de caracteres' })
+      .max(100, { message: 'Las observaciones deben de ser de máximo 100 caracteres' }),
+    CVE_MODI: z
+      .string({ message: 'El C.E Modi. deben de ser una cadena de caracteres' })
+      .min(2, { message: 'El C.E Modi. debe de ser de mínimo de 2 carácteres' })
+      .max(15, { message: 'El C.E Modi. debe de ser de máximo de 15 carácteres' }),
+  });
 
   const form = useForm<z.infer<typeof ZAddPhaseSchema>>({
     resolver: zodResolver(ZAddPhaseSchema),
@@ -68,12 +85,15 @@ export default function TransbelAddPhase() {
 
   return (
     <div>
-      <Button className="bg-blue-400 hover:bg-blue-500 mb-4" onClick={() => setIsDialogOpen(true)}>
+      <Button
+        className="cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4"
+        onClick={() => setIsDialogOpen(true)}
+      >
         Añadir Entrega
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="md:max-w-[500px] md:max-h-[500px] rounded-lg w-full h-[550px] max-h-full max-w-full overflow-y-auto">
+        <DialogContent className="md:max-w-[500px] md:max-h-[600px] rounded-lg max-h-full max-w-full overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Añadir Entrega</DialogTitle>
             <DialogDescription>
@@ -133,14 +153,14 @@ export default function TransbelAddPhase() {
                     <FormItem>
                       <FormLabel>Usuario</FormLabel>
                       <FormControl>
-                        <Input placeholder="CVE Modi..." className="mb-4" {...field} />
+                        <Input placeholder="CVE Modi..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <DialogFooter>
+              <DialogFooter className="mt-6">
                 <DialogClose asChild>
                   <Button variant="outline">Cancelar</Button>
                 </DialogClose>
