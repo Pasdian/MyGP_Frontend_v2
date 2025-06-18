@@ -2,7 +2,7 @@ import { GPClient } from '@/axios-instance';
 import TransbelClientInterface from '@/components/transbel/interfaz/TransbelClientInterface';
 import { cookies } from 'next/headers';
 
-export type TTransbelData = {
+export type RefsPending = {
   REFERENCIA: string;
   EE__GE: string;
   ADU_DESP: string;
@@ -16,6 +16,7 @@ export type TTransbelData = {
 };
 
 export default async function Interfaz() {
+  let refsPending: RefsPending[] = [];
   const session_token = (await cookies()).get('session_token')?.value;
 
   const res = await GPClient.get('/api/transbel/getRefsPendingCE', {
@@ -25,6 +26,7 @@ export default async function Interfaz() {
     },
   });
 
-  const getRefsPendingCE: TTransbelData[] = await res.data;
-  return <TransbelClientInterface defaultData={getRefsPendingCE} />;
+  refsPending = await res.data;
+
+  return <TransbelClientInterface defaultData={refsPending} />;
 }

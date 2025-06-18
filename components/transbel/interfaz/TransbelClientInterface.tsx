@@ -11,17 +11,17 @@ import { Button } from '@/components/ui/button';
 import { ChevronDownIcon } from 'lucide-react';
 import { es } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
-import { TTransbelData } from '@/app/transbel/interfaz/page';
+import { RefsPending } from '@/app/transbel/interfaz/page';
 
 // Define the type for our data
 
 const today = new Date();
 
-export default function TransbelClientInterface({ defaultData }: { defaultData: TTransbelData[] }) {
+export default function TransbelClientInterface({ defaultData }: { defaultData: RefsPending[] }) {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [data, setData] = React.useState<TTransbelData[]>(defaultData);
+  const [data, setData] = React.useState<RefsPending[]>(defaultData);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -48,14 +48,14 @@ export default function TransbelClientInterface({ defaultData }: { defaultData: 
       }
 
       // Format both dates as yyyy-mm-dd
-      const formattedInitialDate = initialDate?.toISOString().split('T')[0];
-      const formattedFinalDate = finalDate?.toISOString().split('T')[0];
+      const initialDateISO = initialDate?.toISOString().split('T')[0];
+      const finalDateISO = finalDate?.toISOString().split('T')[0];
 
       setIsLoading((oldState) => !oldState);
       await GPClient.get(
-        `/api/transbel/getRefsPendingCE?initialDate=${formattedInitialDate}&finalDate=${formattedFinalDate}`
+        `/api/transbel/getRefsPendingCE?initialDate=${initialDateISO}&finalDate=${finalDateISO}`
       )
-        .then((res: { data: TTransbelData[] }) => {
+        .then((res: { data: RefsPending[] }) => {
           const data = res.data;
           if (data.length == 0) {
             toast.error('No hay resultados para las fechas seleccionadas');
@@ -63,16 +63,53 @@ export default function TransbelClientInterface({ defaultData }: { defaultData: 
             setIsLoading((oldState) => !oldState);
             return;
           }
-
+          console.log(data);
           // Only get date as yyyy-mm-dd
-          data.map((item: TTransbelData) => {
-            if (item.MSA_130) item.MSA_130 = item.MSA_130.split('T')[0];
-            if (item.ENTREGA_CDP_140) item.ENTREGA_CDP_140 = item.ENTREGA_CDP_140.split('T')[0];
-            if (item.REVALIDACION_073) item.REVALIDACION_073 = item.REVALIDACION_073.split('T')[0];
-            if (item.ENTREGA_TRANSPORTE_138)
-              item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138.split('T')[0];
-            if (item.ULTIMO_DOCUMENTO_114)
-              item.ULTIMO_DOCUMENTO_114 = item.ULTIMO_DOCUMENTO_114.split('T')[0];
+          data.map((item: RefsPending) => {
+            if (item.MSA_130) {
+              const date = new Date(item.MSA_130).toLocaleDateString('es-pa').split('/');
+              const month = date[0];
+              const day = date[1];
+              const year = date[2];
+              // ISO format
+              item.MSA_130 = `${year}-${month}-${day}`;
+            }
+            if (item.ENTREGA_CDP_140) {
+              const date = new Date(item.ENTREGA_CDP_140).toLocaleDateString('es-pa').split('/');
+              const month = date[0];
+              const day = date[1];
+              const year = date[2];
+              // ISO format
+              item.ENTREGA_CDP_140 = `${year}-${month}-${day}`;
+            }
+            if (item.REVALIDACION_073) {
+              const date = new Date(item.REVALIDACION_073).toLocaleDateString('es-pa').split('/');
+              const month = date[0];
+              const day = date[1];
+              const year = date[2];
+              // ISO format
+              item.REVALIDACION_073 = `${year}-${month}-${day}`;
+            }
+            if (item.ENTREGA_TRANSPORTE_138) {
+              const date = new Date(item.ENTREGA_TRANSPORTE_138)
+                .toLocaleDateString('es-pa')
+                .split('/');
+              const month = date[0];
+              const day = date[1];
+              const year = date[2];
+              // ISO format
+              item.ENTREGA_TRANSPORTE_138 = `${year}-${month}-${day}`;
+            }
+            if (item.ULTIMO_DOCUMENTO_114) {
+              const date = new Date(item.ULTIMO_DOCUMENTO_114)
+                .toLocaleDateString('es-pa')
+                .split('/');
+              const month = date[0];
+              const day = date[1];
+              const year = date[2];
+              // ISO format
+              item.ULTIMO_DOCUMENTO_114 = `${year}-${month}-${day}`;
+            }
           });
 
           setData(data);
