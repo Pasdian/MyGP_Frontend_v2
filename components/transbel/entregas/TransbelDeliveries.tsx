@@ -127,7 +127,9 @@ function Filter({
     <Input
       type={column.id == 'FEC_ETAP' ? 'date' : column.id == 'ACCIONES' ? '' : 'text'}
       value={(columnFilterValue ?? '') as string}
-      onChange={(e) => column.setFilterValue(e.target.value.trim())}
+      onChange={(e) => {
+        column.setFilterValue(e.target.value.trim());
+      }}
       placeholder={`Buscar...`}
       className={column.id == 'ACCIONES' ? 'hidden' : 'w-36 border shadow rounded'}
     />

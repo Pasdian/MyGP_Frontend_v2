@@ -25,10 +25,22 @@ export default async function Deliveries() {
   const deliveries: Deliveries[] = res.data;
 
   deliveries.map((item) => {
-    if (item.FEC_ETAP) item.FEC_ETAP = item.FEC_ETAP.split('T')[0];
+    if (item.FEC_ETAP) {
+      const date = new Date(item.FEC_ETAP);
+      const formatDate = date.toLocaleDateString('es-pa').split('/'); // Get date as mm-dd-yyyy
+      const month = formatDate[0];
+      const day = formatDate[1];
+      const year = formatDate[2];
+      // ISO format
+      item.FEC_ETAP = `${year}-${month}-${day}`;
+    }
 
     if (item.HOR_ETAP) {
-      item.HOR_ETAP = item.HOR_ETAP.split('T')[1].substring(0, 5);
+      item.HOR_ETAP = item.HOR_ETAP = new Date(item.HOR_ETAP).toLocaleTimeString('es-MX', {
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: false,
+      });
     }
   });
 

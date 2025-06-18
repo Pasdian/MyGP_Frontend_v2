@@ -6,12 +6,8 @@ export const ZUpdatePhaseSchema = z.object({
     .string({ message: 'El C.E de la etapa debe de ser una cadena de caracteres' })
     .min(2, { message: 'El C.E de la etapa debe de ser de mínimo 2 caracteres' })
     .max(15, { message: 'El C.E de la etapa debe de ser de mínimo 15 caracteres' }),
-  FEC_ETAP: z
-    .string({ message: 'El fecha de la etapa debe de ser una cadena de caracteres' })
-    .length(10, { message: 'Fecha incorrecta, utiliza el formato dd-mm-yyyy' }),
-  HOR_ETAP: z
-    .string({ message: 'La hora de la etapa debe de ser una cadena de caracteres' })
-    .length(5, { message: 'Hora incorrecta, utiliza el formato hh:mm' }),
+  FEC_ETAP: z.string({ message: 'La fecha debe ser una cadena de caracteres' }),
+  HOR_ETAP: z.string({ message: 'La hora debe ser una cadena de caracteres' }),
   OBS_ETAP: z
     .string({ message: 'Las observaciones deben de ser una cadena de caracteres' })
     .max(100, { message: 'Las observaciones deben de ser de máximo 100 caracteres' }),

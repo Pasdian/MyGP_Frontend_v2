@@ -17,7 +17,13 @@ export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
     header: 'Fecha',
     cell: ({ row }) => {
       if (!row.original.FEC_ETAP) return '-';
-      return row.original.FEC_ETAP;
+      const dateStr = row.original.FEC_ETAP.split('-');
+      const year = dateStr[0];
+      const month = dateStr[1];
+      const day = dateStr[2];
+      // es-ES format
+
+      return `${day}/${month}/${year}`;
     },
   },
   {

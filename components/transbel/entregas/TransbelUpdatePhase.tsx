@@ -8,9 +8,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+import { ChevronDownIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 import { Input } from '@/components/ui/input';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { ControllerRenderProps, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,11 +52,14 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
   });
 
   async function onSubmit(data: z.infer<typeof ZUpdatePhaseSchema>) {
+    const date = new Date(`${data.FEC_ETAP} ${data.HOR_ETAP}`);
+    const timestamp = +date;
+
     await GPClient.post('/api/transbel/updatePhase', {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.CVE_ETAP,
-      date: `${data.FEC_ETAP}T${data.HOR_ETAP}`,
+      date: timestamp, // Timestamp
       user: data.CVE_MODI,
     })
       .then((res) => {
@@ -123,7 +131,7 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
                     <FormItem>
                       <FormLabel>Fecha</FormLabel>
                       <FormControl>
-                        <Input type="date" placeholder="Fecha..." {...field} />
+                        <Input type="date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

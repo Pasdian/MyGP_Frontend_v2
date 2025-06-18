@@ -42,10 +42,8 @@ export default function TransbelAddPhase() {
       CVE_MODI: '',
     },
   });
-  console.log(form.formState.errors);
 
   async function onSubmit(data: z.infer<typeof ZAddPhaseSchema>) {
-    console.log(data);
     await GPClient.post('/api/transbel/addPhase', {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
