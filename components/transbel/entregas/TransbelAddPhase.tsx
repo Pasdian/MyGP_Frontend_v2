@@ -29,15 +29,8 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Deliveries } from '@/app/transbel/entregas/page';
 
-export default function TransbelAddPhase({
-  data,
-  refs,
-}: {
-  data: Deliveries[];
-  refs: { NUM_REFE: string }[];
-}) {
+export default function TransbelAddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
   const router = useRouter();
@@ -52,7 +45,7 @@ export default function TransbelAddPhase({
 
   const ZAddPhaseSchema = z.object({
     NUM_REFE: z.string().refine((val) => refs.some((ref) => ref.NUM_REFE == val), {
-      message: 'La referencia no existe',
+      error: 'La referencia no existe',
     }),
     HOR_ETAP: z.iso.time({
       error: 'La hora no tiene el formato especificado HH:mm',
@@ -60,19 +53,15 @@ export default function TransbelAddPhase({
     }),
     FEC_ETAP: z.iso.date({ error: 'La fecha no tiene el formato específicado yyyy-mm-dd' }),
     CVE_ETAP: z
-      .string({ message: 'El C.E de la etapa debe de ser una cadena de caracteres' })
-      .min(2, { message: 'El C.E de la etapa debe de ser de mínimo 2 caracteres' })
-      .max(15, { message: 'El C.E de la etapa debe de ser de mínimo 15 caracteres' }),
-    // .refine((val) => data.some((deliverie) => deliverie.CVE_ETAP == val), {
-    //   error: 'Ya existe un código de excepción',
-    // }),
+      .string({ error: 'El código de la etapa debe de ser siempre 140' })
+      .length(3, { error: 'El código de la etapa debe ser 140' }), // 140 - Entregas
     OBS_ETAP: z
-      .string({ message: 'Las observaciones deben de ser una cadena de caracteres' })
-      .max(100, { message: 'Las observaciones deben de ser de máximo 100 caracteres' }),
-    CVE_MODI: z
-      .string({ message: 'El usuario deben de ser una cadena de caracteres' })
-      .min(2, { message: 'El usuario debe de ser de mínimo de 2 carácteres' })
-      .max(15, { message: 'El usuario debe de ser de máximo de 15 carácteres' }),
+      .string({ error: 'El código de excepción debe de ser una cadena de caracteres' })
+      .min(4, { error: 'El código de excepción debe de ser de mínimo 4 caracteres' }),
+    USUARIO: z
+      .string({ error: 'El usuario deben de ser una cadena de caracteres' })
+      .min(2, { error: 'El usuario debe de ser de mínimo de 2 carácteres' })
+      .max(15, { error: 'El usuario debe de ser de máximo de 15 carácteres' }),
   });
 
   const form = useForm<z.infer<typeof ZAddPhaseSchema>>({
@@ -81,26 +70,22 @@ export default function TransbelAddPhase({
       NUM_REFE: '',
       CVE_ETAP: '140', // Codigo de Excepción 140 - Entregas
       OBS_ETAP: '',
-      CVE_MODI: 'MYGP',
+      USUARIO: 'MYGP',
       FEC_ETAP: today,
       HOR_ETAP: time,
     },
   });
 
-  console.log(
-    data.filter((deliverie) => deliverie.NUM_REFE == 'PAI242944' && deliverie.CVE_ETAP == '140')
-  );
-
   async function onSubmit(data: z.infer<typeof ZAddPhaseSchema>) {
     const date = new Date(`${data.FEC_ETAP} ${data.HOR_ETAP}`);
     const timestamp = +date;
-    console.log(data);
+
     await GPClient.post('/api/transbel/addPhase', {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
       date: timestamp, // Timestamp
-      user: data.CVE_MODI,
+      user: data.USUARIO,
     })
       .then((res) => {
         if (res.status == 200) {
@@ -114,6 +99,13 @@ export default function TransbelAddPhase({
         }
       })
       .catch((error) => {
+        if (
+          error.status == 500 ||
+          error.response.data.message.startsWith('Violation of PRIMARY or UNIQUE KEY constraint')
+        ) {
+          toast.error('Ya existe una entrega asociada a esa referencia');
+          return;
+        }
         toast.error(error.response.data.message);
       });
   }
@@ -153,19 +145,6 @@ export default function TransbelAddPhase({
                   )}
                 />
 
-                {/* <FormField
-                  control={form.control}
-                  name="CVE_ETAP"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>C.E de la Etapa</FormLabel>
-                      <FormControl>
-                        <Input placeholder="CVE Etapa..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
                 <FormField
                   control={form.control}
                   name="FEC_ETAP"
@@ -210,7 +189,7 @@ export default function TransbelAddPhase({
 
                 <FormField
                   control={form.control}
-                  name="CVE_MODI"
+                  name="USUARIO"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Usuario</FormLabel>

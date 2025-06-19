@@ -31,6 +31,14 @@ export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
     },
   },
   {
+    accessorKey: 'Clave Etapa',
+    header: 'CVE_ETAP',
+    cell: ({ row }) => {
+      if (!row.original.OBS_ETAP) return '-';
+      return row.original.CVE_ETAP;
+    },
+  },
+  {
     accessorKey: 'OBS_ETAP',
     header: 'Código de Excepción',
     cell: ({ row }) => {

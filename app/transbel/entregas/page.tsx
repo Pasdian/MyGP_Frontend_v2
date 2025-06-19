@@ -15,7 +15,7 @@ export type Deliveries = {
 export default async function Deliveries() {
   const session_token = (await cookies()).get('session_token')?.value;
 
-  let [deliveriesRes, transbelRefs] = await Promise.all([
+  const [deliveriesRes, transbelRefs] = await Promise.all([
     GPClient.get(`/api/transbel/getDeliveries`, {
       headers: {
         Authorization: `Bearer ${session_token}`,
@@ -56,7 +56,7 @@ export default async function Deliveries() {
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas</h1>
-      <TransbelAddPhase data={deliveries} refs={refs} />
+      <TransbelAddPhase refs={refs} />
       <TransbelDeliveries data={deliveries} />
     </div>
   );
