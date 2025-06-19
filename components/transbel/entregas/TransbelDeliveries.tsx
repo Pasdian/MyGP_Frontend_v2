@@ -22,7 +22,6 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Deliveries } from '@/app/transbel/entregas/page';
 import { transbelDeliveriesCD } from './columnDefs/transbelDeliveriesCD';
-import { transbelInterfaceCD } from '../interfaz/columnDefs/transbelInterfaceCD';
 
 export default function TransbelDeliveries({ data }: { data: Deliveries[] }) {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
@@ -80,7 +79,7 @@ export default function TransbelDeliveries({ data }: { data: Deliveries[] }) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={transbelInterfaceCD.length} className="h-24 text-center">
+                <TableCell colSpan={transbelDeliveriesCD.length} className="h-24 text-center">
                   Sin resultados.
                 </TableCell>
               </TableRow>
