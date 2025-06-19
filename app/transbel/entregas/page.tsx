@@ -15,14 +15,23 @@ export type Deliveries = {
 export default async function Deliveries() {
   const session_token = (await cookies()).get('session_token')?.value;
 
-  const res = await GPClient.get(`/api/transbel/getDeliveries`, {
-    headers: {
-      Authorization: `Bearer ${session_token}`,
-      'Cache-Control': 'no-cache',
-    },
-  });
+  let [deliveriesRes, transbelRefs] = await Promise.all([
+    GPClient.get(`/api/transbel/getDeliveries`, {
+      headers: {
+        Authorization: `Bearer ${session_token}`,
+        'Cache-Control': 'no-cache',
+      },
+    }),
+    GPClient.get(`/api/transbel/getTransbelRefs`, {
+      headers: {
+        Authorization: `Bearer ${session_token}`,
+        'Cache-Control': 'no-cache',
+      },
+    }),
+  ]);
 
-  const deliveries: Deliveries[] = res.data;
+  const deliveries: Deliveries[] = await deliveriesRes.data;
+  const refs: { NUM_REFE: string }[] = await transbelRefs.data;
 
   deliveries.map((item) => {
     if (item.FEC_ETAP) {
@@ -47,7 +56,7 @@ export default async function Deliveries() {
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas</h1>
-      <TransbelAddPhase data={deliveries} />
+      <TransbelAddPhase data={deliveries} refs={refs} />
       <TransbelDeliveries data={deliveries} />
     </div>
   );

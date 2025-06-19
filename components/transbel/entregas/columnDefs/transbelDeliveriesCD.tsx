@@ -9,10 +9,6 @@ export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
     header: 'Referencia',
   },
   {
-    accessorKey: 'CVE_ETAP',
-    header: 'CE Etapa',
-  },
-  {
     accessorKey: 'FEC_ETAP',
     header: 'Fecha',
     cell: ({ row }) => {
@@ -36,7 +32,7 @@ export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
   },
   {
     accessorKey: 'OBS_ETAP',
-    header: 'Observaciones',
+    header: 'Código de Excepción',
     cell: ({ row }) => {
       if (!row.original.OBS_ETAP) return '-';
       return row.original.OBS_ETAP;

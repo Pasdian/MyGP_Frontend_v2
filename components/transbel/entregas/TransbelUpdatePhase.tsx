@@ -11,7 +11,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Input } from '@/components/ui/input';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -42,9 +42,9 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
     resolver: zodResolver(ZUpdatePhaseSchema),
     defaultValues: {
       NUM_REFE: row.original.NUM_REFE ? row.original.NUM_REFE : '',
-      CVE_ETAP: row.original.CVE_ETAP ? row.original.CVE_ETAP : '',
-      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP : '',
-      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP : '',
+      CVE_ETAP: '140',
+      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP : '00:00',
+      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP : '1970-01-01',
       OBS_ETAP: row.original.OBS_ETAP ? row.original.OBS_ETAP : '',
       CVE_MODI: row.original.CVE_MODI ? 'MYGP' : '',
     },
@@ -57,7 +57,7 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
     await GPClient.post('/api/transbel/updatePhase', {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
-      exceptionCode: data.CVE_ETAP,
+      exceptionCode: data.OBS_ETAP,
       date: timestamp, // Timestamp
       user: data.CVE_MODI,
     })
@@ -106,14 +106,14 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
                     <FormItem>
                       <FormLabel>Referencia</FormLabel>
                       <FormControl>
-                        <Input placeholder="Referencia..." {...field} />
+                        <Input disabled placeholder="Referencia..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="CVE_ETAP"
                   render={({ field }) => (
@@ -125,7 +125,7 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 <FormField
                   control={form.control}
@@ -160,9 +160,9 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
                   name="OBS_ETAP"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Observaciones</FormLabel>
+                      <FormLabel>Código de Excepción</FormLabel>
                       <FormControl>
-                        <Input placeholder="Observaciones..." {...field} />
+                        <Input placeholder="Código de Excepción..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -174,7 +174,7 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
                   name="CVE_MODI"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>C.E Modi</FormLabel>
+                      <FormLabel>Usuario</FormLabel>
                       <FormControl>
                         <Input
                           disabled={!isChecked}
