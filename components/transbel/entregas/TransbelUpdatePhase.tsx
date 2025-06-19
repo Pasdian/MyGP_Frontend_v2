@@ -113,20 +113,6 @@ export default function TransbelUpdatePhase({ row }: { row: Row<Deliveries> }) {
                   )}
                 />
 
-                {/* <FormField
-                  control={form.control}
-                  name="CVE_ETAP"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>C.E de la Etapa</FormLabel>
-                      <FormControl>
-                        <Input placeholder="CVE Etapa..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
-
                 <FormField
                   control={form.control}
                   name="FEC_ETAP"
