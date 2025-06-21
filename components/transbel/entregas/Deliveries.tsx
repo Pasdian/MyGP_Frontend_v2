@@ -20,15 +20,15 @@ import {
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Deliveries } from '@/app/transbel/entregas/page';
-import { transbelDeliveriesCD } from './columnDefs/transbelDeliveriesCD';
+import { Delivery } from '@/app/transbel/entregas/page';
+import { columnDef } from './columnDef/columnDef';
 
-export default function TransbelDeliveries({ data }: { data: Deliveries[] }) {
+export default function Deliveries({ data }: { data: Delivery[] }) {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
     data,
-    columns: transbelDeliveriesCD,
+    columns: columnDef,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -79,7 +79,7 @@ export default function TransbelDeliveries({ data }: { data: Deliveries[] }) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={transbelDeliveriesCD.length} className="h-24 text-center">
+                <TableCell colSpan={columnDef.length} className="h-24 text-center">
                   Sin resultados.
                 </TableCell>
               </TableRow>
@@ -117,7 +117,7 @@ function Filter({
   column,
 }: // table, // Debug purposes
 {
-  column: Column<Deliveries, unknown>;
+  column: Column<Delivery, unknown>;
   // table: TTable<Deliveries>;
 }) {
   const columnFilterValue = column.getFilterValue();
@@ -130,7 +130,7 @@ function Filter({
         column.setFilterValue(e.target.value.trim());
       }}
       placeholder={`Buscar...`}
-      className={column.id == 'ACCIONES' ? 'hidden' : 'w-36 border shadow rounded'}
+      className={column.id == 'ACCIONES' ? 'hidden' : 'mb-4 rounded'}
     />
   );
 }

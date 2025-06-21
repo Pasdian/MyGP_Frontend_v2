@@ -1,9 +1,20 @@
 import { ColumnDef } from '@tanstack/react-table';
 import React from 'react';
-import { Deliveries } from '@/app/transbel/entregas/page';
-import TransbelUpdatePhase from '../TransbelUpdatePhase';
+import TransbelUpdatePhase from '../UpdatePhase';
+import { Delivery } from '@/app/transbel/entregas/page';
 
-export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
+export const columnDef: ColumnDef<Delivery>[] = [
+  {
+    accessorKey: 'ACCIONES',
+    header: 'Acciones',
+    cell: ({ row }) => {
+      if (row) {
+        return <TransbelUpdatePhase row={row} />;
+      } else {
+        return '-';
+      }
+    },
+  },
   {
     accessorKey: 'NUM_REFE',
     header: 'Referencia',
@@ -44,17 +55,6 @@ export const transbelDeliveriesCD: ColumnDef<Deliveries>[] = [
     cell: ({ row }) => {
       if (!row.original.CVE_MODI) return '-';
       return row.original.CVE_MODI;
-    },
-  },
-  {
-    accessorKey: 'ACCIONES',
-    header: 'Acciones',
-    cell: ({ row }) => {
-      if (row) {
-        return <TransbelUpdatePhase row={row} />;
-      } else {
-        return '-';
-      }
     },
   },
 ];

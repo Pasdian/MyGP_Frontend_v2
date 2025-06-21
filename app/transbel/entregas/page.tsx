@@ -1,9 +1,9 @@
 import { GPClient } from '@/axios-instance';
-import TransbelAddPhase from '@/components/transbel/entregas/TransbelAddPhase';
-import TransbelDeliveries from '@/components/transbel/entregas/TransbelDeliveries';
+import Deliveries from '@/components/transbel/entregas/Deliveries';
 import { cookies } from 'next/headers';
+import AddPhase from '@/components/transbel/entregas/AddPhase';
 
-export type Deliveries = {
+export type Delivery = {
   NUM_REFE: string | null;
   CVE_ETAP: string | null;
   FEC_ETAP: string | null;
@@ -12,7 +12,7 @@ export type Deliveries = {
   CVE_MODI: string | null;
 };
 
-export default async function Deliveries() {
+export default async function Page() {
   const session_token = (await cookies()).get('session_token')?.value;
 
   const [deliveriesRes, transbelRefs] = await Promise.all([
@@ -30,7 +30,7 @@ export default async function Deliveries() {
     }),
   ]);
 
-  const deliveries: Deliveries[] = await deliveriesRes.data;
+  const deliveries: Delivery[] = await deliveriesRes.data;
   const refs: { NUM_REFE: string }[] = await transbelRefs.data;
 
   deliveries.map((item) => {
@@ -56,8 +56,8 @@ export default async function Deliveries() {
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas</h1>
-      <TransbelAddPhase refs={refs} />
-      <TransbelDeliveries data={deliveries} />
+      <AddPhase refs={refs} />
+      <Deliveries data={deliveries} />
     </div>
   );
 }

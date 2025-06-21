@@ -30,7 +30,7 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 
-export default function TransbelAddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
+export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
   const router = useRouter();
