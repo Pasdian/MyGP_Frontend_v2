@@ -42,6 +42,7 @@ import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { InterfaceData } from './types/Interface';
 import { ExceptionCodeCombo } from './ExceptionCodeCombo';
+import { InterfaceContext } from './InterfaceClient';
 
 type Phase = {
   NUM_REFE: string;
@@ -53,6 +54,7 @@ type Phase = {
 };
 
 export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
+  const setShouldFetch = React.useContext(InterfaceContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
@@ -125,6 +127,7 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
           toast.success('Datos modificados correctamente');
           router.refresh();
           setIsChecked((old) => (old ? !old : old));
+          setShouldFetch ? setShouldFetch((old) => !old) : null;
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron actualizar tus datos');
@@ -145,7 +148,6 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
       >
         Modificar
       </Button>
-
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
           <DialogHeader>

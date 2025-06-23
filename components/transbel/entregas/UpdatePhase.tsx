@@ -27,7 +27,7 @@ import {
 import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { SetStateAction } from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { Delivery } from '@/app/transbel/entregas/page';
@@ -88,7 +88,6 @@ export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron actualizar tus datos');
-          router.refresh();
           setIsDialogOpen(() => false);
         }
       })
@@ -96,7 +95,6 @@ export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
         toast.error(error.response.data.message);
       });
   }
-
   return (
     <div>
       <Button

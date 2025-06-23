@@ -10,13 +10,17 @@ import FinalDatePicker from './FinalDatePicker';
 import { RefsPending } from '@/app/transbel/interfaz/page';
 import TailwindSpinner from '@/components/TailwindSpinner';
 
-// Define the type for our data
+export const InterfaceContext = React.createContext<
+  React.Dispatch<React.SetStateAction<boolean>> | undefined
+>(undefined);
 
+// Define the type for our data
 export default function InterfaceClient({ defaultData }: { defaultData: RefsPending[] }) {
   const today = new Date();
 
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
+  const [shouldFetch, setShouldFetch] = React.useState(false);
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState<InterfaceData[]>(defaultData);
@@ -117,7 +121,7 @@ export default function InterfaceClient({ defaultData }: { defaultData: RefsPend
         });
     }
     fetchData();
-  }, [initialDate, finalDate]);
+  }, [initialDate, finalDate, shouldFetch]);
 
   return (
     <div>
@@ -145,7 +149,15 @@ export default function InterfaceClient({ defaultData }: { defaultData: RefsPend
           <FinalDatePicker date={finalDate} setDate={setFinalDate} />
         </div>
       </div>
-      <div>{isLoading ? <TailwindSpinner /> : <DataTable columns={columnDef} data={data} />}</div>
+      <div>
+        {isLoading ? (
+          <TailwindSpinner />
+        ) : (
+          <InterfaceContext.Provider value={setShouldFetch}>
+            <DataTable columns={columnDef} data={data} />
+          </InterfaceContext.Provider>
+        )}
+      </div>
     </div>
   );
 }
