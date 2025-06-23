@@ -21,7 +21,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Input } from '@/components/ui/input';
-import { z } from 'zod/v4';
+import { formatError, z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { InterfaceData } from './types/Interface';
-import { ExceptionCodeDropdown } from './ExceptionCodeDropdown';
+import { ExceptionCodeCombo } from './ExceptionCodeCombo';
 
 type Phase = {
   NUM_REFE: string;
@@ -136,6 +136,7 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
         toast.error(error.response.data.message);
       });
   }
+
   return (
     <div>
       <Button
@@ -188,6 +189,8 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
                             <SelectItem value="073">073 - Revalidación</SelectItem>
                             <SelectItem value="114">114 - Último Documento</SelectItem>
                             <SelectItem value="130">130 - MSA</SelectItem>
+                            <SelectItem value="138">138 - Entrega a Transporte</SelectItem>
+                            <SelectItem value="140">140 - Entrega a CDP</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -231,17 +234,7 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
                     <FormItem>
                       <FormLabel>Código de Excepción</FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona un código..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="138">138 - Entrega a Transporte</SelectItem>
-                            <SelectItem value="140">140 - Entrega a CDP</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <ExceptionCodeCombo field={field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
