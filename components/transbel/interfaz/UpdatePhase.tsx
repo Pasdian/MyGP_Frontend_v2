@@ -21,7 +21,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Input } from '@/components/ui/input';
-import { formatError, z } from 'zod/v4';
+import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -36,27 +36,17 @@ import {
 
 import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { InterfaceData } from './types/Interface';
 import { ExceptionCodeCombo } from './ExceptionCodeCombo';
-
-type Phase = {
-  NUM_REFE: string;
-  CVE_ETAP: string;
-  FEC_ETAP: string;
-  HOR_ETAP: string;
-  OBS_ETAP: string;
-  CVE_MODI: string;
-};
+import { InterfaceContext } from './InterfaceClient';
 
 export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
+  const interfaceContext = React.useContext(InterfaceContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-
-  const router = useRouter();
 
   const date = new Date();
   const localDate = date.toLocaleDateString('es-pa').split('/');
@@ -123,12 +113,12 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
-          router.refresh();
+          interfaceContext?.setShouldFetch((old) => !old); // setShouldFetch must be treated as object, otherwise will cause build errors
           setIsChecked((old) => (old ? !old : old));
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron actualizar tus datos');
-          router.refresh();
+          interfaceContext?.setShouldFetch((old) => !old);
           setIsDialogOpen(() => false);
         }
       })
@@ -145,7 +135,6 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
       >
         Modificar
       </Button>
-
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
           <DialogHeader>

@@ -88,7 +88,6 @@ export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron actualizar tus datos');
-          router.refresh();
           setIsDialogOpen(() => false);
         }
       })
@@ -96,7 +95,6 @@ export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
         toast.error(error.response.data.message);
       });
   }
-
   return (
     <div>
       <Button

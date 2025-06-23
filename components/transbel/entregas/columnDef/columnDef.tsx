@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 import React from 'react';
-import TransbelUpdatePhase from '../UpdatePhase';
+import UpdatePhase from '../UpdatePhase';
 import { Delivery } from '@/app/transbel/entregas/page';
 
 export const columnDef: ColumnDef<Delivery>[] = [
@@ -9,7 +9,7 @@ export const columnDef: ColumnDef<Delivery>[] = [
     header: 'Acciones',
     cell: ({ row }) => {
       if (row) {
-        return <TransbelUpdatePhase row={row} />;
+        return <UpdatePhase row={row} />;
       } else {
         return '-';
       }
