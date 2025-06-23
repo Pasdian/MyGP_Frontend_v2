@@ -122,16 +122,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                   <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
                     Iniciar sesión
                   </Button>
-                  <Button variant="outline" className="w-full">
-                    Iniciar sesión con Google
-                  </Button>
                 </div>
-              </div>
-              <div className="mt-4 text-center text-sm">
-                ¿No tienes una cuenta?{' '}
-                <a href="#" className="underline underline-offset-4">
-                  Regístrate
-                </a>
               </div>
             </form>
           </Form>
