@@ -23,7 +23,6 @@ import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Input } from '../../ui/input';
 import { InterfaceData } from './types/Interface';
-import { InterfaceContext } from './InterfaceClient';
 
 {
   /* This datatable is only for displaying transbel interface data */

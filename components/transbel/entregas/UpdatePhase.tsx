@@ -27,7 +27,7 @@ import {
 import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import React, { SetStateAction } from 'react';
+import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { Delivery } from '@/app/transbel/entregas/page';

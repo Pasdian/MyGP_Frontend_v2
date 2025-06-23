@@ -4,20 +4,19 @@ import { toast } from 'sonner';
 import { columnDef } from './columnDef/columnDef';
 import { DataTable } from './DataTable';
 import { InterfaceData } from './types/Interface';
-import React from 'react';
+import React, { SetStateAction } from 'react';
 import InitialDatePicker from './InitialDatePicker';
 import FinalDatePicker from './FinalDatePicker';
 import { RefsPending } from '@/app/transbel/interfaz/page';
 import TailwindSpinner from '@/components/TailwindSpinner';
 
-export const InterfaceContext = React.createContext<
-  React.Dispatch<React.SetStateAction<boolean>> | undefined
->(undefined);
+export const InterfaceContext = React.createContext<{
+  setShouldFetch: React.Dispatch<SetStateAction<boolean>>;
+} | null>(null);
 
 // Define the type for our data
 export default function InterfaceClient({ defaultData }: { defaultData: RefsPending[] }) {
-  const today = new Date();
-
+  const [stateToday] = React.useState(new Date());
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
   const [shouldFetch, setShouldFetch] = React.useState(false);
@@ -27,6 +26,8 @@ export default function InterfaceClient({ defaultData }: { defaultData: RefsPend
 
   React.useEffect(() => {
     async function fetchData() {
+      const today = new Date();
+
       // Common mistakes that the user can do
       if (initialDate == undefined) {
         toast.error('Selecciona una fecha de inicio');
@@ -133,8 +134,8 @@ export default function InterfaceClient({ defaultData }: { defaultData: RefsPend
             initialDate == undefined ||
             finalDate == undefined ||
             initialDate >= finalDate ||
-            initialDate > today ||
-            finalDate > today ||
+            initialDate > stateToday ||
+            finalDate > stateToday ||
             finalDate <= initialDate
               ? null
               : `De ${initialDate?.toLocaleDateString(
@@ -153,7 +154,7 @@ export default function InterfaceClient({ defaultData }: { defaultData: RefsPend
         {isLoading ? (
           <TailwindSpinner />
         ) : (
-          <InterfaceContext.Provider value={setShouldFetch}>
+          <InterfaceContext.Provider value={{ setShouldFetch: setShouldFetch }}>
             <DataTable columns={columnDef} data={data} />
           </InterfaceContext.Provider>
         )}
