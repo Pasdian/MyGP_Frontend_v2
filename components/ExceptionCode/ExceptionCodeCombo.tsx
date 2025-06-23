@@ -22,24 +22,36 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { exceptionCodes } from './exceptionCodes';
 import { ControllerRenderProps } from 'react-hook-form';
+import { exceptionCodes } from '@/components/ExceptionCode/exceptionCodes';
 
 export function ExceptionCodeCombo({
   field,
 }: {
-  field: ControllerRenderProps<
-    {
-      REFERENCIA: string;
-      CE_140: string;
-      HOR_ETAP: string;
-      FEC_ETAP: string;
-      OBS_ETAP: string;
-      CVE_MODI: string;
-      CVE_ETAP: string;
-    },
-    'OBS_ETAP'
-  >;
+  field:
+    | ControllerRenderProps<
+        {
+          NUM_REFE: string;
+          HOR_ETAP: string;
+          FEC_ETAP: string;
+          CVE_ETAP: string;
+          OBS_ETAP: string;
+          USUARIO: string;
+        },
+        'OBS_ETAP'
+      >
+    | ControllerRenderProps<
+        {
+          REFERENCIA: string;
+          CE_140: string;
+          HOR_ETAP: string;
+          FEC_ETAP: string;
+          OBS_ETAP: string;
+          CVE_MODI: string;
+          CVE_ETAP: string;
+        },
+        'OBS_ETAP'
+      >;
 }) {
   const [open, setOpen] = React.useState(false);
 

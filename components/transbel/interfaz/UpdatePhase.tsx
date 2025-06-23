@@ -40,8 +40,8 @@ import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { InterfaceData } from './types/Interface';
-import { ExceptionCodeCombo } from './ExceptionCodeCombo';
 import { InterfaceContext } from './InterfaceClient';
+import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
 
 export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
   const interfaceContext = React.useContext(InterfaceContext);

@@ -29,6 +29,7 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ExceptionCodeCombo } from '../../ExceptionCode/ExceptionCodeCombo';
 
 export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -180,7 +181,7 @@ export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
                     <FormItem>
                       <FormLabel>Código de Excepción</FormLabel>
                       <FormControl>
-                        <Input placeholder="Código de Excepción..." {...field} />
+                        <ExceptionCodeCombo field={field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
