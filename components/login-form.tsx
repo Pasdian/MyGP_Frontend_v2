@@ -15,6 +15,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { GPClient } from '@/axios-instance';
 import React from 'react';
+import { AxiosError } from 'axios';
+import { LoginResponse } from '@/app/api/auth/login/route';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
@@ -37,23 +39,16 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       email: data.email,
       password: data.password,
     })
-      .then(
-        (res: {
-          data: {
-            token: string;
-            user: { id: number; uuid: number; name: string; email: string; role: string };
-          };
-        }) => {
-          toast.success('Inicio de sesión exitoso');
-          localStorage.setItem(
-            'user_info',
-            JSON.stringify({ name: res.data.user.name, email: res.data.user.email })
-          );
-          router.push('/transbel/dashboard');
-        }
-      )
-      .catch((error) => {
-        toast.error(error.response.data.message);
+      .then((res: { data: LoginResponse }) => {
+        toast.success('Inicio de sesión exitoso');
+        localStorage.setItem(
+          'user_info',
+          JSON.stringify({ name: res.data.name, email: res.data.email })
+        );
+        router.push('/transbel/dashboard');
+      })
+      .catch((error: AxiosError) => {
+        toast.error(error.message);
       });
   }
 

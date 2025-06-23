@@ -1,5 +1,6 @@
 import { GPClient } from '@/axios-instance';
 import InterfaceClient from '@/components/transbel/interfaz/InterfaceClient';
+import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
 
 export type RefsPending = {
@@ -15,18 +16,17 @@ export type RefsPending = {
   CE_140: string | null;
 };
 
-export default async function InterfaceServer() {
-  let refsPending: RefsPending[] = [];
-  const session_token = (await cookies()).get('session_token')?.value;
-
-  const res = await GPClient.get('/api/transbel/getRefsPendingCE', {
-    headers: {
-      Authorization: `Bearer ${session_token}`,
-      'Cache-Control': 'no-cache',
-    },
-  });
-
-  refsPending = await res.data;
-
-  return <InterfaceClient defaultData={refsPending} />;
+export default async function Page() {
+  try {
+    const res = await GPClient.get('/api/transbel/getRefsPendingCE', { withCredentials: true });
+    const refsPending: RefsPending[] = await res.data;
+    return <InterfaceClient defaultData={refsPending} />;
+  } catch (error) {
+    console.error(error);
+    return (
+      <div>
+        <p>Hubo un error al procesar tu solicitud, intentelo de nuevo más tarde</p>
+      </div>
+    );
+  }
 }
