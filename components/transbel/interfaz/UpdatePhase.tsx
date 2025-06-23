@@ -91,7 +91,7 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
       .string({ message: 'El usuario deben de ser una cadena de caracteres' })
       .min(2, { message: 'El usuario debe de ser de mínimo de 2 carácteres' })
       .max(15, { message: 'El usuario debe de ser de máximo de 15 carácteres' }),
-    PHASE: z
+    CVE_ETAP: z
       .string({ message: 'Selecciona una etapa a modificar' })
       .min(3, { message: 'La etapa a modificar debe de ser de mínimo 3 caracteres' }),
   });
@@ -105,7 +105,7 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
       FEC_ETAP: ISO_TODAY,
       CVE_MODI: 'MYGP',
       OBS_ETAP: '',
-      PHASE: '',
+      CVE_ETAP: '',
     },
   });
 
@@ -115,7 +115,7 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
 
     await GPClient.post('/api/transbel/updatePhase', {
       ref: data.REFERENCIA,
-      phase: data.CE_140,
+      phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
       date: timestamp,
       user: data.CVE_MODI,
@@ -174,7 +174,7 @@ export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
 
                 <FormField
                   control={form.control}
-                  name="PHASE"
+                  name="CVE_ETAP"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Etapa a Modificar</FormLabel>

@@ -42,7 +42,7 @@ export function ExceptionCodeCombo({
       FEC_ETAP: string;
       OBS_ETAP: string;
       CVE_MODI: string;
-      PHASE: string;
+      CVE_ETAP: string;
     },
     'OBS_ETAP'
   >;
