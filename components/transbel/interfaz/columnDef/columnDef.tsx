@@ -89,10 +89,40 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: 'EE__GE',
     header: 'EE/GE',
+    cell: ({ row }) => {
+      if (!row.original.EE__GE) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-center bg-red-400">--</p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>No existe EE/GE</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      }
+      return row.original.EE__GE;
+    },
   },
   {
     accessorKey: 'ADU_DESP',
     header: 'Aduana',
+    cell: ({ row }) => {
+      if (!row.original.ADU_DESP) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-center bg-red-400">--</p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>No existe número de aduana</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      }
+      return row.original.ADU_DESP;
+    },
   },
   {
     accessorKey: 'REVALIDACION_073',
