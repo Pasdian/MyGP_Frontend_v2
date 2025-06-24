@@ -26,7 +26,6 @@ import {
 
 import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
@@ -38,7 +37,6 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
   const deliveriesContext = React.useContext(DeliveriesContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const router = useRouter();
 
   const ZUpdatePhaseSchema = z.object({
     NUM_REFE: z.string().min(3, { message: 'La referencia debe de ser de mínimo 3 caracteres' }),

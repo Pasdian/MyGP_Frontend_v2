@@ -14,12 +14,11 @@ export const DeliveriesContext = React.createContext<{
 export default function DeliveriesClient() {
   const [deliveries, setDeliveries] = React.useState<getDeliveries[]>([]);
   const [refs, setRefs] = React.useState<{ NUM_REFE: string }[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [shouldFetch, setShouldFetch] = React.useState(false);
 
   React.useEffect(() => {
     async function fetchData() {
-      setIsLoading((old) => !old);
       const [deliveriesRes, transbelRefs] = await Promise.all([
         GPClient.get(`/api/transbel/getDeliveries`),
         GPClient.get(`/api/transbel/getTransbelRefs`),
