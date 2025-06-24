@@ -1,9 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 import React from 'react';
 import UpdatePhase from '../UpdatePhase';
-import { Delivery } from '@/app/transbel/entregas/page';
+import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
 
-export const columnDef: ColumnDef<Delivery>[] = [
+export const columnDef: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: 'ACCIONES',
     header: 'Acciones',

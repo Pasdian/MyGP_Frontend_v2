@@ -20,10 +20,10 @@ import {
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Delivery } from '@/app/transbel/entregas/page';
 import { columnDef } from './columnDef/columnDef';
+import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
 
-export default function Deliveries({ data }: { data: Delivery[] }) {
+export default function Deliveries({ data }: { data: getDeliveries[] }) {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
@@ -117,7 +117,7 @@ function Filter({
   column,
 }: // table, // Debug purposes
 {
-  column: Column<Delivery, unknown>;
+  column: Column<getDeliveries, unknown>;
   // table: TTable<Deliveries>;
 }) {
   const columnFilterValue = column.getFilterValue();

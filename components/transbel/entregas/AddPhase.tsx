@@ -30,8 +30,10 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ExceptionCodeCombo } from '../../ExceptionCode/ExceptionCodeCombo';
+import { DeliveriesContext } from './DeliveriesClient';
 
 export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
+  const deliveriesContext = React.useContext(DeliveriesContext);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
   const router = useRouter();
@@ -91,7 +93,7 @@ export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos subidos correctamente');
-          router.refresh();
+          deliveriesContext?.setShouldFetch((old) => !old);
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron subir tus datos');

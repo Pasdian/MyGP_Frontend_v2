@@ -30,10 +30,12 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
-import { Delivery } from '@/app/transbel/entregas/page';
 import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
+import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
+import { DeliveriesContext } from './DeliveriesClient';
 
-export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
+export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
+  const deliveriesContext = React.useContext(DeliveriesContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const router = useRouter();
@@ -84,7 +86,7 @@ export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
-          router.refresh();
+          deliveriesContext?.setShouldFetch((old) => !old);
           setIsChecked((old) => (old ? !old : old));
           setIsDialogOpen(() => false);
         } else {
