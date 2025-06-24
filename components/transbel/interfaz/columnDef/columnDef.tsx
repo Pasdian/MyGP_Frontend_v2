@@ -19,7 +19,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">--</p>
+              <p className="text-center bg-red-400">--</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>No existe un número de referencia</p>
@@ -35,7 +35,9 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         (trafficType == 'A' || trafficType == 'F' || trafficType == 'T')
       ) {
         const diffTimestamp =
-          +new Date(row.original.ULTIMO_DOCUMENTO_114) - +new Date(row.original.MSA_130);
+          +new Date(row.original.ULTIMO_DOCUMENTO_114.split('T')[0]) -
+          +new Date(row.original.MSA_130.split('T')[0]);
+
         const diffBetweenDates = diffTimestamp > 0 ? new Date(diffTimestamp).getDate() : 0; // Can't be negative
 
         if (diffBetweenDates > 4) {
@@ -43,10 +45,10 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           return (
             <Tooltip>
               <TooltipTrigger asChild>
-                <p className="bg-red-400">{row.original.REFERENCIA}</p>
+                <p className="text-center bg-red-400">{row.original.REFERENCIA}</p>
               </TooltipTrigger>
               <TooltipContent>
-                <p>
+                <p className="text-center">
                   La diferencia entre la fecha de último documento y MSA es mayor a 4 días para
                   tráfico aéreo
                 </p>
@@ -60,7 +62,8 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         (trafficType == 'M' || trafficType == 'V')
       ) {
         const diffTimestamp =
-          +new Date(row.original.ULTIMO_DOCUMENTO_114) - +new Date(row.original.MSA_130);
+          +new Date(row.original.ULTIMO_DOCUMENTO_114.split('T')[0]) -
+          +new Date(row.original.MSA_130.split('T')[0]);
         const diffBetweenDates = diffTimestamp > 0 ? new Date(diffTimestamp).getDate() : 0; // Can't be negative
 
         if (diffBetweenDates > 11) {
@@ -68,7 +71,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           return (
             <Tooltip>
               <TooltipTrigger asChild>
-                <p className="bg-red-400">{row.original.REFERENCIA}</p>
+                <p className="text-center bg-red-400">{row.original.REFERENCIA}</p>
               </TooltipTrigger>
               <TooltipContent>
                 <p>
@@ -80,7 +83,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           );
         }
       }
-      return row.original.REFERENCIA;
+      return <p className="text-center">{row.original.REFERENCIA}</p>;
     },
   },
   {
@@ -99,7 +102,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">--</p>
+              <p className="text-center bg-red-400">--</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>No existe una fecha de revalidación</p>
@@ -108,19 +111,17 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      const dateStr = row.original.REVALIDACION_073.split('-');
-      const year = dateStr[0];
-      const month = dateStr[1];
-      const day = dateStr[2];
-
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.REVALIDACION_073 > row.original.ULTIMO_DOCUMENTO_114
+        row.original.REVALIDACION_073.split('T')[0] >
+          row.original.ULTIMO_DOCUMENTO_114.split('T')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">
+                {row.original.REVALIDACION_073.split('T')[0]}
+              </p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de revalidación es mayor que la fecha de último documento</p>
@@ -129,23 +130,31 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.REVALIDACION_073 > row.original.ENTREGA_TRANSPORTE_138
+        row.original.REVALIDACION_073.split('T')[0] >
+          row.original.ENTREGA_TRANSPORTE_138.split('T')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">
+                {row.original.REVALIDACION_073.split('T')[0]}
+              </p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de revalidación es mayor que la fecha de transporte</p>
             </TooltipContent>
           </Tooltip>
         );
-      } else if (row.original.MSA_130 && row.original.REVALIDACION_073 > row.original.MSA_130) {
+      } else if (
+        row.original.MSA_130 &&
+        row.original.REVALIDACION_073.split('T')[0] > row.original.MSA_130.split('T')[0]
+      ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">
+                {row.original.REVALIDACION_073.split('T')[0]}
+              </p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de revalidación es mayor que la fecha de MSA</p>
@@ -153,7 +162,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p>{`${day}/${month}/${year}`}</p>;
+        return <p className="text-center">{row.original.REVALIDACION_073.split('T')[0]}</p>;
       }
     },
   },
@@ -165,7 +174,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">--</p>
+              <p className="text-center bg-red-400">--</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>No existe una fecha de último documento</p>
@@ -174,30 +183,33 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      const dateStr = row.original.ULTIMO_DOCUMENTO_114.split('-');
-      const year = dateStr[0];
-      const month = dateStr[1];
-      const day = dateStr[2];
-
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ULTIMO_DOCUMENTO_114 > row.original.ENTREGA_TRANSPORTE_138
+        row.original.ULTIMO_DOCUMENTO_114.split('T')[0] >
+          row.original.ENTREGA_TRANSPORTE_138.split('T')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">
+                {row.original.ULTIMO_DOCUMENTO_114.split('T')[0]}
+              </p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha del último documento es mayor que la fecha de entrega de transporte</p>
             </TooltipContent>
           </Tooltip>
         );
-      } else if (row.original.MSA_130 && row.original.ULTIMO_DOCUMENTO_114 > row.original.MSA_130) {
+      } else if (
+        row.original.MSA_130 &&
+        row.original.ULTIMO_DOCUMENTO_114.split('T')[0] > row.original.MSA_130.split('T')[0]
+      ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-blue-400">
+                {row.original.ULTIMO_DOCUMENTO_114.split('T')[0]}
+              </p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de último documento es mayor que MSA</p>
@@ -205,7 +217,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p>{`${day}/${month}/${year}`}</p>;
+        return <p className="text-center">{row.original.ULTIMO_DOCUMENTO_114.split('T')[0]}</p>;
       }
     },
   },
@@ -218,7 +230,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           return (
             <Tooltip>
               <TooltipTrigger asChild>
-                <p className="bg-red-400">--</p>
+                <p className="text-center bg-red-400">--</p>
               </TooltipTrigger>
               <TooltipContent>
                 <p>No existe una fecha de entrega de transporte</p>
@@ -227,19 +239,18 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           );
         }
       }
-      const dateStr = row.original.ENTREGA_TRANSPORTE_138.split('-');
-      const year = dateStr[0];
-      const month = dateStr[1];
-      const day = dateStr[2];
 
       if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138 !== row.original.MSA_130
+        row.original.MSA_130 &&
+        row.original.ENTREGA_TRANSPORTE_138.split('T')[0] !== row.original.MSA_130.split('T')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">
+                {row.original.ENTREGA_TRANSPORTE_138.split('T')[0]}
+              </p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de entrega de transporte no es igual a MSA</p>
@@ -248,12 +259,15 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138 > row.original.ENTREGA_CDP_140
+        row.original.ENTREGA_TRANSPORTE_138.split('T')[0] >
+          row.original.ENTREGA_CDP_140.split('T')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">
+                {row.original.ENTREGA_TRANSPORTE_138.split('T')[0]}
+              </p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de entrega de transporte es mayor que la fecha de entrega CDP</p>
@@ -261,7 +275,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p>{`${day}/${month}/${year}`}</p>;
+        return <p className="text-center">{row.original.ENTREGA_TRANSPORTE_138.split('T')[0]}</p>;
       }
     },
   },
@@ -277,7 +291,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">--</p>
+              <p className="text-center bg-red-400">--</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>No existe una fecha de MSA</p>
@@ -285,16 +299,15 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       }
-      const dateStr = row.original.MSA_130.split('-');
-      const year = dateStr[0];
-      const month = dateStr[1];
-      const day = dateStr[2];
 
-      if (row.original.MSA_130 !== row.original.ENTREGA_TRANSPORTE_138) {
+      if (
+        row.original.ENTREGA_TRANSPORTE_138 &&
+        row.original.MSA_130.split('T')[0] !== row.original.ENTREGA_TRANSPORTE_138.split('T')[0]
+      ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">{row.original.MSA_130.split('T')[0]}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>MSA no es igual a la fecha de entrega de transporte</p>
@@ -303,12 +316,12 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130 > row.original.ENTREGA_CDP_140
+        row.original.MSA_130.split('T')[0] > row.original.ENTREGA_CDP_140.split('T')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">{`${day}/${month}/${year}`}</p>
+              <p className="text-center bg-red-400">{row.original.MSA_130.split('T')[0]}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>MSA es mayor que la fecha de entrega CDP</p>
@@ -316,7 +329,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p>{`${day}/${month}/${year}`}</p>;
+        return <p className="text-center">{row.original.MSA_130.split('T')[0]}</p>;
       }
     },
   },
@@ -328,7 +341,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="bg-red-400">--</p>
+              <p className="text-center bg-red-400">--</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>No existe una fecha de entrega CDP</p>
@@ -336,17 +349,15 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       }
-      const dateStr = row.original.ENTREGA_CDP_140.split('-');
-      const year = dateStr[0];
-      const month = dateStr[1];
-      const day = dateStr[2];
-
-      return <p>{`${day}/${month}/${year}`}</p>;
+      return <p className="text-center">{row.original.ENTREGA_CDP_140.split('T')[0]}</p>;
     },
   },
   {
     accessorKey: 'CE_140',
     header: 'CE 140',
-    cell: ({ row }) => row.original.CE_140 || '-',
+    cell: ({ row }) => {
+      if (!row.original.CE_140) return '-';
+      return <p className="text-center">{row.original.CE_140}</p>;
+    },
   },
 ];

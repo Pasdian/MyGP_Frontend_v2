@@ -8,6 +8,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  Table as TTable,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -23,24 +24,28 @@ import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Input } from '../../ui/input';
 import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
+import { axiosFetcher } from '@/axios-instance';
+import useSWRImmutable from 'swr/immutable';
+import TailwindSpinner from '@/components/TailwindSpinner';
+import { InterfaceContext } from './InterfaceClient';
 
 {
   /* This datatable is only for displaying transbel interface data */
   /* Before modyfing, go to shadcn datatable documentation*/
 }
 
-export function DataTable({
-  columns,
-  data,
-}: {
-  columns: ColumnDef<getRefsPendingCE>[];
-  data: getRefsPendingCE[];
-}) {
+export function DataTable({ columns }: { columns: ColumnDef<getRefsPendingCE>[] }) {
+  const { initialDate, finalDate } = React.useContext(InterfaceContext);
+  const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
+    `/api/transbel/getRefsPendingCE?initialDate=${initialDate}&finalDate=${finalDate}`,
+    axiosFetcher
+  );
+
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 12 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
-    data,
+    data: data ? data : [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(), // Pagination
@@ -53,79 +58,97 @@ export function DataTable({
     },
   });
 
+  if (isValidating) return <TailwindSpinner />;
   return (
     <>
-      {/* DataTable starts here*/}
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder ? null : (
-                      <div>
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getCanFilter() ? <Filter column={header.column} /> : null}
-                      </div>
-                    )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => {
-              return (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}{' '}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                <div className="flex justify-center">
-                  <p>Sin resultados...</p>
-                </div>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <div>
-        {/* Pagination starts here*/}
-        <div className="flex items-center justify-end space-x-2">
-          <Button variant="outline" size="sm">
-            {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <InterfaceDataTable table={table} columns={columns} />
+      <Pagination table={table} />
     </>
+  );
+}
+
+function InterfaceDataTable({
+  table,
+  columns,
+}: {
+  table: TTable<getRefsPendingCE>;
+  columns: ColumnDef<getRefsPendingCE>[];
+}) {
+  return (
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => {
+              return (
+                <TableHead key={header.id} colSpan={header.colSpan}>
+                  {header.isPlaceholder ? null : (
+                    <div>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.column.getCanFilter() ? <Filter column={header.column} /> : null}
+                    </div>
+                  )}
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row) => {
+            return (
+              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                {row.getVisibleCells().map((cell) => {
+                  return (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}{' '}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            );
+          })
+        ) : (
+          <TableRow>
+            <TableCell colSpan={columns.length} className="h-24 text-center">
+              <div className="flex justify-center">
+                <p>Sin resultados...</p>
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
+function Pagination({ table }: { table: TTable<getRefsPendingCE> }) {
+  return (
+    <div>
+      {/* Pagination starts here*/}
+      <div className="flex items-center justify-end space-x-2">
+        <Button variant="outline" size="sm">
+          {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
   );
 }
 

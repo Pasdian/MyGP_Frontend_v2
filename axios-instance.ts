@@ -12,3 +12,5 @@ export const GPServer = axios.create({
   baseURL: process.env.BACKEND_URL,
   withCredentials: true, // Send cookies to server in every request
 });
+
+export const axiosFetcher = (url: string) => GPClient.get(url).then((res) => res.data);

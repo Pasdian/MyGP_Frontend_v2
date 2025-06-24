@@ -31,10 +31,10 @@ import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
 import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
-import { DeliveriesContext } from './DeliveriesClient';
+import { useSWRConfig } from 'swr';
 
 export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
-  const deliveriesContext = React.useContext(DeliveriesContext);
+  const { mutate } = useSWRConfig();
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
@@ -63,30 +63,28 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
     defaultValues: {
       NUM_REFE: row.original.NUM_REFE ? row.original.NUM_REFE : '',
       CVE_ETAP: '140',
-      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP : '00:00',
-      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP : '1970-01-01',
+      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP.split('T')[0] : '',
+      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP.split('T')[1].substring(0, 5) : '',
       OBS_ETAP: row.original.OBS_ETAP ? row.original.OBS_ETAP : '',
       CVE_MODI: row.original.CVE_MODI ? 'MYGP' : '',
     },
   });
 
   async function onSubmit(data: z.infer<typeof ZUpdatePhaseSchema>) {
-    const date = new Date(`${data.FEC_ETAP} ${data.HOR_ETAP}`);
-    const timestamp = +date;
-
+    form.reset();
     await GPClient.post('/api/transbel/updatePhase', {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
-      date: timestamp, // Timestamp
+      date: `${data.FEC_ETAP}T${data.HOR_ETAP}`, // Timestamp
       user: data.CVE_MODI,
     })
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
-          deliveriesContext?.setShouldFetch((old) => !old);
           setIsChecked((old) => (old ? !old : old));
           setIsDialogOpen(() => false);
+          mutate('/api/transbel/getDeliveries');
         } else {
           toast.error('No se pudieron actualizar tus datos');
           setIsDialogOpen(() => false);

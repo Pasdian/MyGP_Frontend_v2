@@ -8,11 +8,8 @@ export const columnDef: ColumnDef<getDeliveries>[] = [
     accessorKey: 'ACCIONES',
     header: 'Acciones',
     cell: ({ row }) => {
-      if (row) {
-        return <UpdatePhase row={row} />;
-      } else {
-        return '-';
-      }
+      if (!row) return '-';
+      return <UpdatePhase row={row} />;
     },
   },
   {
@@ -24,13 +21,8 @@ export const columnDef: ColumnDef<getDeliveries>[] = [
     header: 'Fecha',
     cell: ({ row }) => {
       if (!row.original.FEC_ETAP) return '-';
-      const dateStr = row.original.FEC_ETAP.split('-');
-      const year = dateStr[0];
-      const month = dateStr[1];
-      const day = dateStr[2];
-      // es-ES format
-
-      return `${day}/${month}/${year}`;
+      const date = row.original.FEC_ETAP.split('T')[0];
+      return date;
     },
   },
   {
@@ -38,7 +30,9 @@ export const columnDef: ColumnDef<getDeliveries>[] = [
     header: 'Hora',
     cell: ({ row }) => {
       if (!row.original.HOR_ETAP) return '-';
-      return row.original.HOR_ETAP;
+      console.log(row.original.HOR_ETAP);
+      const time = row.original.HOR_ETAP.split('T')[1].substring(0, 5);
+      return time;
     },
   },
   {

@@ -39,23 +39,15 @@ import { toast } from 'sonner';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
-import { InterfaceContext } from './InterfaceClient';
 import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
 import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
+import { mutate } from 'swr';
+import { InterfaceContext } from './InterfaceClient';
 
 export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
-  const interfaceContext = React.useContext(InterfaceContext);
+  const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-
-  const date = new Date();
-  const localDate = date.toLocaleDateString('es-pa').split('/');
-  const day = localDate[1];
-  const month = localDate[0];
-  const year = localDate[2];
-  const ISO_TODAY = `${year}-${month}-${day}`;
-
-  const ISO_TIME = date.toTimeString().split(' ')[0].substring(0, 5);
 
   const ZUpdatePhaseSchema = z.object({
     REFERENCIA: z.string({
@@ -91,8 +83,8 @@ export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
     defaultValues: {
       REFERENCIA: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       CE_140: '140',
-      HOR_ETAP: ISO_TIME,
-      FEC_ETAP: ISO_TODAY,
+      FEC_ETAP: new Date().toISOString().split('T')[0],
+      HOR_ETAP: new Date().toISOString().split('T')[1].substring(0, 5),
       CVE_MODI: 'MYGP',
       OBS_ETAP: '',
       CVE_ETAP: '',
@@ -100,25 +92,25 @@ export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
   });
 
   async function onSubmit(data: z.infer<typeof ZUpdatePhaseSchema>) {
-    const date = new Date(`${data.FEC_ETAP} ${data.HOR_ETAP}`);
-    const timestamp = +date;
+    form.reset();
 
     await GPClient.post('/api/transbel/updatePhase', {
       ref: data.REFERENCIA,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
-      date: timestamp,
+      date: `${data.FEC_ETAP}T${data.HOR_ETAP}`,
       user: data.CVE_MODI,
     })
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
-          interfaceContext?.setShouldFetch((old) => !old); // setShouldFetch must be treated as object, otherwise will cause build errors
+          mutate(
+            `/api/transbel/getRefsPendingCE?initialDate=${initialDate}&finalDate=${finalDate}`
+          );
           setIsChecked((old) => (old ? !old : old));
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron actualizar tus datos');
-          interfaceContext?.setShouldFetch((old) => !old);
           setIsDialogOpen(() => false);
         }
       })
