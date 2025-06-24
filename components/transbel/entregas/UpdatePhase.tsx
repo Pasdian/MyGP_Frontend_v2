@@ -31,6 +31,7 @@ import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { Delivery } from '@/app/transbel/entregas/page';
+import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
 
 export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
   const [isChecked, setIsChecked] = React.useState(false);
@@ -165,7 +166,7 @@ export default function UpdatePhase({ row }: { row: Row<Delivery> }) {
                     <FormItem>
                       <FormLabel>Código de Excepción</FormLabel>
                       <FormControl>
-                        <Input placeholder="Código de Excepción..." {...field} />
+                        <ExceptionCodeCombo field={field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -51,6 +51,17 @@ export function ExceptionCodeCombo({
           CVE_ETAP: string;
         },
         'OBS_ETAP'
+      >
+    | ControllerRenderProps<
+        {
+          NUM_REFE: string;
+          CVE_ETAP: string;
+          HOR_ETAP: string;
+          FEC_ETAP: string;
+          OBS_ETAP: string;
+          CVE_MODI: string;
+        },
+        'OBS_ETAP'
       >;
 }) {
   const [open, setOpen] = React.useState(false);
