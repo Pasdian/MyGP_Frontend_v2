@@ -39,7 +39,6 @@ import { toast } from 'sonner';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
-import { InterfaceData } from './types/Interface';
 import { ExceptionCodeCombo } from './ExceptionCodeCombo';
 import { InterfaceContext } from './InterfaceClient';
 import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';

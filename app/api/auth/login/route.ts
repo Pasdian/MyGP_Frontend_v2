@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ name: data.user.name, email: data.user.email });
   } catch (error) {
+    console.error(error);
     logger.error('Failed to connect to server');
     return Response.error();
   }

@@ -1,6 +1,5 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/winston-logger';
-import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 
 // All dates are on ISO format
@@ -31,6 +30,7 @@ export async function GET(req: NextRequest) {
     const data: getRefsPendingCE[] = res.data;
     return Response.json(data);
   } catch (error) {
+    console.error(error);
     logger.error('Failed to connect to server');
     return Response.error();
   }

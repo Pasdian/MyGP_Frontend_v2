@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json({});
   } catch (error) {
+    console.error(error);
     logger.error('Failed to connect to server');
     return Response.error();
   }
