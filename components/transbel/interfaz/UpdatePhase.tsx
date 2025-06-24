@@ -42,8 +42,9 @@ import { Label } from '@/components/ui/label';
 import { InterfaceData } from './types/Interface';
 import { ExceptionCodeCombo } from './ExceptionCodeCombo';
 import { InterfaceContext } from './InterfaceClient';
+import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
 
-export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
+export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
   const interfaceContext = React.useContext(InterfaceContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);

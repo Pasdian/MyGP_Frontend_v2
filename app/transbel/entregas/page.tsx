@@ -1,4 +1,4 @@
-import { GPClient } from '@/axios-instance';
+import { GPClient, GPServer } from '@/axios-instance';
 import Deliveries from '@/components/transbel/entregas/Deliveries';
 import { cookies } from 'next/headers';
 import AddPhase from '@/components/transbel/entregas/AddPhase';
@@ -16,13 +16,13 @@ export default async function Page() {
   const session_token = (await cookies()).get('session_token')?.value;
 
   const [deliveriesRes, transbelRefs] = await Promise.all([
-    GPClient.get(`/api/transbel/getDeliveries`, {
+    GPServer.get(`/api/transbel/getDeliveries`, {
       headers: {
         Authorization: `Bearer ${session_token}`,
         'Cache-Control': 'no-cache',
       },
     }),
-    GPClient.get(`/api/transbel/getTransbelRefs`, {
+    GPServer.get(`/api/transbel/getTransbelRefs`, {
       headers: {
         Authorization: `Bearer ${session_token}`,
         'Cache-Control': 'no-cache',

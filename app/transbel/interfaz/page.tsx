@@ -1,28 +1,23 @@
-import { GPClient } from '@/axios-instance';
+import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
+import { GPServer } from '@/axios-instance';
 import InterfaceClient from '@/components/transbel/interfaz/InterfaceClient';
-import { AxiosError } from 'axios';
+import { logger } from '@/winston-logger';
 import { cookies } from 'next/headers';
-
-export type RefsPending = {
-  REFERENCIA: string;
-  EE__GE: string;
-  ADU_DESP: string;
-  REVALIDACION_073: string | null;
-  ULTIMO_DOCUMENTO_114: string | null;
-  ENTREGA_TRANSPORTE_138: string | null;
-  CE_138: string;
-  MSA_130: string | null;
-  ENTREGA_CDP_140: string | null;
-  CE_140: string | null;
-};
 
 export default async function Page() {
   try {
-    const res = await GPClient.get('/api/transbel/getRefsPendingCE', { withCredentials: true });
-    const refsPending: RefsPending[] = await res.data;
-    return <InterfaceClient defaultData={refsPending} />;
+    const session_token = (await cookies()).get('session_token')?.value;
+    const res = await GPServer.get('/api/transbel/getRefsPendingCE', {
+      headers: {
+        Authorization: `Bearer ${session_token}`,
+      },
+    });
+
+    const data: getRefsPendingCE[] = res.data;
+    return <InterfaceClient defaultData={data} />;
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to connect to server');
+
     return (
       <div>
         <p>Hubo un error al procesar tu solicitud, intentelo de nuevo más tarde</p>
