@@ -22,7 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Input } from '../../ui/input';
-import { InterfaceData } from './types/Interface';
+import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
 
 {
   /* This datatable is only for displaying transbel interface data */
@@ -33,8 +33,8 @@ export function DataTable({
   columns,
   data,
 }: {
-  columns: ColumnDef<InterfaceData>[];
-  data: InterfaceData[];
+  columns: ColumnDef<getRefsPendingCE>[];
+  data: getRefsPendingCE[];
 }) {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 12 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -129,7 +129,7 @@ export function DataTable({
   );
 }
 
-function Filter({ column }: { column: Column<InterfaceData, unknown> }) {
+function Filter({ column }: { column: Column<getRefsPendingCE, unknown> }) {
   const columnFilterValue = column.getFilterValue();
 
   return (

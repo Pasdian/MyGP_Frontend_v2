@@ -3,26 +3,25 @@ import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { columnDef } from './columnDef/columnDef';
 import { DataTable } from './DataTable';
-import { InterfaceData } from './types/Interface';
 import React, { SetStateAction } from 'react';
 import InitialDatePicker from './InitialDatePicker';
 import FinalDatePicker from './FinalDatePicker';
-import { RefsPending } from '@/app/transbel/interfaz/page';
 import TailwindSpinner from '@/components/TailwindSpinner';
+import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
 
 export const InterfaceContext = React.createContext<{
   setShouldFetch: React.Dispatch<SetStateAction<boolean>>;
 } | null>(null);
 
 // Define the type for our data
-export default function InterfaceClient({ defaultData }: { defaultData: RefsPending[] }) {
+export default function InterfaceClient({ defaultData }: { defaultData: getRefsPendingCE[] }) {
   const [stateToday] = React.useState(new Date());
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
   const [shouldFetch, setShouldFetch] = React.useState(false);
 
   const [isLoading, setIsLoading] = React.useState(false);
-  const [data, setData] = React.useState<InterfaceData[]>(defaultData);
+  const [data, setData] = React.useState<getRefsPendingCE[]>(defaultData);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -57,7 +56,7 @@ export default function InterfaceClient({ defaultData }: { defaultData: RefsPend
       await GPClient.get(
         `/api/transbel/getRefsPendingCE?initialDate=${initialDateISO}&finalDate=${finalDateISO}`
       )
-        .then((res: { data: InterfaceData[] }) => {
+        .then((res: { data: getRefsPendingCE[] }) => {
           const data = res.data;
           if (data.length == 0) {
             toast.error('No hay resultados para las fechas seleccionadas');
@@ -67,7 +66,7 @@ export default function InterfaceClient({ defaultData }: { defaultData: RefsPend
           }
 
           // Get date as yyyy-mm-dd
-          data.map((item: InterfaceData) => {
+          data.map((item: getRefsPendingCE) => {
             if (item.MSA_130) {
               const date = new Date(item.MSA_130).toLocaleDateString('es-pa').split('/');
               const month = date[0];

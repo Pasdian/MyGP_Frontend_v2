@@ -1,9 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { InterfaceData } from '../types/Interface';
 import UpdatePhase from '../UpdatePhase';
+import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
 
-export const columnDef: ColumnDef<InterfaceData>[] = [
+export const columnDef: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: 'ACCIONES',
     header: 'Acciones',

@@ -39,11 +39,11 @@ import { toast } from 'sonner';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
-import { InterfaceData } from './types/Interface';
 import { InterfaceContext } from './InterfaceClient';
 import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
+import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
 
-export default function UpdatePhase({ row }: { row: Row<InterfaceData> }) {
+export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
   const interfaceContext = React.useContext(InterfaceContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
