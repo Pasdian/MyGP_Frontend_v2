@@ -32,6 +32,14 @@ import { Label } from '@/components/ui/label';
 import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
 import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
 import { useSWRConfig } from 'swr';
+import {
+  CVE_ETAP,
+  CVE_MODI,
+  FEC_ETAP,
+  HOR_ETAP,
+  NUM_REFE,
+  OBS_ETAP,
+} from '@/lib/zvalidations/updatePhase';
 
 export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
@@ -39,23 +47,12 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const ZUpdatePhaseSchema = z.object({
-    NUM_REFE: z.string().min(3, { message: 'La referencia debe de ser de mínimo 3 caracteres' }),
-    CVE_ETAP: z
-      .string({ message: 'El C.E de la etapa debe de ser una cadena de caracteres' })
-      .min(2, { message: 'El C.E de la etapa debe de ser de mínimo 2 caracteres' })
-      .max(15, { message: 'El C.E de la etapa debe de ser de mínimo 15 caracteres' }),
-    HOR_ETAP: z.iso.time({
-      error: 'La hora no tiene el formato especificado HH:mm',
-      precision: -1,
-    }),
-    FEC_ETAP: z.iso.date({ error: 'La fecha no tiene el formato específicado yyyy-mm-dd' }),
-    OBS_ETAP: z
-      .string({ message: 'Las observaciones deben de ser una cadena de caracteres' })
-      .max(100, { message: 'Las observaciones deben de ser de máximo 100 caracteres' }),
-    CVE_MODI: z
-      .string({ message: 'El usuario deben de ser una cadena de caracteres' })
-      .min(2, { message: 'El usuario debe de ser de mínimo de 2 carácteres' })
-      .max(15, { message: 'El usuario debe de ser de máximo de 15 carácteres' }),
+    NUM_REFE: NUM_REFE,
+    CVE_ETAP: CVE_ETAP,
+    HOR_ETAP: HOR_ETAP,
+    FEC_ETAP: FEC_ETAP,
+    OBS_ETAP: OBS_ETAP,
+    CVE_MODI: CVE_MODI,
   });
 
   const form = useForm<z.infer<typeof ZUpdatePhaseSchema>>({

@@ -33,6 +33,7 @@ import { ExceptionCodeCombo } from '../../ExceptionCode/ExceptionCodeCombo';
 import { useSWRConfig } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 import { getTransbelRefs } from '@/app/api/transbel/getTransbelRefs/route';
+import { CVE_ETAP, CVE_MODI, FEC_ETAP, HOR_ETAP, OBS_ETAP } from '@/lib/zvalidations/updatePhase';
 
 export default function AddPhase() {
   const { data: refs, isLoading } = useSWRImmutable<getTransbelRefs[]>(
@@ -50,21 +51,11 @@ export default function AddPhase() {
     NUM_REFE: z.string().refine((val) => (refs ? refs.some((ref) => ref.NUM_REFE == val) : null), {
       error: 'La referencia no existe',
     }),
-    HOR_ETAP: z.iso.time({
-      error: 'La hora no tiene el formato especificado HH:mm',
-      precision: -1,
-    }),
-    FEC_ETAP: z.iso.date({ error: 'La fecha no tiene el formato específicado yyyy-mm-dd' }),
-    CVE_ETAP: z
-      .string({ error: 'El código de la etapa debe de ser siempre 140' })
-      .length(3, { error: 'El código de la etapa debe ser 140' }), // 140 - Entregas
-    OBS_ETAP: z
-      .string({ error: 'El código de excepción debe de ser una cadena de caracteres' })
-      .min(4, { error: 'El código de excepción debe de ser de mínimo 4 caracteres' }),
-    USUARIO: z
-      .string({ error: 'El usuario deben de ser una cadena de caracteres' })
-      .min(2, { error: 'El usuario debe de ser de mínimo de 2 carácteres' })
-      .max(15, { error: 'El usuario debe de ser de máximo de 15 carácteres' }),
+    HOR_ETAP: HOR_ETAP,
+    FEC_ETAP: FEC_ETAP,
+    CVE_ETAP: CVE_ETAP,
+    OBS_ETAP: OBS_ETAP,
+    USUARIO: CVE_MODI,
   });
 
   const form = useForm<z.infer<typeof ZAddPhaseSchema>>({

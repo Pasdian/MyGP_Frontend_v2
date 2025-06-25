@@ -43,6 +43,14 @@ import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeComb
 import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
 import { mutate } from 'swr';
 import { InterfaceContext } from './InterfaceClient';
+import {
+  CVE_ETAP,
+  CVE_MODI,
+  FEC_ETAP,
+  HOR_ETAP,
+  NUM_REFE,
+  OBS_ETAP,
+} from '@/lib/zvalidations/updatePhase';
 
 export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
@@ -50,32 +58,20 @@ export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const ZUpdatePhaseSchema = z.object({
-    REFERENCIA: z.string({
-      error: 'La referencia no existe',
-    }),
+    REFERENCIA: NUM_REFE,
     CE_140: z
       .string({
-        message: 'El codigo de la etapa debe de ser una cadena de caracteres',
+        message: 'Ingresa un código de excepción',
       })
       .min(2, { message: 'El codigo de la etapa debe de ser de mínimo 2 caracteres' })
       .max(15, {
         message: 'El codigo de la etapa debe de ser de mínimo 15 caracteres',
       }),
-    HOR_ETAP: z.iso.time({
-      error: 'La hora no tiene el formato especificado HH:mm',
-      precision: -1,
-    }),
-    FEC_ETAP: z.iso.date({ error: 'La fecha no tiene el formato específicado yyyy-mm-dd' }),
-    OBS_ETAP: z
-      .string({ message: 'Selecciona un código de excepción' })
-      .min(3, { message: 'El código de excepción debe de ser de mínimo 3 caracteres' }),
-    CVE_MODI: z
-      .string({ message: 'El usuario deben de ser una cadena de caracteres' })
-      .min(2, { message: 'El usuario debe de ser de mínimo de 2 carácteres' })
-      .max(15, { message: 'El usuario debe de ser de máximo de 15 carácteres' }),
-    CVE_ETAP: z
-      .string({ message: 'Selecciona una etapa a modificar' })
-      .min(3, { message: 'La etapa a modificar debe de ser de mínimo 3 caracteres' }),
+    HOR_ETAP: HOR_ETAP,
+    FEC_ETAP: FEC_ETAP,
+    OBS_ETAP: OBS_ETAP,
+    CVE_MODI: CVE_MODI,
+    CVE_ETAP: CVE_ETAP,
   });
 
   const form = useForm<z.infer<typeof ZUpdatePhaseSchema>>({
