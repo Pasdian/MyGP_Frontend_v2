@@ -1,18 +1,15 @@
 import { ColumnDef } from '@tanstack/react-table';
 import React from 'react';
-import TransbelUpdatePhase from '../UpdatePhase';
-import { Delivery } from '@/app/transbel/entregas/page';
+import UpdatePhase from '../UpdatePhase';
+import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
 
-export const columnDef: ColumnDef<Delivery>[] = [
+export const columnDef: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: 'ACCIONES',
     header: 'Acciones',
     cell: ({ row }) => {
-      if (row) {
-        return <TransbelUpdatePhase row={row} />;
-      } else {
-        return '-';
-      }
+      if (!row) return '-';
+      return <UpdatePhase row={row} />;
     },
   },
   {
@@ -24,13 +21,8 @@ export const columnDef: ColumnDef<Delivery>[] = [
     header: 'Fecha',
     cell: ({ row }) => {
       if (!row.original.FEC_ETAP) return '-';
-      const dateStr = row.original.FEC_ETAP.split('-');
-      const year = dateStr[0];
-      const month = dateStr[1];
-      const day = dateStr[2];
-      // es-ES format
-
-      return `${day}/${month}/${year}`;
+      const date = row.original.FEC_ETAP.split(' ')[0];
+      return date;
     },
   },
   {
@@ -38,7 +30,8 @@ export const columnDef: ColumnDef<Delivery>[] = [
     header: 'Hora',
     cell: ({ row }) => {
       if (!row.original.HOR_ETAP) return '-';
-      return row.original.HOR_ETAP;
+      const time = row.original.HOR_ETAP.split(' ')[1].substring(0, 5);
+      return time;
     },
   },
   {

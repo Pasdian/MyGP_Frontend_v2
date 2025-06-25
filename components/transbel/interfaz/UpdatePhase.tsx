@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Dialog,
   DialogClose,
@@ -7,6 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -30,8 +40,9 @@ import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { Label } from '@/components/ui/label';
 import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
-import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
-import { useSWRConfig } from 'swr';
+import { getRefsPendingCE } from '@/app/api/transbel/getRefsPendingCE/route';
+import { mutate } from 'swr';
+import { InterfaceContext } from './InterfaceClient';
 import {
   CVE_ETAP,
   CVE_MODI,
@@ -41,36 +52,46 @@ import {
   OBS_ETAP,
 } from '@/lib/zvalidations/updatePhase';
 
-export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
-  const { mutate } = useSWRConfig();
+export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
+  const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const [isChecked, setIsChecked] = React.useState(false);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const ZUpdatePhaseSchema = z.object({
-    NUM_REFE: NUM_REFE,
-    CVE_ETAP: CVE_ETAP,
+    REFERENCIA: NUM_REFE,
+    CE_140: z
+      .string({
+        message: 'Ingresa un código de excepción',
+      })
+      .min(2, { message: 'El codigo de la etapa debe de ser de mínimo 2 caracteres' })
+      .max(15, {
+        message: 'El codigo de la etapa debe de ser de mínimo 15 caracteres',
+      }),
     HOR_ETAP: HOR_ETAP,
     FEC_ETAP: FEC_ETAP,
     OBS_ETAP: OBS_ETAP,
     CVE_MODI: CVE_MODI,
+    CVE_ETAP: CVE_ETAP,
   });
 
   const form = useForm<z.infer<typeof ZUpdatePhaseSchema>>({
     resolver: zodResolver(ZUpdatePhaseSchema),
     defaultValues: {
-      NUM_REFE: row.original.NUM_REFE ? row.original.NUM_REFE : '',
-      CVE_ETAP: '140',
-      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP.split(' ')[0] : '',
-      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP.split(' ')[1].substring(0, 5) : '',
-      OBS_ETAP: row.original.OBS_ETAP ? row.original.OBS_ETAP : '',
-      CVE_MODI: row.original.CVE_MODI ? 'MYGP' : '',
+      REFERENCIA: row.original.REFERENCIA ? row.original.REFERENCIA : '',
+      CE_140: '140',
+      FEC_ETAP: new Date().toISOString().split('T')[0],
+      HOR_ETAP: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
+      CVE_MODI: 'MYGP',
+      OBS_ETAP: '',
+      CVE_ETAP: '',
     },
   });
 
   async function onSubmit(data: z.infer<typeof ZUpdatePhaseSchema>) {
     form.reset();
+
     await GPClient.post('/api/transbel/updatePhase', {
-      ref: data.NUM_REFE,
+      ref: data.REFERENCIA,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
       date: `${data.FEC_ETAP} ${data.HOR_ETAP}`,
@@ -79,9 +100,11 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
+          mutate(
+            `/api/transbel/getRefsPendingCE?initialDate=${initialDate}&finalDate=${finalDate}`
+          );
           setIsChecked((old) => (old ? !old : old));
           setIsDialogOpen(() => false);
-          mutate('/api/transbel/getDeliveries');
         } else {
           toast.error('No se pudieron actualizar tus datos');
           setIsDialogOpen(() => false);
@@ -91,6 +114,7 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
         toast.error(error.response.data.message);
       });
   }
+
   return (
     <div>
       <Button
@@ -99,7 +123,6 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
       >
         Modificar
       </Button>
-
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
           <DialogHeader>
@@ -114,12 +137,39 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
               <div className="grid gap-4">
                 <FormField
                   control={form.control}
-                  name="NUM_REFE"
+                  name="REFERENCIA"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Referencia</FormLabel>
                       <FormControl>
                         <Input disabled placeholder="Referencia..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="CVE_ETAP"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Etapa a Modificar</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona una etapa..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="073">073 - Revalidación</SelectItem>
+                            <SelectItem value="114">114 - Último Documento</SelectItem>
+                            <SelectItem value="130">130 - MSA</SelectItem>
+                            <SelectItem value="138">138 - Entrega a Transporte</SelectItem>
+                            <SelectItem value="140">140 - Entrega a CDP</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -177,7 +227,7 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
                       <FormControl>
                         <Input
                           disabled={!isChecked}
-                          placeholder="CVE Modi..."
+                          placeholder="Usuario..."
                           className="mb-4"
                           {...field}
                         />

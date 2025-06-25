@@ -23,45 +23,39 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { GPClient } from '@/axios-instance';
+import { axiosFetcher, GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ExceptionCodeCombo } from '../../ExceptionCode/ExceptionCodeCombo';
+import { useSWRConfig } from 'swr';
+import useSWRImmutable from 'swr/immutable';
+import { getTransbelRefs } from '@/app/api/transbel/getTransbelRefs/route';
+import { CVE_ETAP, CVE_MODI, FEC_ETAP, HOR_ETAP, OBS_ETAP } from '@/lib/zvalidations/updatePhase';
 
-export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
+export default function AddPhase() {
+  const { data: refs, isLoading } = useSWRImmutable<getTransbelRefs[]>(
+    '/api/transbel/getTransbelRefs',
+    axiosFetcher
+  );
+
+  const { mutate } = useSWRConfig();
+
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
   const router = useRouter();
 
-  const date = new Date();
-  const localDate = date.toLocaleDateString('es-pa').split('/');
-  const month = localDate[0];
-  const day = localDate[1];
-  const year = localDate[2];
-  const today = `${year}-${month}-${day}`;
-  const time = date.toTimeString().split(' ')[0].substring(0, 5);
-
   const ZAddPhaseSchema = z.object({
-    NUM_REFE: z.string().refine((val) => refs.some((ref) => ref.NUM_REFE == val), {
+    NUM_REFE: z.string().refine((val) => (refs ? refs.some((ref) => ref.NUM_REFE == val) : null), {
       error: 'La referencia no existe',
     }),
-    HOR_ETAP: z.iso.time({
-      error: 'La hora no tiene el formato especificado HH:mm',
-      precision: -1,
-    }),
-    FEC_ETAP: z.iso.date({ error: 'La fecha no tiene el formato específicado yyyy-mm-dd' }),
-    CVE_ETAP: z
-      .string({ error: 'El código de la etapa debe de ser siempre 140' })
-      .length(3, { error: 'El código de la etapa debe ser 140' }), // 140 - Entregas
-    OBS_ETAP: z
-      .string({ error: 'El código de excepción debe de ser una cadena de caracteres' })
-      .min(4, { error: 'El código de excepción debe de ser de mínimo 4 caracteres' }),
-    USUARIO: z
-      .string({ error: 'El usuario deben de ser una cadena de caracteres' })
-      .min(2, { error: 'El usuario debe de ser de mínimo de 2 carácteres' })
-      .max(15, { error: 'El usuario debe de ser de máximo de 15 carácteres' }),
+    HOR_ETAP: HOR_ETAP,
+    FEC_ETAP: FEC_ETAP,
+    CVE_ETAP: CVE_ETAP,
+    OBS_ETAP: OBS_ETAP,
+    USUARIO: CVE_MODI,
   });
 
   const form = useForm<z.infer<typeof ZAddPhaseSchema>>({
@@ -71,26 +65,25 @@ export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
       CVE_ETAP: '140', // Codigo de Excepción 140 - Entregas
       OBS_ETAP: '',
       USUARIO: 'MYGP',
-      FEC_ETAP: today,
-      HOR_ETAP: time,
+      FEC_ETAP: new Date().toISOString().split('T')[0],
+      HOR_ETAP: `${new Date().getHours()}:${new Date().getMinutes()}`,
     },
   });
 
   async function onSubmit(data: z.infer<typeof ZAddPhaseSchema>) {
-    const date = new Date(`${data.FEC_ETAP} ${data.HOR_ETAP}`);
-    const timestamp = +date;
+    form.reset();
 
     await GPClient.post('/api/transbel/addPhase', {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
-      date: timestamp, // Timestamp
+      date: `${data.FEC_ETAP} ${data.HOR_ETAP}`, // Timestamp
       user: data.USUARIO,
     })
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos subidos correctamente');
-          router.refresh();
+          mutate('/api/transbel/getDeliveries');
           setIsDialogOpen(() => false);
         } else {
           toast.error('No se pudieron subir tus datos');
@@ -110,10 +103,16 @@ export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
       });
   }
 
+  if (isLoading)
+    return (
+      <Button className="animate-pulse cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4">
+        Obteniendo referencias...
+      </Button>
+    );
   return (
     <div>
       <Button
-        className="cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4"
+        className="acursor-pointer bg-blue-400 hover:bg-blue-500 mb-4"
         onClick={() => setIsDialogOpen(true)}
       >
         Añadir Entrega
@@ -180,7 +179,7 @@ export default function AddPhase({ refs }: { refs: { NUM_REFE: string }[] }) {
                     <FormItem>
                       <FormLabel>Código de Excepción</FormLabel>
                       <FormControl>
-                        <Input placeholder="Código de Excepción..." {...field} />
+                        <ExceptionCodeCombo field={field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

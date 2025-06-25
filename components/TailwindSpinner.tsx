@@ -1,4 +1,6 @@
-export function TailwindSpinner() {
+'use client'; // Do not remove, otherwise will cause hydration and SSR errors
+
+export default function TailwindSpinner() {
   return (
     <div role="status">
       <svg

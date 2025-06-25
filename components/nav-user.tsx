@@ -45,7 +45,7 @@ export function NavUser({
     await GPClient.post('/api/auth/logout');
     localStorage.removeItem('user_info');
     toast.success('Cerraste sesión');
-    router.refresh();
+    router.replace('/login');
   }
 
   return (
