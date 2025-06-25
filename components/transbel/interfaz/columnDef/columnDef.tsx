@@ -35,8 +35,8 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         (trafficType == 'A' || trafficType == 'F' || trafficType == 'T')
       ) {
         const diffTimestamp =
-          +new Date(row.original.ULTIMO_DOCUMENTO_114.split('T')[0]) -
-          +new Date(row.original.MSA_130.split('T')[0]);
+          +new Date(row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]) -
+          +new Date(row.original.MSA_130.split(' ')[0]);
 
         const diffBetweenDates = diffTimestamp > 0 ? new Date(diffTimestamp).getDate() : 0; // Can't be negative
 
@@ -62,8 +62,8 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         (trafficType == 'M' || trafficType == 'V')
       ) {
         const diffTimestamp =
-          +new Date(row.original.ULTIMO_DOCUMENTO_114.split('T')[0]) -
-          +new Date(row.original.MSA_130.split('T')[0]);
+          +new Date(row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]) -
+          +new Date(row.original.MSA_130.split(' ')[0]);
         const diffBetweenDates = diffTimestamp > 0 ? new Date(diffTimestamp).getDate() : 0; // Can't be negative
 
         if (diffBetweenDates > 11) {
@@ -143,14 +143,14 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.REVALIDACION_073.split('T')[0] >
-          row.original.ULTIMO_DOCUMENTO_114.split('T')[0]
+        row.original.REVALIDACION_073.split(' ')[0] >
+          row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <p className="text-center bg-red-400">
-                {row.original.REVALIDACION_073.split('T')[0]}
+                {row.original.REVALIDACION_073.split(' ')[0]}
               </p>
             </TooltipTrigger>
             <TooltipContent>
@@ -160,14 +160,14 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.REVALIDACION_073.split('T')[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split('T')[0]
+        row.original.REVALIDACION_073.split(' ')[0] >
+          row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <p className="text-center bg-red-400">
-                {row.original.REVALIDACION_073.split('T')[0]}
+                {row.original.REVALIDACION_073.split(' ')[0]}
               </p>
             </TooltipTrigger>
             <TooltipContent>
@@ -177,13 +177,13 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.MSA_130 &&
-        row.original.REVALIDACION_073.split('T')[0] > row.original.MSA_130.split('T')[0]
+        row.original.REVALIDACION_073.split(' ')[0] > row.original.MSA_130.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <p className="text-center bg-red-400">
-                {row.original.REVALIDACION_073.split('T')[0]}
+                {row.original.REVALIDACION_073.split(' ')[0]}
               </p>
             </TooltipTrigger>
             <TooltipContent>
@@ -192,7 +192,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p className="text-center">{row.original.REVALIDACION_073.split('T')[0]}</p>;
+        return <p className="text-center">{row.original.REVALIDACION_073.split(' ')[0]}</p>;
       }
     },
   },
@@ -215,14 +215,14 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ULTIMO_DOCUMENTO_114.split('T')[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split('T')[0]
+        row.original.ULTIMO_DOCUMENTO_114.split(' ')[0] >
+          row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <p className="text-center bg-red-400">
-                {row.original.ULTIMO_DOCUMENTO_114.split('T')[0]}
+                {row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]}
               </p>
             </TooltipTrigger>
             <TooltipContent>
@@ -232,13 +232,13 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.MSA_130 &&
-        row.original.ULTIMO_DOCUMENTO_114.split('T')[0] > row.original.MSA_130.split('T')[0]
+        row.original.ULTIMO_DOCUMENTO_114.split(' ')[0] > row.original.MSA_130.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <p className="text-center bg-blue-400">
-                {row.original.ULTIMO_DOCUMENTO_114.split('T')[0]}
+                {row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]}
               </p>
             </TooltipTrigger>
             <TooltipContent>
@@ -247,7 +247,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p className="text-center">{row.original.ULTIMO_DOCUMENTO_114.split('T')[0]}</p>;
+        return <p className="text-center">{row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]}</p>;
       }
     },
   },
@@ -273,13 +273,13 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
       if (
         row.original.ENTREGA_CDP_140 &&
         row.original.MSA_130 &&
-        row.original.ENTREGA_TRANSPORTE_138.split('T')[0] !== row.original.MSA_130.split('T')[0]
+        row.original.ENTREGA_TRANSPORTE_138.split(' ')[0] !== row.original.MSA_130.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <p className="text-center bg-red-400">
-                {row.original.ENTREGA_TRANSPORTE_138.split('T')[0]}
+                {row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]}
               </p>
             </TooltipTrigger>
             <TooltipContent>
@@ -289,14 +289,14 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138.split('T')[0] >
-          row.original.ENTREGA_CDP_140.split('T')[0]
+        row.original.ENTREGA_TRANSPORTE_138.split(' ')[0] >
+          row.original.ENTREGA_CDP_140.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <p className="text-center bg-red-400">
-                {row.original.ENTREGA_TRANSPORTE_138.split('T')[0]}
+                {row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]}
               </p>
             </TooltipTrigger>
             <TooltipContent>
@@ -305,7 +305,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p className="text-center">{row.original.ENTREGA_TRANSPORTE_138.split('T')[0]}</p>;
+        return <p className="text-center">{row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]}</p>;
       }
     },
   },
@@ -332,12 +332,12 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.MSA_130.split('T')[0] !== row.original.ENTREGA_TRANSPORTE_138.split('T')[0]
+        row.original.MSA_130.split(' ')[0] !== row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">{row.original.MSA_130.split('T')[0]}</p>
+              <p className="text-center bg-red-400">{row.original.MSA_130.split(' ')[0]}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>MSA no es igual a la fecha de entrega de transporte</p>
@@ -346,12 +346,12 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130.split('T')[0] > row.original.ENTREGA_CDP_140.split('T')[0]
+        row.original.MSA_130.split(' ')[0] > row.original.ENTREGA_CDP_140.split(' ')[0]
       ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">{row.original.MSA_130.split('T')[0]}</p>
+              <p className="text-center bg-red-400">{row.original.MSA_130.split(' ')[0]}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>MSA es mayor que la fecha de entrega CDP</p>
@@ -359,7 +359,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p className="text-center">{row.original.MSA_130.split('T')[0]}</p>;
+        return <p className="text-center">{row.original.MSA_130.split(' ')[0]}</p>;
       }
     },
   },
@@ -379,7 +379,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       }
-      return <p className="text-center">{row.original.ENTREGA_CDP_140.split('T')[0]}</p>;
+      return <p className="text-center">{row.original.ENTREGA_CDP_140.split(' ')[0]}</p>;
     },
   },
   {

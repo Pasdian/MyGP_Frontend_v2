@@ -21,7 +21,7 @@ export const columnDef: ColumnDef<getDeliveries>[] = [
     header: 'Fecha',
     cell: ({ row }) => {
       if (!row.original.FEC_ETAP) return '-';
-      const date = row.original.FEC_ETAP.split('T')[0];
+      const date = row.original.FEC_ETAP.split(' ')[0];
       return date;
     },
   },
@@ -30,8 +30,7 @@ export const columnDef: ColumnDef<getDeliveries>[] = [
     header: 'Hora',
     cell: ({ row }) => {
       if (!row.original.HOR_ETAP) return '-';
-      console.log(row.original.HOR_ETAP);
-      const time = row.original.HOR_ETAP.split('T')[1].substring(0, 5);
+      const time = row.original.HOR_ETAP.split(' ')[1].substring(0, 5);
       return time;
     },
   },

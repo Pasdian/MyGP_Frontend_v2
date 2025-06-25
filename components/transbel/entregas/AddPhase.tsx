@@ -86,7 +86,7 @@ export default function AddPhase() {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
-      date: `${data.FEC_ETAP}T${data.HOR_ETAP}`, // Timestamp
+      date: `${data.FEC_ETAP} ${data.HOR_ETAP}`, // Timestamp
       user: data.USUARIO,
     })
       .then((res) => {

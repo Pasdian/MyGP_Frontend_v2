@@ -84,7 +84,7 @@ export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
       REFERENCIA: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       CE_140: '140',
       FEC_ETAP: new Date().toISOString().split('T')[0],
-      HOR_ETAP: new Date().toISOString().split('T')[1].substring(0, 5),
+      HOR_ETAP: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
       CVE_MODI: 'MYGP',
       OBS_ETAP: '',
       CVE_ETAP: '',
@@ -98,7 +98,7 @@ export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
       ref: data.REFERENCIA,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
-      date: `${data.FEC_ETAP}T${data.HOR_ETAP}`,
+      date: `${data.FEC_ETAP} ${data.HOR_ETAP}`,
       user: data.CVE_MODI,
     })
       .then((res) => {

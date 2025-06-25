@@ -63,8 +63,8 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
     defaultValues: {
       NUM_REFE: row.original.NUM_REFE ? row.original.NUM_REFE : '',
       CVE_ETAP: '140',
-      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP.split('T')[0] : '',
-      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP.split('T')[1].substring(0, 5) : '',
+      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP.split(' ')[0] : '',
+      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP.split(' ')[1].substring(0, 5) : '',
       OBS_ETAP: row.original.OBS_ETAP ? row.original.OBS_ETAP : '',
       CVE_MODI: row.original.CVE_MODI ? 'MYGP' : '',
     },
@@ -76,7 +76,7 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
       ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
-      date: `${data.FEC_ETAP}T${data.HOR_ETAP}`, // Timestamp
+      date: `${data.FEC_ETAP} ${data.HOR_ETAP}`,
       user: data.CVE_MODI,
     })
       .then((res) => {
