@@ -17,9 +17,11 @@ import { GPClient } from '@/axios-instance';
 import React from 'react';
 import { AxiosError } from 'axios';
 import { LoginResponse } from '@/app/api/auth/login/route';
+import { Eye, EyeOff } from 'lucide-react';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
+  const [shouldView, setShouldView] = React.useState(false);
 
   const formSchema = z.object({
     email: z.string().email({ message: 'Correo electrónico inválido' }),
@@ -88,12 +90,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                 <div className="grid gap-3">
                   <div className="flex items-center">
                     <Label htmlFor="password">Contraseña</Label>
-                    <a
-                      href="#"
-                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </a>
                   </div>
                   <FormField
                     control={form.control}
@@ -101,12 +97,27 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input
-                            id="password"
-                            type="password"
-                            {...field}
-                            placeholder="Contraseña"
-                          />
+                          <div className="relative">
+                            <Input
+                              id="password"
+                              type={shouldView ? 'text' : 'password'}
+                              {...field}
+                              placeholder="Contraseña"
+                            />
+                            {shouldView ? (
+                              <Eye
+                                className="absolute right-4 top-2"
+                                onClick={() => {
+                                  setShouldView(!shouldView);
+                                }}
+                              />
+                            ) : (
+                              <EyeOff
+                                className="absolute right-4 top-2"
+                                onClick={() => setShouldView(!shouldView)}
+                              />
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

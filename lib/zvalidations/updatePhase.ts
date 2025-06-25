@@ -6,7 +6,7 @@ export const NUM_REFE = z
 export const CVE_ETAP = z
   .string({ error: "Selecciona una etapa a modificar" })
   .min(3, {
-    error: "La etapa a modificar debe de ser de mínimo 3 caracteres",
+    error: "Selecciona una etapa de mínimo 3 caracteres",
   });
 export const HOR_ETAP = z.iso.time({
   error: "La hora no tiene el formato especificado HH:mm",
