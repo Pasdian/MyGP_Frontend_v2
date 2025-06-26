@@ -24,7 +24,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
@@ -40,6 +39,7 @@ import {
   NUM_REFE,
   OBS_ETAP,
 } from '@/lib/zvalidations/updatePhase';
+import { GPClient } from '@/axios-instance';
 
 export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
@@ -161,7 +161,19 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
                     <FormItem>
                       <FormLabel>Código de Excepción</FormLabel>
                       <FormControl>
-                        <ExceptionCodeCombo field={field} />
+                        <div className="flex">
+                          <div className="mr-2">
+                            <ExceptionCodeCombo field={field} />
+                          </div>
+                          <Button
+                            size="sm"
+                            className="cursor-pointer bg-red-400 hover:bg-red-500"
+                            type="button"
+                            onClick={() => form.setValue('OBS_ETAP', '')}
+                          >
+                            Eliminar
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -205,9 +217,11 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
               </div>
               <DialogFooter>
                 <DialogClose asChild>
-                  <Button variant="outline">Cancelar</Button>
+                  <Button variant="outline" className="cursor-pointer">
+                    Cancelar
+                  </Button>
                 </DialogClose>
-                <Button className="bg-yellow-500 hover:bg-yellow-600" type="submit">
+                <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
                   Guardar Cambios
                 </Button>
               </DialogFooter>

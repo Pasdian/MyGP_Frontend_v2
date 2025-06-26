@@ -23,7 +23,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { axiosFetcher, GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -34,6 +33,7 @@ import { useSWRConfig } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 import { getTransbelRefs } from '@/app/api/transbel/getTransbelRefs/route';
 import { CVE_ETAP, CVE_MODI, FEC_ETAP, HOR_ETAP, OBS_ETAP } from '@/lib/zvalidations/updatePhase';
+import { axiosFetcher, GPClient } from '@/axios-instance';
 
 export default function AddPhase() {
   const { data: refs, isLoading } = useSWRImmutable<getTransbelRefs[]>(
@@ -112,7 +112,7 @@ export default function AddPhase() {
   return (
     <div>
       <Button
-        className="acursor-pointer bg-blue-400 hover:bg-blue-500 mb-4"
+        className="cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4"
         onClick={() => setIsDialogOpen(true)}
       >
         Añadir Entrega
@@ -219,9 +219,11 @@ export default function AddPhase() {
               </div>
               <DialogFooter className="mt-6">
                 <DialogClose asChild>
-                  <Button variant="outline">Cancelar</Button>
+                  <Button variant="outline" className="cursor-pointer">
+                    Cancelar
+                  </Button>
                 </DialogClose>
-                <Button className="bg-blue-500 hover:bg-blue-600" type="submit">
+                <Button className="cursor-pointer bg-blue-500 hover:bg-blue-600" type="submit">
                   Guardar Cambios
                 </Button>
               </DialogFooter>
