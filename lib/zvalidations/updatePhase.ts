@@ -17,9 +17,7 @@ export const FEC_ETAP = z.iso.date({
 });
 export const OBS_ETAP = z
   .string({ error: "Selecciona un código de excepción" })
-  .min(3, {
-    error: "El código de excepción debe de ser de mínimo 3 caracteres",
-  });
+  .optional();
 export const CVE_MODI = z
   .string({ error: "Ingresa un usuario" })
   .min(2, { error: "El usuario debe de ser de mínimo de 2 carácteres" })

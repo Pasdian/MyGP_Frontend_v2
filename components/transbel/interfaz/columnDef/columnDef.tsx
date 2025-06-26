@@ -237,7 +237,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-blue-400">
+              <p className="text-center bg-red-400">
                 {row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]}
               </p>
             </TooltipTrigger>

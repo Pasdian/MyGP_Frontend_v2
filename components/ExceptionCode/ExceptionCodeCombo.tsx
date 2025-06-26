@@ -42,24 +42,35 @@ export function ExceptionCodeCombo({
       >
     | ControllerRenderProps<
         {
+          NUM_REFE: string;
+          CVE_ETAP: string;
+          HOR_ETAP: string;
+          FEC_ETAP: string;
+          CVE_MODI: string;
+          OBS_ETAP?: string | undefined;
+        },
+        'OBS_ETAP'
+      >
+    | ControllerRenderProps<
+        {
           REFERENCIA: string;
           CE_140: string;
           HOR_ETAP: string;
           FEC_ETAP: string;
-          OBS_ETAP: string;
           CVE_MODI: string;
           CVE_ETAP: string;
+          OBS_ETAP?: string | undefined;
         },
         'OBS_ETAP'
       >
     | ControllerRenderProps<
         {
           NUM_REFE: string;
-          CVE_ETAP: string;
           HOR_ETAP: string;
           FEC_ETAP: string;
-          OBS_ETAP: string;
-          CVE_MODI: string;
+          CVE_ETAP: string;
+          USUARIO: string;
+          OBS_ETAP?: string | undefined;
         },
         'OBS_ETAP'
       >;
@@ -69,7 +80,7 @@ export function ExceptionCodeCombo({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" className="bg-blue-400 hover:bg-blue-500">
+        <Button size="sm" className="cursor-pointer bg-blue-400 hover:bg-blue-500">
           {field.value ? field.value : 'Código de Excepción'}
         </Button>
       </DropdownMenuTrigger>

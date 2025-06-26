@@ -23,9 +23,9 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { columnDef } from './columnDef/columnDef';
 import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
-import { axiosFetcher } from '@/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import TailwindSpinner from '@/components/TailwindSpinner';
+import { axiosFetcher } from '@/axios-instance';
 
 export default function Deliveries() {
   const { data, isValidating } = useSWRImmutable<getDeliveries[]>(
