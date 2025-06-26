@@ -41,6 +41,8 @@ import {
 } from '@/lib/zvalidations/updatePhase';
 import { GPClient } from '@/axios-instance';
 
+export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);
+
 export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
   const [isChecked, setIsChecked] = React.useState(false);
@@ -163,7 +165,9 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
                       <FormControl>
                         <div className="flex">
                           <div className="mr-2">
-                            <ExceptionCodeCombo field={field} />
+                            <UpdatePhaseRowContext.Provider value={row}>
+                              <ExceptionCodeCombo field={field} />
+                            </UpdatePhaseRowContext.Provider>
                           </div>
                           <Button
                             size="sm"

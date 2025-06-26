@@ -1,5 +1,5 @@
 import { GPServer } from '@/axios-instance';
-import { logger } from '@/winston-logger';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 

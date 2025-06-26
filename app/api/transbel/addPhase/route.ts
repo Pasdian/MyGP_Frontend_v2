@@ -1,5 +1,5 @@
 import { GPServer } from '@/axios-instance';
-import { logger } from '@/winston-logger';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 
@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     const session_token = (await cookies()).get('session_token')?.value;
     const reqJson: AddPhase = await req.json();
+    logger.info(`POST /api/transbel/addPhase ${JSON.stringify(reqJson)}`);
 
     const res = await GPServer.post('/api/transbel/addPhase', reqJson, {
       headers: {

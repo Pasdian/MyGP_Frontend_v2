@@ -1,5 +1,5 @@
 import { GPServer } from '@/axios-instance';
-import { logger } from '@/winston-logger';
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 
 // All dates are on ISO format

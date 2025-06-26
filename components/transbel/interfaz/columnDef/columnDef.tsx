@@ -105,25 +105,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
       return row.original.EE__GE;
     },
   },
-  {
-    accessorKey: 'ADU_DESP',
-    header: 'Aduana',
-    cell: ({ row }) => {
-      if (!row.original.ADU_DESP) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">--</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>No existe número de aduana</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      }
-      return row.original.ADU_DESP;
-    },
-  },
+
   {
     accessorKey: 'REVALIDACION_073',
     header: 'Revalidación',
@@ -141,6 +123,14 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
+      const date = row.original.REVALIDACION_073.split(' ')[0];
+      const splittedDate = date.split('-');
+
+      const day = splittedDate[2];
+      const month = splittedDate[1];
+      const year = splittedDate[0];
+      const formattedDate = `${day}/${month}/${year}`;
+
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
         row.original.REVALIDACION_073.split(' ')[0] >
@@ -149,9 +139,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {row.original.REVALIDACION_073.split(' ')[0]}
-              </p>
+              <p className="text-center bg-red-400">{formattedDate}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de revalidación es mayor que la fecha de último documento</p>
@@ -166,9 +154,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {row.original.REVALIDACION_073.split(' ')[0]}
-              </p>
+              <p className="text-center bg-red-400">{formattedDate}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de revalidación es mayor que la fecha de transporte</p>
@@ -182,9 +168,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {row.original.REVALIDACION_073.split(' ')[0]}
-              </p>
+              <p className="text-center bg-red-400">{formattedDate}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de revalidación es mayor que la fecha de MSA</p>
@@ -192,7 +176,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p className="text-center">{row.original.REVALIDACION_073.split(' ')[0]}</p>;
+        return <p className="text-center">{formattedDate}</p>;
       }
     },
   },
@@ -213,6 +197,14 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
+      const date = row.original.ULTIMO_DOCUMENTO_114.split(' ')[0];
+      const splittedDate = date.split('-');
+
+      const day = splittedDate[2];
+      const month = splittedDate[1];
+      const year = splittedDate[0];
+      const formattedDate = `${day}/${month}/${year}`;
+
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ULTIMO_DOCUMENTO_114.split(' ')[0] >
@@ -221,9 +213,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]}
-              </p>
+              <p className="text-center bg-red-400">{formattedDate}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha del último documento es mayor que la fecha de entrega de transporte</p>
@@ -237,9 +227,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]}
-              </p>
+              <p className="text-center bg-red-400">{formattedDate}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de último documento es mayor que MSA</p>
@@ -247,7 +235,65 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p className="text-center">{row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]}</p>;
+        return <p className="text-center">{formattedDate}</p>;
+      }
+    },
+  },
+  {
+    accessorKey: 'MSA_130',
+    header: 'MSA',
+    cell: ({ row }) => {
+      if (!row.original.MSA_130) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-center bg-red-400">--</p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>No existe una fecha de MSA</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      }
+
+      const date = row.original.MSA_130.split(' ')[0];
+      const splittedDate = date.split('-');
+
+      const day = splittedDate[2];
+      const month = splittedDate[1];
+      const year = splittedDate[0];
+      const formattedDate = `${day}/${month}/${year}`;
+
+      if (
+        row.original.ENTREGA_TRANSPORTE_138 &&
+        row.original.MSA_130.split(' ')[0] !== row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
+      ) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-center bg-red-400">{formattedDate}</p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>MSA no es igual a la fecha de entrega de transporte</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      } else if (
+        row.original.ENTREGA_CDP_140 &&
+        row.original.MSA_130.split(' ')[0] > row.original.ENTREGA_CDP_140.split(' ')[0]
+      ) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-center bg-red-400">{formattedDate}</p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>MSA es mayor que la fecha de entrega CDP</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      } else {
+        return <p className="text-center">{formattedDate}</p>;
       }
     },
   },
@@ -270,6 +316,14 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         }
       }
 
+      const date = row.original.ENTREGA_TRANSPORTE_138.split(' ')[0];
+      const splittedDate = date.split('-');
+
+      const day = splittedDate[2];
+      const month = splittedDate[1];
+      const year = splittedDate[0];
+      const formattedDate = `${day}/${month}/${year}`;
+
       if (
         row.original.ENTREGA_CDP_140 &&
         row.original.MSA_130 &&
@@ -278,9 +332,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]}
-              </p>
+              <p className="text-center bg-red-400">{formattedDate}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de entrega de transporte no es igual a MSA</p>
@@ -295,9 +347,7 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]}
-              </p>
+              <p className="text-center bg-red-400">{formattedDate}</p>
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de entrega de transporte es mayor que la fecha de entrega CDP</p>
@@ -305,89 +355,12 @@ export const columnDef: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else {
-        return <p className="text-center">{row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]}</p>;
+        return <p className="text-center">{formattedDate}</p>;
       }
     },
   },
   {
     accessorKey: 'CE_138',
     header: 'CE 138',
-  },
-  {
-    accessorKey: 'MSA_130',
-    header: 'MSA',
-    cell: ({ row }) => {
-      if (!row.original.MSA_130) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">--</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>No existe una fecha de MSA</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      }
-
-      if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.MSA_130.split(' ')[0] !== row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
-      ) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">{row.original.MSA_130.split(' ')[0]}</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>MSA no es igual a la fecha de entrega de transporte</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      } else if (
-        row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130.split(' ')[0] > row.original.ENTREGA_CDP_140.split(' ')[0]
-      ) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">{row.original.MSA_130.split(' ')[0]}</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>MSA es mayor que la fecha de entrega CDP</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      } else {
-        return <p className="text-center">{row.original.MSA_130.split(' ')[0]}</p>;
-      }
-    },
-  },
-  {
-    accessorKey: 'ENTREGA_CDP_140',
-    header: 'Entrega CDP',
-    cell: ({ row }) => {
-      if (!row.original.ENTREGA_CDP_140) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">--</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>No existe una fecha de entrega CDP</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      }
-      return <p className="text-center">{row.original.ENTREGA_CDP_140.split(' ')[0]}</p>;
-    },
-  },
-  {
-    accessorKey: 'CE_140',
-    header: 'CE 140',
-    cell: ({ row }) => {
-      if (!row.original.CE_140) return '-';
-      return <p className="text-center">{row.original.CE_140}</p>;
-    },
   },
 ];

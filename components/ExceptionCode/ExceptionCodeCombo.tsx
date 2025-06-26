@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ControllerRenderProps } from 'react-hook-form';
 import { exceptionCodes } from '@/components/ExceptionCode/exceptionCodes';
+import { UpdatePhaseRowContext } from '../transbel/entregas/UpdatePhase';
 
 export function ExceptionCodeCombo({
   field,
@@ -32,22 +33,11 @@ export function ExceptionCodeCombo({
     | ControllerRenderProps<
         {
           NUM_REFE: string;
+          CVE_ETAP: string;
           HOR_ETAP: string;
           FEC_ETAP: string;
-          CVE_ETAP: string;
           OBS_ETAP: string;
-          USUARIO: string;
-        },
-        'OBS_ETAP'
-      >
-    | ControllerRenderProps<
-        {
-          NUM_REFE: string;
-          CVE_ETAP: string;
-          HOR_ETAP: string;
-          FEC_ETAP: string;
           CVE_MODI: string;
-          OBS_ETAP?: string | undefined;
         },
         'OBS_ETAP'
       >
@@ -57,26 +47,17 @@ export function ExceptionCodeCombo({
           CE_140: string;
           HOR_ETAP: string;
           FEC_ETAP: string;
+          OBS_ETAP: string;
           CVE_MODI: string;
           CVE_ETAP: string;
-          OBS_ETAP?: string | undefined;
-        },
-        'OBS_ETAP'
-      >
-    | ControllerRenderProps<
-        {
-          NUM_REFE: string;
-          HOR_ETAP: string;
-          FEC_ETAP: string;
-          CVE_ETAP: string;
-          USUARIO: string;
-          OBS_ETAP?: string | undefined;
         },
         'OBS_ETAP'
       >;
 }) {
+  const row = React.useContext(UpdatePhaseRowContext);
   const [open, setOpen] = React.useState(false);
 
+  console.log(row?.original);
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
