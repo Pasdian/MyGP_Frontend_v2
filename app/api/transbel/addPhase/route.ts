@@ -16,16 +16,16 @@ export async function POST(req: NextRequest) {
     const session_token = (await cookies()).get('session_token')?.value;
     const reqJson: AddPhase = await req.json();
 
-    await GPServer.post('/api/transbel/addPhase', reqJson, {
+    const res = await GPServer.post('/api/transbel/addPhase', reqJson, {
       headers: {
         Authorization: `Bearer ${session_token}`,
       },
     });
 
-    return Response.json({});
+    return Response.json({ message: 'Phase added succesfully' }, { status: res.status });
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');
-    return Response.error();
+    return Response.json({ error: 'Failed to connect to server' }, { status: 500 });
   }
 }

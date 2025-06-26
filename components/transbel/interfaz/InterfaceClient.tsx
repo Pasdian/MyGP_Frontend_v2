@@ -1,5 +1,4 @@
 'use client';
-import { axiosFetcher, GPClient } from '@/axios-instance';
 import { toast } from 'sonner';
 import { columnDef } from './columnDef/columnDef';
 import { DataTable } from './DataTable';
