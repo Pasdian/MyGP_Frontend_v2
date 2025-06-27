@@ -1,15 +1,8 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
+import { UpdatePhase } from '@/types/transbel/updatePhase';
 import { cookies } from 'next/headers';
-import { NextRequest } from 'next/server';
-
-type UpdatePhase = {
-  ref: string | null;
-  phase: string | null;
-  exceptionCode: string | null;
-  date: number;
-  user: string;
-};
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,10 +15,10 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${session_token}`,
       },
     });
-    return Response.json({ message: 'Phase updated successfully' }, { status: res.status });
+    return NextResponse.json({ message: 'Phase updated successfully' }, { status: res.status });
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');
-    return Response.error();
+    return NextResponse.json({ error: 'Failed to connect to server' }, { status: 500 });
   }
 }

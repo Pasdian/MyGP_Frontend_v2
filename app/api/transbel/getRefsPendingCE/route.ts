@@ -1,24 +1,20 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
-import { NextRequest } from 'next/server';
-
-// All dates are on ISO format
-export type getRefsPendingCE = {
-  REFERENCIA: string | null;
-  EE__GE: string | null;
-  ADU_DESP: string | null;
-  REVALIDACION_073: string | null;
-  ULTIMO_DOCUMENTO_114: string | null;
-  ENTREGA_TRANSPORTE_138: string | null;
-  CE_138: string | null;
-  MSA_130: string | null;
-  ENTREGA_CDP_140: string | null;
-  CE_140: string | null;
-};
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
+
+    if (!searchParams.get('initialDate') || !searchParams.get('finalDate')) {
+      const res = await GPServer.get('/api/transbel/getRefsPendingCE', {
+        headers: { Authorization: `Bearer ${req.cookies.get('session_token')?.value}` },
+      });
+      const data: getRefsPendingCE[] = res.data;
+      return NextResponse.json(data, { status: res.status });
+    }
+
     const res = await GPServer.get(
       `/api/transbel/getRefsPendingCE?initialDate=${searchParams.get(
         'initialDate'
@@ -28,10 +24,10 @@ export async function GET(req: NextRequest) {
       }
     );
     const data: getRefsPendingCE[] = res.data;
-    return Response.json(data);
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');
-    return Response.error();
+    return NextResponse.json({ error: 'Failed to connect to server' }, { status: 500 });
   }
 }

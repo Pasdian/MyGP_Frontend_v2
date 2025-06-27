@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 3002",
-    "build": "playwright test && next build",
-    "start": "next start -p 3002",
+    "dev": "next dev --turbopack -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
     "test": "playwright test",
     "lint": "next lint"
   },

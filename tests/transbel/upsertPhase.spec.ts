@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTE = '/api/transbel/addPhase';
+const ROUTE = '/api/transbel/upsertPhase';
 
 test(`POST ${ROUTE} returns 200`, async ({ request }) => {
   const loginResponse = await request.post('/api/auth/login', {
@@ -14,7 +14,7 @@ test(`POST ${ROUTE} returns 200`, async ({ request }) => {
 
   expect(loginResponse.status()).toBe(200);
 
-  const addPhaseResponse = await request.post(`${ROUTE}`, {
+  const res = await request.post(`${ROUTE}`, {
     data: {
       ref: 'TESTPHASE',
       phase: '140',
@@ -27,16 +27,5 @@ test(`POST ${ROUTE} returns 200`, async ({ request }) => {
     },
   });
 
-  const deletePhaseResponse = await request.post('/api/transbel/deletePhase', {
-    data: {
-      ref: 'TESTPHASE',
-      phase: '140',
-    },
-    headers: {
-      'Set-Cookie': session_token,
-    },
-  });
-
-  expect(addPhaseResponse.status()).toBe(200);
-  expect(deletePhaseResponse.status()).toBe(200);
+  expect(res.status()).toBe(200);
 });

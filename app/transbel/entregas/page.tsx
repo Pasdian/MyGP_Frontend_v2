@@ -1,12 +1,47 @@
-export const dynamic = 'force-dynamic';
+'use client';
 
-import DeliveriesClient from '@/components/transbel/entregas/DeliveriesClient';
+import DeliveriesAddPhaseButton from '@/components/buttons/addPhase/DeliveriesAddPhaseButton';
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 
-export default async function Page() {
+import React from 'react';
+import useSWRImmutable from 'swr/immutable';
+import TailwindSpinner from '@/components/ui/TailwindSpinner';
+import { axiosFetcher } from '@/axios-instance';
+import { getDeliveries } from '@/types/transbel/getDeliveries';
+import TablePagination from '@/components/datatables/pagination/TablePagination';
+import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
+import DeliveriesDataTable from '@/components/datatables/DeliveriesDataTable';
+
+export default function Deliveries() {
+  const { data, isValidating } = useSWRImmutable<getDeliveries[]>(
+    '/api/transbel/getDeliveries',
+    axiosFetcher
+  );
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+
+  const table = useReactTable({
+    data: data ? data : [],
+    columns: deliveriesColumns,
+    getCoreRowModel: getCoreRowModel(),
+    onPaginationChange: setPagination, // Pagination
+    getFilteredRowModel: getFilteredRowModel(), // Filtering
+    getPaginationRowModel: getPaginationRowModel(), // Pagination
+    state: {
+      pagination, // Pagination
+    },
+  });
+
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas</h1>
-      <DeliveriesClient />
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas a CDP / CPAC</h1>
+      <DeliveriesAddPhaseButton />
+      {isValidating ? <TailwindSpinner /> : <DeliveriesDataTable table={table} />}
+      <TablePagination table={table} />
     </div>
   );
 }

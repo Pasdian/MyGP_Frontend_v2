@@ -1,10 +1,7 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
-import { NextRequest } from 'next/server';
-
-export type getTransbelRefs = {
-  NUM_REFE: string | null;
-};
+import { getTransbelRefs } from '@/types/transbel/getTransbelRefs';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,10 +10,10 @@ export async function GET(req: NextRequest) {
     });
 
     const data: getTransbelRefs[] = res.data;
-    return Response.json(data);
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');
-    return Response.error();
+    return NextResponse.json({ error: 'Failed to connect to server' }, { status: 500 });
   }
 }
