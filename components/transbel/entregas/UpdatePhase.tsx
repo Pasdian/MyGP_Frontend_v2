@@ -31,18 +31,15 @@ import { Label } from '@/components/ui/label';
 import { ExceptionCodeCombo } from '@/components/ExceptionCode/ExceptionCodeCombo';
 import { getDeliveries } from '@/app/api/transbel/getDeliveries/route';
 import { useSWRConfig } from 'swr';
-
-import { GPClient } from '@/axios-instance';
 import {
-  CE_138,
-  CE_140,
-  EE__GE,
-  ENTREGA_CDP_140,
-  ENTREGA_TRANSPORTE_138,
-  REFERENCIA,
+  CVE_ETAP,
+  CVE_MODI,
+  FEC_ETAP,
+  HOR_ETAP,
+  NUM_REFE,
+  OBS_ETAP,
 } from '@/lib/zvalidations/updatePhase';
-
-export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);
+import { GPClient } from '@/axios-instance';
 
 export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
@@ -50,31 +47,29 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const ZUpdatePhaseSchema = z.object({
-    REFERENCIA: REFERENCIA,
-    EE__GE: EE__GE,
-    ENTREGA_TRANSPORTE_138: ENTREGA_TRANSPORTE_138,
-    CE_138: CE_138,
-    ENTREGA_CDP_140: ENTREGA_CDP_140,
-    CE_140: CE_140,
+    NUM_REFE: NUM_REFE,
+    CVE_ETAP: CVE_ETAP,
+    HOR_ETAP: HOR_ETAP,
+    FEC_ETAP: FEC_ETAP,
+    OBS_ETAP: OBS_ETAP,
+    CVE_MODI: CVE_MODI,
   });
 
   const form = useForm<z.infer<typeof ZUpdatePhaseSchema>>({
     resolver: zodResolver(ZUpdatePhaseSchema),
     defaultValues: {
-      REFERENCIA: row.original.REFERENCIA ?? '',
-
-      EE__GE: row.original.EE__GE ?? '',
-      ENTREGA_TRANSPORTE_138: row.original.ENTREGA_TRANSPORTE_138 ?? '',
-      CE_138: row.original.CE_138 ?? '',
-      ENTREGA_CDP_140: row.original.ENTREGA_CDP_140 ?? '',
-      CE_140: row.original.CE_140 ?? '',
+      NUM_REFE: row.original.NUM_REFE ? row.original.NUM_REFE : '',
+      CVE_ETAP: '140',
+      FEC_ETAP: row.original.FEC_ETAP ? row.original.FEC_ETAP.split(' ')[0] : '',
+      HOR_ETAP: row.original.HOR_ETAP ? row.original.HOR_ETAP.split(' ')[1].substring(0, 5) : '',
+      OBS_ETAP: row.original.OBS_ETAP ? row.original.OBS_ETAP : '',
+      CVE_MODI: row.original.CVE_MODI ? 'MYGP' : '',
     },
   });
 
   async function onSubmit(data: z.infer<typeof ZUpdatePhaseSchema>) {
-    form.reset();
     await GPClient.post('/api/transbel/updatePhase', {
-      ref: data.REFERENCIA,
+      ref: data.NUM_REFE,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
       date: `${data.FEC_ETAP} ${data.HOR_ETAP}`,
@@ -118,7 +113,7 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
               <div className="grid gap-4">
                 <FormField
                   control={form.control}
-                  name="REFERENCIA"
+                  name="NUM_REFE"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Referencia</FormLabel>
@@ -167,9 +162,7 @@ export default function UpdatePhase({ row }: { row: Row<getDeliveries> }) {
                       <FormControl>
                         <div className="flex">
                           <div className="mr-2">
-                            <UpdatePhaseRowContext.Provider value={row}>
-                              <ExceptionCodeCombo field={field} />
-                            </UpdatePhaseRowContext.Provider>
+                            <ExceptionCodeCombo field={field} />
                           </div>
                           <Button
                             size="sm"

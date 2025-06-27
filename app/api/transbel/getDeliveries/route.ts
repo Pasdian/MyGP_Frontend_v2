@@ -3,13 +3,14 @@ import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 
 export type getDeliveries = {
-  REFERENCIA: string | null;
-  EE__GE: string | null;
-  ENTREGA_TRANSPORTE_138: string | null;
-  CE_138: string | null;
-  ENTREGA_CDP_140: string | null;
-  CE_140: string | null;
+  NUM_REFE: string | null;
+  CVE_ETAP: string | null;
+  FEC_ETAP: string | null;
+  HOR_ETAP: string | null;
+  OBS_ETAP: string | null;
+  CVE_MODI: string | null;
 };
+
 
 export async function GET(req: NextRequest) {
   try {
