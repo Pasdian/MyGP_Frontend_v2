@@ -90,7 +90,7 @@ export default function UpdatePhase({ row }: { row: Row<getRefsPendingCE> }) {
   async function onSubmit(data: z.infer<typeof ZUpdatePhaseSchema>) {
     form.reset();
 
-    await GPClient.post('/api/transbel/updatePhase', {
+    await GPClient.post('/api/transbel/upsertPhase', {
       ref: data.REFERENCIA,
       phase: data.CVE_ETAP,
       exceptionCode: data.OBS_ETAP,
