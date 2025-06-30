@@ -1,43 +1,22 @@
 'use client';
 import { GPClient } from '@/axios-instance';
+import { AuthContext } from '@/contexts/AuthContext';
+import { APIVerifySession } from '@/types/auth/apiVerifySession';
 import React from 'react';
 
-type AxiosResponseData = {
-  id: number;
-  uuid: string;
-  casa_user_name: string | null;
-  name: string;
-  email: string;
-  role: number;
-  iat: number;
-  exp: number;
-};
-
-type Credentials = {
-  casa_user_name: string | null;
-  name: string;
-  email: string;
-  role: number;
-};
-
-export const AuthContext = React.createContext<Credentials>({
-  casa_user_name: '',
-  name: '',
-  email: '',
-  role: 0,
-});
-
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<Credentials>({
-    casa_user_name: '',
-    name: '',
-    email: '',
-    role: 0,
+  const [user, setUser] = React.useState<APIVerifySession>({
+    user: {
+      name: '',
+      email: '',
+      role: 0,
+      casa_user_name: '',
+    },
   });
 
   React.useEffect(() => {
     async function fetchCredentials() {
-      await GPClient.post('/api/auth/verifySession').then((res: { data: AxiosResponseData }) => {
+      await GPClient.post('/api/auth/verifySession').then((res: { data: APIVerifySession }) => {
         setUser(res.data);
       });
     }
