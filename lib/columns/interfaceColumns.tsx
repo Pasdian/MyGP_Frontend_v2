@@ -48,16 +48,16 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.MSA_130 &&
+        row.original.ENTREGA_TRANSPORTE_138 &&
         (trafficType == "A" || trafficType == "F" || trafficType == "T")
       ) {
         if (
           daysFrom(
             row.original.ULTIMO_DOCUMENTO_114.split(" ")[0],
-            row.original.MSA_130.split(" ")[0]
-          ) > 4
+            row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+          ) > 7
         ) {
-          // 4 days
+          // 7 days
           return (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -67,8 +67,8 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-center">
-                  La diferencia entre la fecha de último documento y MSA es
-                  mayor a 4 días para tráfico aéreo
+                  La diferencia entre la fecha de último documento y la entrega
+                  a transporte es mayor a 7 días para tráfico aéreo
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -76,16 +76,16 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         }
       } else if (
         row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.MSA_130 &&
+        row.original.ENTREGA_TRANSPORTE_138 &&
         (trafficType == "M" || trafficType == "V")
       ) {
         if (
           daysFrom(
             row.original.ULTIMO_DOCUMENTO_114.split(" ")[0],
-            row.original.MSA_130.split(" ")[0]
-          ) > 11
+            row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+          ) > 7
         ) {
-          // 11 days
+          // 7 days
           return (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -95,8 +95,8 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
               </TooltipTrigger>
               <TooltipContent>
                 <p>
-                  La diferencia entre la fecha de último documento y MSA es
-                  mayor a 11 días para tráfico marítimo
+                  La diferencia entre la fecha de último documento y la entrega
+                  a transporte es mayor a 7 días para tráfico marítimo
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -183,9 +183,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else if (
-        row.original.MSA_130 &&
+        row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.MSA_130.split(" ")[0]
+          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
       ) {
         return (
           <Tooltip>
@@ -246,9 +246,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else if (
-        row.original.MSA_130 &&
+        row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
-          row.original.MSA_130.split(" ")[0]
+          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
       ) {
         return (
           <Tooltip>
@@ -352,9 +352,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130 &&
+        row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] !==
-          row.original.MSA_130.split(" ")[0]
+          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
       ) {
         return (
           <Tooltip>
