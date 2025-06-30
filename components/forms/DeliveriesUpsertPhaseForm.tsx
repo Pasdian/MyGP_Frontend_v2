@@ -33,7 +33,7 @@ function diffInDays(dateA: string, dateB: string) {
   return diffInDays;
 }
 
-export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliveries> }) {
+export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
 
   const [isChecked, setIsChecked] = React.useState(false);

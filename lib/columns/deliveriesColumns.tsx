@@ -5,7 +5,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
-import DeliveriesUpdatePhaseButton from "@/components/buttons/updatePhase/DeliveriesUpdatePhaseButton";
+import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
 
 const getFormattedDate = (d: string | undefined) => {
   if (!d) return;
@@ -31,7 +31,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     accessorKey: "ACCIONES",
     header: "Acciones",
     cell: ({ row }) => {
-      return <DeliveriesUpdatePhaseButton row={row} />;
+      return <DeliveriesUpsertPhaseButton row={row} />;
     },
   },
   {

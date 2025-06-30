@@ -5,8 +5,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
-import InterfaceUpdatePhaseButton from "@/components/buttons/updatePhase/InterfaceUpdatePhaseButton";
 import { diffInDays } from "../utilityFunctions/diffInDays";
+import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
 
 const getFormattedDate = (d: string | undefined) => {
   if (!d) return;
@@ -25,7 +25,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     accessorKey: "ACCIONES",
     header: "Acciones",
     cell: ({ row }) => {
-      return <InterfaceUpdatePhaseButton row={row} />;
+      return <InterfaceUpsertPhaseButton row={row} />;
     },
   },
   {

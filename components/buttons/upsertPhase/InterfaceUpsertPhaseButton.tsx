@@ -13,18 +13,21 @@ import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 
-import { getDeliveries } from '@/types/transbel/getDeliveries';
-
-import DeliveriesUpdatePhaseForm from '@/components/forms/DeliveriesUpdatePhaseForm';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
+import InterfaceUpdatePhaseForm from '@/components/forms/InterfaceUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 
-export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);
-
-export default function DeliveriesUpdatePhaseButton({ row }: { row: Row<getDeliveries> }) {
+export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPendingCE> }) {
+  const [openDialog, setOpenDialog] = React.useState(false);
   return (
-    <Dialog>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer bg-yellow-400 hover:bg-yellow-500">Modificar</Button>
+        <Button
+          onClick={() => setOpenDialog((opened) => !opened)}
+          className="cursor-pointer bg-yellow-400 hover:bg-yellow-500"
+        >
+          Modificar
+        </Button>
       </DialogTrigger>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
@@ -34,7 +37,8 @@ export default function DeliveriesUpdatePhaseButton({ row }: { row: Row<getDeliv
             termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        <DeliveriesUpdatePhaseForm row={row} />
+
+        <InterfaceUpdatePhaseForm row={row} setOpenDialog={setOpenDialog} />
       </DialogContent>
     </Dialog>
   );

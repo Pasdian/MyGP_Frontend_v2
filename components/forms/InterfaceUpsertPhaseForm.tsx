@@ -44,7 +44,7 @@ const getFormattedDate = (d: Date | undefined) => {
   return formatted;
 };
 
-export default function InterfaceUpdatePhaseForm({
+export default function InterfaceUpsertPhaseForm({
   row,
   setOpenDialog,
 }: {
