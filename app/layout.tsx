@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { Roboto } from 'next/font/google';
+import AuthProvider from '@/components/AuthProvider/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'MyGP',
@@ -20,8 +21,10 @@ export default function RootLayout({
   return (
     <html lang="es-MX" className={roboto.className}>
       <body>
-        {children}
-        <Toaster position="top-center" />
+        <AuthProvider>
+          {children}
+          <Toaster position="top-center" />
+        </AuthProvider>
       </body>
     </html>
   );

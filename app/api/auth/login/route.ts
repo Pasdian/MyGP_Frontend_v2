@@ -1,19 +1,8 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
+import { Login } from '@/types/auth/login';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-
-type AuthLogin = {
-  token: string;
-  user: {
-    id: number | null;
-    uuid: string | null;
-    casa_user_name: string | null;
-    name: string | null;
-    email: string | null;
-    role: number | null;
-  };
-};
 
 export type LoginResponse = { name: string; email: string };
 
@@ -31,7 +20,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const res = await GPServer.post('/api/auth/login', userCredentials);
-    const data: AuthLogin = res.data;
+    const data: Login = res.data;
 
     (await cookies()).set('session_token', data.token);
 
