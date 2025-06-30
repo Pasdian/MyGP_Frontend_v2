@@ -73,6 +73,19 @@ export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliver
       });
   }
 
+  if (row.original.ENTREGA_TRANSPORTE_138 && row.original.ENTREGA_CDP_140) {
+    const diffBetweenDates =
+      +new Date(row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]) -
+      +new Date(row.original.ENTREGA_CDP_140.split(' ')[0]);
+    if (diffBetweenDates > 1) {
+      return (
+        <p className="font-bold text-red-400 text-center">
+          La diferencia de entrega de transporte y la entrega a CDP es mayor a un dia
+        </p>
+      );
+    }
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>

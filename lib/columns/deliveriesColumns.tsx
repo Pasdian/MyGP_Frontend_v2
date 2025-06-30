@@ -84,6 +84,13 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
           );
         }
       }
+      const diffBetweenDates =
+        +new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]) -
+        +new Date(
+          row.original.ENTREGA_CDP_140
+            ? row.original.ENTREGA_CDP_140.split(" ")[0]
+            : 0
+        );
 
       if (
         row.original.ENTREGA_CDP_140 &&
@@ -101,6 +108,22 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
               <p>
                 La fecha de entrega de transporte es mayor que la fecha de
                 entrega CDP
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      } else if (diffBetweenDates > 1) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-center bg-red-400">
+                {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                La diferencia de entrega de transporte y la entrega a CDP es
+                mayor a un dia
               </p>
             </TooltipContent>
           </Tooltip>
@@ -132,7 +155,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
       }
       return (
         <p className="text-center">
-          {row.original.ENTREGA_CDP_140.split(" ")[0]}
+          {getFormattedDate(row.original.ENTREGA_CDP_140)}
         </p>
       );
     },

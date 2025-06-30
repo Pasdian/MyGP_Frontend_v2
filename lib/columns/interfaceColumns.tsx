@@ -80,14 +80,12 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         row.original.MSA_130 &&
         (trafficType == "M" || trafficType == "V")
       ) {
-        const diffTimestamp =
+        const diffBetweenDates =
           +new Date(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]) -
           +new Date(row.original.MSA_130.split(" ")[0]);
-        const diffBetweenDates =
-          diffTimestamp > 0 ? new Date(diffTimestamp).getDate() : 0; // Can't be negative
 
         if (diffBetweenDates > 11) {
-          // 4 days
+          // 11 days
           return (
             <Tooltip>
               <TooltipTrigger asChild>
