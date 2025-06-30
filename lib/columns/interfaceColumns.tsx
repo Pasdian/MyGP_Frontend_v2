@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/tooltip";
 import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 import InterfaceUpdatePhaseButton from "@/components/buttons/updatePhase/InterfaceUpdatePhaseButton";
+import { diffInDays } from "../utilityFunctions/diffInDays";
 
 const getFormattedDate = (d: string | undefined) => {
   if (!d) return;
@@ -50,14 +51,12 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         row.original.MSA_130 &&
         (trafficType == "A" || trafficType == "F" || trafficType == "T")
       ) {
-        const diffTimestamp =
-          +new Date(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]) -
-          +new Date(row.original.MSA_130.split(" ")[0]);
-
-        const diffBetweenDates =
-          diffTimestamp > 0 ? new Date(diffTimestamp).getDate() : 0; // Can't be negative
-
-        if (diffBetweenDates > 4) {
+        if (
+          diffInDays(
+            row.original.ULTIMO_DOCUMENTO_114.split(" ")[0],
+            row.original.MSA_130.split(" ")[0]
+          ) > 4
+        ) {
           // 4 days
           return (
             <Tooltip>
@@ -80,11 +79,12 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         row.original.MSA_130 &&
         (trafficType == "M" || trafficType == "V")
       ) {
-        const diffBetweenDates =
-          +new Date(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]) -
-          +new Date(row.original.MSA_130.split(" ")[0]);
-
-        if (diffBetweenDates > 11) {
+        if (
+          diffInDays(
+            row.original.ULTIMO_DOCUMENTO_114.split(" ")[0],
+            row.original.MSA_130.split(" ")[0]
+          ) > 11
+        ) {
           // 11 days
           return (
             <Tooltip>

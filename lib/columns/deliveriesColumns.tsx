@@ -19,6 +19,13 @@ const getFormattedDate = (d: string | undefined) => {
   return formattedDate;
 };
 
+function diffInDays(dateA: string, dateB: string) {
+  const diffBetweenDates = +new Date(dateA) - +new Date(dateB);
+
+  const diffInDays = Math.ceil(diffBetweenDates / (1000 * 60 * 60 * 24));
+  return diffInDays;
+}
+
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ACCIONES",
@@ -84,13 +91,6 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
           );
         }
       }
-      const diffBetweenDates =
-        +new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]) -
-        +new Date(
-          row.original.ENTREGA_CDP_140
-            ? row.original.ENTREGA_CDP_140.split(" ")[0]
-            : 0
-        );
 
       if (
         row.original.ENTREGA_CDP_140 &&
@@ -112,7 +112,13 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
             </TooltipContent>
           </Tooltip>
         );
-      } else if (diffBetweenDates > 1) {
+      } else if (
+        row.original.ENTREGA_CDP_140 &&
+        diffInDays(
+          row.original.ENTREGA_CDP_140?.split(" ")[0],
+          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        ) > 1
+      ) {
         return (
           <Tooltip>
             <TooltipTrigger asChild>

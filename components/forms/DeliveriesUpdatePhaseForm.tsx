@@ -26,6 +26,13 @@ import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { DialogClose, DialogFooter } from '../ui/dialog';
 import { toast } from 'sonner';
 
+function diffInDays(dateA: string, dateB: string) {
+  const diffBetweenDates = +new Date(dateB) - +new Date(dateA);
+
+  const diffInDays = Math.ceil(diffBetweenDates / (1000 * 60 * 60 * 24));
+  return diffInDays;
+}
+
 export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
 
@@ -33,10 +40,31 @@ export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliver
   const schema = z.object({
     ref: REF_VALIDATION,
     phase: PHASE_VALIDATION,
-    exceptionCode: EXCEPTION_CODE_VALIDATION,
-    date: DATE_VALIDATION,
+    exceptionCode: z.string().refine(
+      (val) => {
+        if (
+          val &&
+          row.original.ENTREGA_CDP_140 &&
+          row.original.ENTREGA_TRANSPORTE_138 &&
+          diffInDays(
+            row.original.ENTREGA_CDP_140?.split(' ')[0],
+            row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
+          ) < 1
+        ) {
+          return true;
+        } else {
+          return false;
+        }
+      },
+      {
+        error:
+          'Es necesario un código de excepción, la diferencia entre la fecha de entrega a transporte y la fecha de entrega a CDP es mayor a 1 día',
+      }
+    ),
+    cdp: DATE_VALIDATION,
     time: TIME_VALIDATION,
     user: USER_VALIDATION,
+    transporte: DATE_VALIDATION,
   });
 
   const form = useForm<z.infer<typeof schema>>({
@@ -45,9 +73,12 @@ export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliver
       ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       phase: '140',
       exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
-      date: new Date().toISOString().split('T')[0],
+      cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140.split(' ')[0] : '',
       time: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
       user: 'MYGP',
+      transporte: row.original.ENTREGA_TRANSPORTE_138
+        ? row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
+        : '',
     },
   });
 
@@ -57,7 +88,7 @@ export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliver
       ref: data.ref,
       phase: data.phase,
       exceptionCode: data.exceptionCode,
-      date: `${data.date} ${data.time}`,
+      date: `${data.cdp} ${data.time}`,
       user: data.user,
     })
       .then((res) => {
@@ -71,19 +102,6 @@ export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliver
       .catch((error) => {
         toast.error(error.response.data.message);
       });
-  }
-
-  if (row.original.ENTREGA_TRANSPORTE_138 && row.original.ENTREGA_CDP_140) {
-    const diffBetweenDates =
-      +new Date(row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]) -
-      +new Date(row.original.ENTREGA_CDP_140.split(' ')[0]);
-    if (diffBetweenDates > 1) {
-      return (
-        <p className="font-bold text-red-400 text-center">
-          La diferencia de entrega de transporte y la entrega a CDP es mayor a un dia
-        </p>
-      );
-    }
   }
 
   return (
@@ -106,10 +124,24 @@ export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliver
 
           <FormField
             control={form.control}
-            name="date"
+            name="transporte"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fecha</FormLabel>
+                <FormLabel>Fecha de Entrega a Transporte</FormLabel>
+                <FormControl>
+                  <Input disabled type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="cdp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fecha de Entrega a CDP</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -172,7 +204,7 @@ export default function DeliveriesUpdatePhaseForm({ row }: { row: Row<getDeliver
                 <FormControl>
                   <Input
                     disabled={!isChecked}
-                    placeholder="CVE Modi..."
+                    placeholder="Usuario..."
                     className="mb-4"
                     {...field}
                   />

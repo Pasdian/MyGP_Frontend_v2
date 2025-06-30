@@ -102,6 +102,8 @@ export default function InterfaceUpdatePhaseForm({
       });
   }
 
+  console.log(row.original);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -127,7 +129,23 @@ export default function InterfaceUpdatePhaseForm({
               <FormItem>
                 <FormLabel>Etapa a Modificar</FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      if (val == '073' && row.original.REVALIDACION_073) {
+                        form.setValue('date', row.original.REVALIDACION_073?.split(' ')[0]);
+                      } else if (val == '114' && row.original.ULTIMO_DOCUMENTO_114) {
+                        form.setValue('date', row.original.ULTIMO_DOCUMENTO_114?.split(' ')[0]);
+                      } else if (val == '130' && row.original.MSA_130) {
+                        form.setValue('date', row.original.MSA_130?.split(' ')[0]);
+                      } else if (val == '138' && row.original.ENTREGA_TRANSPORTE_138) {
+                        form.setValue('date', row.original.ENTREGA_TRANSPORTE_138?.split(' ')[0]);
+                      } else if (val == '140' && row.original.ENTREGA_CDP_140) {
+                        form.setValue('date', row.original.ENTREGA_CDP_140?.split(' ')[0]);
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una etapa..." />
@@ -175,36 +193,38 @@ export default function InterfaceUpdatePhaseForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="exceptionCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Código de Excepción</FormLabel>
-                <FormControl>
-                  <div className="flex">
-                    <div className="mr-2">
-                      <ExceptionCodeCombo
-                        onSelect={(value) => {
-                          field.onChange(value);
-                        }}
-                        currentValue={field.value}
-                      />
+          {form.watch('phase') == '138' ? (
+            <FormField
+              control={form.control}
+              name="exceptionCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Código de Excepción</FormLabel>
+                  <FormControl>
+                    <div className="flex">
+                      <div className="mr-2">
+                        <ExceptionCodeCombo
+                          onSelect={(value) => {
+                            field.onChange(value);
+                          }}
+                          currentValue={field.value}
+                        />
+                      </div>
+                      <Button
+                        size="sm"
+                        className="cursor-pointer bg-red-400 hover:bg-red-500"
+                        type="button"
+                        onClick={() => form.setValue('exceptionCode', '')}
+                      >
+                        Eliminar
+                      </Button>
                     </div>
-                    <Button
-                      size="sm"
-                      className="cursor-pointer bg-red-400 hover:bg-red-500"
-                      type="button"
-                      onClick={() => form.setValue('exceptionCode', '')}
-                    >
-                      Eliminar
-                    </Button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : null}
 
           <FormField
             control={form.control}
