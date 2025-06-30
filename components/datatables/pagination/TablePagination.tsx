@@ -6,7 +6,7 @@ import { Table } from '@tanstack/react-table';
 export default function TablePagination({
   table,
 }: {
-  table: Table<getDeliveries> | Table<getRefsPendingCE>;
+  table: Table<getDeliveries> | Table<getRefsPendingCE> | Table<getAllUsers>;
 }) {
   return (
     <div>

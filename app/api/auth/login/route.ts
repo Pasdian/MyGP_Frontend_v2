@@ -28,10 +28,7 @@ export async function POST(req: NextRequest) {
       `${data.user.name} with email ${data.user.email} logged in with token ${data.token}`
     );
 
-    return NextResponse.json(
-      { name: data.user.name, email: data.user.email },
-      { status: res.status }
-    );
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');

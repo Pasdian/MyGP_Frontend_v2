@@ -21,17 +21,7 @@ export async function POST() {
     );
     const data: VerifySession = res.data;
 
-    return NextResponse.json(
-      {
-        user: {
-          name: data.name,
-          email: data.email,
-          role: data.role,
-          casa_user_name: data.casa_user_name,
-        },
-      },
-      { status: res.status }
-    );
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');

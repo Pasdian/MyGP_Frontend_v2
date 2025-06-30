@@ -8,8 +8,6 @@ import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 import React from 'react';
 import { toast } from 'sonner';
 import AuthProvider from '@/components/AuthProvider/AuthProvider';
-import { useAuth } from '@/hooks/useAuth';
-import { ADMIN_ROLE, USER_ROLE } from '@/lib/roles/roles';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;
@@ -19,7 +17,6 @@ const getFormattedDate = (d: Date | undefined) => {
 };
 
 export default function Page() {
-  const { user } = useAuth();
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
 
@@ -50,8 +47,6 @@ export default function Page() {
     }
     validateDates();
   }, [initialDate, finalDate]);
-
-  if (user.role !== USER_ROLE) return <div>Tu rol no te permite ver el contenido</div>;
 
   return (
     <AuthProvider>
