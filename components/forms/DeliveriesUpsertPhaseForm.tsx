@@ -9,7 +9,6 @@ import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import {
   DATE_VALIDATION,
-  EXCEPTION_CODE_VALIDATION,
   PHASE_VALIDATION,
   REF_VALIDATION,
   TIME_VALIDATION,
