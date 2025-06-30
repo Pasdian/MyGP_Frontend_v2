@@ -58,7 +58,15 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
 
   async function onSubmit(data: z.infer<typeof schema>) {
     const diff = daysFrom(data.cdp, data.transporte);
-    console.log(diff);
+
+    if (data.cdp < data.transporte) {
+      form.setError('cdp', {
+        type: 'manual',
+        message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
+      });
+      return;
+    }
+
     if (diff > 1) {
       form.setError('exceptionCode', {
         type: 'manual',
