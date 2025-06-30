@@ -183,9 +183,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
+        row.original.MSA_130 &&
         row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+          row.original.MSA_130.split(" ")[0]
       ) {
         return (
           <Tooltip>
@@ -246,9 +246,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           </Tooltip>
         );
       } else if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
+        row.original.MSA_130 &&
         row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+          row.original.MSA_130.split(" ")[0]
       ) {
         return (
           <Tooltip>
@@ -351,10 +351,10 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
       }
 
       if (
-        row.original.ENTREGA_CDP_140 &&
+        row.original.MSA_130 &&
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] !==
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+          row.original.MSA_130.split(" ")[0]
       ) {
         return (
           <Tooltip>
@@ -365,26 +365,6 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
             </TooltipTrigger>
             <TooltipContent>
               <p>La fecha de entrega de transporte no es igual a MSA</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      } else if (
-        row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] >
-          row.original.ENTREGA_CDP_140.split(" ")[0]
-      ) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-              </p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                La fecha de entrega de transporte es mayor que la fecha de
-                entrega CDP
-              </p>
             </TooltipContent>
           </Tooltip>
         );
