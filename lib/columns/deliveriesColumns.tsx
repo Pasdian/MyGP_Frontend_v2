@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/tooltip";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
+import { daysFrom } from "../utilityFunctions/daysFrom";
 
 const getFormattedDate = (d: string | undefined) => {
   if (!d) return;
@@ -18,13 +19,6 @@ const getFormattedDate = (d: string | undefined) => {
   const formattedDate = `${day}/${month}/${year}`;
   return formattedDate;
 };
-
-function diffInDays(dateA: string, dateB: string) {
-  const diffBetweenDates = +new Date(dateA) - +new Date(dateB);
-
-  const diffInDays = Math.ceil(diffBetweenDates / (1000 * 60 * 60 * 24));
-  return diffInDays;
-}
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -114,7 +108,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        diffInDays(
+        daysFrom(
           row.original.ENTREGA_CDP_140?.split(" ")[0],
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
         ) > 1

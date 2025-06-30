@@ -5,8 +5,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
-import { diffInDays } from "../utilityFunctions/diffInDays";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
+import { daysFrom } from "../utilityFunctions/daysFrom";
 
 const getFormattedDate = (d: string | undefined) => {
   if (!d) return;
@@ -52,7 +52,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         (trafficType == "A" || trafficType == "F" || trafficType == "T")
       ) {
         if (
-          diffInDays(
+          daysFrom(
             row.original.ULTIMO_DOCUMENTO_114.split(" ")[0],
             row.original.MSA_130.split(" ")[0]
           ) > 4
@@ -80,7 +80,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         (trafficType == "M" || trafficType == "V")
       ) {
         if (
-          diffInDays(
+          daysFrom(
             row.original.ULTIMO_DOCUMENTO_114.split(" ")[0],
             row.original.MSA_130.split(" ")[0]
           ) > 11
