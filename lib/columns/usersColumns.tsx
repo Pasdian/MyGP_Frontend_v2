@@ -1,3 +1,4 @@
+import AdminPanelDeleteUserButton from "@/components/buttons/user/AdminPanelDeleteUserButton";
 import AdminPanelModifyUserButton from "@/components/buttons/user/AdminPanelModifyUserButton";
 import { getAllUsers } from "@/types/users/getAllUsers";
 import { ColumnDef } from "@tanstack/react-table";
@@ -7,7 +8,14 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
     accessorKey: "ACCIONES",
     header: "Acciones",
     cell: ({ row }) => {
-      return <AdminPanelModifyUserButton row={row} />;
+      return (
+        <div className="flex">
+          <div className="mr-3">
+            <AdminPanelModifyUserButton row={row} />
+          </div>
+          <AdminPanelDeleteUserButton row={row} />
+        </div>
+      );
     },
   },
   {
