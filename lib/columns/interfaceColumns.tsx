@@ -7,6 +7,7 @@ import React from "react";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
+import { isBusinessDay } from "../utilityFunctions/isBusinessDay";
 
 export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
@@ -88,6 +89,18 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
       }
 
       if (
+        row.original.REVALIDACION_073 &&
+        !isBusinessDay(row.original.REVALIDACION_073.split(" ")[0])
+      ) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.REVALIDACION_073)}
+            errorMessage="La fecha de revalidación no es hábil"
+          />
+        );
+      }
+
+      if (
         row.original.ULTIMO_DOCUMENTO_114 &&
         row.original.REVALIDACION_073.split(" ")[0] >
           row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]
@@ -151,6 +164,30 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
       }
 
       if (
+        row.original.ULTIMO_DOCUMENTO_114 &&
+        !isBusinessDay(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0])
+      ) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
+            errorMessage="La fecha de último documento no es hábil"
+          />
+        );
+      }
+
+      if (
+        row.original.ULTIMO_DOCUMENTO_114 &&
+        !isBusinessDay(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0])
+      ) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
+            errorMessage="La fecha de último documento no es hábil"
+          />
+        );
+      }
+
+      if (
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
@@ -202,6 +239,18 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
       }
 
       if (
+        row.original.MSA_130 &&
+        !isBusinessDay(row.original.MSA_130.split(" ")[0])
+      ) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.MSA_130)}
+            errorMessage="La fecha de MSA no es hábil"
+          />
+        );
+      }
+
+      if (
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.MSA_130.split(" ")[0] !==
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
@@ -247,6 +296,18 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
             errorMessage="El año de la fecha de último documento no es del año en curso"
+          />
+        );
+      }
+
+      if (
+        row.original.ENTREGA_TRANSPORTE_138 &&
+        !isBusinessDay(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])
+      ) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage="La fecha de entrega a transporte no es hábil"
           />
         );
       }
