@@ -1,33 +1,14 @@
+import AdminPanelModifyUserButton from "@/components/buttons/user/AdminPanelModifyUserButton";
+import { getAllUsers } from "@/types/users/getAllUsers";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
-import { diffInDays } from "../utilityFunctions/diffInDays";
-import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
-
-const getFormattedDate = (d: string | undefined) => {
-  if (!d) return;
-  const date = d.split(" ")[0];
-  const splittedDate = date.split("-");
-
-  const day = splittedDate[2];
-  const month = splittedDate[1];
-  const year = splittedDate[0];
-  const formattedDate = `${day}/${month}/${year}`;
-  return formattedDate;
-};
 
 export const usersColumns: ColumnDef<getAllUsers>[] = [
   {
     accessorKey: "ACCIONES",
     header: "Acciones",
-  },
-  {
-    accessorKey: "id",
-    header: "ID",
+    cell: ({ row }) => {
+      return <AdminPanelModifyUserButton row={row} />;
+    },
   },
   {
     accessorKey: "name",
@@ -40,9 +21,33 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
   {
     accessorKey: "mobile",
     header: "Teléfono",
+    cell: ({ row }) => {
+      if (!row.original.mobile) {
+        return "--";
+      }
+      return row.original.mobile;
+    },
+  },
+  {
+    accessorKey: "casa_username",
+    header: "Nombre de Usuario CASA",
+    cell: ({ row }) => {
+      if (!row.original.casa_user_name) {
+        return "--";
+      }
+      return row.original.casa_user_name;
+    },
   },
   {
     accessorKey: "status",
     header: "Estatus",
+    cell: ({ row }) => {
+      if (!row.original.status) return "--";
+      if (row.original.status == "active") {
+        return "Activo";
+      } else {
+        return "Inactivo";
+      }
+    },
   },
 ];
