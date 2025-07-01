@@ -6,12 +6,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { flexRender, Table as TTable } from '@tanstack/react-table';
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  Table as TTable,
+  useReactTable,
+} from '@tanstack/react-table';
 import DeliveriesDataTableFilter from './filters/DeliveriesDataTableFilter';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
+import TailwindSpinner from '../ui/TailwindSpinner';
+import React from 'react';
+import useSWRImmutable from 'swr/immutable';
+import { axiosFetcher } from '@/axios-instance';
+import TablePagination from './pagination/TablePagination';
 
-export default function DeliveriesDataTable({ table }: { table: TTable<getDeliveries> }) {
+export default function DeliveriesDataTable() {
+  const { data, isValidating } = useSWRImmutable<getDeliveries[]>(
+    '/api/transbel/getDeliveries',
+    axiosFetcher
+  );
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+
+  const table = useReactTable({
+    data: data ? data : [],
+    columns: deliveriesColumns,
+    getCoreRowModel: getCoreRowModel(),
+    onPaginationChange: setPagination, // Pagination
+    getFilteredRowModel: getFilteredRowModel(), // Filtering
+    getPaginationRowModel: getPaginationRowModel(), // Pagination
+    state: {
+      pagination, // Pagination
+    },
+  });
+
+  if (isValidating) return <TailwindSpinner />;
   return (
     <div>
       <Table>
@@ -57,6 +88,7 @@ export default function DeliveriesDataTable({ table }: { table: TTable<getDelive
           )}
         </TableBody>
       </Table>
+      <TablePagination table={table} />
     </div>
   );
 }
