@@ -42,9 +42,16 @@ export function NavUser({
   const router = useRouter();
 
   async function logout() {
-    await GPClient.post('/api/auth/logout');
-    toast.success('Cerraste sesión');
-    router.replace('/login');
+    await GPClient.post('/api/auth/logout')
+      .then((res) => {
+        if (res.status == 200) {
+          toast.success('Cerraste sesión');
+          router.replace('/login');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   return (
