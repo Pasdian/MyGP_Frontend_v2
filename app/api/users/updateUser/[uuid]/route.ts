@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest, { params }: { params: { uuid: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ uuid: string }> }) {
   const { uuid } = await params;
   const reqJSON = await req.json();
   const session_token = (await cookies()).get('session_token')?.value;
