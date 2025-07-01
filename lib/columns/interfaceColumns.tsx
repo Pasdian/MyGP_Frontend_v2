@@ -5,7 +5,7 @@ import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/Interfa
 import { daysFrom } from "../utilityFunctions/daysFrom";
 import React from "react";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
-import { ErrorTooltip } from "@/classes/ErrorTooltip";
+import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 
 const getFormattedDate = (d: string): string => {
   const date = d.split(" ")[0];
@@ -31,9 +31,11 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     header: "Referencia",
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
-        return new ErrorTooltip().render(
-          "--",
-          "No existe un número de referencia"
+        return (
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe un número de referencia"
+          />
         );
       }
 
@@ -52,9 +54,11 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
         ) > 7
       ) {
-        return new ErrorTooltip().render(
-          row.original.REFERENCIA,
-          " La diferencia entre la fecha de último documento y la entrega a transporte es mayor a 7 días para tráfico aéreo"
+        return (
+          <ErrorTooltip
+            value={row.original.REFERENCIA}
+            errorMessage="La diferencia entre la fecha de último documento y la entrega a transporte es mayor a 7 días para tráfico aéreo"
+          />
         );
       }
       return <p className="text-center">{row.original.REFERENCIA}</p>;
@@ -65,7 +69,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     header: "EE/GE",
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
-        return new ErrorTooltip().render("--", "No existe EE/GE");
+        return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
       }
       return row.original.EE__GE;
     },
@@ -76,16 +80,20 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     header: "Revalidación",
     cell: ({ row }) => {
       if (!row.original.REVALIDACION_073) {
-        return new ErrorTooltip().render(
-          "--",
-          "No existe una fecha de revalidación"
+        return (
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe una fecha de revalidación"
+          />
         );
       }
 
       if (!isCurrentYear(row.original.REVALIDACION_073.split(" ")[0])) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.REVALIDACION_073),
-          "El año de la fecha de revalidación no es del año en curso"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.REVALIDACION_073)}
+            errorMessage="El año de la fecha de revalidación no es del año en curso"
+          />
         );
       }
 
@@ -94,27 +102,33 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         row.original.REVALIDACION_073.split(" ")[0] >
           row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]
       ) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.REVALIDACION_073),
-          "La fecha de revalidación es mayor que la fecha de último documento"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.REVALIDACION_073)}
+            errorMessage="La fecha de revalidación es mayor que la fecha de último documento"
+          />
         );
       } else if (
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.REVALIDACION_073.split(" ")[0] >
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
       ) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.REVALIDACION_073),
-          "La fecha de revalidación es mayor que la fecha de transporte"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.REVALIDACION_073)}
+            errorMessage="La fecha de revalidación es mayor que la fecha de transporte"
+          />
         );
       } else if (
         row.original.MSA_130 &&
         row.original.REVALIDACION_073.split(" ")[0] >
           row.original.MSA_130.split(" ")[0]
       ) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.REVALIDACION_073),
-          "La fecha de revalidación es mayor que la fecha de transporte"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.REVALIDACION_073)}
+            errorMessage="La fecha de revalidación es mayor que la fecha de transporte"
+          />
         );
       }
       return (
@@ -129,16 +143,20 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     header: "Último Documento",
     cell: ({ row }) => {
       if (!row.original.ULTIMO_DOCUMENTO_114) {
-        return new ErrorTooltip().render(
-          "--",
-          "No existe una fecha de último documento"
+        return (
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe una fecha de último documento"
+          />
         );
       }
 
       if (!isCurrentYear(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0])) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.ULTIMO_DOCUMENTO_114),
-          "El año de la fecha de último documento no es del año en curso"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
+            errorMessage="El año de la fecha de último documento no es del año en curso"
+          />
         );
       }
 
@@ -147,19 +165,24 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
       ) {
-        new ErrorTooltip().render(
-          getFormattedDate(row.original.ULTIMO_DOCUMENTO_114),
-          "La fecha del último documento es mayor que la fecha de entrega de transporte"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
+            errorMessage="La fecha del último documento es mayor que la fecha de entrega de transporte"
+          />
         );
+
         return;
       } else if (
         row.original.MSA_130 &&
         row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
           row.original.MSA_130.split(" ")[0]
       ) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.ULTIMO_DOCUMENTO_114),
-          "La fecha de último documento es mayor que MSA"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
+            errorMessage="La fecha de último documento es mayor que MSA"
+          />
         );
       }
       return (
@@ -174,13 +197,17 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     header: "MSA",
     cell: ({ row }) => {
       if (!row.original.MSA_130) {
-        return new ErrorTooltip().render("--", "No existe una fecha de MSA");
+        return (
+          <ErrorTooltip value="--" errorMessage="No existe una fecha de MSA" />
+        );
       }
 
       if (!isCurrentYear(row.original.MSA_130.split(" ")[0])) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.MSA_130),
-          "El año de la fecha de MSA no es del año en curso"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.MSA_130)}
+            errorMessage="El año de la fecha de MSA no es del año en curso"
+          />
         );
       }
 
@@ -189,18 +216,22 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         row.original.MSA_130.split(" ")[0] !==
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
       ) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.MSA_130),
-          "MSA no es igual a la fecha de entrega de transporte"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.MSA_130)}
+            errorMessage="MSA no es igual a la fecha de entrega de transporte"
+          />
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
         row.original.MSA_130.split(" ")[0] >
           row.original.ENTREGA_CDP_140.split(" ")[0]
       ) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.MSA_130),
-          "MSA es mayor que la fecha de entrega CDP"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.MSA_130)}
+            errorMessage="MSA es mayor que la fecha de entrega CDP"
+          />
         );
       }
       return (
@@ -213,16 +244,20 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     header: "Entrega Transporte",
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
-        return new ErrorTooltip().render(
-          "--",
-          "No existe una fecha de entrega de transporte"
+        return (
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe una fecha de entrega de transporte"
+          />
         );
       }
 
       if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.ENTREGA_TRANSPORTE_138),
-          "El año de la fecha de último documento no es del año en curso"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage="El año de la fecha de último documento no es del año en curso"
+          />
         );
       }
 
@@ -232,9 +267,11 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] !==
           row.original.MSA_130.split(" ")[0]
       ) {
-        return new ErrorTooltip().render(
-          getFormattedDate(row.original.ENTREGA_TRANSPORTE_138),
-          "La fecha de entrega de transporte no es igual a MSA"
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage="La fecha de entrega de transporte no es igual a MSA"
+          />
         );
       }
       return (
