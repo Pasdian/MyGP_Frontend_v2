@@ -6,17 +6,7 @@ import { daysFrom } from "../utilityFunctions/daysFrom";
 import React from "react";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
-
-const getFormattedDate = (d: string): string => {
-  const date = d.split(" ")[0];
-  const splittedDate = date.split("-");
-
-  const day = splittedDate[2];
-  const month = splittedDate[1];
-  const year = splittedDate[0];
-  const formattedDate = `${day}/${month}/${year}`;
-  return formattedDate;
-};
+import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 
 export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
