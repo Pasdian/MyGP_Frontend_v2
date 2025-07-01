@@ -1,15 +1,7 @@
 import { GPServer } from '@/axios-instance';
-import { logger } from '@/winston-logger';
-import { NextRequest } from 'next/server';
-
-export type getDeliveries = {
-  NUM_REFE: string | null;
-  CVE_ETAP: string | null;
-  FEC_ETAP: string | null;
-  HOR_ETAP: string | null;
-  OBS_ETAP: string | null;
-  CVE_MODI: string | null;
-};
+import { logger } from '@/lib/logger';
+import { getDeliveries } from '@/types/transbel/getDeliveries';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,10 +10,10 @@ export async function GET(req: NextRequest) {
     });
 
     const data: getDeliveries[] = res.data;
-    return Response.json(data);
+    return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');
-    return Response.error();
+    return NextResponse.json({ error: 'Failed to connect to server' }, { status: 500 });
   }
 }

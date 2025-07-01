@@ -1,10 +1,10 @@
 import { GPServer } from '@/axios-instance';
-import { logger } from '@/winston-logger';
+import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 type AuthLogin = {
-  token: string | null;
+  token: string;
   user: {
     id: number | null;
     uuid: string | null;
@@ -23,20 +23,29 @@ export async function POST(req: NextRequest) {
       email: string | null;
       password: string | null;
     } = await req.json();
+
+    if (!userCredentials.email || !userCredentials.password) {
+      return NextResponse.json(
+        { message: 'User email and password not provided' },
+        { status: 400 }
+      );
+    }
     const res = await GPServer.post('/api/auth/login', userCredentials);
     const data: AuthLogin = res.data;
 
-    if (data.token) {
-      (await cookies()).set('session_token', data.token);
-    } else {
-      return Response.json({ error: 'Token not found' });
-    }
-    logger.info(`${data.user.name} with email ${data.user.email} logged in`);
+    (await cookies()).set('session_token', data.token);
 
-    return Response.json({ name: data.user.name, email: data.user.email });
+    logger.info(
+      `${data.user.name} with email ${data.user.email} logged in with token ${data.token}`
+    );
+
+    return NextResponse.json(
+      { name: data.user.name, email: data.user.email },
+      { status: res.status }
+    );
   } catch (error) {
     console.error(error);
     logger.error('Failed to connect to server');
-    return Response.error();
+    return NextResponse.json({ error: 'Failed to connect to server' }, { status: 500 });
   }
 }

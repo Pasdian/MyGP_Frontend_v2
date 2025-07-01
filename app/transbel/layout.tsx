@@ -1,6 +1,6 @@
-import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebar } from '@/components/ui/app-sidebar';
+import { SiteHeader } from '@/components/ui/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { SiteHeader } from '@/components/site-header';
 import React from 'react';
 
 export default function TransbelLayout({ children }: { children: React.ReactNode }) {
