@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { flexRender, Table as TTable } from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import { getAllUsers } from '@/types/users/getAllUsers';
 import UsersDataTableFilter from './filters/UsersDataTableFilter';

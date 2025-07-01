@@ -15,7 +15,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
-import { AxiosError } from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import {
   LOGIN_PASSWORD_VALIDATION,

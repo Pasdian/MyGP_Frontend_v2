@@ -11,7 +11,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  Table as TTable,
   useReactTable,
 } from '@tanstack/react-table';
 import DeliveriesDataTableFilter from './filters/DeliveriesDataTableFilter';

@@ -1,6 +1,5 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
-import { Login } from '@/types/auth/login';
 import { VerifySession } from '@/types/auth/verifySession';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';

@@ -29,7 +29,6 @@ import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
-import { AxiosError } from 'axios';
 
 export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);

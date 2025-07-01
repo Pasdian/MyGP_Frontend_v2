@@ -1,8 +1,6 @@
 'use client';
 
-import TablePagination from '@/components/datatables/pagination/TablePagination';
 import UsersDataTable from '@/components/datatables/UsersDataTable';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import React from 'react';
 
 export default function AdminPanelUsers() {
