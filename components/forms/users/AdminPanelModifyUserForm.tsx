@@ -40,7 +40,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
     email: USER_EMAIL_VALIDATION,
     mobile: USER_MOBILE_VALIDATION,
     password: USER_PASSWORD_VALIDATION,
-    casa_username: USER_CASAUSERNAME_VALIDATION,
+    casa_user_name: USER_CASAUSERNAME_VALIDATION,
     status: USER_STATUS_VALIDATION,
   });
 
@@ -51,7 +51,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
       email: row.original.email ? row.original.email : '',
       mobile: row.original.mobile ? row.original.mobile : '',
       password: '',
-      casa_username: row.original.casa_user_name ?? '',
+      casa_user_name: row.original.casa_user_name ?? '',
       status: row.original.status == 'active' ? true : false,
     },
   });
@@ -63,7 +63,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
       email: data.email,
       mobile: data.mobile,
       password: data.password,
-      casa_username: data.casa_username,
+      casa_user_name: data.casa_user_name,
       status: data.status == true ? 'active' : 'inactive',
     })
       .then((res) => {
@@ -157,7 +157,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
 
           <FormField
             control={form.control}
-            name="casa_username"
+            name="casa_user_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nombre de Usuario CASA</FormLabel>
