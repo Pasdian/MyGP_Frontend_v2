@@ -1,4 +1,4 @@
-type getAllUsers = {
+export type getAllUsers = {
   id: number;
   user_uuid: string;
   name: string;
