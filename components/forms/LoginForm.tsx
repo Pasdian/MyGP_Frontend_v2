@@ -41,16 +41,16 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       email: data.email,
       password: data.password,
     })
-      .then((res: { data: LoginResponse }) => {
-        toast.success('Inicio de sesión exitoso');
-        localStorage.setItem(
-          'user_info',
-          JSON.stringify({ name: res.data.name, email: res.data.email })
-        );
-        router.push('/transbel/dashboard');
+      .then((res) => {
+        if (res.status == 200) {
+          toast.success('Inicio de sesión exitoso');
+          router.push('/transbel/dashboard');
+        } else {
+          toast.error('No se pudo realizar el inicio de sesión');
+        }
       })
       .catch((error: AxiosError) => {
-        toast.error(error.message);
+        console.error(error.message);
       });
   }
 
