@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest, { params }: { params: { uuid: string } }) {
-  const { uuid } = params;
+  const { uuid } = await params;
   const reqJSON = await req.json();
   const session_token = (await cookies()).get('session_token')?.value;
 
