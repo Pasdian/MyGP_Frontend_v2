@@ -9,6 +9,7 @@ import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/Delive
 import { daysFrom } from "../utilityFunctions/daysFrom";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
+import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -53,6 +54,15 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
           <ErrorTooltip
             value="--"
             errorMessage="No existe una fecha de entrega de transporte"
+          />
+        );
+      }
+
+      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage="El año de la fecha de entrega de transporte no es del año en curso"
           />
         );
       }
@@ -103,6 +113,15 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
           />
         );
       }
+      if (!isCurrentYear(row.original.ENTREGA_CDP_140.split(" ")[0])) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_CDP_140)}
+            errorMessage="El año de la fecha de entrega a CDP no es del año en curso"
+          />
+        );
+      }
+
       return (
         <p className="text-center">
           {getFormattedDate(row.original.ENTREGA_CDP_140)}
