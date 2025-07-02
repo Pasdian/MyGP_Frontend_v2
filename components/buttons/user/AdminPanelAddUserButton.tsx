@@ -17,7 +17,9 @@ export default function AdminPanelAddUserButton() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer bg-blue-400 hover:bg-blue-500">Añadir Usuario</Button>
+        <Button className="cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4">
+          Añadir Usuario
+        </Button>
       </DialogTrigger>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
