@@ -5,7 +5,7 @@ export const USER_NAME_VALIDATION = z
   .min(2, { error: "El usuario debe de ser de mínimo de 2 carácteres" })
   .max(15, { error: "El usuario debe de ser de máximo de 15 carácteres" });
 
-export const USER_CASAUSERNAME_VALIDATION = z
+export const USER_CASA_USERNAME_VALIDATION = z
   .string({ error: "Ingresa un usuario" })
   .optional();
 
@@ -20,3 +20,7 @@ export const USER_PASSWORD_VALIDATION = z
   .min(8, { message: "La contraseña debe de ser mayor a 8 caracteres" });
 
 export const USER_STATUS_VALIDATION = z.boolean();
+
+export const USER_HAS_CASA_USER_VALIDATION = z.boolean();
+
+export const USER_ROLE_ID_VALIDATION = z.number();

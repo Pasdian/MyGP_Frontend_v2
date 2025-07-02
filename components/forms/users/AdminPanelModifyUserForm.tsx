@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  USER_CASAUSERNAME_VALIDATION,
+  USER_CASA_USERNAME_VALIDATION,
   USER_EMAIL_VALIDATION,
   USER_MOBILE_VALIDATION,
   USER_NAME_VALIDATION,
@@ -39,7 +39,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
     email: USER_EMAIL_VALIDATION,
     mobile: USER_MOBILE_VALIDATION,
     password: USER_PASSWORD_VALIDATION,
-    casa_user_name: USER_CASAUSERNAME_VALIDATION,
+    casa_user_name: USER_CASA_USERNAME_VALIDATION,
     status: USER_STATUS_VALIDATION,
   });
 
