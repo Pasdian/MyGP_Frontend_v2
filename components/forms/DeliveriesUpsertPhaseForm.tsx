@@ -9,6 +9,7 @@ import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import {
   DATE_VALIDATION,
+  EXCEPTION_CODE_VALIDATION,
   PHASE_VALIDATION,
   REF_VALIDATION,
   TIME_VALIDATION,
@@ -24,13 +25,7 @@ import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { DialogClose, DialogFooter } from '../ui/dialog';
 import { toast } from 'sonner';
-
-function diffInDays(dateA: string, dateB: string) {
-  const diffBetweenDates = +new Date(dateB) - +new Date(dateA);
-
-  const diffInDays = Math.ceil(diffBetweenDates / (1000 * 60 * 60 * 24));
-  return diffInDays;
-}
+import { daysFrom } from '@/lib/utilityFunctions/daysFrom';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
@@ -39,27 +34,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   const schema = z.object({
     ref: REF_VALIDATION,
     phase: PHASE_VALIDATION,
-    exceptionCode: z.string().refine(
-      (val) => {
-        if (
-          val &&
-          row.original.ENTREGA_CDP_140 &&
-          row.original.ENTREGA_TRANSPORTE_138 &&
-          diffInDays(
-            row.original.ENTREGA_CDP_140?.split(' ')[0],
-            row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
-          ) < 1
-        ) {
-          return true;
-        } else {
-          return false;
-        }
-      },
-      {
-        error:
-          'Es necesario un código de excepción, la diferencia entre la fecha de entrega a transporte y la fecha de entrega a CDP es mayor a 1 día',
-      }
-    ),
+    exceptionCode: EXCEPTION_CODE_VALIDATION,
     cdp: DATE_VALIDATION,
     time: TIME_VALIDATION,
     user: USER_VALIDATION,
@@ -82,6 +57,24 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
+    const diff = daysFrom(data.cdp, data.transporte);
+
+    if (data.cdp < data.transporte) {
+      form.setError('cdp', {
+        type: 'manual',
+        message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
+      });
+      return;
+    }
+
+    if (diff > 1) {
+      form.setError('exceptionCode', {
+        type: 'manual',
+        message: 'La diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
+      });
+      return;
+    }
+
     form.reset();
     await GPClient.post('/api/transbel/upsertPhase', {
       ref: data.ref,

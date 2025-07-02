@@ -1,30 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
-
-const getFormattedDate = (d: string | undefined) => {
-  if (!d) return;
-  const date = d.split(" ")[0];
-  const splittedDate = date.split("-");
-
-  const day = splittedDate[2];
-  const month = splittedDate[1];
-  const year = splittedDate[0];
-  const formattedDate = `${day}/${month}/${year}`;
-  return formattedDate;
-};
-
-function diffInDays(dateA: string, dateB: string) {
-  const diffBetweenDates = +new Date(dateA) - +new Date(dateB);
-
-  const diffInDays = Math.ceil(diffBetweenDates / (1000 * 60 * 60 * 24));
-  return diffInDays;
-}
+import { daysFrom } from "../utilityFunctions/daysFrom";
+import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
+import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
+import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
+import { isBusinessDay } from "../utilityFunctions/isBusinessDay";
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -40,14 +21,10 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">--</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>No existe un número de referencia</p>
-            </TooltipContent>
-          </Tooltip>
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe un número de referencia"
+          />
         );
       }
 
@@ -59,16 +36,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     header: "Entrega Entrante",
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
-        return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">--</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>No existe EE/GE</p>
-            </TooltipContent>
-          </Tooltip>
-        );
+        return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
       }
       return row.original.EE__GE;
     },
@@ -78,61 +46,59 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     header: "Entrega a Transporte",
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
-        if (!row.original.ENTREGA_TRANSPORTE_138) {
-          return (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <p className="text-center bg-red-400">--</p>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>No existe una fecha de entrega de transporte</p>
-              </TooltipContent>
-            </Tooltip>
-          );
-        }
+        return (
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe una fecha de entrega de transporte"
+          />
+        );
+      }
+
+      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage="El año de la fecha de entrega de transporte no es del año en curso"
+          />
+        );
       }
 
       if (
+        row.original.ENTREGA_TRANSPORTE_138 &&
+        !isBusinessDay(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])
+      ) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage="La fecha de entrega de transporte no es hábil"
+          />
+        );
+      }
+
+      if (
+        row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ENTREGA_CDP_140 &&
         row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] >
           row.original.ENTREGA_CDP_140.split(" ")[0]
       ) {
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-              </p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                La fecha de entrega de transporte es mayor que la fecha de
-                entrega CDP
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage="La fecha de entrega de transporte es mayor que la fecha de entrega CDP"
+          />
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        diffInDays(
+        daysFrom(
           row.original.ENTREGA_CDP_140?.split(" ")[0],
           row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
         ) > 1
       ) {
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">
-                {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-              </p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                La diferencia de entrega de transporte y la entrega a CDP es
-                mayor a un dia
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            errorMessage=" La diferencia de entrega de transporte y la entrega a CDP es mayor a un dia"
+          />
         );
       } else {
         return (
@@ -149,16 +115,34 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     cell: ({ row }) => {
       if (!row.original.ENTREGA_CDP_140) {
         return (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p className="text-center bg-red-400">--</p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>No existe una fecha de entrega CDP</p>
-            </TooltipContent>
-          </Tooltip>
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe una fecha de entrega CDP"
+          />
         );
       }
+
+      if (!isCurrentYear(row.original.ENTREGA_CDP_140.split(" ")[0])) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_CDP_140)}
+            errorMessage="El año de la fecha de entrega a CDP no es del año en curso"
+          />
+        );
+      }
+
+      if (
+        row.original.ENTREGA_CDP_140 &&
+        !isBusinessDay(row.original.ENTREGA_CDP_140.split(" ")[0])
+      ) {
+        return (
+          <ErrorTooltip
+            value={getFormattedDate(row.original.ENTREGA_CDP_140)}
+            errorMessage="La fecha de entrega CDP no es hábil"
+          />
+        );
+      }
+
       return (
         <p className="text-center">
           {getFormattedDate(row.original.ENTREGA_CDP_140)}

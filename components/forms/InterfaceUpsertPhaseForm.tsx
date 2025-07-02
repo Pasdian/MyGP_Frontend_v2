@@ -75,6 +75,71 @@ export default function InterfaceUpsertPhaseForm({
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
+    if (
+      row.original.ULTIMO_DOCUMENTO_114 &&
+      data.phase == '073' &&
+      data.date > row.original.ULTIMO_DOCUMENTO_114
+    ) {
+      form.setError('date', {
+        type: 'manual',
+        message: 'La fecha de revalidación no puede ser mayor a la fecha de último documento',
+      });
+      return;
+    }
+
+    if (row.original.MSA_130 && data.phase == '073' && data.date > row.original.MSA_130) {
+      form.setError('date', {
+        type: 'manual',
+        message: 'La fecha de revalidación no puede ser mayor a la fecha de MSA',
+      });
+      return;
+    }
+
+    if (
+      row.original.ENTREGA_TRANSPORTE_138 &&
+      data.phase == '073' &&
+      data.date > row.original.ENTREGA_TRANSPORTE_138
+    ) {
+      form.setError('date', {
+        type: 'manual',
+        message: 'La fecha de revalidación no puede ser mayor a la fecha de entrega de transporte',
+      });
+      return;
+    }
+
+    if (row.original.MSA_130 && data.phase == '114' && data.date > row.original.MSA_130) {
+      form.setError('date', {
+        type: 'manual',
+        message: 'La fecha de último documento no puede ser mayor a la fecha de MSA',
+      });
+      return;
+    }
+
+    if (
+      row.original.ENTREGA_TRANSPORTE_138 &&
+      data.phase == '114' &&
+      data.date > row.original.ENTREGA_TRANSPORTE_138
+    ) {
+      form.setError('date', {
+        type: 'manual',
+        message:
+          'La fecha de último documento no puede ser mayor a la fecha de entrega de transporte',
+      });
+      return;
+    }
+
+    if (
+      row.original.ENTREGA_TRANSPORTE_138 &&
+      data.phase == '130' &&
+      data.date != row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
+    ) {
+      form.setError('date', {
+        type: 'manual',
+        message: 'La fecha de MSA debe ser igual a la fecha de entrega de transporte',
+      });
+      return;
+    }
+
     form.reset();
 
     await GPClient.post('/api/transbel/upsertPhase', {
