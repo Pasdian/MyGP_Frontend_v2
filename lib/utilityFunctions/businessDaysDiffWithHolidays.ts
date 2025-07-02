@@ -10,7 +10,7 @@ const MEXICAN_HOLIDAYS = [
 
 function businessDaysDiffWithHolidays(startDate: Date, endDate: Date) {
   let count = 0;
-  let currentDate = new Date(startDate);
+  const currentDate = new Date(startDate);
   currentDate.setDate(currentDate.getDate() + 1); // Start from next day
 
   while (currentDate <= endDate) {

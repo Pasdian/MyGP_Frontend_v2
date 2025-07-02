@@ -4,7 +4,6 @@ import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,7 +25,6 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
-import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
 import { USER_ROLE } from '@/lib/roles/roles';
 
