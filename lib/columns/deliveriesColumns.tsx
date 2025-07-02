@@ -5,7 +5,6 @@ import { daysFrom } from "../utilityFunctions/daysFrom";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
-import { isBusinessDay } from "../utilityFunctions/isBusinessDay";
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -65,18 +64,6 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
 
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        !isBusinessDay(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage="La fecha de entrega de transporte no es hábil"
-          />
-        );
-      }
-
-      if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ENTREGA_CDP_140 &&
         row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] >
           row.original.ENTREGA_CDP_140.split(" ")[0]
@@ -127,18 +114,6 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_CDP_140)}
             errorMessage="El año de la fecha de entrega a CDP no es del año en curso"
-          />
-        );
-      }
-
-      if (
-        row.original.ENTREGA_CDP_140 &&
-        !isBusinessDay(row.original.ENTREGA_CDP_140.split(" ")[0])
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_CDP_140)}
-            errorMessage="La fecha de entrega CDP no es hábil"
           />
         );
       }
