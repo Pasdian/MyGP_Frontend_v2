@@ -2,11 +2,11 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
-import { daysFrom } from "../utilityFunctions/daysFrom";
 import React from "react";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
+import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
 
 export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
@@ -39,9 +39,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           trafficType == "T" ||
           trafficType == "M" ||
           trafficType == "V") &&
-        daysFrom(
-          row.original.ULTIMO_DOCUMENTO_114.split(" ")[0],
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        businessDaysDiffWithHolidays(
+          new Date(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]),
+          new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])
         ) > 7
       ) {
         return (

@@ -1,10 +1,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
-import { daysFrom } from "../utilityFunctions/daysFrom";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
+import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -76,9 +76,9 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        daysFrom(
-          row.original.ENTREGA_CDP_140?.split(" ")[0],
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        businessDaysDiffWithHolidays(
+          new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]),
+          new Date(row.original.ENTREGA_CDP_140?.split(" ")[0])
         ) > 1
       ) {
         return (
