@@ -16,9 +16,10 @@ import {
   USER_EMAIL_VALIDATION,
   USER_MOBILE_VALIDATION,
   USER_NAME_VALIDATION,
-  USER_PASSWORD_VALIDATION,
+  USER_OPTIONAL_PASSWORD_VALIDATION,
   USER_STATUS_VALIDATION,
 } from '@/lib/validations/userValidations';
+
 import { getAllUsers } from '@/types/users/getAllUsers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
@@ -38,7 +39,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
     name: USER_NAME_VALIDATION,
     email: USER_EMAIL_VALIDATION,
     mobile: USER_MOBILE_VALIDATION,
-    password: USER_PASSWORD_VALIDATION,
+    password: USER_OPTIONAL_PASSWORD_VALIDATION,
     casa_user_name: USER_CASA_USERNAME_VALIDATION,
     status: USER_STATUS_VALIDATION,
   });
