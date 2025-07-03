@@ -28,6 +28,7 @@ export default function UsersDataTable() {
     '/api/users/getAllUsers',
     axiosFetcher
   );
+
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
@@ -42,7 +43,7 @@ export default function UsersDataTable() {
     },
   });
 
-  if (isValidating || !data) return <TailwindSpinner />;
+  if (isValidating) return <TailwindSpinner />;
 
   return (
     <div>
