@@ -7,13 +7,17 @@ export const USER_NAME_VALIDATION = z
 
 export const USER_CASA_USERNAME_VALIDATION = z
   .string({ error: "Ingresa un usuario" })
-  .optional();
+  .min(2, "El usuario CASA debe de ser de mínimo 2 caracteres")
+  .optional()
+  .or(z.literal(""));
 
 export const USER_EMAIL_VALIDATION = z.email({ error: "Correo inválido" });
 
 export const USER_MOBILE_VALIDATION = z
   .string()
-  .regex(/^\d{10}$/, "El número de teléfono debe de ser de 10 dígitos");
+  .regex(/^\d{10}$/, "El número de teléfono debe de ser de 10 dígitos")
+  .optional()
+  .or(z.literal(""));
 
 export const USER_PASSWORD_VALIDATION = z
   .string()
@@ -24,3 +28,8 @@ export const USER_STATUS_VALIDATION = z.boolean();
 export const USER_HAS_CASA_USER_VALIDATION = z.boolean();
 
 export const USER_ROLE_ID_VALIDATION = z.number();
+
+export const USER_OPTIONAL_PASSWORD_VALIDATION = z
+  .string()
+  .optional()
+  .or(z.literal(""));
