@@ -1,5 +1,5 @@
-import AdminPanelDeleteUserButton from "@/components/buttons/user/AdminPanelDeleteUserButton";
-import AdminPanelModifyUserButton from "@/components/buttons/user/AdminPanelModifyUserButton";
+import AdminPanelDeleteUserButton from "@/components/buttons/admin-panel/AdminPanelDeleteUserButton";
+import AdminPanelModifyUserButton from "@/components/buttons/admin-panel/AdminPanelModifyUserButton";
 import { getAllUsers } from "@/types/users/getAllUsers";
 import { ColumnDef } from "@tanstack/react-table";
 import { usersDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/usersDataTableFuzzyFilter";
