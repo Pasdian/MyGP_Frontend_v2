@@ -26,6 +26,8 @@ import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { DialogClose, DialogFooter } from '../ui/dialog';
 import { toast } from 'sonner';
 import { businessDaysDiffWithHolidays } from '@/lib/utilityFunctions/businessDaysDiffWithHolidays';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
@@ -178,7 +180,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       type="button"
                       onClick={() => form.setValue('exceptionCode', '')}
                     >
-                      Eliminar
+                      <FontAwesomeIcon icon={faTrash} />
                     </Button>
                   </div>
                 </FormControl>

@@ -36,6 +36,8 @@ import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { DialogClose, DialogFooter } from '../ui/dialog';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;
@@ -279,7 +281,7 @@ export default function InterfaceUpsertPhaseForm({
                         type="button"
                         onClick={() => form.setValue('exceptionCode', '')}
                       >
-                        Eliminar
+                        <FontAwesomeIcon icon={faTrash} />
                       </Button>
                     </div>
                   </FormControl>

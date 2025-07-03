@@ -1,0 +1,63 @@
+import { GPClient } from '@/axios-instance';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { getAllUsers } from '@/types/users/getAllUsers';
+import { faWarning } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { DialogClose } from '@radix-ui/react-dialog';
+import { Row } from '@tanstack/react-table';
+import { toast } from 'sonner';
+import { mutate } from 'swr';
+
+export default function AdminPanelDeleteUserButton({ row }: { row: Row<getAllUsers> }) {
+  async function deleteUser() {
+    await GPClient.delete(`/api/users/deleteUser/${row.original.user_uuid}`)
+      .then((res) => {
+        toast.success(res.data.message);
+        mutate('/api/users/getAllUsers');
+      })
+      .catch((error) => {
+        toast.error(error.response.data.message);
+      });
+  }
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="cursor-pointer bg-red-400 hover:bg-red-500">
+          <FontAwesomeIcon icon={faWarning} />
+          Eliminar
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Eliminar Usuario</DialogTitle>
+          <DialogDescription>
+            Aquí podrás realizar la eliminación de un usuario. Haz click en aceptar si estás seguro
+            de eliminar un usuario
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" className="cursor-pointer">
+              Cancelar
+            </Button>
+          </DialogClose>
+          <Button
+            className="cursor-pointer bg-red-500 hover:bg-red-600"
+            onClick={() => deleteUser()}
+          >
+            Eliminar Usuario
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
