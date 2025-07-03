@@ -21,10 +21,8 @@ export default function RootLayout({
   return (
     <html lang="es-MX" className={roboto.className}>
       <body>
-        <AuthProvider>
-          {children}
-          <Toaster position="top-center" />
-        </AuthProvider>
+        {children}
+        <Toaster position="top-center" />
       </body>
     </html>
   );
