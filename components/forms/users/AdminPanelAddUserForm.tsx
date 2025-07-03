@@ -27,6 +27,7 @@ import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Eye, EyeOff } from 'lucide-react';
 import { USER_ROLE } from '@/lib/roles/roles';
+import AdminPanelAddUserRoleSelect from '@/components/selects/AdminPanelAddUserRoleSelect';
 
 export default function AdminPanelAddUserForm({
   setIsOpen,
@@ -59,7 +60,7 @@ export default function AdminPanelAddUserForm({
       email: '',
       password: '',
       confirm_password: '',
-      role_id: USER_ROLE,
+      role_id: '',
       mobile: '',
       has_casa_user: true,
       casa_user_name: '',
@@ -86,6 +87,7 @@ export default function AdminPanelAddUserForm({
         toast.error(error.response.data.message);
       });
   }
+  console.log(form.watch('role_id'));
 
   return (
     <Form {...form}>
@@ -181,6 +183,20 @@ export default function AdminPanelAddUserForm({
                       />
                     )}
                   </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="role_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Número de Teléfono</FormLabel>
+                <FormControl>
+                  <AdminPanelAddUserRoleSelect onValueChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
