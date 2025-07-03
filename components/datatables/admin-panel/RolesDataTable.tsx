@@ -8,8 +8,6 @@ import {
 } from '@/components/ui/table';
 import { flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
-import { getAllUsers } from '@/types/users/getAllUsers';
-import UsersDataTableFilter from '../filters/UsersDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import {
   getCoreRowModel,
@@ -18,22 +16,21 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import useSWRImmutable from 'swr/immutable';
-import { usersColumns } from '@/lib/columns/usersColumns';
 import { axiosFetcher } from '@/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../../ui/TailwindSpinner';
+import { getRoles } from '@/types/roles/getRoles';
+import { rolesColumns } from '@/lib/columns/rolesColumns';
+import RolesDataTableFilter from '../filters/RolesDataTableFilter';
 
-export default function UsersDataTable() {
-  const { data, isValidating } = useSWRImmutable<getAllUsers[]>(
-    '/api/users/getAllUsers',
-    axiosFetcher
-  );
+export default function RolesDataTable() {
+  const { data, isValidating } = useSWRImmutable<getRoles[]>('/api/roles', axiosFetcher);
 
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
     data: data ? data : [],
-    columns: usersColumns,
+    columns: rolesColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -59,7 +56,7 @@ export default function UsersDataTable() {
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanFilter() ? (
                           <div>
-                            <UsersDataTableFilter column={header.column} />
+                            <RolesDataTableFilter column={header.column} />
                           </div>
                         ) : null}
                       </div>
