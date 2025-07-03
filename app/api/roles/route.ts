@@ -1,7 +1,6 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
 import { getRoles } from '@/types/roles/getRoles';
-import { getAllUsers } from '@/types/users/getAllUsers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
