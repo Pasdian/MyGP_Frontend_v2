@@ -38,8 +38,13 @@ const adminItems = {
       title: 'Admin',
       items: [
         {
-          title: 'Panel Administrativo',
-          url: '/mygp/admin-panel/',
+          title: 'Usuarios',
+          url: '/mygp/admin-panel/users',
+          icon: IconUser,
+        },
+        {
+          title: 'Roles',
+          url: '/mygp/admin-panel/roles',
           icon: IconUser,
         },
       ],

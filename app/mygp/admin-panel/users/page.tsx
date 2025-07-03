@@ -1,11 +1,8 @@
 'use client';
 
 import { axiosFetcher } from '@/axios-instance';
-import AdminPanelAddRoleButton from '@/components/buttons/admin-panel/AdminPanelAddRoleButton';
-import AdminPanelAddUserButton from '@/components/buttons/admin-panel/AdminPanelAddUserButton';
-import RolesDataTable from '@/components/datatables/admin-panel/RolesDataTable';
+import AdminPanelAddUserButton from '@/components/buttons/admin-panel/users/AdminPanelAddUserButton';
 import UsersDataTable from '@/components/datatables/admin-panel/UsersDataTable';
-import { Separator } from '@/components/ui/separator';
 import { RolesContext } from '@/contexts/RolesContext';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_ROLE } from '@/lib/roles/roles';
@@ -27,15 +24,8 @@ export default function AdminPanelUsers() {
     <RolesContext.Provider value={roles}>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo</h1>
       <h1 className="text-xl font-bold tracking-tight mb-4">Usuarios</h1>
-      <div className="flex">
-        <div className="mr-4">
-          <AdminPanelAddUserButton />
-        </div>
-        <AdminPanelAddRoleButton />
-      </div>
+      <AdminPanelAddUserButton />
       <UsersDataTable />
-      <h1 className="text-xl font-bold tracking-tight mb-4">Roles</h1>
-      <RolesDataTable />
     </RolesContext.Provider>
   );
 }

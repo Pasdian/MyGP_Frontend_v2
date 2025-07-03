@@ -19,7 +19,7 @@ export default function AdminPanelAddRoleButton() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer bg-violet-400 hover:bg-violet-500 mb-4">
+        <Button className="cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4">
           <FontAwesomeIcon icon={faAdd} />
           Añadir Rol
         </Button>

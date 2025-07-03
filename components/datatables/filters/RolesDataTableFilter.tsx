@@ -1,6 +1,5 @@
 import { Input } from '@/components/ui/input';
 import { getRoles } from '@/types/roles/getRoles';
-import { getAllUsers } from '@/types/users/getAllUsers';
 import { Column } from '@tanstack/react-table';
 
 export default function RolesDataTableFilter({
