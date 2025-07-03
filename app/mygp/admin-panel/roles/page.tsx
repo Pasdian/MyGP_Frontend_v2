@@ -15,7 +15,7 @@ export default function AdminPanelRoles() {
   if (user.role != ADMIN_ROLE) return <p>No tienes permisos para ver este contenido.</p>;
   return (
     <div>
-      <h1 className="text-xl font-bold tracking-tight mb-4">Roles</h1>
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Roles</h1>
       <AdminPanelAddRoleButton />
       <RolesDataTable />
     </div>

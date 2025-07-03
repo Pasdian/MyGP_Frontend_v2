@@ -22,8 +22,7 @@ export default function AdminPanelUsers() {
   if (user.role != ADMIN_ROLE) return <p>No tienes permisos para ver este contenido.</p>;
   return (
     <RolesContext.Provider value={roles}>
-      <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo</h1>
-      <h1 className="text-xl font-bold tracking-tight mb-4">Usuarios</h1>
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Usuarios</h1>
       <AdminPanelAddUserButton />
       <UsersDataTable />
     </RolesContext.Provider>
