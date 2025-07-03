@@ -1,8 +1,12 @@
+"use client";
+
 import AdminPanelDeleteUserButton from "@/components/buttons/admin-panel/AdminPanelDeleteUserButton";
 import AdminPanelModifyUserButton from "@/components/buttons/admin-panel/AdminPanelModifyUserButton";
 import { getAllUsers } from "@/types/users/getAllUsers";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { usersDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/usersDataTableFuzzyFilter";
+import { RolesContext } from "@/contexts/RolesContext";
+import React from "react";
 
 export const usersColumns: ColumnDef<getAllUsers>[] = [
   {
@@ -41,6 +45,17 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
     },
   },
   {
+    accessorKey: "role_id",
+    header: "Rol",
+    filterFn: usersDataTableFuzzyFilter,
+    cell: ({ row }) => {
+      if (!row.original.role_id) {
+        return "--";
+      }
+      return <AdminPanelDisplayUserRole row={row} />;
+    },
+  },
+  {
     accessorKey: "casa_user_name",
     header: "Nombre de Usuario CASA",
     filterFn: usersDataTableFuzzyFilter,
@@ -65,3 +80,9 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
     },
   },
 ];
+
+function AdminPanelDisplayUserRole({ row }: { row: Row<getAllUsers> }) {
+  const roles = React.useContext(RolesContext);
+  const userRole = roles?.find((role) => role.id == row.original.role_id);
+  return userRole ? userRole.name : "--";
+}
