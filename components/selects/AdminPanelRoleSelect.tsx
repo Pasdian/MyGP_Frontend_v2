@@ -4,10 +4,12 @@ import useSWRImmutable from 'swr/immutable';
 import { Button } from '../ui/button';
 import { getRoles } from '@/types/roles/getRoles';
 
-export default function AdminPanelAddUserRoleSelect({
+export default function AdminPanelRoleSelect({
   onValueChange,
+  defaultValue = '',
 }: {
   onValueChange?(value: string): void;
+  defaultValue?: string;
 }) {
   const { data, isLoading } = useSWRImmutable<getRoles[]>('/api/roles', axiosFetcher);
   if (isLoading)
@@ -29,7 +31,7 @@ export default function AdminPanelAddUserRoleSelect({
     );
 
   return (
-    <Select onValueChange={onValueChange}>
+    <Select onValueChange={onValueChange} defaultValue={defaultValue}>
       <SelectTrigger>
         <SelectValue placeholder="Selecciona una rol..." />
       </SelectTrigger>
