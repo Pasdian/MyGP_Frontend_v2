@@ -5,6 +5,7 @@ import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
+import { deliveriesDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/deliveriesDataTableFuzzyFilter";
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -17,6 +18,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "REFERENCIA",
     header: "Referencia",
+    filterFn: deliveriesDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
         return (
@@ -33,6 +35,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "EE__GE",
     header: "Entrega Entrante",
+    filterFn: deliveriesDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
@@ -43,6 +46,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ENTREGA_TRANSPORTE_138",
     header: "Entrega a Transporte",
+    filterFn: deliveriesDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
         return (
@@ -99,6 +103,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ENTREGA_CDP_140",
     header: "Entrega a CDP",
+    filterFn: deliveriesDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_CDP_140) {
         return (
@@ -128,5 +133,6 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "CE_138",
     header: "Código de Excepción",
+    filterFn: deliveriesDataTableFuzzyFilter,
   },
 ];

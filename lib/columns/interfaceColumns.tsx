@@ -7,6 +7,7 @@ import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
+import { interfaceDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/interfaceDataTableFuzzyFilter";
 
 export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
@@ -19,6 +20,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "REFERENCIA",
     header: "Referencia",
+    filterFn: interfaceDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
         return (
@@ -57,6 +59,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "EE__GE",
     header: "EE/GE",
+    filterFn: interfaceDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
@@ -68,6 +71,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "REVALIDACION_073",
     header: "Revalidación",
+    filterFn: interfaceDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REVALIDACION_073) {
         return (
@@ -131,6 +135,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "ULTIMO_DOCUMENTO_114",
     header: "Último Documento",
+    filterFn: interfaceDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ULTIMO_DOCUMENTO_114) {
         return (
@@ -183,6 +188,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "MSA_130",
     header: "MSA",
+    filterFn: interfaceDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.MSA_130) {
         return (
@@ -230,6 +236,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "ENTREGA_TRANSPORTE_138",
     header: "Entrega Transporte",
+    filterFn: interfaceDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
         return (
@@ -272,5 +279,6 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "CE_138",
     header: "Código de Excepción 138",
+    filterFn: interfaceDataTableFuzzyFilter,
   },
 ];

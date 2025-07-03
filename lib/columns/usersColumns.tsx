@@ -2,6 +2,7 @@ import AdminPanelDeleteUserButton from "@/components/buttons/user/AdminPanelDele
 import AdminPanelModifyUserButton from "@/components/buttons/user/AdminPanelModifyUserButton";
 import { getAllUsers } from "@/types/users/getAllUsers";
 import { ColumnDef } from "@tanstack/react-table";
+import { usersDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/usersDataTableFuzzyFilter";
 
 export const usersColumns: ColumnDef<getAllUsers>[] = [
   {
@@ -21,14 +22,17 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
   {
     accessorKey: "name",
     header: "Nombre",
+    filterFn: usersDataTableFuzzyFilter,
   },
   {
     accessorKey: "email",
     header: "Email",
+    filterFn: usersDataTableFuzzyFilter,
   },
   {
     accessorKey: "mobile",
     header: "Teléfono",
+    filterFn: usersDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.mobile) {
         return "--";
@@ -37,8 +41,9 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
     },
   },
   {
-    accessorKey: "casa_username",
+    accessorKey: "casa_user_name",
     header: "Nombre de Usuario CASA",
+    filterFn: usersDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.casa_user_name) {
         return "--";
@@ -49,6 +54,7 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
   {
     accessorKey: "status",
     header: "Estatus",
+    filterFn: usersDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.status) return "--";
       if (row.original.status == "active") {
