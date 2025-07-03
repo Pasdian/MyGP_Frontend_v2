@@ -211,11 +211,9 @@ export default function InterfaceUpsertPhaseForm({
                     }}
                     defaultValue={field.value}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una etapa..." />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una etapa..." />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="073">073 - Revalidación</SelectItem>
                       <SelectItem value="114">114 - Último Documento</SelectItem>
