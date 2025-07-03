@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import React from 'react';
+import AdminPanelAddRoleForm from '@/components/forms/admin-panel/AdminPanelAddRoleForm';
 
 export default function AdminPanelAddRoleButton() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -31,6 +32,7 @@ export default function AdminPanelAddRoleButton() {
             campos.
           </DialogDescription>
         </DialogHeader>
+        <AdminPanelAddRoleForm setIsOpen={setIsOpen} />
       </DialogContent>
     </Dialog>
   );
