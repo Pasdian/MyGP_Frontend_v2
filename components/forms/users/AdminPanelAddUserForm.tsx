@@ -26,8 +26,7 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Eye, EyeOff } from 'lucide-react';
-import { USER_ROLE } from '@/lib/roles/roles';
-import AdminPanelAddUserRoleSelect from '@/components/selects/AdminPanelAddUserRoleSelect';
+import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
 
 export default function AdminPanelAddUserForm({
   setIsOpen,
@@ -194,9 +193,9 @@ export default function AdminPanelAddUserForm({
             name="role_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Número de Teléfono</FormLabel>
+                <FormLabel>Rol del Usuario</FormLabel>
                 <FormControl>
-                  <AdminPanelAddUserRoleSelect onValueChange={field.onChange} />
+                  <AdminPanelRoleSelect onValueChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

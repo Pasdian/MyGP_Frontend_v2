@@ -17,6 +17,7 @@ import {
   USER_MOBILE_VALIDATION,
   USER_NAME_VALIDATION,
   USER_OPTIONAL_PASSWORD_VALIDATION,
+  USER_ROLE_ID_VALIDATION,
   USER_STATUS_VALIDATION,
 } from '@/lib/validations/userValidations';
 
@@ -30,6 +31,7 @@ import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
+import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
 
 export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);
@@ -40,6 +42,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
     email: USER_EMAIL_VALIDATION,
     mobile: USER_MOBILE_VALIDATION,
     password: USER_OPTIONAL_PASSWORD_VALIDATION,
+    role_id: USER_ROLE_ID_VALIDATION,
     casa_user_name: USER_CASA_USERNAME_VALIDATION,
     status: USER_STATUS_VALIDATION,
   });
@@ -51,6 +54,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
       email: row.original.email ? row.original.email : '',
       mobile: row.original.mobile ? row.original.mobile : '',
       password: '',
+      role_id: row.original.role_id ? row.original.role_id.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
       status: row.original.status == 'active' ? true : false,
     },
@@ -63,6 +67,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
       email: data.email,
       mobile: data.mobile,
       password: data.password,
+      role_id: data.role_id,
       casa_user_name: data.casa_user_name,
       status: data.status == true ? 'active' : 'inactive',
     })
@@ -149,6 +154,20 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
                       />
                     )}
                   </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="role_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rol de Usuario</FormLabel>
+                <FormControl>
+                  <AdminPanelRoleSelect onValueChange={field.onChange} defaultValue={field.value} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
