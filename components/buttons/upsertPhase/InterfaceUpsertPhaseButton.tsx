@@ -14,7 +14,7 @@ import React from 'react';
 import { Row } from '@tanstack/react-table';
 
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
-import InterfaceUpdatePhaseForm from '@/components/forms/InterfaceUpsertPhaseForm';
+import InterfaceUpdatePhaseForm from '@/components/forms/transbel/InterfaceUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil } from '@fortawesome/free-solid-svg-icons';

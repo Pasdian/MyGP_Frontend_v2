@@ -1,4 +1,4 @@
-import AdminPanelModifyUserForm from '@/components/forms/users/AdminPanelModifyUserForm';
+import AdminPanelModifyUserForm from '@/components/forms/admin-panel/AdminPanelModifyUserForm';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

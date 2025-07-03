@@ -15,7 +15,7 @@ import { Row } from '@tanstack/react-table';
 
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 
-import DeliveriesUpdatePhaseForm from '@/components/forms/DeliveriesUpsertPhaseForm';
+import DeliveriesUpdatePhaseForm from '@/components/forms/transbel/DeliveriesUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil } from '@fortawesome/free-solid-svg-icons';

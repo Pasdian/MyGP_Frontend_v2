@@ -15,7 +15,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 import React from 'react';
-import { Button } from '../ui/button';
 
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
@@ -34,10 +33,11 @@ import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
-import { DialogClose, DialogFooter } from '../ui/dialog';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Button } from '@/components/ui/button';
+import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;

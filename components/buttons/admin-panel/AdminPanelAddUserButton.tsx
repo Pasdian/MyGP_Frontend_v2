@@ -1,6 +1,6 @@
 'use client';
 
-import AdminPanelAddUserForm from '@/components/forms/users/AdminPanelAddUserForm';
+import AdminPanelAddUserForm from '@/components/forms/admin-panel/AdminPanelAddUserForm';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
