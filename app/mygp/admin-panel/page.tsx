@@ -3,7 +3,7 @@
 import { axiosFetcher } from '@/axios-instance';
 import AdminPanelAddRoleButton from '@/components/buttons/admin-panel/AdminPanelAddRoleButton';
 import AdminPanelAddUserButton from '@/components/buttons/admin-panel/AdminPanelAddUserButton';
-import UsersDataTable from '@/components/datatables/UsersDataTable';
+import UsersDataTable from '@/components/datatables/admin-panel/UsersDataTable';
 import { RolesContext } from '@/contexts/RolesContext';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_ROLE } from '@/lib/roles/roles';

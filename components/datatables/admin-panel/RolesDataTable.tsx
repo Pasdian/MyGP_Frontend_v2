@@ -9,8 +9,8 @@ import {
 import { flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import { getAllUsers } from '@/types/users/getAllUsers';
-import UsersDataTableFilter from './filters/UsersDataTableFilter';
-import TablePagination from './pagination/TablePagination';
+import UsersDataTableFilter from '../filters/UsersDataTableFilter';
+import TablePagination from '../pagination/TablePagination';
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -21,7 +21,7 @@ import useSWRImmutable from 'swr/immutable';
 import { usersColumns } from '@/lib/columns/usersColumns';
 import { axiosFetcher } from '@/axios-instance';
 import React from 'react';
-import TailwindSpinner from '../ui/TailwindSpinner';
+import TailwindSpinner from '../../ui/TailwindSpinner';
 
 export default function UsersDataTable() {
   const { data, isValidating } = useSWRImmutable<getAllUsers[]>(

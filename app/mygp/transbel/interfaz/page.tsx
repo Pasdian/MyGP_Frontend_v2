@@ -1,13 +1,13 @@
 'use client';
 
 import { InterfaceContext } from '@/contexts/InterfaceContext';
-import { InterfaceDataTable } from '@/components/datatables/InterfaceDataTable';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
 import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 import React from 'react';
 import { toast } from 'sonner';
 import AuthProvider from '@/components/AuthProvider/AuthProvider';
+import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;
