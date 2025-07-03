@@ -12,18 +12,23 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     email: '',
     role: 0,
     casa_user_name: '',
-    exp: 0,
     iat: 0,
+    exp: 0,
   });
 
+  const [isUserLoading, setIsUserLoading] = React.useState(true);
+
   React.useEffect(() => {
-    async function fetchCredentials() {
-      await GPClient.post('/api/auth/verifySession').then((res: { data: VerifySession }) => {
+    async function verify() {
+      await GPClient.post('/api/auth/verifySession').then((res) => {
         setUser(res.data);
+        setIsUserLoading(false);
       });
     }
-    fetchCredentials();
+    verify();
   }, []);
 
-  return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, setUser, isUserLoading }}>{children}</AuthContext.Provider>
+  );
 }
