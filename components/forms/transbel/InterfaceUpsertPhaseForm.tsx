@@ -38,6 +38,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { useAuth } from '@/hooks/useAuth';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;
@@ -53,6 +54,8 @@ export default function InterfaceUpsertPhaseForm({
   row: Row<getRefsPendingCE>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { user } = useAuth();
+
   const [isChecked, setIsChecked] = React.useState(false);
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const schema = z.object({
@@ -72,7 +75,7 @@ export default function InterfaceUpsertPhaseForm({
       exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
-      user: 'MYGP',
+      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
     },
   });
 

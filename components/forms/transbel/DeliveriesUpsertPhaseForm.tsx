@@ -35,8 +35,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
+  const { user } = useAuth();
   const { mutate } = useSWRConfig();
 
   const [isChecked, setIsChecked] = React.useState(false);
@@ -58,7 +60,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
       cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140.split(' ')[0] : '',
       time: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
-      user: 'MYGP',
+      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
       transporte: row.original.ENTREGA_TRANSPORTE_138
         ? row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
         : '',
