@@ -24,14 +24,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Skeleton } from './skeleton';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 export function NavUser() {
-  const user = useAuth();
+  const { user, setUser, isUserLoading } = useAuth();
   const { isMobile } = useSidebar();
   const router = useRouter();
 
@@ -41,12 +40,25 @@ export function NavUser() {
         if (res.status == 200) {
           toast.success('Cerraste sesión');
           router.replace('/login');
+          setUser({
+            name: '',
+            id: 0,
+            uuid: '',
+            email: '',
+            role: 0,
+            casa_user_name: '',
+            iat: 0,
+            exp: 0,
+          });
         }
       })
       .catch((err) => {
         console.error(err);
       });
   }
+
+  if (isUserLoading) return;
+  if (!user) return;
 
   return (
     <SidebarMenu>
@@ -59,24 +71,12 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="bg-indigo-400 rounded-lg">
-                  {!user.name ? 'A' : `${user.name.split(' ')[0][0]}`}
+                  {`${user.name.split(' ')[0][0]}`}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                {!user.name ? (
-                  <div>
-                    <Skeleton className="h-[15px] mb-1 w-full bg-gray-300" />
-                  </div>
-                ) : (
-                  <span className="truncate font-medium">{user.name}</span>
-                )}
-                {!user.email ? (
-                  <div>
-                    <Skeleton className="h-[15px] mb-1 w-full bg-gray-300" />
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground truncate text-xs">{user.email}</span>
-                )}
+                <span className="truncate font-medium">{user.name}</span>
+                <span className="text-muted-foreground truncate text-xs">{user.email}</span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>

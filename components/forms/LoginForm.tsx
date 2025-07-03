@@ -45,7 +45,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     })
       .then(() => {
         toast.success('Inicio de sesión exitoso');
-        router.push('/transbel/dashboard');
+        router.push('/mygp/dashboard');
       })
       .catch((error) => {
         toast.error(error.response.data.message);

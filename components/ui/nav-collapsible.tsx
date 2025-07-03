@@ -19,12 +19,12 @@ const userItems = {
       items: [
         {
           title: 'Entregas a Cliente',
-          url: '/transbel/entregas',
+          url: '/mygp/transbel/entregas',
           icon: IconListDetails,
         },
         {
           title: 'Interfaz - Cod. Exc.',
-          url: '/transbel/interfaz',
+          url: '/mygp/transbel/interfaz',
           icon: IconListDetails,
         },
       ],
@@ -39,12 +39,12 @@ const adminItems = {
       items: [
         {
           title: 'Usuarios',
-          url: '/admin-panel/usuarios',
+          url: '/mygp/admin-panel/usuarios',
           icon: IconUser,
         },
         {
           title: 'Roles',
-          url: '/admin-panel/roles',
+          url: '/mygp/admin-panel/roles',
           icon: IconUser,
         },
       ],
@@ -53,7 +53,11 @@ const adminItems = {
 };
 
 function NavCollapsible() {
-  const user = useAuth();
+  const { user, isUserLoading } = useAuth();
+
+  if (isUserLoading) return;
+  if (!user) return;
+  console.log(user);
   return (
     <>
       {userItems.navCollapsible.map((item) => (
