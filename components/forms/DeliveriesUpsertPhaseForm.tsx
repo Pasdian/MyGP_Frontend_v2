@@ -25,7 +25,7 @@ import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { DialogClose, DialogFooter } from '../ui/dialog';
 import { toast } from 'sonner';
-import { daysFrom } from '@/lib/utilityFunctions/daysFrom';
+import { businessDaysDiffWithHolidays } from '@/lib/utilityFunctions/businessDaysDiffWithHolidays';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { mutate } = useSWRConfig();
@@ -57,7 +57,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    const diff = daysFrom(data.cdp, data.transporte);
+    const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
 
     if (data.cdp < data.transporte) {
       form.setError('cdp', {
