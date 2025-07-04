@@ -79,6 +79,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
           />
         );
       } else if (
+        !row.original.CE_140 &&
         row.original.ENTREGA_CDP_140 &&
         businessDaysDiffWithHolidays(
           new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]),
@@ -131,7 +132,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     },
   },
   {
-    accessorKey: "CE_138",
+    accessorKey: "CE_140",
     header: "Código de Excepción",
     filterFn: deliveriesDataTableFuzzyFilter,
   },

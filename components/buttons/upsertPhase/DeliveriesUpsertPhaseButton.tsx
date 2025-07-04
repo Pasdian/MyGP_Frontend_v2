@@ -15,7 +15,7 @@ import { Row } from '@tanstack/react-table';
 
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 
-import DeliveriesUpdatePhaseForm from '@/components/forms/DeliveriesUpsertPhaseForm';
+import DeliveriesUpsertPhaseForm from '@/components/forms/DeliveriesUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 
 export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);
@@ -34,7 +34,7 @@ export default function DeliveriesUpsertPhaseButton({ row }: { row: Row<getDeliv
             termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        <DeliveriesUpdatePhaseForm row={row} />
+        <DeliveriesUpsertPhaseForm row={row} />
       </DialogContent>
     </Dialog>
   );
