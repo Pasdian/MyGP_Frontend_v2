@@ -67,10 +67,11 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       return;
     }
 
-    if (diff > 1) {
+    if (!data.exceptionCode && diff > 1) {
       form.setError('exceptionCode', {
         type: 'manual',
-        message: 'La diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
+        message:
+          'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
       });
       return;
     }
