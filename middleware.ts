@@ -13,11 +13,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   if (session_token && req.nextUrl.pathname.startsWith('/login')) {
-    return NextResponse.redirect(new URL('/mygp/transbel/dashboard', req.url));
-  }
-
-  if (session_token && req.nextUrl.pathname.startsWith('/login')) {
-    return NextResponse.redirect(new URL('/mygp/transbel/dashboard', req.url));
+    return NextResponse.redirect(new URL('/mygp/dashboard', req.url));
   }
 
   if (session_token && req.nextUrl.pathname == '/mygp') {
