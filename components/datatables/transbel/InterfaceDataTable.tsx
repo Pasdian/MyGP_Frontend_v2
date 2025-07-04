@@ -23,11 +23,11 @@ import {
 import React from 'react';
 import { axiosFetcher } from '@/axios-instance';
 import useSWRImmutable from 'swr/immutable';
-import TablePagination from './pagination/TablePagination';
-import IntefaceDataTableFilter from './filters/InterfaceDataTableFilter';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
-import TailwindSpinner from '../ui/TailwindSpinner';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
+import TailwindSpinner from '@/components/ui/TailwindSpinner';
+import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
+import TablePagination from '../pagination/TablePagination';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;

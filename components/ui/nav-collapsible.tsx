@@ -39,7 +39,7 @@ const adminItems = {
       items: [
         {
           title: 'Usuarios',
-          url: '/mygp/admin-panel/usuarios',
+          url: '/mygp/admin-panel/users',
           icon: IconUser,
         },
         {

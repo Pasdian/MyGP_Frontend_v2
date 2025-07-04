@@ -6,32 +6,31 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { flexRender } from '@tanstack/react-table';
+import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
+import TablePagination from '../pagination/TablePagination';
 import {
-  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import DeliveriesDataTableFilter from './filters/DeliveriesDataTableFilter';
-import { getDeliveries } from '@/types/transbel/getDeliveries';
-import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
-import TailwindSpinner from '../ui/TailwindSpinner';
-import React from 'react';
 import useSWRImmutable from 'swr/immutable';
 import { axiosFetcher } from '@/axios-instance';
-import TablePagination from './pagination/TablePagination';
+import React from 'react';
+import TailwindSpinner from '../../ui/TailwindSpinner';
+import { getRoles } from '@/types/roles/getRoles';
+import { rolesColumns } from '@/lib/columns/rolesColumns';
+import RolesDataTableFilter from '../filters/RolesDataTableFilter';
 
-export default function DeliveriesDataTable() {
-  const { data, isValidating } = useSWRImmutable<getDeliveries[]>(
-    '/api/transbel/getDeliveries',
-    axiosFetcher
-  );
+export default function RolesDataTable() {
+  const { data, isValidating } = useSWRImmutable<getRoles[]>('/api/roles', axiosFetcher);
+
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
     data: data ? data : [],
-    columns: deliveriesColumns,
+    columns: rolesColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -42,6 +41,7 @@ export default function DeliveriesDataTable() {
   });
 
   if (isValidating) return <TailwindSpinner />;
+
   return (
     <div>
       <Table>
@@ -56,7 +56,7 @@ export default function DeliveriesDataTable() {
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanFilter() ? (
                           <div>
-                            <DeliveriesDataTableFilter column={header.column} />
+                            <RolesDataTableFilter column={header.column} />
                           </div>
                         ) : null}
                       </div>

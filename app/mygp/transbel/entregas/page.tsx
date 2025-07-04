@@ -1,7 +1,7 @@
 'use client';
 
+import DeliveriesDataTable from '@/components/datatables/transbel/DeliveriesDataTable';
 import React from 'react';
-import DeliveriesDataTable from '@/components/datatables/DeliveriesDataTable';
 
 export default function Deliveries() {
   return (

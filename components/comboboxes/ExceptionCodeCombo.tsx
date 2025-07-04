@@ -23,6 +23,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { exceptionCodes } from '@/lib/exceptioncodes/exceptionCodes';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBug } from '@fortawesome/free-solid-svg-icons';
 
 export function ExceptionCodeCombo({
   onSelect,
@@ -42,6 +44,7 @@ export function ExceptionCodeCombo({
           className="cursor-pointer bg-blue-400 hover:bg-blue-500"
           type="button"
         >
+          <FontAwesomeIcon icon={faBug} />
           {currentValue ? currentValue : 'Código de Excepción'}
         </Button>
       </DropdownMenuTrigger>

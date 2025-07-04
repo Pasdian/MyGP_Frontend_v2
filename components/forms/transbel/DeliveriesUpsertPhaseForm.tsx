@@ -1,12 +1,6 @@
 'use client';
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
-import { Input } from '../ui/input';
-import { ExceptionCodeCombo } from '../comboboxes/ExceptionCodeCombo';
-import { Button } from '../ui/button';
 import React from 'react';
-import { Label } from '../ui/label';
-import { Checkbox } from '../ui/checkbox';
 import {
   DATE_VALIDATION,
   EXCEPTION_CODE_VALIDATION,
@@ -23,11 +17,28 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
-import { DialogClose, DialogFooter } from '../ui/dialog';
 import { toast } from 'sonner';
 import { businessDaysDiffWithHolidays } from '@/lib/utilityFunctions/businessDaysDiffWithHolidays';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { ExceptionCodeCombo } from '@/components/comboboxes/ExceptionCodeCombo';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
+  const { user } = useAuth();
   const { mutate } = useSWRConfig();
 
   const [isChecked, setIsChecked] = React.useState(false);
@@ -49,7 +60,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       exceptionCode: row.original.CE_140 ? row.original.CE_140 : '',
       cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140.split(' ')[0] : '',
       time: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
-      user: 'MYGP',
+      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
       transporte: row.original.ENTREGA_TRANSPORTE_138
         ? row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
         : '',
@@ -179,7 +190,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       type="button"
                       onClick={() => form.setValue('exceptionCode', '')}
                     >
-                      Eliminar
+                      <FontAwesomeIcon icon={faTrash} />
                     </Button>
                   </div>
                 </FormControl>

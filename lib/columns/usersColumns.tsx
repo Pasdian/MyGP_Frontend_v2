@@ -1,24 +1,24 @@
-import AdminPanelDeleteUserButton from "@/components/buttons/user/AdminPanelDeleteUserButton";
-import AdminPanelModifyUserButton from "@/components/buttons/user/AdminPanelModifyUserButton";
+"use client";
+
+import AdminPanelDeleteUserButton from "@/components/buttons/admin-panel/users/AdminPanelDeleteUserButton";
+import AdminPanelModifyUserButton from "@/components/buttons/admin-panel/users/AdminPanelModifyUserButton";
 import { getAllUsers } from "@/types/users/getAllUsers";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { usersDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/usersDataTableFuzzyFilter";
+import { RolesContext } from "@/contexts/RolesContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
 
 export const usersColumns: ColumnDef<getAllUsers>[] = [
-  {
-    accessorKey: "ACCIONES",
-    header: "Acciones",
-    cell: ({ row }) => {
-      return (
-        <div className="flex">
-          <div className="mr-3">
-            <AdminPanelModifyUserButton row={row} />
-          </div>
-          <AdminPanelDeleteUserButton row={row} />
-        </div>
-      );
-    },
-  },
   {
     accessorKey: "name",
     header: "Nombre",
@@ -38,6 +38,17 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
         return "--";
       }
       return row.original.mobile;
+    },
+  },
+  {
+    accessorKey: "role_id",
+    header: "Rol",
+    filterFn: usersDataTableFuzzyFilter,
+    cell: ({ row }) => {
+      if (!row.original.role_id) {
+        return "--";
+      }
+      return <AdminPanelDisplayUserRole row={row} />;
     },
   },
   {
@@ -64,4 +75,36 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
       }
     },
   },
+  {
+    accessorKey: "ACCIONES",
+    header: "Acciones",
+    cell: ({ row }) => {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir Menú</span>
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <AdminPanelModifyUserButton row={row} />
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <AdminPanelDeleteUserButton row={row} />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
 ];
+
+function AdminPanelDisplayUserRole({ row }: { row: Row<getAllUsers> }) {
+  const roles = React.useContext(RolesContext);
+  const userRole = roles?.find((role) => role.id == row.original.role_id);
+  return userRole ? userRole.name : "--";
+}
