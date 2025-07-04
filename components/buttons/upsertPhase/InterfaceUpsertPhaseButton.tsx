@@ -14,8 +14,10 @@ import React from 'react';
 import { Row } from '@tanstack/react-table';
 
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
-import InterfaceUpdatePhaseForm from '@/components/forms/InterfaceUpsertPhaseForm';
+import InterfaceUpdatePhaseForm from '@/components/forms/transbel/InterfaceUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 
 export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPendingCE> }) {
   const [openDialog, setOpenDialog] = React.useState(false);
@@ -26,6 +28,7 @@ export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPe
           onClick={() => setOpenDialog((opened) => !opened)}
           className="cursor-pointer bg-yellow-400 hover:bg-yellow-500"
         >
+          <FontAwesomeIcon icon={faPencil} />
           Modificar
         </Button>
       </DialogTrigger>

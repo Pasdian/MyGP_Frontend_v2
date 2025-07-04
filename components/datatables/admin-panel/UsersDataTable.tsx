@@ -6,12 +6,45 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { flexRender, Table as TTable } from '@tanstack/react-table';
-import DeliveriesDataTableFilter from './filters/DeliveriesDataTableFilter';
-import { getDeliveries } from '@/types/transbel/getDeliveries';
+import { flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
+import { getAllUsers } from '@/types/users/getAllUsers';
+import UsersDataTableFilter from '../filters/UsersDataTableFilter';
+import TablePagination from '../pagination/TablePagination';
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import useSWRImmutable from 'swr/immutable';
+import { usersColumns } from '@/lib/columns/usersColumns';
+import { axiosFetcher } from '@/axios-instance';
+import React from 'react';
+import TailwindSpinner from '../../ui/TailwindSpinner';
 
-export default function DeliveriesDataTable({ table }: { table: TTable<getDeliveries> }) {
+export default function UsersDataTable() {
+  const { data, isValidating } = useSWRImmutable<getAllUsers[]>(
+    '/api/users/getAllUsers',
+    axiosFetcher
+  );
+
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+
+  const table = useReactTable({
+    data: data ? data : [],
+    columns: usersColumns,
+    getCoreRowModel: getCoreRowModel(),
+    onPaginationChange: setPagination, // Pagination
+    getFilteredRowModel: getFilteredRowModel(), // Filtering
+    getPaginationRowModel: getPaginationRowModel(), // Pagination
+    state: {
+      pagination, // Pagination
+    },
+  });
+
+  if (isValidating) return <TailwindSpinner />;
+
   return (
     <div>
       <Table>
@@ -26,7 +59,7 @@ export default function DeliveriesDataTable({ table }: { table: TTable<getDelive
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanFilter() ? (
                           <div>
-                            <DeliveriesDataTableFilter column={header.column} />
+                            <UsersDataTableFilter column={header.column} />
                           </div>
                         ) : null}
                       </div>
@@ -57,6 +90,7 @@ export default function DeliveriesDataTable({ table }: { table: TTable<getDelive
           )}
         </TableBody>
       </Table>
+      <TablePagination table={table} />
     </div>
   );
 }

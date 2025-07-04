@@ -11,11 +11,11 @@ export const PHASE_VALIDATION = z
   });
 
 export const DATE_VALIDATION = z.iso.date({
-  error: "La fecha no tiene el formato específicado yyyy-mm-dd",
+  error: "La fecha no tiene el formato específicado",
 });
 
 export const TIME_VALIDATION = z.iso.time({
-  error: "La hora no tiene el formato especificado HH:mm",
+  error: "La hora no tiene el formato especificado",
   precision: -1,
 });
 
