@@ -15,7 +15,15 @@ import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 
-export default function AdminPanelDeleteUserButton({ row }: { row: Row<getAllUsers> }) {
+export default function AdminPanelDeleteUserButton({
+  row,
+  open,
+  setIsOpen,
+}: {
+  row: Row<getAllUsers>;
+  open: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   async function deleteUser() {
     await GPClient.delete(`/api/users/deleteUser/${row.original.user_uuid}`)
       .then((res) => {
@@ -27,10 +35,7 @@ export default function AdminPanelDeleteUserButton({ row }: { row: Row<getAllUse
       });
   }
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <p>Eliminar Usuario</p>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setIsOpen}>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Eliminar Usuario</DialogTitle>

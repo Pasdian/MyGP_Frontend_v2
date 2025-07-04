@@ -79,25 +79,42 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
     accessorKey: "ACCIONES",
     header: "Acciones",
     cell: ({ row }) => {
+      const [isModifyUserDialogOpen, setIsModifyUserDialogOpen] =
+        React.useState(false);
+      const [isDeleteUserDialogOpen, setIsDeleteUserDialogOpen] =
+        React.useState(false);
+
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir Menú</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <AdminPanelModifyUserButton row={row} />
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <AdminPanelDeleteUserButton row={row} />
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Abrir Menú</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsModifyUserDialogOpen(true)}>
+                <p>Modificar Usuario</p>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsDeleteUserDialogOpen(true)}>
+                <p>Eliminar Usuario</p>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AdminPanelModifyUserButton
+            row={row}
+            open={isModifyUserDialogOpen}
+            setIsOpen={setIsModifyUserDialogOpen}
+          />
+          <AdminPanelDeleteUserButton
+            row={row}
+            open={isDeleteUserDialogOpen}
+            setIsOpen={setIsDeleteUserDialogOpen}
+          />
+        </div>
       );
     },
   },
