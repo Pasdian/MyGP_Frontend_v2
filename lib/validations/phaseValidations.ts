@@ -19,6 +19,13 @@ export const TIME_VALIDATION = z.iso.time({
   precision: -1,
 });
 
+export const TRANSPORTE_VALIDATION = z.iso
+  .date({
+    error: "La fecha no tiene el formato específicado",
+  })
+  .optional()
+  .or(z.literal(""));
+
 export const EXCEPTION_CODE_VALIDATION = z.string().optional();
 
 export const USER_VALIDATION = z

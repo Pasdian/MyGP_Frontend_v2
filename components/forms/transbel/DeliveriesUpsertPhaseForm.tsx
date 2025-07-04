@@ -7,6 +7,7 @@ import {
   PHASE_VALIDATION,
   REF_VALIDATION,
   TIME_VALIDATION,
+  TRANSPORTE_VALIDATION,
   USER_VALIDATION,
 } from '@/lib/validations/phaseValidations';
 
@@ -49,7 +50,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
     cdp: DATE_VALIDATION,
     time: TIME_VALIDATION,
     user: USER_VALIDATION,
-    transporte: DATE_VALIDATION,
+    transporte: TRANSPORTE_VALIDATION,
   });
 
   const form = useForm<z.infer<typeof schema>>({
@@ -68,9 +69,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
-
-    if (data.cdp < data.transporte) {
+    if (data.transporte && data.cdp && data.cdp < data.transporte) {
       form.setError('cdp', {
         type: 'manual',
         message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
@@ -78,12 +77,15 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       return;
     }
 
-    if (!data.exceptionCode && diff > 1) {
-      form.setError('exceptionCode', {
-        type: 'manual',
-        message:
-          'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
-      });
+    if (!data.exceptionCode && data.transporte && data.cdp) {
+      const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
+      if (diff > 1) {
+        form.setError('exceptionCode', {
+          type: 'manual',
+          message:
+            'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
+        });
+      }
       return;
     }
 
