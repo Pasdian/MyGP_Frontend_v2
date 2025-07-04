@@ -126,7 +126,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     },
   },
   {
-    accessorKey: "CE_138",
+    accessorKey: "CE_140",
     header: "Código de Excepción",
   },
 ];
