@@ -46,7 +46,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
     defaultValues: {
       ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       phase: '140',
-      exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
+      exceptionCode: row.original.CE_140 ? row.original.CE_140 : '',
       cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140.split(' ')[0] : '',
       time: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
       user: 'MYGP',
@@ -67,10 +67,11 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       return;
     }
 
-    if (diff > 1) {
+    if (!data.exceptionCode && diff > 1) {
       form.setError('exceptionCode', {
         type: 'manual',
-        message: 'La diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
+        message:
+          'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
       });
       return;
     }
