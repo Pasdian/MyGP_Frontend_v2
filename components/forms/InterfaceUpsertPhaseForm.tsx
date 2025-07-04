@@ -169,8 +169,6 @@ export default function InterfaceUpsertPhaseForm({
       });
   }
 
-  console.log(row.original);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
