@@ -1,2 +1,6 @@
-export const ADMIN_ROLE = 1;
-export const USER_ROLE = 2;
+export const ADMIN_ROLE_UUID = "a7b242f2-7c96-49bf-a428-0e345e08cc49";
+
+export const OPERACIONES_STARS_LOGISTICS_UUID =
+  "68d6cd1c-ba19-4755-974c-3b32afc1187b";
+
+export const OPERACIONES_AAP_UUID = "368e17d8-52ab-4840-b192-72ef837e6d79";

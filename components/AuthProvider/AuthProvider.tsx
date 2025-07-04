@@ -2,6 +2,7 @@
 import { GPClient } from '@/axios-instance';
 import { AuthContext } from '@/contexts/AuthContext';
 import { VerifySession } from '@/types/auth/verifySession';
+import { getRoles } from '@/types/roles/getRoles';
 import React from 'react';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -15,20 +16,31 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     iat: 0,
     exp: 0,
   });
-
-  const [isUserLoading, setIsUserLoading] = React.useState(true);
+  const [userRoleUUID, setUserRoleUUID] = React.useState('');
+  const [roles, setRoles] = React.useState<getRoles[]>([]);
+  const [isAuthLoading, setIsAuthLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function verify() {
-      await GPClient.post('/api/auth/verifySession').then((res) => {
-        setUser(res.data);
-        setIsUserLoading(false);
-      });
+      const [userReq, rolesReq] = await Promise.all([
+        GPClient.post<VerifySession>('/api/auth/verifySession'),
+        GPClient.get<getRoles[]>('/api/roles'),
+      ]);
+      setUser(userReq.data);
+      setRoles(rolesReq.data);
+
+      if (rolesReq) {
+        const roleObjectFound = rolesReq.data.find((role) => role.id == userReq.data.role);
+        setUserRoleUUID(roleObjectFound ? roleObjectFound?.uuid : '');
+      }
+      setIsAuthLoading(false);
     }
     verify();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isUserLoading }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, setUser, isAuthLoading, userRoleUUID, roles }}>
+      {children}
+    </AuthContext.Provider>
   );
 }
