@@ -1,4 +1,4 @@
-import { ColumnDef, FilterFn } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import { getRoles } from "@/types/roles/getRoles";
 import AdminPanelModifyRoleButton from "@/components/buttons/admin-panel/roles/AdminPanelModifyRoleButton";
@@ -12,29 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { rankItem } from "@tanstack/match-sorter-utils";
+import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
-export const rolesDataTableFuzzyFilter: FilterFn<getRoles> = (
-  row,
-  columnId,
-  value,
-  addMeta
-) => {
-  // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  // Store the itemRank info
-  addMeta({ itemRank });
-
-  // Return if the item should be filtered in/out
-  return itemRank.passed;
-};
+const fuzzyFilter = createFuzzyFilter<getRoles>();
 
 export const rolesColumns: ColumnDef<getRoles>[] = [
   {
     accessorKey: "name",
     header: "Nombre",
-    filterFn: rolesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.name) return "--";
       return row.original.name;
@@ -43,7 +29,7 @@ export const rolesColumns: ColumnDef<getRoles>[] = [
   {
     accessorKey: "description",
     header: "Descripción",
-    filterFn: rolesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.description) return "--";
       return row.original.description;

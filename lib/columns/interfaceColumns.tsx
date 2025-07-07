@@ -1,4 +1,4 @@
-import { ColumnDef, FilterFn } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 
 import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
@@ -7,23 +7,9 @@ import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
-import { rankItem } from "@tanstack/match-sorter-utils";
+import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
-export const interfaceDataTableFuzzyFilter: FilterFn<getRefsPendingCE> = (
-  row,
-  columnId,
-  value,
-  addMeta
-) => {
-  // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  // Store the itemRank info
-  addMeta({ itemRank });
-
-  // Return if the item should be filtered in/out
-  return itemRank.passed;
-};
+const fuzzyFilter = createFuzzyFilter<getRefsPendingCE>();
 
 export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
@@ -36,7 +22,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "REFERENCIA",
     header: "Referencia",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
         return (
@@ -75,7 +61,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "EE__GE",
     header: "EE/GE",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
@@ -87,7 +73,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "REVALIDACION_073",
     header: "Revalidación",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REVALIDACION_073) {
         return (
@@ -151,7 +137,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "ULTIMO_DOCUMENTO_114",
     header: "Último Documento",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ULTIMO_DOCUMENTO_114) {
         return (
@@ -204,7 +190,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "MSA_130",
     header: "MSA",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.MSA_130) {
         return (
@@ -252,7 +238,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "ENTREGA_TRANSPORTE_138",
     header: "Entrega Transporte",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
         return (
@@ -295,6 +281,6 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "CE_138",
     header: "Código de Excepción 138",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
   },
 ];

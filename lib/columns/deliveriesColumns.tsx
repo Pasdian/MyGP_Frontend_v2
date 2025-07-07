@@ -1,27 +1,13 @@
-import { ColumnDef, FilterFn } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
-import { rankItem } from "@tanstack/match-sorter-utils";
+import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
-export const deliveriesDataTableFuzzyFilter: FilterFn<getDeliveries> = (
-  row,
-  columnId,
-  value,
-  addMeta
-) => {
-  // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  // Store the itemRank info
-  addMeta({ itemRank });
-
-  // Return if the item should be filtered in/out
-  return itemRank.passed;
-};
+const fuzzyFilter = createFuzzyFilter<getDeliveries>();
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -34,7 +20,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "REFERENCIA",
     header: "Referencia",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
         return (
@@ -51,7 +37,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "EE__GE",
     header: "Entrega Entrante",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
@@ -73,7 +59,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ENTREGA_TRANSPORTE_138",
     header: "Entrega a Transporte",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
         return (
@@ -131,7 +117,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ENTREGA_CDP_140",
     header: "Entrega a CDP",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_CDP_140) {
         return (
@@ -161,6 +147,6 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "CE_140",
     header: "Código de Excepción",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
   },
 ];

@@ -3,7 +3,7 @@
 import AdminPanelDeleteUserButton from "@/components/buttons/admin-panel/users/AdminPanelDeleteUserButton";
 import AdminPanelModifyUserButton from "@/components/buttons/admin-panel/users/AdminPanelModifyUserButton";
 import { getAllUsersDeepCopy } from "@/types/users/getAllUsers";
-import { ColumnDef, FilterFn, Row } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,39 +15,25 @@ import {
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { rankItem } from "@tanstack/match-sorter-utils";
+import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
-export const usersDataTableFuzzyFilter: FilterFn<getAllUsersDeepCopy> = (
-  row,
-  columnId,
-  value,
-  addMeta
-) => {
-  // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  // Store the itemRank info
-  addMeta({ itemRank });
-
-  // Return if the item should be filtered in/out
-  return itemRank.passed;
-};
+const fuzzyFilter = createFuzzyFilter<getAllUsersDeepCopy>();
 
 export const usersColumns: ColumnDef<getAllUsersDeepCopy>[] = [
   {
     accessorKey: "name",
     header: "Nombre",
-    filterFn: usersDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
   },
   {
     accessorKey: "email",
     header: "Email",
-    filterFn: usersDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
   },
   {
     accessorKey: "mobile",
     header: "Teléfono",
-    filterFn: usersDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.mobile) {
         return "--";
@@ -58,7 +44,7 @@ export const usersColumns: ColumnDef<getAllUsersDeepCopy>[] = [
   {
     accessorKey: "role_description",
     header: "Rol",
-    filterFn: usersDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.role_description) {
         return "--";
@@ -69,7 +55,7 @@ export const usersColumns: ColumnDef<getAllUsersDeepCopy>[] = [
   {
     accessorKey: "casa_user_name",
     header: "Nombre de Usuario CASA",
-    filterFn: usersDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.casa_user_name) {
         return "--";
@@ -80,7 +66,7 @@ export const usersColumns: ColumnDef<getAllUsersDeepCopy>[] = [
   {
     accessorKey: "status",
     header: "Estatus",
-    filterFn: usersDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.status) return "--";
       return row.original.status;
