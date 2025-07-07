@@ -87,30 +87,6 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-<<<<<<< HEAD:components/forms/DeliveriesUpsertPhaseForm.tsx
-    if (data.transporte && data.cdp && data.cdp < data.transporte) {
-      form.setError('cdp', {
-        type: 'manual',
-        message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
-      });
-      return;
-    }
-
-    if (!data.exceptionCode && data.transporte && data.cdp) {
-      const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
-      if (diff > 1) {
-        form.setError('exceptionCode', {
-          type: 'manual',
-          message:
-            'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
-        });
-        return;
-      }
-    }
-
-    form.reset();
-=======
->>>>>>> main:components/forms/transbel/DeliveriesUpsertPhaseForm.tsx
     await GPClient.post('/api/transbel/upsertPhase', {
       ref: data.ref,
       phase: data.phase,

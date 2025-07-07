@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import { ExceptionCodeCombo } from '@/components/comboboxes/ExceptionCodeCombo';
+import AuthProvider from '@/components/AuthProvider/AuthProvider';
 
 function DeliveriesUpsertBtnWrapper() {
   const data = [
@@ -46,10 +47,10 @@ function DeliveriesUpsertBtnWrapper() {
 describe('Deliveries', () => {
   it('upserts a phase with the same date without exception code', async () => {
     render(
-      <>
+      <AuthProvider>
         <DeliveriesUpsertBtnWrapper />
         <Toaster />
-      </>
+      </AuthProvider>
     );
 
     const firstModifyButton = screen.getAllByRole('button', { name: /modificar/i })[0];
@@ -73,10 +74,10 @@ describe('Deliveries', () => {
 
   it('upserts a phase with 1 day ahead without exception code', async () => {
     render(
-      <>
+      <AuthProvider>
         <DeliveriesUpsertBtnWrapper />
         <Toaster />
-      </>
+      </AuthProvider>
     );
 
     const firstModifyButton = screen.getAllByRole('button', { name: /modificar/i })[0];
@@ -100,10 +101,10 @@ describe('Deliveries', () => {
 
   it('fails to upsert a phase with 2 days ahead without exception code', async () => {
     render(
-      <>
+      <AuthProvider>
         <DeliveriesUpsertBtnWrapper />
         <Toaster />
-      </>
+      </AuthProvider>
     );
 
     const firstModifyButton = screen.getAllByRole('button', { name: /modificar/i })[0];
@@ -129,11 +130,11 @@ describe('Deliveries', () => {
     window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
     render(
-      <>
+      <AuthProvider>
         <DeliveriesUpsertBtnWrapper />
         <ExceptionCodeCombo onSelect={() => {}} currentValue="" />
         <Toaster />
-      </>
+      </AuthProvider>
     );
 
     const firstModifyButton = screen.getAllByRole('button', { name: /modificar/i })[0];

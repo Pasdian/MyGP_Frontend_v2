@@ -37,17 +37,8 @@ export function ExceptionCodeCombo({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-<<<<<<< HEAD
         <Button size="sm" className="cursor-pointer bg-blue-400 hover:bg-blue-500" type="button">
-=======
-        <Button
-          onClick={() => setOpen((opened) => !opened)}
-          size="sm"
-          className="cursor-pointer bg-blue-400 hover:bg-blue-500"
-          type="button"
-        >
           <IconBug stroke={2} />
->>>>>>> main
           {currentValue ? currentValue : 'Código de Excepción'}
         </Button>
       </DropdownMenuTrigger>
