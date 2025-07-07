@@ -2,12 +2,14 @@ import { z } from "zod/v4";
 
 export const USER_NAME_VALIDATION = z
   .string({ error: "Ingresa un usuario" })
-  .min(2, { error: "El usuario debe de ser de mínimo de 2 carácteres" })
-  .max(15, { error: "El usuario debe de ser de máximo de 15 carácteres" });
+  .min(2, { error: "El usuario debe de ser de mínimo de 2 caracteres" })
+  .max(8, { error: "El usuario debe de ser de máximo de 8 caracteres" });
 
 export const USER_CASA_USERNAME_VALIDATION = z
   .string({ error: "Ingresa un usuario" })
   .min(2, "El usuario CASA debe de ser de mínimo 2 caracteres")
+  .max(8, "El usuario CASA debe de ser de máximo 8 caracteres")
+  .toUpperCase()
   .optional()
   .or(z.literal(""));
 

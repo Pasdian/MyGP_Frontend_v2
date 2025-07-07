@@ -27,8 +27,3 @@ export const TRANSPORTE_VALIDATION = z.iso
   .or(z.literal(""));
 
 export const EXCEPTION_CODE_VALIDATION = z.string().optional();
-
-export const USER_VALIDATION = z
-  .string({ error: "Ingresa un usuario" })
-  .min(2, { error: "El usuario debe de ser de mínimo de 2 carácteres" })
-  .max(15, { error: "El usuario debe de ser de máximo de 15 carácteres" });

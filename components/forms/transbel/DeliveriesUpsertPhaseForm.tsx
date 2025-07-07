@@ -8,7 +8,6 @@ import {
   REF_VALIDATION,
   TIME_VALIDATION,
   TRANSPORTE_VALIDATION,
-  USER_VALIDATION,
 } from '@/lib/validations/phaseValidations';
 
 import { useSWRConfig } from 'swr';
@@ -20,8 +19,6 @@ import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { toast } from 'sonner';
 import { businessDaysDiffWithHolidays } from '@/lib/utilityFunctions/businessDaysDiffWithHolidays';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import {
   Form,
   FormControl,
@@ -37,21 +34,41 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
+import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
   const { mutate } = useSWRConfig();
 
   const [isChecked, setIsChecked] = React.useState(false);
-  const schema = z.object({
-    ref: REF_VALIDATION,
-    phase: PHASE_VALIDATION,
-    exceptionCode: EXCEPTION_CODE_VALIDATION,
-    cdp: DATE_VALIDATION,
-    time: TIME_VALIDATION,
-    user: USER_VALIDATION,
-    transporte: TRANSPORTE_VALIDATION,
-  });
+  const schema = z
+    .object({
+      ref: REF_VALIDATION,
+      phase: PHASE_VALIDATION,
+      exceptionCode: EXCEPTION_CODE_VALIDATION,
+      cdp: DATE_VALIDATION,
+      time: TIME_VALIDATION,
+      user: USER_CASA_USERNAME_VALIDATION,
+      transporte: TRANSPORTE_VALIDATION,
+    })
+    .refine((data) => !(data.transporte && data.cdp && data.cdp < data.transporte), {
+      message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
+      path: ['cdp'],
+    })
+    .refine(
+      (data) => {
+        if (!data.exceptionCode && data.transporte && data.cdp) {
+          const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
+          return diff <= 1; // Only allow if difference is less than or equal to 1
+        }
+        return true; // Passes if no condition is violated
+      },
+      {
+        message:
+          'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
+        path: ['exceptionCode'], // Path to the error (exceptionCode field)
+      }
+    );
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -69,27 +86,6 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    if (data.transporte && data.cdp && data.cdp < data.transporte) {
-      form.setError('cdp', {
-        type: 'manual',
-        message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
-      });
-      return;
-    }
-
-    if (!data.exceptionCode && data.transporte && data.cdp) {
-      const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
-      if (diff > 1) {
-        form.setError('exceptionCode', {
-          type: 'manual',
-          message:
-            'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
-        });
-        return;
-      }
-    }
-
-    form.reset();
     await GPClient.post('/api/transbel/upsertPhase', {
       ref: data.ref,
       phase: data.phase,
@@ -192,7 +188,18 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       type="button"
                       onClick={() => form.setValue('exceptionCode', '')}
                     >
-                      <FontAwesomeIcon icon={faTrash} />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="icon icon-tabler icons-tabler-filled icon-tabler-trash"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" />
+                        <path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" />
+                      </svg>
                     </Button>
                   </div>
                 </FormControl>
@@ -211,7 +218,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                   <Input
                     disabled={!isChecked}
                     placeholder="Usuario..."
-                    className="mb-4"
+                    className="mb-4 uppercase"
                     {...field}
                   />
                 </FormControl>
