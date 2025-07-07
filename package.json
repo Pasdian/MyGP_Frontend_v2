@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "test": "playwright test",
+    "test": "jest",
     "lint": "next lint"
   },
   "dependencies": {

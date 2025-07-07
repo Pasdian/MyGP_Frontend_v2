@@ -5,9 +5,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
-import { getAllUsers, getAllUsersDeepCopy } from '@/types/users/getAllUsers';
+import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 

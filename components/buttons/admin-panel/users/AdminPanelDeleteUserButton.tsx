@@ -7,7 +7,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { DialogClose } from '@radix-ui/react-dialog';

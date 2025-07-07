@@ -1,4 +1,4 @@
-import { getAllUsers, getAllUsersDeepCopy } from "@/types/users/getAllUsers";
+import { getAllUsersDeepCopy } from "@/types/users/getAllUsers";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { FilterFn } from "@tanstack/react-table";
 

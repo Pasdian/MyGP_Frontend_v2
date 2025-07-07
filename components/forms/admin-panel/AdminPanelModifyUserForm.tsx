@@ -21,7 +21,7 @@ import {
   USER_STATUS_VALIDATION,
 } from '@/lib/validations/userValidations';
 
-import { getAllUsers, getAllUsersDeepCopy } from '@/types/users/getAllUsers';
+import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import React from 'react';

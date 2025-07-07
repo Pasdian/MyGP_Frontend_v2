@@ -50,7 +50,7 @@ export default function UsersDataTable() {
     }
 
     if (data) modifyData();
-  }, [data]);
+  }, [data, roles]);
 
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 

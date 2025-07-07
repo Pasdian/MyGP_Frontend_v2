@@ -20,15 +20,10 @@ const getFormattedDate = (d: Date | undefined) => {
 
 export default function Page() {
   const allowedRoles = [ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID];
-
-  const { user, isAuthLoading, userRoleUUID } = useAuth();
-
-  if (isAuthLoading || !user) return;
-  if (!allowedRoles.includes(userRoleUUID))
-    return <p>No tienes permisos para ver este contenido.</p>;
-
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
+
+  const { user, isAuthLoading, userRoleUUID } = useAuth();
 
   React.useEffect(() => {
     function validateDates() {
@@ -57,6 +52,11 @@ export default function Page() {
     }
     validateDates();
   }, [initialDate, finalDate]);
+
+  if (isAuthLoading || !user) return;
+  if (!allowedRoles.includes(userRoleUUID)) {
+    return <p>No tienes permisos para ver este contenido.</p>;
+  }
 
   return (
     <AuthProvider>
