@@ -85,8 +85,8 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
           message:
             'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
         });
+        return;
       }
-      return;
     }
 
     form.reset();
