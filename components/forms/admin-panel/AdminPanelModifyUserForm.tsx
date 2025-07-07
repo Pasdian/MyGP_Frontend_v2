@@ -61,7 +61,6 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    form.reset();
     await GPClient.post(`/api/users/updateUser/${row.original.user_uuid}`, {
       name: data.name,
       email: data.email,
@@ -181,7 +180,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
               <FormItem>
                 <FormLabel>Nombre de Usuario CASA</FormLabel>
                 <FormControl>
-                  <Input placeholder="Usuario CASA..." {...field} />
+                  <Input className="uppercase" placeholder="Usuario CASA..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

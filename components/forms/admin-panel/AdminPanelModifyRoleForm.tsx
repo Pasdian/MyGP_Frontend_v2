@@ -46,7 +46,6 @@ export default function AdminPanelModifyRoleForm({
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    form.reset();
     await GPClient.put(`/api/roles/${row.original.uuid}`, {
       name: data.name,
       description: data.description,
