@@ -1,12 +1,15 @@
 'use client';
 
 import { InterfaceContext } from '@/contexts/InterfaceContext';
-import { InterfaceDataTable } from '@/components/datatables/InterfaceDataTable';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
 import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 import React from 'react';
 import { toast } from 'sonner';
+import AuthProvider from '@/components/AuthProvider/AuthProvider';
+import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
+import { ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID } from '@/lib/roles/roles';
+import { useAuth } from '@/hooks/useAuth';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;
@@ -16,8 +19,11 @@ const getFormattedDate = (d: Date | undefined) => {
 };
 
 export default function Page() {
+  const allowedRoles = [ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID];
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
+
+  const { user, isAuthLoading, userRoleUUID } = useAuth();
 
   React.useEffect(() => {
     function validateDates() {
@@ -47,8 +53,13 @@ export default function Page() {
     validateDates();
   }, [initialDate, finalDate]);
 
+  if (isAuthLoading || !user) return;
+  if (!allowedRoles.includes(userRoleUUID)) {
+    return <p>No tienes permisos para ver este contenido.</p>;
+  }
+
   return (
-    <div>
+    <AuthProvider>
       <div className="flex flex-col justify-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
@@ -75,6 +86,6 @@ export default function Page() {
           <InterfaceDataTable columns={interfaceColumns} />
         </InterfaceContext.Provider>
       </div>
-    </div>
+    </AuthProvider>
   );
 }

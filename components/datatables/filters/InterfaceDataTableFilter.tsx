@@ -20,7 +20,7 @@ export default function IntefaceDataTableFilter({
           : 'text'
       }
       value={(columnFilterValue ?? '') as string}
-      onChange={(e) => column.setFilterValue(e.target.value.trim())}
+      onChange={(e) => column.setFilterValue(e.target.value)}
       placeholder={`Buscar...`}
       className={column.id == 'ACCIONES' ? 'hidden' : 'mb-2 rounded'}
     />
