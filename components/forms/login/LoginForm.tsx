@@ -43,8 +43,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       email: data.email,
       password: data.password,
     })
-      .then(() => {
-        toast.success('Inicio de sesión exitoso');
+      .then((res) => {
+        toast.success(res.data.message);
         router.push('/mygp/dashboard');
       })
       .catch((error) => {
