@@ -15,7 +15,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 import React from 'react';
-import { Button } from '../ui/button';
 
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
@@ -28,14 +27,17 @@ import {
   PHASE_VALIDATION,
   REF_VALIDATION,
   TIME_VALIDATION,
-  USER_VALIDATION,
 } from '@/lib/validations/phaseValidations';
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
-import { DialogClose, DialogFooter } from '../ui/dialog';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
+import { Button } from '@/components/ui/button';
+import { DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { useAuth } from '@/hooks/useAuth';
+import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
+import { IconTrashFilled } from '@tabler/icons-react';
 
 const getFormattedDate = (d: Date | undefined) => {
   if (!d) return;
@@ -51,16 +53,108 @@ export default function InterfaceUpsertPhaseForm({
   row: Row<getRefsPendingCE>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { user } = useAuth();
+
   const [isChecked, setIsChecked] = React.useState(false);
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
-  const schema = z.object({
-    ref: REF_VALIDATION,
-    phase: PHASE_VALIDATION,
-    exceptionCode: EXCEPTION_CODE_VALIDATION,
-    date: DATE_VALIDATION,
-    time: TIME_VALIDATION,
-    user: USER_VALIDATION,
-  });
+  const schema = z
+    .object({
+      ref: REF_VALIDATION,
+      phase: PHASE_VALIDATION,
+      exceptionCode: EXCEPTION_CODE_VALIDATION,
+      date: DATE_VALIDATION,
+      time: TIME_VALIDATION,
+      user: USER_CASA_USERNAME_VALIDATION,
+    })
+    .refine(
+      (data) => {
+        if (
+          data.phase === '073' &&
+          row.original.ULTIMO_DOCUMENTO_114 &&
+          data.date > row.original.ULTIMO_DOCUMENTO_114
+        ) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: 'La fecha de revalidación no puede ser mayor a la fecha de último documento',
+        path: ['date'],
+      }
+    )
+    .refine(
+      (data) => {
+        if (data.phase === '073' && row.original.MSA_130 && data.date > row.original.MSA_130) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: 'La fecha de revalidación no puede ser mayor a la fecha de MSA',
+        path: ['date'],
+      }
+    )
+    .refine(
+      (data) => {
+        if (
+          data.phase === '073' &&
+          row.original.ENTREGA_TRANSPORTE_138 &&
+          data.date > row.original.ENTREGA_TRANSPORTE_138
+        ) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: 'La fecha de revalidación no puede ser mayor a la fecha de entrega de transporte',
+        path: ['date'],
+      }
+    )
+    .refine(
+      (data) => {
+        if (data.phase === '114' && row.original.MSA_130 && data.date > row.original.MSA_130) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: 'La fecha de último documento no puede ser mayor a la fecha de MSA',
+        path: ['date'],
+      }
+    )
+    .refine(
+      (data) => {
+        if (
+          data.phase === '114' &&
+          row.original.ENTREGA_TRANSPORTE_138 &&
+          data.date > row.original.ENTREGA_TRANSPORTE_138
+        ) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message:
+          'La fecha de último documento no puede ser mayor a la fecha de entrega de transporte',
+        path: ['date'],
+      }
+    )
+    .refine(
+      (data) => {
+        if (
+          data.phase === '130' &&
+          row.original.ENTREGA_TRANSPORTE_138 &&
+          data.date !== row.original.ENTREGA_TRANSPORTE_138
+        ) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: 'La fecha de MSA debe ser igual a la fecha de entrega de transporte',
+        path: ['date'],
+      }
+    );
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -70,78 +164,11 @@ export default function InterfaceUpsertPhaseForm({
       exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
-      user: 'MYGP',
+      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
     },
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    if (
-      row.original.ULTIMO_DOCUMENTO_114 &&
-      data.phase == '073' &&
-      data.date > row.original.ULTIMO_DOCUMENTO_114
-    ) {
-      form.setError('date', {
-        type: 'manual',
-        message: 'La fecha de revalidación no puede ser mayor a la fecha de último documento',
-      });
-      return;
-    }
-
-    if (row.original.MSA_130 && data.phase == '073' && data.date > row.original.MSA_130) {
-      form.setError('date', {
-        type: 'manual',
-        message: 'La fecha de revalidación no puede ser mayor a la fecha de MSA',
-      });
-      return;
-    }
-
-    if (
-      row.original.ENTREGA_TRANSPORTE_138 &&
-      data.phase == '073' &&
-      data.date > row.original.ENTREGA_TRANSPORTE_138
-    ) {
-      form.setError('date', {
-        type: 'manual',
-        message: 'La fecha de revalidación no puede ser mayor a la fecha de entrega de transporte',
-      });
-      return;
-    }
-
-    if (row.original.MSA_130 && data.phase == '114' && data.date > row.original.MSA_130) {
-      form.setError('date', {
-        type: 'manual',
-        message: 'La fecha de último documento no puede ser mayor a la fecha de MSA',
-      });
-      return;
-    }
-
-    if (
-      row.original.ENTREGA_TRANSPORTE_138 &&
-      data.phase == '114' &&
-      data.date > row.original.ENTREGA_TRANSPORTE_138
-    ) {
-      form.setError('date', {
-        type: 'manual',
-        message:
-          'La fecha de último documento no puede ser mayor a la fecha de entrega de transporte',
-      });
-      return;
-    }
-
-    if (
-      row.original.ENTREGA_TRANSPORTE_138 &&
-      data.phase == '130' &&
-      data.date != row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
-    ) {
-      form.setError('date', {
-        type: 'manual',
-        message: 'La fecha de MSA debe ser igual a la fecha de entrega de transporte',
-      });
-      return;
-    }
-
-    form.reset();
-
     await GPClient.post('/api/transbel/upsertPhase', {
       ref: data.ref,
       phase: data.phase,
@@ -153,6 +180,7 @@ export default function InterfaceUpsertPhaseForm({
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
           setOpenDialog((opened) => !opened);
+          if (!initialDate || !finalDate) mutate('/api/transbel/getRefsPendingCE');
           mutate(
             `/api/transbel/getRefsPendingCE?initialDate=${getFormattedDate(
               initialDate
@@ -211,11 +239,9 @@ export default function InterfaceUpsertPhaseForm({
                     }}
                     defaultValue={field.value}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una etapa..." />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una etapa..." />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="073">073 - Revalidación</SelectItem>
                       <SelectItem value="114">114 - Último Documento</SelectItem>
@@ -281,7 +307,7 @@ export default function InterfaceUpsertPhaseForm({
                         type="button"
                         onClick={() => form.setValue('exceptionCode', '')}
                       >
-                        Eliminar
+                        <IconTrashFilled />
                       </Button>
                     </div>
                   </FormControl>
@@ -301,7 +327,7 @@ export default function InterfaceUpsertPhaseForm({
                   <Input
                     disabled={!isChecked}
                     placeholder="Usuario..."
-                    className="mb-4"
+                    className="mb-4 uppercase"
                     {...field}
                   />
                 </FormControl>

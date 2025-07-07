@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { exceptionCodes } from '@/lib/exceptioncodes/exceptionCodes';
+import { IconBug } from '@tabler/icons-react';
 
 export function ExceptionCodeCombo({
   onSelect,
@@ -42,6 +43,7 @@ export function ExceptionCodeCombo({
           className="cursor-pointer bg-blue-400 hover:bg-blue-500"
           type="button"
         >
+          <IconBug stroke={2} />
           {currentValue ? currentValue : 'Código de Excepción'}
         </Button>
       </DropdownMenuTrigger>

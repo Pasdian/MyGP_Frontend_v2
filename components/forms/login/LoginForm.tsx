@@ -8,24 +8,26 @@ import { Label } from '@/components/ui/label';
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
-import { AxiosError } from 'axios';
-import { LoginResponse } from '@/app/api/auth/login/route';
 import { Eye, EyeOff } from 'lucide-react';
+import {
+  LOGIN_PASSWORD_VALIDATION,
+  LOGIN_USER_VALIDATION,
+} from '@/lib/validations/loginValidations';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
   const [shouldView, setShouldView] = React.useState(false);
 
   const formSchema = z.object({
-    email: z.string().email({ message: 'Correo electrónico inválido' }),
-    password: z.string().min(8, { message: 'La contraseña debe de ser mayor a 8 caracteres' }),
+    email: LOGIN_USER_VALIDATION,
+    password: LOGIN_PASSWORD_VALIDATION,
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -41,16 +43,12 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       email: data.email,
       password: data.password,
     })
-      .then((res: { data: LoginResponse }) => {
-        toast.success('Inicio de sesión exitoso');
-        localStorage.setItem(
-          'user_info',
-          JSON.stringify({ name: res.data.name, email: res.data.email })
-        );
-        router.push('/transbel/dashboard');
+      .then((res) => {
+        toast.success(res.data.message);
+        router.push('/mygp/dashboard');
       })
-      .catch((error: AxiosError) => {
-        toast.error(error.message);
+      .catch((error) => {
+        toast.error(error.response.data.message);
       });
   }
 
