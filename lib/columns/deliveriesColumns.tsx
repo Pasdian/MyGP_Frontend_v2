@@ -1,11 +1,27 @@
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
-import { deliveriesDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/deliveriesDataTableFuzzyFilter";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
+import { rankItem } from "@tanstack/match-sorter-utils";
+
+export const deliveriesDataTableFuzzyFilter: FilterFn<getDeliveries> = (
+  row,
+  columnId,
+  value,
+  addMeta
+) => {
+  // Rank the item
+  const itemRank = rankItem(row.getValue(columnId), value);
+
+  // Store the itemRank info
+  addMeta({ itemRank });
+
+  // Return if the item should be filtered in/out
+  return itemRank.passed;
+};
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {

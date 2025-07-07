@@ -3,8 +3,7 @@
 import AdminPanelDeleteUserButton from "@/components/buttons/admin-panel/users/AdminPanelDeleteUserButton";
 import AdminPanelModifyUserButton from "@/components/buttons/admin-panel/users/AdminPanelModifyUserButton";
 import { getAllUsersDeepCopy } from "@/types/users/getAllUsers";
-import { ColumnDef, Row } from "@tanstack/react-table";
-import { usersDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/usersDataTableFuzzyFilter";
+import { ColumnDef, FilterFn, Row } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +15,23 @@ import {
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import { rankItem } from "@tanstack/match-sorter-utils";
+
+export const usersDataTableFuzzyFilter: FilterFn<getAllUsersDeepCopy> = (
+  row,
+  columnId,
+  value,
+  addMeta
+) => {
+  // Rank the item
+  const itemRank = rankItem(row.getValue(columnId), value);
+
+  // Store the itemRank info
+  addMeta({ itemRank });
+
+  // Return if the item should be filtered in/out
+  return itemRank.passed;
+};
 
 export const usersColumns: ColumnDef<getAllUsersDeepCopy>[] = [
   {

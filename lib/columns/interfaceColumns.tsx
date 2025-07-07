@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, FilterFn } from "@tanstack/react-table";
 
 import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
@@ -7,7 +7,23 @@ import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
-import { interfaceDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/interfaceDataTableFuzzyFilter";
+import { rankItem } from "@tanstack/match-sorter-utils";
+
+export const interfaceDataTableFuzzyFilter: FilterFn<getRefsPendingCE> = (
+  row,
+  columnId,
+  value,
+  addMeta
+) => {
+  // Rank the item
+  const itemRank = rankItem(row.getValue(columnId), value);
+
+  // Store the itemRank info
+  addMeta({ itemRank });
+
+  // Return if the item should be filtered in/out
+  return itemRank.passed;
+};
 
 export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
