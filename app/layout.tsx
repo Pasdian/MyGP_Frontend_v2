@@ -3,10 +3,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { Roboto } from 'next/font/google';
 
-import { config } from '@fortawesome/fontawesome-svg-core';
-import '@fortawesome/fontawesome-svg-core/styles.css';
-config.autoAddCss = false;
-
 export const metadata: Metadata = {
   title: 'MyGP',
   description: 'MyGP Application',
