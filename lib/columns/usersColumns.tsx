@@ -67,11 +67,7 @@ export const usersColumns: ColumnDef<getAllUsersDeepCopy>[] = [
     filterFn: usersDataTableFuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.status) return "--";
-      if (row.original.status == "active") {
-        return "Activo";
-      } else {
-        return "Inactivo";
-      }
+      return row.original.status;
     },
   },
   {

@@ -47,7 +47,7 @@ export default function AdminPanelModifyRoleForm({
 
   async function onSubmit(data: z.infer<typeof schema>) {
     form.reset();
-    await GPClient.put(`/api/roles/${row.original.id}`, {
+    await GPClient.put(`/api/roles/${row.original.uuid}`, {
       name: data.name,
       description: data.description,
     })
@@ -100,7 +100,7 @@ export default function AdminPanelModifyRoleForm({
               Cancelar
             </Button>
           </DialogClose>
-          <Button className="cursor-pointer bg-blue-500 hover:bg-blue-600" type="submit">
+          <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
             Guardar Cambios
           </Button>
         </DialogFooter>
