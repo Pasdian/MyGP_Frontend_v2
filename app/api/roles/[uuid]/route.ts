@@ -1,13 +1,13 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
-import { CreateRole } from '@/types/roles/createRole';
+import { UpdateRole } from '@/types/roles/updateRole';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ uuid: string }> }) {
   const { uuid } = await params;
   const session_token = (await cookies()).get('session_token')?.value;
-  const reqJSON: CreateRole = await req.json();
+  const reqJSON: UpdateRole = await req.json();
   logger.info(`PUT /api/roles/${uuid} ${JSON.stringify(reqJSON)}`);
 
   return await GPServer.put(`/api/roles/${uuid}`, reqJSON, {
