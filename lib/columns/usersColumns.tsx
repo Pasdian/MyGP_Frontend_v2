@@ -2,10 +2,9 @@
 
 import AdminPanelDeleteUserButton from "@/components/buttons/admin-panel/users/AdminPanelDeleteUserButton";
 import AdminPanelModifyUserButton from "@/components/buttons/admin-panel/users/AdminPanelModifyUserButton";
-import { getAllUsers } from "@/types/users/getAllUsers";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { getAllUsersDeepCopy } from "@/types/users/getAllUsers";
+import { ColumnDef } from "@tanstack/react-table";
 import { usersDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/usersDataTableFuzzyFilter";
-import { RolesContext } from "@/contexts/RolesContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +17,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 
-export const usersColumns: ColumnDef<getAllUsers>[] = [
+export const usersColumns: ColumnDef<getAllUsersDeepCopy>[] = [
   {
     accessorKey: "name",
     header: "Nombre",
@@ -41,14 +40,14 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
     },
   },
   {
-    accessorKey: "role_id",
+    accessorKey: "role_description",
     header: "Rol",
     filterFn: usersDataTableFuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.role_id) {
+      if (!row.original.role_description) {
         return "--";
       }
-      return <AdminPanelDisplayUserRole row={row} />;
+      return row.original.role_description;
     },
   },
   {
@@ -99,7 +98,10 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
               <DropdownMenuItem onClick={() => setIsModifyUserDialogOpen(true)}>
                 <p>Modificar Usuario</p>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsDeleteUserDialogOpen(true)}>
+              <DropdownMenuItem
+                className="bg-red-400 focus:bg-red-500 focus:text-white text-white"
+                onClick={() => setIsDeleteUserDialogOpen(true)}
+              >
                 <p>Eliminar Usuario</p>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -119,9 +121,3 @@ export const usersColumns: ColumnDef<getAllUsers>[] = [
     },
   },
 ];
-
-function AdminPanelDisplayUserRole({ row }: { row: Row<getAllUsers> }) {
-  const roles = React.useContext(RolesContext);
-  const userRole = roles?.find((role) => role.id == row.original.role_id);
-  return userRole ? userRole.name : "--";
-}

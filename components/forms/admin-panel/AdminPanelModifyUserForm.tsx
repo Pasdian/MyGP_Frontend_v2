@@ -21,7 +21,7 @@ import {
   USER_STATUS_VALIDATION,
 } from '@/lib/validations/userValidations';
 
-import { getAllUsers } from '@/types/users/getAllUsers';
+import { getAllUsers, getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
@@ -33,7 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
 
-export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers> }) {
+export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> }) {
   const [shouldView, setShouldView] = React.useState(false);
   const { mutate } = useSWRConfig();
 
@@ -56,7 +56,7 @@ export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsers
       password: '',
       role_id: row.original.role_id ? row.original.role_id.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
-      status: row.original.status == 'active' ? true : false,
+      status: row.original.status == 'Activo' ? true : false,
     },
   });
 

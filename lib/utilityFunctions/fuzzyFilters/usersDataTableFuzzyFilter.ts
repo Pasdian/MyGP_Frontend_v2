@@ -1,8 +1,8 @@
-import { getAllUsers } from "@/types/users/getAllUsers";
+import { getAllUsers, getAllUsersDeepCopy } from "@/types/users/getAllUsers";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { FilterFn } from "@tanstack/react-table";
 
-export const usersDataTableFuzzyFilter: FilterFn<getAllUsers> = (
+export const usersDataTableFuzzyFilter: FilterFn<getAllUsersDeepCopy> = (
   row,
   columnId,
   value,

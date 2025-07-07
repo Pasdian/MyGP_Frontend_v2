@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { getAllUsers } from '@/types/users/getAllUsers';
+import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ export default function AdminPanelDeleteUserButton({
   open,
   setIsOpen,
 }: {
-  row: Row<getAllUsers>;
+  row: Row<getAllUsersDeepCopy>;
   open: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {

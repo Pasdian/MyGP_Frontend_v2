@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { getAllUsers } from '@/types/users/getAllUsers';
+import { getAllUsers, getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 
@@ -16,7 +16,7 @@ export default function AdminPanelModifyUserButton({
   open,
   setIsOpen,
 }: {
-  row: Row<getAllUsers>;
+  row: Row<getAllUsersDeepCopy>;
   open: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
