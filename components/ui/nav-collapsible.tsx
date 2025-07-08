@@ -56,10 +56,9 @@ const userItems = {
 };
 
 export default function NavCollapsible() {
-  const { user, isAuthLoading, userRoleUUID } = useAuth();
+  const { isLoading, userRoleUUID } = useAuth();
 
-  if (isAuthLoading) return;
-  if (!user) return;
+  if (isLoading) return;
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {

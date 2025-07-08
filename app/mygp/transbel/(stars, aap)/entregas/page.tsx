@@ -1,7 +1,7 @@
 'use client';
 
 import DeliveriesDataTable from '@/components/datatables/transbel/DeliveriesDataTable';
-import { useAuth } from '@/hooks/useAuth';
+import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import {
   ADMIN_ROLE_UUID,
   OPERACIONES_AAP_UUID,
@@ -10,17 +10,12 @@ import {
 import React from 'react';
 
 export default function Deliveries() {
-  const allowedRoles = [ADMIN_ROLE_UUID, OPERACIONES_STARS_LOGISTICS_UUID, OPERACIONES_AAP_UUID];
-
-  const { user, isAuthLoading, userRoleUUID } = useAuth();
-
-  if (isAuthLoading || !user) return;
-  if (!allowedRoles.includes(userRoleUUID))
-    return <p>No tienes permisos para ver este contenido.</p>;
   return (
-    <div>
+    <ProtectedRoute
+      allowedRoles={[ADMIN_ROLE_UUID, OPERACIONES_STARS_LOGISTICS_UUID, OPERACIONES_AAP_UUID]}
+    >
       <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas a CDP / CPAC</h1>
       <DeliveriesDataTable />
-    </div>
+    </ProtectedRoute>
   );
 }

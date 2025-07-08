@@ -24,39 +24,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 export function NavUser() {
-  const { user, setUser, isAuthLoading } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const { isMobile } = useSidebar();
-  const router = useRouter();
 
-  async function logout() {
-    await GPClient.post('/api/auth/logout')
-      .then((res) => {
-        toast.success(res.data.message);
-        router.replace('/login');
-        setUser({
-          name: '',
-          id: 0,
-          uuid: '',
-          email: '',
-          role: 0,
-          casa_user_name: '',
-          iat: 0,
-          exp: 0,
-        });
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
-  }
-
-  if (isAuthLoading) return;
-  if (!user) return;
+  if (isLoading || !user) return;
 
   return (
     <SidebarMenu>
