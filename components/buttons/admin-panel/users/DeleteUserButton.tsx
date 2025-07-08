@@ -14,7 +14,7 @@ import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 
-export default function AdminPanelDeleteUserButton({
+export default function DeleteUserButton({
   row,
   open,
   setIsOpen,

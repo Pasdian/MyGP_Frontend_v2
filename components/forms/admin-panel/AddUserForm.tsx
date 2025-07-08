@@ -10,25 +10,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  USER_CASA_USERNAME_VALIDATION,
-  USER_EMAIL_VALIDATION,
-  USER_HAS_CASA_USER_VALIDATION,
-  USER_MOBILE_VALIDATION,
-  USER_NAME_VALIDATION,
-  USER_PASSWORD_VALIDATION,
-  USER_ROLE_ID_VALIDATION,
-} from '@/lib/validations/userValidations';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
-import { z } from 'zod/v4';
 import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
+import { z } from 'zod/v4';
+import { addUser } from '@/lib/schemas/admin-panel/addUser';
 
-export default function AdminPanelAddUserForm({
+export default function AddUserForm({
   setIsOpen,
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -36,24 +29,8 @@ export default function AdminPanelAddUserForm({
   const [shouldView, setShouldView] = React.useState(false);
   const { mutate } = useSWRConfig();
 
-  const schema = z
-    .object({
-      name: USER_NAME_VALIDATION,
-      email: USER_EMAIL_VALIDATION,
-      password: USER_PASSWORD_VALIDATION,
-      confirm_password: USER_PASSWORD_VALIDATION,
-      role_id: USER_ROLE_ID_VALIDATION,
-      mobile: USER_MOBILE_VALIDATION,
-      has_casa_user: USER_HAS_CASA_USER_VALIDATION,
-      casa_user_name: USER_CASA_USERNAME_VALIDATION,
-    })
-    .refine((data) => data.password === data.confirm_password, {
-      error: 'Las contraseñas no coinciden',
-      path: ['confirm_password'],
-    });
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<z.infer<typeof addUser>>({
+    resolver: zodResolver(addUser),
     defaultValues: {
       name: '',
       email: '',
@@ -66,7 +43,7 @@ export default function AdminPanelAddUserForm({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof schema>) {
+  async function onSubmit(data: z.infer<typeof addUser>) {
     await GPClient.post(`/api/users/createUser`, {
       name: data.name,
       email: data.email,

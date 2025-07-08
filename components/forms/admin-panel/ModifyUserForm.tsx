@@ -33,7 +33,7 @@ import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
 
-export default function AdminPanelModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> }) {
+export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> }) {
   const [shouldView, setShouldView] = React.useState(false);
   const { mutate } = useSWRConfig();
 

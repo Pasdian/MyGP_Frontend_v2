@@ -1,4 +1,4 @@
-import AdminPanelModifyUserForm from '@/components/forms/admin-panel/AdminPanelModifyUserForm';
+import ModifyUserForm from '@/components/forms/admin-panel/ModifyUserForm';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 
-export default function AdminPanelModifyUserButton({
+export default function ModifyUserButton({
   row,
   open,
   setIsOpen,
@@ -29,7 +29,7 @@ export default function AdminPanelModifyUserButton({
             cuando termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        <AdminPanelModifyUserForm row={row} />
+        <ModifyUserForm row={row} />
       </DialogContent>
     </Dialog>
   );

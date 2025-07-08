@@ -1,6 +1,6 @@
 'use client';
 
-import AdminPanelAddRoleButton from '@/components/buttons/admin-panel/roles/AdminPanelAddRoleButton';
+import AddRoleButton from '@/components/buttons/admin-panel/roles/AddRoleButton';
 import RolesDataTable from '@/components/datatables/admin-panel/RolesDataTable';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -15,7 +15,7 @@ export default function AdminPanelRoles() {
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Roles</h1>
-      <AdminPanelAddRoleButton />
+      <AddRoleButton />
       <RolesDataTable />
     </div>
   );

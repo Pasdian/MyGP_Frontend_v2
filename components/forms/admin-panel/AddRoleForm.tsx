@@ -10,43 +10,31 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { addRole } from '@/lib/schemas/admin-panel/addRole';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
-import {
-  ROLE_DESCRIPTION_VALIDATION,
-  ROLE_NAME_VALIDATION,
-} from '@/lib/validations/roleValidations';
-import { getRoles } from '@/types/roles/getRoles';
-import { Row } from '@tanstack/react-table';
 
-export default function AdminPanelModifyRoleForm({
-  row,
+export default function AddRoleForm({
   setIsOpen,
 }: {
-  row: Row<getRoles>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { mutate } = useSWRConfig();
 
-  const schema = z.object({
-    name: ROLE_NAME_VALIDATION,
-    description: ROLE_DESCRIPTION_VALIDATION,
-  });
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<z.infer<typeof addRole>>({
+    resolver: zodResolver(addRole),
     defaultValues: {
-      name: row.original.name ? row.original.name : '',
-      description: row.original.description ? row.original.description : '',
+      name: '',
+      description: '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof schema>) {
-    await GPClient.put(`/api/roles/${row.original.uuid}`, {
+  async function onSubmit(data: z.infer<typeof addRole>) {
+    await GPClient.post(`/api/roles`, {
       name: data.name,
       description: data.description,
     })
@@ -99,7 +87,7 @@ export default function AdminPanelModifyRoleForm({
               Cancelar
             </Button>
           </DialogClose>
-          <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
+          <Button className="cursor-pointer bg-blue-500 hover:bg-blue-600" type="submit">
             Guardar Cambios
           </Button>
         </DialogFooter>

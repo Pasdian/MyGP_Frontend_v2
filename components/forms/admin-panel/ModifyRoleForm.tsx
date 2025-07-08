@@ -20,10 +20,14 @@ import {
   ROLE_DESCRIPTION_VALIDATION,
   ROLE_NAME_VALIDATION,
 } from '@/lib/validations/roleValidations';
+import { getRoles } from '@/types/roles/getRoles';
+import { Row } from '@tanstack/react-table';
 
-export default function AdminPanelAddRoleForm({
+export default function ModifyRoleForm({
+  row,
   setIsOpen,
 }: {
+  row: Row<getRoles>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { mutate } = useSWRConfig();
@@ -36,13 +40,13 @@ export default function AdminPanelAddRoleForm({
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: '',
-      description: '',
+      name: row.original.name ? row.original.name : '',
+      description: row.original.description ? row.original.description : '',
     },
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    await GPClient.post(`/api/roles`, {
+    await GPClient.put(`/api/roles/${row.original.uuid}`, {
       name: data.name,
       description: data.description,
     })
@@ -95,7 +99,7 @@ export default function AdminPanelAddRoleForm({
               Cancelar
             </Button>
           </DialogClose>
-          <Button className="cursor-pointer bg-blue-500 hover:bg-blue-600" type="submit">
+          <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
             Guardar Cambios
           </Button>
         </DialogFooter>
