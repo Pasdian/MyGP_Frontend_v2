@@ -19,7 +19,7 @@ import { useSWRConfig } from 'swr';
 import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
 import { z } from 'zod/v4';
-import { addUser } from '@/lib/schemas/admin-panel/addUser';
+import { addUserSchema } from '@/lib/schemas/admin-panel/addUserSchema';
 
 export default function AddUserForm({
   setIsOpen,
@@ -29,8 +29,8 @@ export default function AddUserForm({
   const [shouldView, setShouldView] = React.useState(false);
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof addUser>>({
-    resolver: zodResolver(addUser),
+  const form = useForm<z.infer<typeof addUserSchema>>({
+    resolver: zodResolver(addUserSchema),
     defaultValues: {
       name: '',
       email: '',
@@ -43,7 +43,7 @@ export default function AddUserForm({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof addUser>) {
+  async function onSubmit(data: z.infer<typeof addUserSchema>) {
     await GPClient.post(`/api/users/createUser`, {
       name: data.name,
       email: data.email,

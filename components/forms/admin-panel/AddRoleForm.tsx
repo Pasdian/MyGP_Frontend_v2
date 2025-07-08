@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { addRole } from '@/lib/schemas/admin-panel/addRole';
+import { addRoleSchema } from '@/lib/schemas/admin-panel/addRoleSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
@@ -25,15 +25,15 @@ export default function AddRoleForm({
 }) {
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof addRole>>({
-    resolver: zodResolver(addRole),
+  const form = useForm<z.infer<typeof addRoleSchema>>({
+    resolver: zodResolver(addRoleSchema),
     defaultValues: {
       name: '',
       description: '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof addRole>) {
+  async function onSubmit(data: z.infer<typeof addRoleSchema>) {
     await GPClient.post(`/api/roles`, {
       name: data.name,
       description: data.description,

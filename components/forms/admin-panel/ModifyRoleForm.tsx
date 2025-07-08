@@ -16,12 +16,10 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
-import {
-  ROLE_DESCRIPTION_VALIDATION,
-  ROLE_NAME_VALIDATION,
-} from '@/lib/validations/roleValidations';
+
 import { getRoles } from '@/types/roles/getRoles';
 import { Row } from '@tanstack/react-table';
+import { modifyRoleSchema } from '@/lib/schemas/admin-panel/modifyRoleSchema';
 
 export default function ModifyRoleForm({
   row,
@@ -32,20 +30,15 @@ export default function ModifyRoleForm({
 }) {
   const { mutate } = useSWRConfig();
 
-  const schema = z.object({
-    name: ROLE_NAME_VALIDATION,
-    description: ROLE_DESCRIPTION_VALIDATION,
-  });
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<z.infer<typeof modifyRoleSchema>>({
+    resolver: zodResolver(modifyRoleSchema),
     defaultValues: {
       name: row.original.name ? row.original.name : '',
       description: row.original.description ? row.original.description : '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof schema>) {
+  async function onSubmit(data: z.infer<typeof modifyRoleSchema>) {
     await GPClient.put(`/api/roles/${row.original.uuid}`, {
       name: data.name,
       description: data.description,

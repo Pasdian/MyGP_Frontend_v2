@@ -11,15 +11,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  USER_CASA_USERNAME_VALIDATION,
-  USER_EMAIL_VALIDATION,
-  USER_MOBILE_VALIDATION,
-  USER_NAME_VALIDATION,
-  USER_OPTIONAL_PASSWORD_VALIDATION,
-  USER_ROLE_ID_VALIDATION,
-  USER_STATUS_VALIDATION,
-} from '@/lib/validations/userValidations';
 
 import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,23 +23,14 @@ import { z } from 'zod/v4';
 import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
+import { modifyUserSchema } from '@/lib/schemas/admin-panel/modifyUserSchema';
 
 export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> }) {
   const [shouldView, setShouldView] = React.useState(false);
   const { mutate } = useSWRConfig();
 
-  const schema = z.object({
-    name: USER_NAME_VALIDATION,
-    email: USER_EMAIL_VALIDATION,
-    mobile: USER_MOBILE_VALIDATION,
-    password: USER_OPTIONAL_PASSWORD_VALIDATION,
-    role_id: USER_ROLE_ID_VALIDATION,
-    casa_user_name: USER_CASA_USERNAME_VALIDATION,
-    status: USER_STATUS_VALIDATION,
-  });
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<z.infer<typeof modifyUserSchema>>({
+    resolver: zodResolver(modifyUserSchema),
     defaultValues: {
       name: row.original.name ? row.original.name : '',
       email: row.original.email ? row.original.email : '',
@@ -60,7 +42,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> 
     },
   });
 
-  async function onSubmit(data: z.infer<typeof schema>) {
+  async function onSubmit(data: z.infer<typeof modifyUserSchema>) {
     await GPClient.post(`/api/users/updateUser/${row.original.user_uuid}`, {
       name: data.name,
       email: data.email,

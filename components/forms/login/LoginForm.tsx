@@ -16,29 +16,21 @@ import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import {
-  LOGIN_PASSWORD_VALIDATION,
-  LOGIN_USER_VALIDATION,
-} from '@/lib/validations/loginValidations';
+import { loginSchema } from '@/lib/schemas/login/loginSchema';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const router = useRouter();
   const [shouldView, setShouldView] = React.useState(false);
 
-  const formSchema = z.object({
-    email: LOGIN_USER_VALIDATION,
-    password: LOGIN_PASSWORD_VALIDATION,
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof loginSchema>) {
     await GPClient.post('/api/auth/login', {
       email: data.email,
       password: data.password,
