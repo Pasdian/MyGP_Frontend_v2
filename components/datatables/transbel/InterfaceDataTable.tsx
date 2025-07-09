@@ -28,21 +28,15 @@ import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
-
-const getFormattedDate = (d: Date | undefined) => {
-  if (!d) return;
-  const date = d;
-  const formatted = date.toISOString().split('T')[0];
-  return formatted;
-};
+import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 
 export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPendingCE>[] }) {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
     initialDate && finalDate
       ? `/api/transbel/getRefsPendingCE?initialDate=${getFormattedDate(
-          initialDate
-        )}&finalDate=${getFormattedDate(finalDate)}`
+          initialDate.toISOString().split('T')[0]
+        )}&finalDate=${getFormattedDate(finalDate.toISOString().split('T')[0])}`
       : '/api/transbel/getRefsPendingCE',
     axiosFetcher
   );
@@ -63,6 +57,20 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
       pagination, // Pagination
     },
   });
+
+  React.useEffect(() => {
+    if (!data) return;
+    data.map((item) => {
+      item.REVALIDACION_073 = item.REVALIDACION_073 ? item.REVALIDACION_073.split(' ')[0] : '';
+      item.ULTIMO_DOCUMENTO_114 = item.ULTIMO_DOCUMENTO_114
+        ? item.ULTIMO_DOCUMENTO_114.split(' ')[0]
+        : '';
+      item.MSA_130 = item.MSA_130 ? item.MSA_130.split(' ')[0] : '';
+      item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138
+        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
+        : '';
+    });
+  }, [data]);
 
   if (isValidating) return <TailwindSpinner />;
 

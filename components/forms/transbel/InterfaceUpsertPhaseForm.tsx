@@ -42,13 +42,7 @@ import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations
 import { IconTrashFilled } from '@tabler/icons-react';
 import { doesDateKPIBreak } from '@/lib/utilityFunctions/doesDateKPIBreak';
 import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
-
-const getFormattedDate = (d: Date | undefined) => {
-  if (!d) return;
-  const date = d;
-  const formatted = date.toISOString().split('T')[0];
-  return formatted;
-};
+import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 
 export default function InterfaceUpsertPhaseForm({
   row,
@@ -77,7 +71,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '073' &&
           row.original.ULTIMO_DOCUMENTO_114 &&
-          data.date > row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]
+          data.date > row.original.ULTIMO_DOCUMENTO_114
         ) {
           return false;
         }
@@ -90,11 +84,7 @@ export default function InterfaceUpsertPhaseForm({
     )
     .refine(
       (data) => {
-        if (
-          data.phase === '073' &&
-          row.original.MSA_130 &&
-          data.date > row.original.MSA_130.split(' ')[0]
-        ) {
+        if (data.phase === '073' && row.original.MSA_130 && data.date > row.original.MSA_130) {
           return false;
         }
         return true;
@@ -109,7 +99,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '073' &&
           row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date > row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
+          data.date > row.original.ENTREGA_TRANSPORTE_138
         ) {
           return false;
         }
@@ -122,11 +112,7 @@ export default function InterfaceUpsertPhaseForm({
     )
     .refine(
       (data) => {
-        if (
-          data.phase === '114' &&
-          row.original.MSA_130 &&
-          data.date > row.original.MSA_130.split(' ')[0]
-        ) {
+        if (data.phase === '114' && row.original.MSA_130 && data.date > row.original.MSA_130) {
           return false;
         }
         return true;
@@ -141,7 +127,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '114' &&
           row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date > row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
+          data.date > row.original.ENTREGA_TRANSPORTE_138
         ) {
           return false;
         }
@@ -158,7 +144,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '130' &&
           row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date !== row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
+          data.date !== row.original.ENTREGA_TRANSPORTE_138
         ) {
           return false;
         }
@@ -219,12 +205,8 @@ export default function InterfaceUpsertPhaseForm({
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
       user: user.casa_user_name ? user.casa_user_name : 'MYGP',
-      ultimoDocumento: row.original.ULTIMO_DOCUMENTO_114
-        ? row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]
-        : '',
-      transporte: row.original.ENTREGA_TRANSPORTE_138
-        ? row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
-        : '',
+      ultimoDocumento: row.original.ULTIMO_DOCUMENTO_114 ? row.original.ULTIMO_DOCUMENTO_114 : '',
+      transporte: row.original.ENTREGA_TRANSPORTE_138 ? row.original.ENTREGA_TRANSPORTE_138 : '',
     },
   });
 
@@ -240,11 +222,12 @@ export default function InterfaceUpsertPhaseForm({
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
           setOpenDialog((opened) => !opened);
-          if (!initialDate || !finalDate) mutate('/api/transbel/getRefsPendingCE');
+          if (!initialDate || !finalDate) return mutate('/api/transbel/getRefsPendingCE');
+
           mutate(
             `/api/transbel/getRefsPendingCE?initialDate=${getFormattedDate(
-              initialDate
-            )}&finalDate=${getFormattedDate(finalDate)}`
+              initialDate.toISOString().split('T')[0]
+            )}&finalDate=${getFormattedDate(finalDate.toISOString().split('T')[0])}`
           );
         } else {
           toast.error('No se pudieron actualizar tus datos');
@@ -285,13 +268,13 @@ export default function InterfaceUpsertPhaseForm({
                       form.reset();
                       field.onChange(val);
                       if (val == '073' && row.original.REVALIDACION_073) {
-                        form.setValue('date', row.original.REVALIDACION_073?.split(' ')[0]);
+                        form.setValue('date', row.original.REVALIDACION_073);
                       } else if (val == '114' && row.original.ULTIMO_DOCUMENTO_114) {
-                        form.setValue('date', row.original.ULTIMO_DOCUMENTO_114?.split(' ')[0]);
+                        form.setValue('date', row.original.ULTIMO_DOCUMENTO_114);
                       } else if (val == '130' && row.original.MSA_130) {
-                        form.setValue('date', row.original.MSA_130?.split(' ')[0]);
+                        form.setValue('date', row.original.MSA_130);
                       } else if (val == '138' && row.original.ENTREGA_TRANSPORTE_138) {
-                        form.setValue('date', row.original.ENTREGA_TRANSPORTE_138?.split(' ')[0]);
+                        form.setValue('date', row.original.ENTREGA_TRANSPORTE_138);
                       } else {
                         form.setValue('date', '');
                       }
