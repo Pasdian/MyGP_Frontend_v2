@@ -70,7 +70,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
@@ -82,8 +82,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] >
-          row.original.ENTREGA_CDP_140.split(" ")[0]
+        row.original.ENTREGA_TRANSPORTE_138 > row.original.ENTREGA_CDP_140
       ) {
         return (
           <ErrorTooltip
@@ -95,8 +94,8 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         !row.original.CE_140 &&
         row.original.ENTREGA_CDP_140 &&
         businessDaysDiffWithHolidays(
-          new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]),
-          new Date(row.original.ENTREGA_CDP_140?.split(" ")[0])
+          new Date(row.original.ENTREGA_TRANSPORTE_138),
+          new Date(row.original.ENTREGA_CDP_140)
         ) > 1
       ) {
         return (
@@ -128,7 +127,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_CDP_140.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_CDP_140)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_CDP_140)}

@@ -33,7 +33,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      const trafficType = row.original.REFERENCIA.split(" ")[0][1];
+      const trafficType = row.original.REFERENCIA.charAt(1);
 
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
@@ -44,8 +44,8 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           trafficType == "M" ||
           trafficType == "V") &&
         businessDaysDiffWithHolidays(
-          new Date(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]),
-          new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])
+          new Date(row.original.ULTIMO_DOCUMENTO_114),
+          new Date(row.original.ENTREGA_TRANSPORTE_138)
         ) > 7
       ) {
         return (
@@ -84,7 +84,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.REVALIDACION_073.split(" ")[0])) {
+      if (!isCurrentYear(row.original.REVALIDACION_073)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.REVALIDACION_073)}
@@ -95,8 +95,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]
+        row.original.REVALIDACION_073 > row.original.ULTIMO_DOCUMENTO_114
       ) {
         return (
           <ErrorTooltip
@@ -106,8 +105,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        row.original.REVALIDACION_073 > row.original.ENTREGA_TRANSPORTE_138
       ) {
         return (
           <ErrorTooltip
@@ -117,8 +115,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.MSA_130 &&
-        row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.MSA_130.split(" ")[0]
+        row.original.REVALIDACION_073 > row.original.MSA_130
       ) {
         return (
           <ErrorTooltip
@@ -148,7 +145,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ULTIMO_DOCUMENTO_114)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
@@ -159,8 +156,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        row.original.ULTIMO_DOCUMENTO_114 > row.original.ENTREGA_TRANSPORTE_138
       ) {
         return (
           <ErrorTooltip
@@ -170,8 +166,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.MSA_130 &&
-        row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
-          row.original.MSA_130.split(" ")[0]
+        row.original.ULTIMO_DOCUMENTO_114 > row.original.MSA_130
       ) {
         return (
           <ErrorTooltip
@@ -198,7 +193,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.MSA_130.split(" ")[0])) {
+      if (!isCurrentYear(row.original.MSA_130)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.MSA_130)}
@@ -209,8 +204,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.MSA_130.split(" ")[0] !==
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        row.original.MSA_130 !== row.original.ENTREGA_TRANSPORTE_138
       ) {
         return (
           <ErrorTooltip
@@ -220,8 +214,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130.split(" ")[0] >
-          row.original.ENTREGA_CDP_140.split(" ")[0]
+        row.original.MSA_130 > row.original.ENTREGA_CDP_140
       ) {
         return (
           <ErrorTooltip
@@ -249,7 +242,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
@@ -261,8 +254,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
       if (
         row.original.MSA_130 &&
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] !==
-          row.original.MSA_130.split(" ")[0]
+        row.original.ENTREGA_TRANSPORTE_138 !== row.original.MSA_130
       ) {
         return (
           <ErrorTooltip
