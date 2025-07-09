@@ -77,7 +77,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '073' &&
           row.original.ULTIMO_DOCUMENTO_114 &&
-          data.date > row.original.ULTIMO_DOCUMENTO_114
+          data.date > row.original.ULTIMO_DOCUMENTO_114.split(' ')[0]
         ) {
           return false;
         }
@@ -90,7 +90,11 @@ export default function InterfaceUpsertPhaseForm({
     )
     .refine(
       (data) => {
-        if (data.phase === '073' && row.original.MSA_130 && data.date > row.original.MSA_130) {
+        if (
+          data.phase === '073' &&
+          row.original.MSA_130 &&
+          data.date > row.original.MSA_130.split(' ')[0]
+        ) {
           return false;
         }
         return true;
@@ -105,7 +109,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '073' &&
           row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date > row.original.ENTREGA_TRANSPORTE_138
+          data.date > row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
         ) {
           return false;
         }
@@ -118,7 +122,11 @@ export default function InterfaceUpsertPhaseForm({
     )
     .refine(
       (data) => {
-        if (data.phase === '114' && row.original.MSA_130 && data.date > row.original.MSA_130) {
+        if (
+          data.phase === '114' &&
+          row.original.MSA_130 &&
+          data.date > row.original.MSA_130.split(' ')[0]
+        ) {
           return false;
         }
         return true;
@@ -133,7 +141,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '114' &&
           row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date > row.original.ENTREGA_TRANSPORTE_138
+          data.date > row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
         ) {
           return false;
         }
@@ -150,7 +158,7 @@ export default function InterfaceUpsertPhaseForm({
         if (
           data.phase === '130' &&
           row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date !== row.original.ENTREGA_TRANSPORTE_138
+          data.date !== row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
         ) {
           return false;
         }
