@@ -64,6 +64,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
           exceptionCode: data.exceptionCode,
           initialDate: data.transporte,
           finalDate: data.cdp,
+          numDays: 1,
         });
       },
       {
@@ -80,6 +81,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
           exceptionCode: data.exceptionCode,
           initialDate: data.transporte,
           finalDate: data.cdp,
+          numDays: 1,
         });
       },
       {

@@ -4,10 +4,12 @@ export function shouldPutExceptionCode({
   exceptionCode,
   initialDate,
   finalDate,
+  numDays,
 }: {
   exceptionCode: string | undefined;
   initialDate: string | undefined;
   finalDate: string | undefined;
+  numDays: number;
 }) {
   if (exceptionCode && initialDate && finalDate) {
     const diff = businessDaysDiffWithHolidays(
@@ -15,7 +17,7 @@ export function shouldPutExceptionCode({
       new Date(finalDate)
     );
 
-    return diff <= 1; // return true if diff <= 1 else false
+    return diff <= numDays; // return true if diff <= 1 else false
   }
   return false;
 }
