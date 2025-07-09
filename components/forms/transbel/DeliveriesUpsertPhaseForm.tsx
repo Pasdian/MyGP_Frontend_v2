@@ -18,7 +18,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { toast } from 'sonner';
-import { businessDaysDiffWithHolidays } from '@/lib/utilityFunctions/businessDaysDiffWithHolidays';
 import {
   Form,
   FormControl,
@@ -36,6 +35,8 @@ import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
 import { IconTrashFilled } from '@tabler/icons-react';
+import { doesDateKPIBreak } from '@/lib/utilityFunctions/doesDateKPIBreak';
+import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
@@ -58,21 +59,38 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
     })
     .refine(
       (data) => {
-        if (!data.exceptionCode && data.transporte && data.cdp) {
-          const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
-          return diff <= 1; // Only allow if difference is less than or equal to 1
-        }
-        return true; // Passes if no condition is violated
+        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
+        return !doesDateKPIBreak({
+          exceptionCode: data.exceptionCode,
+          initialDate: data.transporte,
+          finalDate: data.cdp,
+        });
       },
       {
         message:
           'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
-        path: ['exceptionCode'],
+        path: ['cdp'],
+      }
+    )
+    .refine(
+      (data) => {
+        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
+
+        return !shouldPutExceptionCode({
+          exceptionCode: data.exceptionCode,
+          initialDate: data.transporte,
+          finalDate: data.cdp,
+        });
+      },
+      {
+        message: 'No es necesario colocar un código de excepción',
+        path: ['cdp'],
       }
     );
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
+    mode: 'onChange',
     defaultValues: {
       ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       phase: '140',
@@ -179,6 +197,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       <ExceptionCodeCombo
                         onSelect={(value) => {
                           field.onChange(value);
+                          form.trigger();
                         }}
                         currentValue={field.value}
                       />
@@ -187,7 +206,10 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       size="sm"
                       className="cursor-pointer bg-red-400 hover:bg-red-500"
                       type="button"
-                      onClick={() => form.setValue('exceptionCode', '')}
+                      onClick={() => {
+                        form.setValue('exceptionCode', '');
+                        form.trigger();
+                      }}
                     >
                       <IconTrashFilled />
                     </Button>

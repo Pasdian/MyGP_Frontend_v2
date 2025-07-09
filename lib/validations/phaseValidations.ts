@@ -26,4 +26,7 @@ export const TRANSPORTE_VALIDATION = z.iso
   .optional()
   .or(z.literal(""));
 
-export const EXCEPTION_CODE_VALIDATION = z.string().optional();
+export const EXCEPTION_CODE_VALIDATION = z
+  .string()
+  .optional()
+  .or(z.literal(""));
