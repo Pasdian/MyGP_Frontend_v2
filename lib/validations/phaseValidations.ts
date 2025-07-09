@@ -26,4 +26,14 @@ export const TRANSPORTE_VALIDATION = z.iso
   .optional()
   .or(z.literal(""));
 
-export const EXCEPTION_CODE_VALIDATION = z.string().optional();
+export const ULTIMO_DOCUMENTO_VALIDATION = z.iso
+  .date({
+    error: "La fecha no tiene el formato específicado",
+  })
+  .optional()
+  .or(z.literal(""));
+
+export const EXCEPTION_CODE_VALIDATION = z
+  .string()
+  .optional()
+  .or(z.literal(""));
