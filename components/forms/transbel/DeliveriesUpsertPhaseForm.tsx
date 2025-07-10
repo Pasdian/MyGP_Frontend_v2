@@ -8,7 +8,6 @@ import {
   REF_VALIDATION,
   TIME_VALIDATION,
   TRANSPORTE_VALIDATION,
-  USER_VALIDATION,
 } from '@/lib/validations/phaseValidations';
 
 import { useSWRConfig } from 'swr';
@@ -19,9 +18,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { toast } from 'sonner';
-import { businessDaysDiffWithHolidays } from '@/lib/utilityFunctions/businessDaysDiffWithHolidays';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import {
   Form,
   FormControl,
@@ -37,59 +33,78 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
+import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
+import { IconTrashFilled } from '@tabler/icons-react';
+import { doesDateKPIBreak } from '@/lib/utilityFunctions/doesDateKPIBreak';
+import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
   const { mutate } = useSWRConfig();
 
   const [isChecked, setIsChecked] = React.useState(false);
-  const schema = z.object({
-    ref: REF_VALIDATION,
-    phase: PHASE_VALIDATION,
-    exceptionCode: EXCEPTION_CODE_VALIDATION,
-    cdp: DATE_VALIDATION,
-    time: TIME_VALIDATION,
-    user: USER_VALIDATION,
-    transporte: TRANSPORTE_VALIDATION,
-  });
+  const schema = z
+    .object({
+      ref: REF_VALIDATION,
+      phase: PHASE_VALIDATION,
+      exceptionCode: EXCEPTION_CODE_VALIDATION,
+      cdp: DATE_VALIDATION,
+      time: TIME_VALIDATION,
+      user: USER_CASA_USERNAME_VALIDATION,
+      transporte: TRANSPORTE_VALIDATION,
+    })
+    .refine((data) => !(data.transporte && data.cdp && data.cdp < data.transporte), {
+      message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
+      path: ['cdp'],
+    })
+    .refine(
+      (data) => {
+        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
+        return !doesDateKPIBreak({
+          exceptionCode: data.exceptionCode,
+          initialDate: data.transporte,
+          finalDate: data.cdp,
+          numDays: 1,
+        });
+      },
+      {
+        message:
+          'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
+        path: ['cdp'],
+      }
+    )
+    .refine(
+      (data) => {
+        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
+
+        return !shouldPutExceptionCode({
+          exceptionCode: data.exceptionCode,
+          initialDate: data.transporte,
+          finalDate: data.cdp,
+          numDays: 1,
+        });
+      },
+      {
+        message: 'No es necesario colocar un código de excepción',
+        path: ['cdp'],
+      }
+    );
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
+    mode: 'onChange',
     defaultValues: {
       ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       phase: '140',
       exceptionCode: row.original.CE_140 ? row.original.CE_140 : '',
-      cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140.split(' ')[0] : '',
-      time: new Date().toLocaleString('sv-SE').replace(' ', 'T').split('T')[1].substring(0, 5),
+      cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140 : '',
+      time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
       user: user.casa_user_name ? user.casa_user_name : 'MYGP',
-      transporte: row.original.ENTREGA_TRANSPORTE_138
-        ? row.original.ENTREGA_TRANSPORTE_138.split(' ')[0]
-        : '',
+      transporte: row.original.ENTREGA_TRANSPORTE_138 ? row.original.ENTREGA_TRANSPORTE_138 : '',
     },
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    if (data.transporte && data.cdp && data.cdp < data.transporte) {
-      form.setError('cdp', {
-        type: 'manual',
-        message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
-      });
-      return;
-    }
-
-    if (!data.exceptionCode && data.transporte && data.cdp) {
-      const diff = businessDaysDiffWithHolidays(new Date(data.transporte), new Date(data.cdp));
-      if (diff > 1) {
-        form.setError('exceptionCode', {
-          type: 'manual',
-          message:
-            'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
-        });
-        return;
-      }
-    }
-
-    form.reset();
     await GPClient.post('/api/transbel/upsertPhase', {
       ref: data.ref,
       phase: data.phase,
@@ -182,6 +197,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       <ExceptionCodeCombo
                         onSelect={(value) => {
                           field.onChange(value);
+                          form.trigger();
                         }}
                         currentValue={field.value}
                       />
@@ -190,9 +206,12 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       size="sm"
                       className="cursor-pointer bg-red-400 hover:bg-red-500"
                       type="button"
-                      onClick={() => form.setValue('exceptionCode', '')}
+                      onClick={() => {
+                        form.setValue('exceptionCode', '');
+                        form.trigger();
+                      }}
                     >
-                      <FontAwesomeIcon icon={faTrash} />
+                      <IconTrashFilled />
                     </Button>
                   </div>
                 </FormControl>
@@ -211,7 +230,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                   <Input
                     disabled={!isChecked}
                     placeholder="Usuario..."
-                    className="mb-4"
+                    className="mb-4 uppercase"
                     {...field}
                   />
                 </FormControl>

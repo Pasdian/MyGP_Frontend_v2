@@ -2,10 +2,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
-import { deliveriesDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/deliveriesDataTableFuzzyFilter";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
+import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
+
+const fuzzyFilter = createFuzzyFilter<getDeliveries>();
 
 export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
@@ -18,7 +20,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "REFERENCIA",
     header: "Referencia",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
         return (
@@ -35,7 +37,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "EE__GE",
     header: "Entrega Entrante",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
@@ -57,7 +59,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ENTREGA_TRANSPORTE_138",
     header: "Entrega a Transporte",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
         return (
@@ -68,7 +70,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
@@ -80,8 +82,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] >
-          row.original.ENTREGA_CDP_140.split(" ")[0]
+        row.original.ENTREGA_TRANSPORTE_138 > row.original.ENTREGA_CDP_140
       ) {
         return (
           <ErrorTooltip
@@ -93,8 +94,8 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         !row.original.CE_140 &&
         row.original.ENTREGA_CDP_140 &&
         businessDaysDiffWithHolidays(
-          new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]),
-          new Date(row.original.ENTREGA_CDP_140?.split(" ")[0])
+          new Date(row.original.ENTREGA_TRANSPORTE_138),
+          new Date(row.original.ENTREGA_CDP_140)
         ) > 1
       ) {
         return (
@@ -115,7 +116,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ENTREGA_CDP_140",
     header: "Entrega a CDP",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_CDP_140) {
         return (
@@ -126,7 +127,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_CDP_140.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_CDP_140)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_CDP_140)}
@@ -145,6 +146,6 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "CE_140",
     header: "Código de Excepción",
-    filterFn: deliveriesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
   },
 ];

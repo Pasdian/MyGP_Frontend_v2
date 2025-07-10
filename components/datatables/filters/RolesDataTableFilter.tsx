@@ -16,7 +16,7 @@ export default function RolesDataTableFilter({
       type={column.id == 'ACCIONES' ? '' : 'text'}
       value={(columnFilterValue ?? '') as string}
       onChange={(e) => {
-        column.setFilterValue(e.target.value.trim());
+        column.setFilterValue(e.target.value);
       }}
       placeholder={`Buscar...`}
       className={column.id == 'ACCIONES' ? 'hidden' : 'mb-4 rounded'}

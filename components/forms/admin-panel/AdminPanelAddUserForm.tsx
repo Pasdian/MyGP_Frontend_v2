@@ -67,7 +67,6 @@ export default function AdminPanelAddUserForm({
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    form.reset();
     await GPClient.post(`/api/users/createUser`, {
       name: data.name,
       email: data.email,
@@ -86,7 +85,6 @@ export default function AdminPanelAddUserForm({
         toast.error(error.response.data.message);
       });
   }
-  console.log(form.watch('role_id'));
 
   return (
     <Form {...form}>
@@ -223,7 +221,7 @@ export default function AdminPanelAddUserForm({
               <FormItem className="mb-6">
                 <FormLabel>Nombre de Usuario CASA</FormLabel>
                 <FormControl>
-                  <Input placeholder="Usuario CASA..." {...field} />
+                  <Input className="uppercase" placeholder="Usuario CASA..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

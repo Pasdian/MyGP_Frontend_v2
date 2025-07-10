@@ -30,34 +30,32 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 export function NavUser() {
-  const { user, setUser, isUserLoading } = useAuth();
+  const { user, setUser, isAuthLoading } = useAuth();
   const { isMobile } = useSidebar();
   const router = useRouter();
 
   async function logout() {
     await GPClient.post('/api/auth/logout')
       .then((res) => {
-        if (res.status == 200) {
-          toast.success('Cerraste sesión');
-          router.replace('/login');
-          setUser({
-            name: '',
-            id: 0,
-            uuid: '',
-            email: '',
-            role: 0,
-            casa_user_name: '',
-            iat: 0,
-            exp: 0,
-          });
-        }
+        toast.success(res.data.message);
+        router.replace('/login');
+        setUser({
+          name: '',
+          id: 0,
+          uuid: '',
+          email: '',
+          role: 0,
+          casa_user_name: '',
+          iat: 0,
+          exp: 0,
+        });
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((error) => {
+        toast.error(error.response.data.message);
       });
   }
 
-  if (isUserLoading) return;
+  if (isAuthLoading) return;
   if (!user) return;
 
   return (

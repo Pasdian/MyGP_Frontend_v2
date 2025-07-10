@@ -1,7 +1,5 @@
 'use client';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAdd } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import React from 'react';
 import AdminPanelAddRoleForm from '@/components/forms/admin-panel/AdminPanelAddRoleForm';
+import { IconPlus } from '@tabler/icons-react';
 
 export default function AdminPanelAddRoleButton() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -20,7 +19,7 @@ export default function AdminPanelAddRoleButton() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4">
-          <FontAwesomeIcon icon={faAdd} />
+          <IconPlus stroke={2} />
           Añadir Rol
         </Button>
       </DialogTrigger>

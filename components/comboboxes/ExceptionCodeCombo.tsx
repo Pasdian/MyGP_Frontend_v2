@@ -23,8 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { exceptionCodes } from '@/lib/exceptioncodes/exceptionCodes';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBug } from '@fortawesome/free-solid-svg-icons';
+import { IconBug } from '@tabler/icons-react';
 
 export function ExceptionCodeCombo({
   onSelect,
@@ -38,13 +37,8 @@ export function ExceptionCodeCombo({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button
-          onClick={() => setOpen((opened) => !opened)}
-          size="sm"
-          className="cursor-pointer bg-blue-400 hover:bg-blue-500"
-          type="button"
-        >
-          <FontAwesomeIcon icon={faBug} />
+        <Button size="sm" className="cursor-pointer bg-blue-400 hover:bg-blue-500" type="button">
+          <IconBug stroke={2} />
           {currentValue ? currentValue : 'Código de Excepción'}
         </Button>
       </DropdownMenuTrigger>

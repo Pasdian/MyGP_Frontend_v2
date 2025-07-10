@@ -2,13 +2,17 @@ import { Button } from '@/components/ui/button';
 import { getRoles } from '@/types/roles/getRoles';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
-import { getAllUsers } from '@/types/users/getAllUsers';
+import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { Table } from '@tanstack/react-table';
 
 export default function TablePagination({
   table,
 }: {
-  table: Table<getDeliveries> | Table<getRefsPendingCE> | Table<getAllUsers> | Table<getRoles>;
+  table:
+    | Table<getDeliveries>
+    | Table<getRefsPendingCE>
+    | Table<getAllUsersDeepCopy>
+    | Table<getRoles>;
 }) {
   return (
     <div>

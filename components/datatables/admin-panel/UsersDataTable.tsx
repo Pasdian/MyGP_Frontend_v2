@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/table';
 import { flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
-import { getAllUsers } from '@/types/users/getAllUsers';
+import { getAllUsers, getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import UsersDataTableFilter from '../filters/UsersDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import {
@@ -22,17 +22,40 @@ import { usersColumns } from '@/lib/columns/usersColumns';
 import { axiosFetcher } from '@/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../../ui/TailwindSpinner';
+import { RolesContext } from '@/contexts/RolesContext';
 
 export default function UsersDataTable() {
+  const roles = React.useContext(RolesContext);
+
   const { data, isValidating } = useSWRImmutable<getAllUsers[]>(
     '/api/users/getAllUsers',
     axiosFetcher
   );
 
+  const [deepCopy, setDeepCopy] = React.useState<getAllUsersDeepCopy[]>(
+    data ? data.map((item) => ({ ...item, role_description: '' })) : []
+  );
+
+  React.useEffect(() => {
+    function modifyData() {
+      if (!data) return;
+      const localDeepCopy = JSON.parse(JSON.stringify(data));
+
+      localDeepCopy.map((item: getAllUsersDeepCopy) => {
+        item.role_description = roles?.find((role) => role.id == item.role_id)?.description ?? '--';
+        item.status = item.status == 'active' ? 'Activo' : 'Inactivo';
+      });
+
+      setDeepCopy(localDeepCopy);
+    }
+
+    if (data) modifyData();
+  }, [data, roles]);
+
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
-    data: data ? data : [],
+    data: data ? deepCopy : [],
     columns: usersColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination

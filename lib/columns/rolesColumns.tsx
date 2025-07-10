@@ -2,7 +2,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import { getRoles } from "@/types/roles/getRoles";
 import AdminPanelModifyRoleButton from "@/components/buttons/admin-panel/roles/AdminPanelModifyRoleButton";
-import { rolesDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/rolesDataTableFuzzyFilter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
+
+const fuzzyFilter = createFuzzyFilter<getRoles>();
+
 export const rolesColumns: ColumnDef<getRoles>[] = [
   {
     accessorKey: "name",
     header: "Nombre",
-    filterFn: rolesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.name) return "--";
       return row.original.name;
@@ -26,7 +29,7 @@ export const rolesColumns: ColumnDef<getRoles>[] = [
   {
     accessorKey: "description",
     header: "Descripción",
-    filterFn: rolesDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.description) return "--";
       return row.original.description;

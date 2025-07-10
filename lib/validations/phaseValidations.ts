@@ -26,9 +26,14 @@ export const TRANSPORTE_VALIDATION = z.iso
   .optional()
   .or(z.literal(""));
 
-export const EXCEPTION_CODE_VALIDATION = z.string().optional();
+export const ULTIMO_DOCUMENTO_VALIDATION = z.iso
+  .date({
+    error: "La fecha no tiene el formato específicado",
+  })
+  .optional()
+  .or(z.literal(""));
 
-export const USER_VALIDATION = z
-  .string({ error: "Ingresa un usuario" })
-  .min(2, { error: "El usuario debe de ser de mínimo de 2 carácteres" })
-  .max(15, { error: "El usuario debe de ser de máximo de 15 carácteres" });
+export const EXCEPTION_CODE_VALIDATION = z
+  .string()
+  .optional()
+  .or(z.literal(""));

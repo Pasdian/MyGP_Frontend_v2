@@ -7,7 +7,9 @@ import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
-import { interfaceDataTableFuzzyFilter } from "../utilityFunctions/fuzzyFilters/interfaceDataTableFuzzyFilter";
+import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
+
+const fuzzyFilter = createFuzzyFilter<getRefsPendingCE>();
 
 export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
@@ -20,7 +22,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "REFERENCIA",
     header: "Referencia",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
         return (
@@ -31,7 +33,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      const trafficType = row.original.REFERENCIA.split(" ")[0][1];
+      const trafficType = row.original.REFERENCIA.charAt(1);
 
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
@@ -42,8 +44,8 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
           trafficType == "M" ||
           trafficType == "V") &&
         businessDaysDiffWithHolidays(
-          new Date(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]),
-          new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])
+          new Date(row.original.ULTIMO_DOCUMENTO_114),
+          new Date(row.original.ENTREGA_TRANSPORTE_138)
         ) > 7
       ) {
         return (
@@ -59,7 +61,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "EE__GE",
     header: "EE/GE",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
@@ -71,7 +73,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "REVALIDACION_073",
     header: "Revalidación",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REVALIDACION_073) {
         return (
@@ -82,7 +84,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.REVALIDACION_073.split(" ")[0])) {
+      if (!isCurrentYear(row.original.REVALIDACION_073)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.REVALIDACION_073)}
@@ -93,8 +95,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.ULTIMO_DOCUMENTO_114.split(" ")[0]
+        row.original.REVALIDACION_073 > row.original.ULTIMO_DOCUMENTO_114
       ) {
         return (
           <ErrorTooltip
@@ -104,8 +105,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        row.original.REVALIDACION_073 > row.original.ENTREGA_TRANSPORTE_138
       ) {
         return (
           <ErrorTooltip
@@ -115,8 +115,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.MSA_130 &&
-        row.original.REVALIDACION_073.split(" ")[0] >
-          row.original.MSA_130.split(" ")[0]
+        row.original.REVALIDACION_073 > row.original.MSA_130
       ) {
         return (
           <ErrorTooltip
@@ -135,7 +134,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "ULTIMO_DOCUMENTO_114",
     header: "Último Documento",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ULTIMO_DOCUMENTO_114) {
         return (
@@ -146,7 +145,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ULTIMO_DOCUMENTO_114.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ULTIMO_DOCUMENTO_114)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
@@ -157,8 +156,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        row.original.ULTIMO_DOCUMENTO_114 > row.original.ENTREGA_TRANSPORTE_138
       ) {
         return (
           <ErrorTooltip
@@ -168,8 +166,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.MSA_130 &&
-        row.original.ULTIMO_DOCUMENTO_114.split(" ")[0] >
-          row.original.MSA_130.split(" ")[0]
+        row.original.ULTIMO_DOCUMENTO_114 > row.original.MSA_130
       ) {
         return (
           <ErrorTooltip
@@ -188,7 +185,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "MSA_130",
     header: "MSA",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.MSA_130) {
         return (
@@ -196,7 +193,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.MSA_130.split(" ")[0])) {
+      if (!isCurrentYear(row.original.MSA_130)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.MSA_130)}
@@ -207,8 +204,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.MSA_130.split(" ")[0] !==
-          row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]
+        row.original.MSA_130 !== row.original.ENTREGA_TRANSPORTE_138
       ) {
         return (
           <ErrorTooltip
@@ -218,8 +214,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       } else if (
         row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130.split(" ")[0] >
-          row.original.ENTREGA_CDP_140.split(" ")[0]
+        row.original.MSA_130 > row.original.ENTREGA_CDP_140
       ) {
         return (
           <ErrorTooltip
@@ -236,7 +231,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "ENTREGA_TRANSPORTE_138",
     header: "Entrega Transporte",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ENTREGA_TRANSPORTE_138) {
         return (
@@ -247,7 +242,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
@@ -259,8 +254,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
       if (
         row.original.MSA_130 &&
         row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] !==
-          row.original.MSA_130.split(" ")[0]
+        row.original.ENTREGA_TRANSPORTE_138 !== row.original.MSA_130
       ) {
         return (
           <ErrorTooltip
@@ -279,6 +273,6 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   {
     accessorKey: "CE_138",
     header: "Código de Excepción 138",
-    filterFn: interfaceDataTableFuzzyFilter,
+    filterFn: fuzzyFilter,
   },
 ];

@@ -10,25 +10,14 @@ import AuthProvider from '@/components/AuthProvider/AuthProvider';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 import { ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID } from '@/lib/roles/roles';
 import { useAuth } from '@/hooks/useAuth';
-
-const getFormattedDate = (d: Date | undefined) => {
-  if (!d) return;
-  const date = d;
-  const formatted = date.toLocaleDateString('en-GB');
-  return formatted;
-};
+import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 
 export default function Page() {
   const allowedRoles = [ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID];
-
-  const { user, isAuthLoading, userRoleUUID } = useAuth();
-
-  if (isAuthLoading || !user) return;
-  if (!allowedRoles.includes(userRoleUUID))
-    return <p>No tienes permisos para ver este contenido.</p>;
-
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
+
+  const { user, isAuthLoading, userRoleUUID } = useAuth();
 
   React.useEffect(() => {
     function validateDates() {
@@ -58,6 +47,11 @@ export default function Page() {
     validateDates();
   }, [initialDate, finalDate]);
 
+  if (isAuthLoading || !user) return;
+  if (!allowedRoles.includes(userRoleUUID)) {
+    return <p>No tienes permisos para ver este contenido.</p>;
+  }
+
   return (
     <AuthProvider>
       <div className="flex flex-col justify-center">
@@ -65,7 +59,9 @@ export default function Page() {
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
           <p className="text-2xl font-light tracking-tight mb-5">
             {initialDate && finalDate
-              ? `De ${getFormattedDate(initialDate)} hasta ${getFormattedDate(finalDate)}`
+              ? `De ${getFormattedDate(
+                  initialDate.toISOString().split('T')[0]
+                )} hasta ${getFormattedDate(finalDate.toISOString().split('T')[0])}`
               : null}
           </p>
         </div>

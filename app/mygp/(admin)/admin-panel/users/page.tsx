@@ -1,6 +1,5 @@
 'use client';
 
-import { axiosFetcher } from '@/axios-instance';
 import AdminPanelAddUserButton from '@/components/buttons/admin-panel/users/AdminPanelAddUserButton';
 import UsersDataTable from '@/components/datatables/admin-panel/UsersDataTable';
 import { RolesContext } from '@/contexts/RolesContext';

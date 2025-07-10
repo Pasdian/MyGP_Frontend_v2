@@ -16,9 +16,8 @@ import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import DeliveriesUpsertPhaseForm from '@/components/forms/transbel/DeliveriesUpsertPhaseForm';
+import { IconBallpenFilled } from '@tabler/icons-react';
 
 export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);
 
@@ -27,7 +26,7 @@ export default function DeliveriesUpsertPhaseButton({ row }: { row: Row<getDeliv
     <Dialog>
       <DialogTrigger asChild>
         <Button className="cursor-pointer bg-yellow-400 hover:bg-yellow-500">
-          <FontAwesomeIcon icon={faPencil} />
+          <IconBallpenFilled />
           Modificar
         </Button>
       </DialogTrigger>

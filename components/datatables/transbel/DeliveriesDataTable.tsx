@@ -41,6 +41,16 @@ export default function DeliveriesDataTable() {
     },
   });
 
+  React.useEffect(() => {
+    if (!data) return;
+    data.map((item) => {
+      item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138
+        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
+        : '';
+      item.ENTREGA_CDP_140 = item.ENTREGA_CDP_140 ? item.ENTREGA_CDP_140.split(' ')[0] : '';
+    });
+  }, [data]);
+
   if (isValidating) return <TailwindSpinner />;
 
   return (

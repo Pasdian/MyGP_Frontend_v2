@@ -11,3 +11,5 @@ export type getAllUsers = {
   created_at: string;
   updated_at: string;
 };
+
+export type getAllUsersDeepCopy = getAllUsers & { role_description: string };
