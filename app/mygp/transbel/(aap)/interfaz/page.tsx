@@ -79,7 +79,7 @@ export default function Page() {
             finalDate: finalDate,
           }}
         >
-          <InterfaceDataTable columns={interfaceColumns} />
+          <InterfaceDataTable />
         </InterfaceContext.Provider>
       </div>
     </AuthProvider>

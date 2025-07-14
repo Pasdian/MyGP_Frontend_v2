@@ -1,4 +1,4 @@
-import { PieChartLabelList } from '@/components/charts/PieChartLabelList';
+import PieChartLabelList from '@/components/charts/PieChartLabelList';
 
 export default function Page() {
   return (

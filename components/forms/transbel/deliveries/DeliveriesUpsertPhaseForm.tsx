@@ -26,74 +26,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { IconTrashFilled } from '@tabler/icons-react';
-<<<<<<< HEAD:components/forms/transbel/deliveries/DeliveriesUpsertPhaseForm.tsx
 import { deliveriesUpsertPhaseSchema } from '@/lib/schemas/transbel/deliveries/deliveriesUpsertPhaseSchema';
-=======
-import { doesDateKPIBreak } from '@/lib/utilityFunctions/doesDateKPIBreak';
-import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
->>>>>>> miguel-dev:components/forms/transbel/DeliveriesUpsertPhaseForm.tsx
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
   const { mutate } = useSWRConfig();
 
   const [isChecked, setIsChecked] = React.useState(false);
-<<<<<<< HEAD:components/forms/transbel/deliveries/DeliveriesUpsertPhaseForm.tsx
 
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),
-=======
-  const schema = z
-    .object({
-      ref: REF_VALIDATION,
-      phase: PHASE_VALIDATION,
-      exceptionCode: EXCEPTION_CODE_VALIDATION,
-      cdp: DATE_VALIDATION,
-      time: TIME_VALIDATION,
-      user: USER_CASA_USERNAME_VALIDATION,
-      transporte: TRANSPORTE_VALIDATION,
-    })
-    .refine((data) => !(data.transporte && data.cdp && data.cdp < data.transporte), {
-      message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
-      path: ['cdp'],
-    })
-    .refine(
-      (data) => {
-        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
-        return !doesDateKPIBreak({
-          exceptionCode: data.exceptionCode,
-          initialDate: data.transporte,
-          finalDate: data.cdp,
-          numDays: 1,
-        });
-      },
-      {
-        message:
-          'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
-        path: ['cdp'],
-      }
-    )
-    .refine(
-      (data) => {
-        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
-
-        return !shouldPutExceptionCode({
-          exceptionCode: data.exceptionCode,
-          initialDate: data.transporte,
-          finalDate: data.cdp,
-          numDays: 1,
-        });
-      },
-      {
-        message: 'No es necesario colocar un código de excepción',
-        path: ['cdp'],
-      }
-    );
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    mode: 'onChange',
->>>>>>> miguel-dev:components/forms/transbel/DeliveriesUpsertPhaseForm.tsx
     defaultValues: {
       ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       phase: '140',

@@ -29,8 +29,9 @@ import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 
-export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPendingCE>[] }) {
+export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
     initialDate && finalDate
@@ -46,7 +47,7 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
 
   const table = useReactTable({
     data: data ? data : [],
-    columns,
+    columns: interfaceColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(), // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -114,7 +115,7 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={interfaceColumns.length} className="h-24 text-center">
                 <div className="flex justify-center">
                   <p>Sin resultados...</p>
                 </div>
