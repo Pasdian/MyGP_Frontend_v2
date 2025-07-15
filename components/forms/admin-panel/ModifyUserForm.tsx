@@ -31,6 +31,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> 
 
   const form = useForm<z.infer<typeof modifyUserSchema>>({
     resolver: zodResolver(modifyUserSchema),
+    mode: 'onChange',
     defaultValues: {
       name: row.original.name ? row.original.name : '',
       email: row.original.email ? row.original.email : '',

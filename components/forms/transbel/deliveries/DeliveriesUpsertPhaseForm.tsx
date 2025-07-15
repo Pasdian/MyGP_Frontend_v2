@@ -34,6 +34,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
 
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),
+    mode: 'onChange',
     defaultValues: {
       ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       phase: '140',

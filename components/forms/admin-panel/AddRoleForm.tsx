@@ -27,6 +27,7 @@ export default function AddRoleForm({
 
   const form = useForm<z.infer<typeof addRoleSchema>>({
     resolver: zodResolver(addRoleSchema),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       description: '',

@@ -32,6 +32,7 @@ export default function ModifyRoleForm({
 
   const form = useForm<z.infer<typeof modifyRoleSchema>>({
     resolver: zodResolver(modifyRoleSchema),
+    mode: 'onChange',
     defaultValues: {
       name: row.original.name ? row.original.name : '',
       description: row.original.description ? row.original.description : '',

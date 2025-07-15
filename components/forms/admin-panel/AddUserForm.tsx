@@ -31,6 +31,7 @@ export default function AddUserForm({
 
   const form = useForm<z.infer<typeof addUserSchema>>({
     resolver: zodResolver(addUserSchema),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       email: '',
