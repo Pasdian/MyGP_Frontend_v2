@@ -1,6 +1,6 @@
 'use client';
 
-import { IconDashboard } from '@tabler/icons-react';
+import { IconArrowLeft, IconDashboard } from '@tabler/icons-react';
 
 import {
   SidebarGroup,
@@ -10,23 +10,57 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import React from 'react';
+
+const activeItemClass =
+  'bg-blue-200 active:bg-blue-200 hover:bg-blue-300 rounded-md font-bold cursor-pointer';
+const inactiveItemClass = 'rounded-md font-bold cursor-pointer';
 
 export function NavMain() {
+  const pathname = usePathname();
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton
-              tooltip="Quick Create"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-            >
-              <IconDashboard />
-              <Link href="/mygp/dashboard">
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {pathname === '/mygp/dea' ? (
+            <Link href="/mygp/dashboard">
+              <SidebarMenuItem className="flex items-center gap-2">
+                <SidebarMenuButton
+                  tooltip="Quick Create"
+                  className="rounded-md font-bold cursor-pointer"
+                >
+                  <IconArrowLeft />
+                  <span>Regresar al Dashboard</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </Link>
+          ) : (
+            <Link href="/mygp/dea">
+              <SidebarMenuItem className="flex items-center gap-2">
+                <SidebarMenuButton
+                  tooltip="Quick Create"
+                  className={pathname == '/mygp/dashboard' ? activeItemClass : inactiveItemClass}
+                >
+                  <IconDashboard />
+                  <span>Dashboard</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </Link>
+          )}
+
+          <Link href="/mygp/dea">
+            <SidebarMenuItem className="flex items-center gap-2">
+              <SidebarMenuButton
+                tooltip="Quick Create"
+                className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
+              >
+                <IconDashboard />
+                <span>DEA</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </Link>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
