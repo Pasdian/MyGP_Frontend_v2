@@ -20,7 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { InterfaceContext } from '@/contexts/InterfaceContext';

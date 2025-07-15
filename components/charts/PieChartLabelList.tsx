@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import InitialDatePicker from '../datepickers/InitialDatePicker';
 import FinalDatePicker from '../datepickers/FinalDatePicker';

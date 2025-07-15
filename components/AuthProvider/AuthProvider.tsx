@@ -1,5 +1,5 @@
 'use client';
-import { GPClient } from '@/axios-instance';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { AuthContext } from '@/contexts/AuthContext';
 import { VerifySession } from '@/types/auth/verifySession';
 import { getRoles } from '@/types/roles/getRoles';

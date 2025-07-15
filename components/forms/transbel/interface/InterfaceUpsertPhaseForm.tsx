@@ -15,7 +15,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
 import { toast } from 'sonner';
-import { GPClient } from '@/axios-instance';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   DATE_VALIDATION,

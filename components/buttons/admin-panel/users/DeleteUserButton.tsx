@@ -1,4 +1,4 @@
-import { GPClient } from '@/axios-instance';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

@@ -24,10 +24,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 
 export function NavUser() {
   const { user, setUser, isAuthLoading } = useAuth();

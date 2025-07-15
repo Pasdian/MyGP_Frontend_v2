@@ -1,4 +1,13 @@
+'use client';
+import { axiosDEAFetcher } from '@/lib/axiosUtils/axios-instance';
+import useSWRImmutable from 'swr/immutable';
+
 export default function DEA() {
+  const { data } = useSWRImmutable(
+    '/dea/getFilesByReference?reference=PAI251974&client=000041',
+    axiosDEAFetcher
+  );
+  console.log(data);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full h-full">
       <div className="grid grid-rows-3 gap-2 w-full h-full">

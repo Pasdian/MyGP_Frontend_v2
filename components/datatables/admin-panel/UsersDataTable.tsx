@@ -19,7 +19,7 @@ import {
 } from '@tanstack/react-table';
 import useSWRImmutable from 'swr/immutable';
 import { usersColumns } from '@/lib/columns/usersColumns';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../../ui/TailwindSpinner';
 import { RolesContext } from '@/contexts/RolesContext';

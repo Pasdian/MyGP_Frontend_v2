@@ -17,7 +17,7 @@ import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
 import useSWRImmutable from 'swr/immutable';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
