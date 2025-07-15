@@ -1,7 +1,6 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { ExceptionCodeCombo } from '@/components/comboboxes/ExceptionCodeCombo';
 
 import {
@@ -11,8 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-import { Checkbox } from '@/components/ui/checkbox';
 
 import React from 'react';
 
@@ -54,7 +51,6 @@ export default function InterfaceUpsertPhaseForm({
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const { user } = useAuth();
 
-  const [isChecked, setIsChecked] = React.useState(false);
   const schema = z
     .object({
       ref: REF_VALIDATION,
@@ -396,33 +392,12 @@ export default function InterfaceUpsertPhaseForm({
               <FormItem>
                 <FormLabel>Usuario</FormLabel>
                 <FormControl>
-                  <Input
-                    disabled={!isChecked}
-                    placeholder="Usuario..."
-                    className="mb-4 uppercase"
-                    {...field}
-                  />
+                  <Input disabled placeholder="Usuario..." className="mb-4 uppercase" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div>
-            <Label className="mb-3 hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950">
-              <Checkbox
-                id="toggle-2"
-                checked={isChecked}
-                className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
-                onClick={() => setIsChecked(!isChecked)}
-              />
-              <div className="grid gap-1.5 font-normal">
-                <p className="text-sm leading-none font-medium">Modificar usuario</p>
-                <p className="text-muted-foreground text-sm">
-                  Puedes colocar el nombre del usuario que realice el cambio
-                </p>
-              </div>
-            </Label>
-          </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
