@@ -37,7 +37,7 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           ) : (
-            <Link href="/mygp/dea">
+            <Link href="/mygp/dashboard">
               <SidebarMenuItem className="flex items-center gap-2">
                 <SidebarMenuButton
                   tooltip="Quick Create"
