@@ -32,7 +32,7 @@ export default function PieChartLabelList() {
   const [currentClient, setCurrentClient] = React.useState('');
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
-  const { data: chartData, isLoading: isChartLoading } = useSWRImmutable(
+  const { data: chartData } = useSWRImmutable(
     initialDate && finalDate && currentClient
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
           initialDate.toISOString().split('T')[0]
@@ -115,8 +115,6 @@ export default function PieChartLabelList() {
     setModifiedChartData(localDeepCopy);
     setChartConfig(chartConfig);
   }, [chartData, chartConfig]);
-
-  if (isChartLoading) return;
 
   return (
     <>
