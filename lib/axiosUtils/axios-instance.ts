@@ -12,7 +12,7 @@ export const GPClientDEA = axios.create({
   baseURL: process.env.NEXT_PUBLIC_DEA_URL,
   withCredentials: true,
   headers: {
-    "X-API-Key": "0da8c5dc-e6db-479c-96e6-c168989abf30",
+    "X-API-Key": process.env.DEA_API_KEY,
   },
 });
 
