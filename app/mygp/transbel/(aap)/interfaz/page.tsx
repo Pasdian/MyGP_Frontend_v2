@@ -3,7 +3,6 @@
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
-import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 import React from 'react';
 import { toast } from 'sonner';
 import AuthProvider from '@/components/AuthProvider/AuthProvider';

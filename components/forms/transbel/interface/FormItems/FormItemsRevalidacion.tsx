@@ -1,10 +1,7 @@
-import { ExceptionCodeCombo } from '@/components/comboboxes/ExceptionCodeCombo';
-import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
-import { IconTrashFilled } from '@tabler/icons-react';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
 
@@ -21,7 +18,7 @@ export default function FormItemsRevalidacion({
       time: string;
       user: string | undefined;
     },
-    any,
+    unknown,
     {
       ref: string;
       phase: string;

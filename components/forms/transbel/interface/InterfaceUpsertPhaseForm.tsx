@@ -12,7 +12,7 @@ import {
 
 import React from 'react';
 
-import { useForm, UseFormReturn } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
 import { toast } from 'sonner';
 import { GPClient } from '@/axios-instance';

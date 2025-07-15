@@ -1,8 +1,5 @@
 import { GPServer } from '@/axios-instance';
 import { logger } from '@/lib/logger';
-import { getOperationsDistributionByCustoms } from '@/types/bi/getOperationsDistributionByCustoms';
-import { NextApiRequest } from 'next';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {

@@ -30,8 +30,6 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   const { user } = useAuth();
   const { mutate } = useSWRConfig();
 
-  const [isChecked, setIsChecked] = React.useState(false);
-
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),
     mode: 'onChange',

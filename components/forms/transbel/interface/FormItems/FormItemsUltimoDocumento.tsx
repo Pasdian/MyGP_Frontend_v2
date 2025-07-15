@@ -18,7 +18,7 @@ export default function FormItemsUltimoDocumento({
       time: string;
       user: string | undefined;
     },
-    any,
+    unknown,
     {
       ref: string;
       phase: string;

@@ -11,23 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { axiosFetcher } from '@/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import InitialDatePicker from '../datepickers/InitialDatePicker';
 import FinalDatePicker from '../datepickers/FinalDatePicker';
 import React from 'react';
 import { toast } from 'sonner';
-import { ClientsCombo } from '../comboboxes/ClientsCombo';
+import ClientsCombo from '../comboboxes/ClientsCombo';
 import { getOperationsDistributionByCustomsDeepCopy } from '@/types/bi/getOperationsDistributionByCustoms';
-import { mutate } from 'swr';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
-import TailwindSpinner from '../ui/TailwindSpinner';
 import { customs } from '@/lib/customs/customs';
 import { clientsData } from '@/lib/clients/clientsData';
 
@@ -121,9 +114,9 @@ export default function PieChartLabelList() {
 
     setModifiedChartData(localDeepCopy);
     setChartConfig(chartConfig);
-  }, [chartData]);
+  }, [chartData, chartConfig]);
 
-  console.log(currentClient);
+  if (isChartLoading) return;
 
   return (
     <>
@@ -135,7 +128,11 @@ export default function PieChartLabelList() {
           <FinalDatePicker date={finalDate} setDate={setFinalDate} />
         </div>
         <div>
-          <ClientsCombo currentClient={currentClient} setCurrentClient={setCurrentClient} />
+          <ClientsCombo
+            currentClient={currentClient}
+            setCurrentClient={setCurrentClient}
+            onSelect={() => {}}
+          />
         </div>
       </div>
       <Card className="flex flex-col">

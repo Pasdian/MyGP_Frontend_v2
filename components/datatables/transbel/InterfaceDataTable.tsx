@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -28,7 +27,6 @@ import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 
 export function InterfaceDataTable() {

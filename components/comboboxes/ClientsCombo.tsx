@@ -17,14 +17,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { clientsData } from '@/lib/clients/clientsData';
 import { Label } from '../ui/label';
 
-export function ClientsCombo({
+export default function ClientsCombo({
   currentClient,
   setCurrentClient,
   onSelect,
 }: {
   currentClient: string;
   setCurrentClient: React.Dispatch<React.SetStateAction<string>>;
-  onSelect?: ((value: string) => void) | undefined;
+  onSelect: (value: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [clients, setClients] = React.useState<{ value: string; label: string }[]>([]);
@@ -67,7 +67,7 @@ export function ClientsCombo({
                     onSelect={(currentValue) => {
                       setCurrentClient(currentValue === currentClient ? '' : currentValue);
                       setOpen(false);
-                      onSelect ? onSelect(currentValue) : null;
+                      onSelect(currentValue);
                     }}
                   >
                     {client.label}
