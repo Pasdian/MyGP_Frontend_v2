@@ -1,7 +1,6 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 import { Input } from '@/components/ui/input';
-import { ExceptionCodeCombo } from '@/components/comboboxes/ExceptionCodeCombo';
 
 import {
   Select,
@@ -13,7 +12,7 @@ import {
 
 import React from 'react';
 
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import { mutate } from 'swr';
 import { toast } from 'sonner';
 import { GPClient } from '@/axios-instance';
@@ -24,8 +23,6 @@ import {
   PHASE_VALIDATION,
   REF_VALIDATION,
   TIME_VALIDATION,
-  TRANSPORTE_VALIDATION,
-  ULTIMO_DOCUMENTO_VALIDATION,
 } from '@/lib/validations/phaseValidations';
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
@@ -36,10 +33,12 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
-import { IconTrashFilled } from '@tabler/icons-react';
 import { doesDateKPIBreak } from '@/lib/utilityFunctions/doesDateKPIBreak';
 import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import FormItemsRevalidacion from './FormItems/FormItemsRevalidacion';
+import FormItemsUltimoDocumento from './FormItems/FormItemsUltimoDocumento';
+import FormItemsEntregaTransporte from './FormItems/FormItemsEntregaTransporte';
+import FormItemsMSA from './FormItems/FormItemsMSA';
 
 export default function InterfaceUpsertPhaseForm({
   row,
@@ -59,8 +58,6 @@ export default function InterfaceUpsertPhaseForm({
       date: DATE_VALIDATION,
       time: TIME_VALIDATION,
       user: USER_CASA_USERNAME_VALIDATION,
-      ultimoDocumento: ULTIMO_DOCUMENTO_VALIDATION,
-      transporte: TRANSPORTE_VALIDATION,
     })
     .refine(
       (data) => {
@@ -153,10 +150,14 @@ export default function InterfaceUpsertPhaseForm({
     )
     .refine(
       (data) =>
-        !(data.ultimoDocumento && data.transporte && data.transporte < data.ultimoDocumento),
+        !(
+          row.original.ULTIMO_DOCUMENTO_114 &&
+          data.date &&
+          row.original.ULTIMO_DOCUMENTO_114 < data.date
+        ),
       {
         message: 'La fecha de transporte no puede ser menor a la fecha de último documento',
-        path: ['transporte'],
+        path: ['date'],
       }
     )
     .refine(
@@ -164,15 +165,15 @@ export default function InterfaceUpsertPhaseForm({
         // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
         return !doesDateKPIBreak({
           exceptionCode: data.exceptionCode,
-          initialDate: data.ultimoDocumento,
-          finalDate: data.transporte,
+          initialDate: data.date,
+          finalDate: row.original.ENTREGA_TRANSPORTE_138,
           numDays: 7,
         });
       },
       {
         message:
           'Coloca un código de excepción, la diferencia entre la fecha de entrega de último documento y transporte es mayor a 7 dias',
-        path: ['transporte'],
+        path: ['date'],
       }
     )
     .refine(
@@ -180,14 +181,14 @@ export default function InterfaceUpsertPhaseForm({
         // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
         return !shouldPutExceptionCode({
           exceptionCode: data.exceptionCode,
-          initialDate: data.ultimoDocumento,
-          finalDate: data.transporte,
+          initialDate: data.date,
+          finalDate: row.original.ENTREGA_TRANSPORTE_138,
           numDays: 7,
         });
       },
       {
         message: 'No es necesario colocar un código de excepción',
-        path: ['transporte'],
+        path: ['date'],
       }
     );
 
@@ -201,8 +202,6 @@ export default function InterfaceUpsertPhaseForm({
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
       user: user.casa_user_name ? user.casa_user_name : 'MYGP',
-      ultimoDocumento: row.original.ULTIMO_DOCUMENTO_114 ? row.original.ULTIMO_DOCUMENTO_114 : '',
-      transporte: row.original.ENTREGA_TRANSPORTE_138 ? row.original.ENTREGA_TRANSPORTE_138 : '',
     },
   });
 
@@ -233,7 +232,7 @@ export default function InterfaceUpsertPhaseForm({
         toast.error(error.response.data.message);
       });
   }
-  console.log(form.formState.errors);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -292,84 +291,10 @@ export default function InterfaceUpsertPhaseForm({
               </FormItem>
             )}
           />
-          {form.watch('phase') == '138' ? (
-            <>
-              <FormField
-                control={form.control}
-                name="ultimoDocumento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Último Documento</FormLabel>
-                    <FormControl>
-                      <Input disabled type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="transporte"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Entrega Transporte</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="exceptionCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código de Excepción</FormLabel>
-                    <FormControl>
-                      <div className="flex">
-                        <div className="mr-2">
-                          <ExceptionCodeCombo
-                            onSelect={(value) => {
-                              field.onChange(value);
-                              form.trigger();
-                            }}
-                            currentValue={field.value}
-                          />
-                        </div>
-                        <Button
-                          size="sm"
-                          className="cursor-pointer bg-red-400 hover:bg-red-500"
-                          type="button"
-                          onClick={() => {
-                            form.setValue('exceptionCode', '');
-                            form.trigger();
-                          }}
-                        >
-                          <IconTrashFilled />
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
-          ) : (
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fecha</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          {form.watch('phase') == '073' ? <FormItemsRevalidacion form={form} row={row} /> : ''}
+          {form.watch('phase') == '114' ? <FormItemsUltimoDocumento form={form} row={row} /> : ''}
+          {form.watch('phase') == '130' ? <FormItemsMSA form={form} row={row} /> : ''}
+          {form.watch('phase') == '138' ? <FormItemsEntregaTransporte form={form} row={row} /> : ''}
 
           <FormField
             control={form.control}
