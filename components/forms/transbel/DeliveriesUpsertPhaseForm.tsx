@@ -105,7 +105,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    await GPClient.post('/api/transbel/upsertPhase', {
+    await GPClient.post('/api/casa/upsertPhase', {
       ref: data.ref,
       phase: data.phase,
       exceptionCode: data.exceptionCode,

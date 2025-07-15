@@ -211,7 +211,7 @@ export default function InterfaceUpsertPhaseForm({
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    await GPClient.post('/api/transbel/upsertPhase', {
+    await GPClient.post('/api/casa/upsertPhase', {
       ref: data.ref,
       phase: data.phase,
       exceptionCode: data.exceptionCode,
@@ -225,9 +225,9 @@ export default function InterfaceUpsertPhaseForm({
           if (!initialDate || !finalDate) return mutate('/api/transbel/getRefsPendingCE');
 
           mutate(
-            `/api/transbel/getRefsPendingCE?initialDate=${getFormattedDate(
+            `/api/transbel/getRefsPendingCE?initialDate=${
               initialDate.toISOString().split('T')[0]
-            )}&finalDate=${getFormattedDate(finalDate.toISOString().split('T')[0])}`
+            }&finalDate=${finalDate.toISOString().split('T')[0]}`
           );
         } else {
           toast.error('No se pudieron actualizar tus datos');
@@ -237,7 +237,7 @@ export default function InterfaceUpsertPhaseForm({
         toast.error(error.response.data.message);
       });
   }
-
+  console.log(form.formState.errors);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>

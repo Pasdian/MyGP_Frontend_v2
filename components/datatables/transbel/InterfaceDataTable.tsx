@@ -34,9 +34,9 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
     initialDate && finalDate
-      ? `/api/transbel/getRefsPendingCE?initialDate=${getFormattedDate(
+      ? `/api/transbel/getRefsPendingCE?initialDate=${
           initialDate.toISOString().split('T')[0]
-        )}&finalDate=${getFormattedDate(finalDate.toISOString().split('T')[0])}`
+        }&finalDate=${finalDate.toISOString().split('T')[0]}`
       : '/api/transbel/getRefsPendingCE',
     axiosFetcher
   );

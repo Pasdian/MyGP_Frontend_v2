@@ -74,7 +74,7 @@ export const handlers = [
       exp: 0,
     });
   }),
-  http.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/transbel/upsertPhase`, () => {
+  http.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/casa/upsertPhase`, () => {
     return HttpResponse.json([
       {
         message: 'Datos modificados correctamente',
