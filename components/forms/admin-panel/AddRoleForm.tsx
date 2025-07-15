@@ -10,38 +10,30 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { addRoleSchema } from '@/lib/schemas/admin-panel/addRoleSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
-import {
-  ROLE_DESCRIPTION_VALIDATION,
-  ROLE_NAME_VALIDATION,
-} from '@/lib/validations/roleValidations';
 
-export default function AdminPanelAddRoleForm({
+export default function AddRoleForm({
   setIsOpen,
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { mutate } = useSWRConfig();
 
-  const schema = z.object({
-    name: ROLE_NAME_VALIDATION,
-    description: ROLE_DESCRIPTION_VALIDATION,
-  });
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
+  const form = useForm<z.infer<typeof addRoleSchema>>({
+    resolver: zodResolver(addRoleSchema),
     defaultValues: {
       name: '',
       description: '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof schema>) {
+  async function onSubmit(data: z.infer<typeof addRoleSchema>) {
     await GPClient.post(`/api/roles`, {
       name: data.name,
       description: data.description,

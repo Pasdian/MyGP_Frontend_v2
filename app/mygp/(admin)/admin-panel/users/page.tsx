@@ -1,6 +1,6 @@
 'use client';
 
-import AdminPanelAddUserButton from '@/components/buttons/admin-panel/users/AdminPanelAddUserButton';
+import AddUserButton from '@/components/buttons/admin-panel/users/AddUserButton';
 import UsersDataTable from '@/components/datatables/admin-panel/UsersDataTable';
 import { RolesContext } from '@/contexts/RolesContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,7 +16,7 @@ export default function AdminPanelUsers() {
   return (
     <RolesContext.Provider value={roles}>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Usuarios</h1>
-      <AdminPanelAddUserButton />
+      <AddUserButton />
       <UsersDataTable />
     </RolesContext.Provider>
   );

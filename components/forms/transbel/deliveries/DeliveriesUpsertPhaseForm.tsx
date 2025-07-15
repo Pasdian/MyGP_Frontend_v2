@@ -1,14 +1,6 @@
 'use client';
 
 import React from 'react';
-import {
-  DATE_VALIDATION,
-  EXCEPTION_CODE_VALIDATION,
-  PHASE_VALIDATION,
-  REF_VALIDATION,
-  TIME_VALIDATION,
-  TRANSPORTE_VALIDATION,
-} from '@/lib/validations/phaseValidations';
 
 import { useSWRConfig } from 'swr';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
@@ -31,65 +23,17 @@ import { ExceptionCodeCombo } from '@/components/comboboxes/ExceptionCodeCombo';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
-import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
 import { IconTrashFilled } from '@tabler/icons-react';
-import { doesDateKPIBreak } from '@/lib/utilityFunctions/doesDateKPIBreak';
-import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
+import { deliveriesUpsertPhaseSchema } from '@/lib/schemas/transbel/deliveries/deliveriesUpsertPhaseSchema';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
   const { mutate } = useSWRConfig();
 
-  const schema = z
-    .object({
-      ref: REF_VALIDATION,
-      phase: PHASE_VALIDATION,
-      exceptionCode: EXCEPTION_CODE_VALIDATION,
-      cdp: DATE_VALIDATION,
-      time: TIME_VALIDATION,
-      user: USER_CASA_USERNAME_VALIDATION,
-      transporte: TRANSPORTE_VALIDATION,
-    })
-    .refine((data) => !(data.transporte && data.cdp && data.cdp < data.transporte), {
-      message: 'La fecha de CDP no puede ser menor a la fecha de entrega',
-      path: ['cdp'],
-    })
-    .refine(
-      (data) => {
-        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
-        return !doesDateKPIBreak({
-          exceptionCode: data.exceptionCode,
-          initialDate: data.transporte,
-          finalDate: data.cdp,
-          numDays: 1,
-        });
-      },
-      {
-        message:
-          'Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día',
-        path: ['cdp'],
-      }
-    )
-    .refine(
-      (data) => {
-        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
+  const [isChecked, setIsChecked] = React.useState(false);
 
-        return !shouldPutExceptionCode({
-          exceptionCode: data.exceptionCode,
-          initialDate: data.transporte,
-          finalDate: data.cdp,
-          numDays: 1,
-        });
-      },
-      {
-        message: 'No es necesario colocar un código de excepción',
-        path: ['cdp'],
-      }
-    );
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    mode: 'onChange',
+  const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
+    resolver: zodResolver(deliveriesUpsertPhaseSchema),
     defaultValues: {
       ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
       phase: '140',
@@ -101,7 +45,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
     },
   });
 
-  async function onSubmit(data: z.infer<typeof schema>) {
+  async function onSubmit(data: z.infer<typeof deliveriesUpsertPhaseSchema>) {
     await GPClient.post('/api/casa/upsertPhase', {
       ref: data.ref,
       phase: data.phase,

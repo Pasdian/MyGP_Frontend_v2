@@ -1,7 +1,5 @@
 "use client";
 
-import AdminPanelDeleteUserButton from "@/components/buttons/admin-panel/users/AdminPanelDeleteUserButton";
-import AdminPanelModifyUserButton from "@/components/buttons/admin-panel/users/AdminPanelModifyUserButton";
 import { getAllUsersDeepCopy } from "@/types/users/getAllUsers";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import {
@@ -16,6 +14,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
+import ModifyUserButton from "@/components/buttons/admin-panel/users/ModifyUserButton";
+import DeleteUserButton from "@/components/buttons/admin-panel/users/DeleteUserButton";
 
 const fuzzyFilter = createFuzzyFilter<getAllUsersDeepCopy>();
 
@@ -111,12 +111,12 @@ function UserActionsDropDown({ row }: { row: Row<getAllUsersDeepCopy> }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <AdminPanelModifyUserButton
+      <ModifyUserButton
         row={row}
         open={isModifyUserDialogOpen}
         setIsOpen={setIsModifyUserDialogOpen}
       />
-      <AdminPanelDeleteUserButton
+      <DeleteUserButton
         row={row}
         open={isDeleteUserDialogOpen}
         setIsOpen={setIsDeleteUserDialogOpen}

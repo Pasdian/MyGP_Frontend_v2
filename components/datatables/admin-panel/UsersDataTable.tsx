@@ -9,7 +9,7 @@ import {
 import { flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import { getAllUsers, getAllUsersDeepCopy } from '@/types/users/getAllUsers';
-import UsersDataTableFilter from '../filters/UsersDataTableFilter';
+import UsersDataTableFilter from '../filters/UserDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import {
   getCoreRowModel,

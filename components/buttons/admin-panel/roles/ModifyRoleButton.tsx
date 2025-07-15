@@ -1,4 +1,4 @@
-import AdminPanelModifyRoleForm from '@/components/forms/admin-panel/AdminPanelModifyRoleForm';
+import ModifyRoleForm from '@/components/forms/admin-panel/ModifyRoleForm';
 
 import {
   Dialog,
@@ -13,7 +13,7 @@ import { getRoles } from '@/types/roles/getRoles';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 
-export default function AdminPanelModifyRoleButton({ row }: { row: Row<getRoles> }) {
+export default function ModifyRoleButton({ row }: { row: Row<getRoles> }) {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -28,7 +28,7 @@ export default function AdminPanelModifyRoleButton({ row }: { row: Row<getRoles>
             termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        <AdminPanelModifyRoleForm row={row} setIsOpen={setIsOpen} />
+        <ModifyRoleForm row={row} setIsOpen={setIsOpen} />
       </DialogContent>
     </Dialog>
   );
