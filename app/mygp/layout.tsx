@@ -20,7 +20,7 @@ export default function MyGPLayout({ children }: { children: React.ReactNode }) 
         <div className="w-dvw h-dvh max-w-dvw max-h-dvh overflow-y-scroll bg-white">
           <SidebarInset className="w-full h-full">
             <SiteHeader />
-            <div className="h-full p-6 overflow-y-scroll">{children}</div>
+            <div className="w-full h-full p-6 overflow-y-scroll">{children}</div>
           </SidebarInset>
         </div>
       </SidebarProvider>
