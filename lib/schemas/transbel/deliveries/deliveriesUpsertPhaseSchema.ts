@@ -42,6 +42,6 @@ export const deliveriesUpsertPhaseSchema = z
     {
       message:
         "Coloca un código de excepción, la diferencia entre la fecha de entrega de transporte y CDP es mayor a 1 día",
-      path: ["exceptionCode"],
+      path: ["cdp"],
     }
   );
