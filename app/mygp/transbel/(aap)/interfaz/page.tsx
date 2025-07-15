@@ -23,10 +23,8 @@ export default function Page() {
       const today = new Date();
 
       // Common mistakes that the user can do
-      if (initialDate == undefined) {
-        toast.error('Selecciona una fecha de inicio');
-        return;
-      } else if (initialDate > today) {
+      if (!initialDate) return;
+      if (initialDate > today) {
         toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
         return;
       } else if (finalDate == undefined) {
