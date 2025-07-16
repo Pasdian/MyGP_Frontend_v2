@@ -6,9 +6,12 @@ export const AuthContext = React.createContext<
   | {
       user: VerifySession;
       setUser: React.Dispatch<React.SetStateAction<VerifySession>>;
-      isAuthLoading: boolean;
+      isLoading: boolean;
       userRoleUUID: string;
       roles: getRoles[];
+      isAuthenticated: boolean;
+      logout: () => void;
+      login: (data: { email: string; password: string }) => void;
     }
   | undefined
 >(undefined);

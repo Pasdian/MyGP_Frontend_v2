@@ -80,7 +80,6 @@ export default function PieChartLabelList() {
     }
     validateDates();
   }, [initialDate, finalDate]);
-  console.log(initialDate, finalDate);
 
   React.useEffect(() => {
     if (!chartData) return;

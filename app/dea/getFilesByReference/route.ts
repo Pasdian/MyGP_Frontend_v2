@@ -1,4 +1,4 @@
-import { GPClientDEA, GPServer } from '@/lib/axiosUtils/axios-instance';
+import { GPClientDEA } from '@/lib/axiosUtils/axios-instance';
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 

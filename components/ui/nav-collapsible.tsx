@@ -18,6 +18,7 @@ import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ForwardRefExoticComponent, RefAttributes } from 'react';
+import ProtectedRoute from '../ProtectedRoute/ProtectedRoute';
 
 const userItems = {
   navCollapsible: [
@@ -59,10 +60,10 @@ const userItems = {
 };
 
 export default function NavCollapsible() {
-  const { isAuthLoading, userRoleUUID } = useAuth();
+  const { isLoading, userRoleUUID } = useAuth();
   const pathname = usePathname();
 
-  if (isAuthLoading) return;
+  if (isLoading) return;
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {
@@ -79,8 +80,8 @@ export default function NavCollapsible() {
           return <CollapsibleNavItem key={item.title} item={item} pathname={pathname} />;
         })
       ) : (
-        <SidebarGroupContent className="pl-4">
-          <SidebarMenu className="font-bold">
+        <div>
+          <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
             <p>DEA Reference</p>
             <p>DEA Reference</p>
             <p>DEA Reference</p>
@@ -119,8 +120,11 @@ export default function NavCollapsible() {
             <p>DEA Reference</p>
             <p>DEA Reference</p>
             <p>DEA Reference</p>
-          </SidebarMenu>
-        </SidebarGroupContent>
+          </ProtectedRoute>
+          <SidebarGroupContent className="pl-4">
+            <SidebarMenu className="font-bold"></SidebarMenu>
+          </SidebarGroupContent>
+        </div>
       )}
     </>
   );

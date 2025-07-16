@@ -11,15 +11,13 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { loginSchema } from '@/lib/schemas/login/loginSchema';
+import { useAuth } from '@/hooks/useAuth';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
-  const router = useRouter();
+  const { login } = useAuth();
   const [shouldView, setShouldView] = React.useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -30,20 +28,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       password: '',
     },
   });
-
-  async function onSubmit(data: z.infer<typeof loginSchema>) {
-    await GPClient.post('/api/auth/login', {
-      email: data.email,
-      password: data.password,
-    })
-      .then((res) => {
-        toast.success(res.data.message);
-        router.push('/mygp/dashboard');
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
-  }
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
@@ -56,7 +40,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(login)}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="email">Correo electrónico</Label>

@@ -12,6 +12,8 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
+import ProtectedRoute from '../ProtectedRoute/ProtectedRoute';
+import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 
 const activeItemClass =
   'bg-blue-200 active:bg-blue-200 hover:bg-blue-300 rounded-md font-bold cursor-pointer';
@@ -49,18 +51,19 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           )}
-
-          <Link href="/mygp/dea">
-            <SidebarMenuItem className="flex items-center gap-2">
-              <SidebarMenuButton
-                tooltip="Quick Create"
-                className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
-              >
-                <IconDashboard />
-                <span>DEA</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </Link>
+          <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
+            <Link href="/mygp/dea">
+              <SidebarMenuItem className="flex items-center gap-2">
+                <SidebarMenuButton
+                  tooltip="Quick Create"
+                  className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
+                >
+                  <IconDashboard />
+                  <span>DEA</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </Link>
+          </ProtectedRoute>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
