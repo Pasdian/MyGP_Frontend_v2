@@ -60,14 +60,14 @@ const userItems = {
 };
 
 export default function NavCollapsible() {
-  const { isLoading, userRoleUUID } = useAuth();
+  const { isLoading, user } = useAuth();
   const pathname = usePathname();
 
   if (isLoading) return;
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {
-      const filteredItems = group.items.filter((item) => item.role.includes(userRoleUUID));
+      const filteredItems = group.items.filter((item) => item.role.includes(user.role));
       return filteredItems.length > 0 ? { ...group, items: filteredItems } : null;
     })
     .filter(Boolean);

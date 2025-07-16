@@ -11,7 +11,7 @@ export default function ProtectedRoute({
   allowedRoles: string[];
 }) {
   const pathname = usePathname();
-  const { isAuthenticated, userRoleUUID, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const router = useRouter();
 
   React.useEffect(() => {
@@ -20,9 +20,9 @@ export default function ProtectedRoute({
     if (!isAuthenticated) {
       router.push('/login'); // Redirect to login if not authenticated
     }
-  }, [isAuthenticated, userRoleUUID, allowedRoles, isLoading, router, pathname]);
+  }, [isAuthenticated, user, allowedRoles, isLoading, router, pathname]);
 
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(userRoleUUID))) {
+  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role))) {
     return;
   }
 

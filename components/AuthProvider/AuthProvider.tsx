@@ -3,7 +3,6 @@
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { AuthContext } from '@/contexts/AuthContext';
 import { VerifySession } from '@/types/auth/verifySession';
-import { getRoles } from '@/types/roles/getRoles';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import { toast } from 'sonner';
@@ -16,14 +15,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     id: 0,
     uuid: '',
     email: '',
-    role: 0,
+    role: '',
     casa_user_name: '',
     iat: 0,
     exp: 0,
   });
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [userRoleUUID, setUserRoleUUID] = React.useState('');
-  const [roles, setRoles] = React.useState<getRoles[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -33,20 +30,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         const tokenData = JSON.parse(atob(token.split('.')[1])); // Decode JWT token
         const isTokenValid = tokenData.exp * 1000 > Date.now(); // Check expiration
         if (isTokenValid) {
-          const [userReq, rolesReq] = await Promise.all([
-            GPClient.post<VerifySession>('/api/auth/verifySession'),
-            GPClient.get<getRoles[]>('/api/roles'),
-          ]);
-
-          if (rolesReq) {
-            const roleObjectFound = rolesReq.data.find((role) => role.id == userReq.data.role);
-            setUserRoleUUID(roleObjectFound ? roleObjectFound?.uuid : '');
-          }
-
-          setUser(userReq.data);
-          setRoles(rolesReq.data);
-          setIsAuthenticated(true);
-          setIsLoading(false);
+          await GPClient.post('/api/auth/verifySession').then((res) => {
+            setUser(res.data);
+            setIsAuthenticated(true);
+            setIsLoading(false);
+          });
         } else {
           localStorage.removeItem('token');
           router.push('/login');
@@ -68,6 +56,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       .then(async (res) => {
         toast.success(res.data.message);
         localStorage.setItem('token', JSON.stringify(res.data.token));
+        setUser(res.data.user);
         router.push('/mygp/dashboard');
       })
       .catch((error) => {
@@ -85,7 +74,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
           id: 0,
           uuid: '',
           email: '',
-          role: 0,
+          role: '',
           casa_user_name: '',
           iat: 0,
           exp: 0,
@@ -98,9 +87,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }
 
   return (
-    <AuthContext.Provider
-      value={{ user, setUser, isLoading, userRoleUUID, roles, isAuthenticated, logout, login }}
-    >
+    <AuthContext.Provider value={{ user, setUser, isLoading, isAuthenticated, logout, login }}>
       {children}
     </AuthContext.Provider>
   );

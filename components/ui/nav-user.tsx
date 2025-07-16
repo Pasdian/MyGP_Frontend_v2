@@ -30,7 +30,7 @@ export function NavUser() {
   const { user, logout, isLoading } = useAuth();
   const { isMobile } = useSidebar();
 
-  if (isLoading || !user) return;
+  if (isLoading) return;
 
   return (
     <SidebarMenu>
