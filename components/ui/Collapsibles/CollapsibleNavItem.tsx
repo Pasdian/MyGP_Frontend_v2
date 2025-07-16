@@ -1,7 +1,4 @@
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
-import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,9 +7,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '../sidebar';
-import { ChevronRight, Link } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { ForwardRefExoticComponent, RefAttributes } from 'react';
 import { Icon, IconProps } from '@tabler/icons-react';
+import Link from 'next/link';
 
 export default function CollapsibleNavItem({
   item,
