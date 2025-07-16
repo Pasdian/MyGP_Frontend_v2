@@ -7,7 +7,6 @@ import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance'
 import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
-import { toast } from 'sonner';
 import useSWRImmutable from 'swr/immutable';
 const cardClassName = 'relative py-0 gap-0 text-xs overflow-y-auto';
 const stickyClassName = 'sticky top-0 right-0 left-0';
@@ -20,7 +19,7 @@ export default function DEA() {
   const [folder, setFolder] = React.useState('');
   const [pdfUrl, setPdfUrl] = React.useState('');
   const [fileContent, setFileContent] = React.useState('');
-  const { data, isLoading }: { data: getFilesByReference; isLoading: boolean } = useSWRImmutable(
+  const { data }: { data: getFilesByReference; isLoading: boolean } = useSWRImmutable(
     `/dea/getFilesByReference?reference=${reference}&client=${clientNumber}`,
     axiosFetcher
   );
