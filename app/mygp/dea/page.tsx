@@ -72,19 +72,15 @@ export default function DEA() {
         </Card>
         <Card className={`sm:col-span-2 row-span-3 ${cardClassName}`}>
           <p className={cardHeaderClassName}>Visor de Archivos</p>
-          <div className="p-2">
-            {pdfUrl ? (
-              <iframe
-                src={pdfUrl}
-                width="100%"
-                height="800px"
-                style={{ border: 'none' }}
-                title="PDF Viewer"
-              />
-            ) : (
-              <p className="mt-4 ml-4">Selecciona un archivo para visualizarlo</p>
-            )}
-          </div>
+          {pdfUrl ? (
+            <iframe
+              src={pdfUrl}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              title="PDF Viewer"
+            />
+          ) : (
+            <p className="mt-4 ml-4">Selecciona un archivo para visualizarlo</p>
+          )}
         </Card>
 
         <Card className={`h-[250px] ${cardClassName}`}>
