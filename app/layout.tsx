@@ -3,6 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { Roboto } from 'next/font/google';
 import AuthProvider from '@/components/AuthProvider/AuthProvider';
+import { CounterStoreProvider } from './providers/counter-store-provider';
+import { DEAStoreProvider } from './providers/dea-store-provider';
 
 export const metadata: Metadata = {
   title: 'MyGP',
@@ -22,8 +24,10 @@ export default function RootLayout({
     <html lang="es-MX" className={roboto.className}>
       <body>
         <AuthProvider>
-          {children}
-          <Toaster position="top-center" />
+          <DEAStoreProvider>
+            {children}
+            <Toaster position="top-center" />
+          </DEAStoreProvider>
         </AuthProvider>
       </body>
     </html>
