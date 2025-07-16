@@ -23,3 +23,6 @@ export const GPServer = axios.create({
 
 export const axiosFetcher = (url: string) =>
   GPClient.get(url).then((res) => res.data);
+
+export const axiosBlobFetcher = (url: string) =>
+  GPClient.get(url, { responseType: "blob" }).then((res) => res.data);

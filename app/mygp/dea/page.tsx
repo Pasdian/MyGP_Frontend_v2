@@ -2,19 +2,40 @@
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import { Card } from '@/components/ui/card';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
+import React from 'react';
 import useSWRImmutable from 'swr/immutable';
 const cardClassName = 'relative py-0 gap-0 text-xs overflow-y-auto';
 const stickyClassName = 'sticky top-0 right-0 left-0';
 const cardHeaderClassName = 'font-bold bg-blue-400 p-2 text-white text-center';
 
 export default function DEA() {
+  const [pdfUrl, setPdfUrl] = React.useState('');
   const { data, isLoading }: { data: getFilesByReference; isLoading: boolean } = useSWRImmutable(
     '/dea/getFilesByReference?reference=PAI251974&client=000041',
     axiosFetcher
   );
+
+  const { data: myBlob } = useSWRImmutable(
+    '/dea/getFileContent?filepath=000041/PAI251974/01-CTA-GASTOS/PAI251974_AAPP7529.PDF',
+    axiosBlobFetcher
+  );
+
+  React.useEffect(() => {
+    if (!myBlob) return;
+
+    if (myBlob.type !== 'application/pdf') {
+      myBlob.text().then(console.error); // log JSON error
+      return;
+    }
+
+    const url = URL.createObjectURL(myBlob);
+    setPdfUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [myBlob]);
 
   if (isLoading) return <TailwindSpinner />;
   return (
@@ -52,7 +73,17 @@ export default function DEA() {
         <Card className={`sm:col-span-2 row-span-3 ${cardClassName}`}>
           <p className={cardHeaderClassName}>Visor de Archivos</p>
           <div className="p-2">
-            <p className="mt-4 ml-4">Selecciona un archivo para visualizarlo</p>
+            {pdfUrl ? (
+              <iframe
+                src={pdfUrl}
+                width="100%"
+                height="800px"
+                style={{ border: 'none' }}
+                title="PDF Viewer"
+              />
+            ) : (
+              <p className="mt-4 ml-4">Selecciona un archivo para visualizarlo</p>
+            )}
           </div>
         </Card>
 
