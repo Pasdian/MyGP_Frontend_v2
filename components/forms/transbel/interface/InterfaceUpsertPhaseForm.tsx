@@ -151,9 +151,10 @@ export default function InterfaceUpsertPhaseForm({
     .refine(
       (data) =>
         !(
-          row.original.ULTIMO_DOCUMENTO_114 &&
+          data.phase === '114' &&
+          row.original.ENTREGA_TRANSPORTE_138 &&
           data.date &&
-          row.original.ULTIMO_DOCUMENTO_114 < data.date
+          row.original.ENTREGA_TRANSPORTE_138 < data.date
         ),
       {
         message: 'La fecha de transporte no puede ser menor a la fecha de último documento',
