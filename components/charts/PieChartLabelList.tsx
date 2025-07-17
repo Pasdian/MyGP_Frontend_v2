@@ -22,23 +22,22 @@ import ClientsCombo from '../comboboxes/ClientsCombo';
 import { getOperationsDistributionByCustomsDeepCopy } from '@/types/bi/getOperationsDistributionByCustoms';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { customs } from '@/lib/customs/customs';
-import { clientsData } from '@/lib/clients/clientsData';
 
 export const description = 'A pie chart with a label list';
 
 export default function PieChartLabelList() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
-  const [currentClient, setCurrentClient] = React.useState('');
+  const [clientName, setClientName] = React.useState('');
+  const [clientNumber, setClientNumber] = React.useState('');
+
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
   const { data: chartData } = useSWRImmutable(
-    initialDate && finalDate && currentClient
+    initialDate && finalDate && clientName
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
           initialDate.toISOString().split('T')[0]
-        }&finalDate=${finalDate.toISOString().split('T')[0]}&client=${
-          clientsData.find((client) => client.NOM_IMP == currentClient)?.CVE_IMP
-        }`
+        }&finalDate=${finalDate.toISOString().split('T')[0]}&client=${clientNumber}`
       : '',
     axiosFetcher
   );
@@ -125,8 +124,9 @@ export default function PieChartLabelList() {
         </div>
         <div>
           <ClientsCombo
-            currentClient={currentClient}
-            setCurrentClient={setCurrentClient}
+            clientName={clientName}
+            setClientName={setClientName}
+            setClientNumber={setClientNumber}
             onSelect={() => {}}
           />
         </div>
@@ -134,12 +134,12 @@ export default function PieChartLabelList() {
       <Card className="flex flex-col">
         <CardHeader className="items-center pb-0">
           <CardTitle>
-            {initialDate && finalDate && currentClient
-              ? `Operaciones por Aduana - ${currentClient}`
+            {initialDate && finalDate && clientName
+              ? `Operaciones por Aduana - ${clientName}`
               : 'Para visualizar, selecciona los campos correspondientes'}
           </CardTitle>
           <CardDescription>
-            {initialDate && finalDate && currentClient
+            {initialDate && finalDate && clientName
               ? `${getFormattedDate(initialDate.toISOString().split('T')[0])} - ${getFormattedDate(
                   finalDate.toISOString().split('T')[0]
                 )}`
@@ -165,7 +165,7 @@ export default function PieChartLabelList() {
             </PieChart>
           </ChartContainer>
         </CardContent>
-        {initialDate && finalDate && currentClient ? (
+        {initialDate && finalDate && clientName ? (
           <CardFooter className="flex-col gap-2 text-sm">
             <div className="flex items-center gap-2 leading-none font-medium">
               {`El máximo número de operaciones fue ${maxOperationValue}`}

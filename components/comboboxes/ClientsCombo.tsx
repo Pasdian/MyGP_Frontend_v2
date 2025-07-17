@@ -18,12 +18,14 @@ import { clientsData } from '@/lib/clients/clientsData';
 import { Label } from '../ui/label';
 
 export default function ClientsCombo({
-  currentClient,
-  setCurrentClient,
+  clientName,
+  setClientName,
+  setClientNumber,
   onSelect,
 }: {
-  currentClient: string;
-  setCurrentClient: React.Dispatch<React.SetStateAction<string>>;
+  clientName: string;
+  setClientName: React.Dispatch<React.SetStateAction<string>>;
+  setClientNumber: React.Dispatch<React.SetStateAction<string>> | ((clientNumber: string) => void);
   onSelect: (value: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -48,8 +50,8 @@ export default function ClientsCombo({
             aria-expanded={open}
             aria-labelledby="client-label"
           >
-            {currentClient
-              ? clients.find((client) => client.label === currentClient)?.label
+            {clientName
+              ? clients.find((client) => client.label === clientName)?.label
               : 'Selecciona un cliente...'}
             <ChevronsUpDown className="opacity-50" />
           </Button>
@@ -64,17 +66,18 @@ export default function ClientsCombo({
                   <CommandItem
                     key={client.value}
                     value={client.label}
-                    onSelect={(currentValue) => {
-                      setCurrentClient(currentValue === currentClient ? '' : currentValue);
+                    onSelect={(val) => {
+                      setClientName(val === clientName ? '' : val);
+                      setClientNumber(client.value);
                       setOpen(false);
-                      onSelect(currentValue);
+                      onSelect(val);
                     }}
                   >
                     {client.label}
                     <Check
                       className={cn(
                         'ml-auto',
-                        currentClient === client.label ? 'opacity-100' : 'opacity-0'
+                        clientName === client.label ? 'opacity-100' : 'opacity-0'
                       )}
                     />
                   </CommandItem>

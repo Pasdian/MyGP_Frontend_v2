@@ -1,5 +1,8 @@
 'use client';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
+import ClientsCombo from '@/components/comboboxes/ClientsCombo';
+import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
+import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,19 +16,32 @@ const stickyClassName = 'sticky top-0 right-0 left-0';
 const cardHeaderClassName = 'font-bold bg-blue-400 p-2 text-white text-center';
 
 export default function DEA() {
-  const { clientNumber, reference, setClientNumber } = useDEAStore((state) => state);
-
+  const {
+    clientNumber: deaClientNumber,
+    reference,
+    setClientNumber: setDEAClientNumber,
+  } = useDEAStore((state) => state);
+  const [clientName, setClientName] = React.useState('');
   const [clickedFile, setClickedFile] = React.useState('');
   const [folder, setFolder] = React.useState('');
   const [pdfUrl, setPdfUrl] = React.useState('');
+  const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
+  const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
   const [fileContent, setFileContent] = React.useState('');
+
   const { data }: { data: getFilesByReference; isLoading: boolean } = useSWRImmutable(
-    `/dea/getFilesByReference?reference=${reference}&client=${clientNumber}`,
+    reference &&
+      deaClientNumber &&
+      `/dea/getFilesByReference?reference=${reference}&client=${deaClientNumber}`,
     axiosFetcher
   );
 
   const { data: myBlob } = useSWRImmutable(
-    `/dea/getFileContent?filepath=${clientNumber}/${reference}/${folder}/${clickedFile}`,
+    deaClientNumber &&
+      reference &&
+      folder &&
+      clickedFile &&
+      `/dea/getFileContent?filepath=${deaClientNumber}/${reference}/${folder}/${clickedFile}`,
     axiosBlobFetcher
   );
 
@@ -50,13 +66,22 @@ export default function DEA() {
 
   return (
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
-      {reference}
-      <Button className="cursor-pointer" onClick={() => setClientNumber('000259')}>
-        Set reference 000259
-      </Button>
-      <Button className="cursor-pointer" onClick={() => setClientNumber('000041')}>
-        Set reference 000041
-      </Button>
+      <div className="flex mb-5">
+        <div className="mr-5">
+          <InitialDatePicker date={initialDate} setDate={setInitialDate} />
+        </div>
+        <div className=" mr-5">
+          <FinalDatePicker date={finalDate} setDate={setFinalDate} />
+        </div>
+        <div>
+          <ClientsCombo
+            clientName={clientName}
+            setClientName={setClientName}
+            setClientNumber={setDEAClientNumber}
+            onSelect={() => {}}
+          />
+        </div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className={`h-[250px] ${cardClassName}`}>
           <div className={stickyClassName}>
