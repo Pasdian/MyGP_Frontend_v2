@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -21,28 +20,22 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
+import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 
-const getFormattedDate = (d: Date | undefined) => {
-  if (!d) return;
-  const date = d;
-  const formatted = date.toISOString().split('T')[0];
-  return formatted;
-};
-
-export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPendingCE>[] }) {
+export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
     initialDate && finalDate
-      ? `/api/transbel/getRefsPendingCE?initialDate=${getFormattedDate(
-          initialDate
-        )}&finalDate=${getFormattedDate(finalDate)}`
+      ? `/api/transbel/getRefsPendingCE?initialDate=${
+          initialDate.toISOString().split('T')[0]
+        }&finalDate=${finalDate.toISOString().split('T')[0]}`
       : '/api/transbel/getRefsPendingCE',
     axiosFetcher
   );
@@ -52,7 +45,7 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
 
   const table = useReactTable({
     data: data ? data : [],
-    columns,
+    columns: interfaceColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(), // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -63,6 +56,20 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
       pagination, // Pagination
     },
   });
+
+  React.useEffect(() => {
+    if (!data) return;
+    data.map((item) => {
+      item.REVALIDACION_073 = item.REVALIDACION_073 ? item.REVALIDACION_073.split(' ')[0] : '';
+      item.ULTIMO_DOCUMENTO_114 = item.ULTIMO_DOCUMENTO_114
+        ? item.ULTIMO_DOCUMENTO_114.split(' ')[0]
+        : '';
+      item.MSA_130 = item.MSA_130 ? item.MSA_130.split(' ')[0] : '';
+      item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138
+        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
+        : '';
+    });
+  }, [data]);
 
   if (isValidating) return <TailwindSpinner />;
 
@@ -106,7 +113,7 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={interfaceColumns.length} className="h-24 text-center">
                 <div className="flex justify-center">
                   <p>Sin resultados...</p>
                 </div>

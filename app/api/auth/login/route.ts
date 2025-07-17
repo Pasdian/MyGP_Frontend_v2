@@ -1,4 +1,4 @@
-import { GPServer } from '@/axios-instance';
+import { GPServer } from '@/lib/axiosUtils/axios-instance';
 import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
       logger.info(
         `${res.data.user.name} with email ${res.data.user.email} logged in with token ${res.data.token}`
       );
-      (await cookies()).set('session_token', res.data.token);
+      (await cookies()).set('session_token', res.data.token, {
+        httpOnly: true,
+        secure: false,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       return NextResponse.json(res.data, { status: res.status });
     })
     .catch((error) => {

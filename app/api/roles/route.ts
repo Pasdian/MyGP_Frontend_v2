@@ -1,4 +1,4 @@
-import { GPServer } from '@/axios-instance';
+import { GPServer } from '@/lib/axiosUtils/axios-instance';
 import { logger } from '@/lib/logger';
 import { CreateRole } from '@/types/roles/createRole';
 import { getRoles } from '@/types/roles/getRoles';

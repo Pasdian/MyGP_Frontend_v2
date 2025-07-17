@@ -16,7 +16,7 @@ import { Row } from '@tanstack/react-table';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import DeliveriesUpsertPhaseForm from '@/components/forms/transbel/DeliveriesUpsertPhaseForm';
+import DeliveriesUpsertPhaseForm from '@/components/forms/transbel/deliveries/DeliveriesUpsertPhaseForm';
 import { IconBallpenFilled } from '@tabler/icons-react';
 
 export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);

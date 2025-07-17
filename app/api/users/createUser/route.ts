@@ -1,4 +1,4 @@
-import { GPServer } from '@/axios-instance';
+import { GPServer } from '@/lib/axiosUtils/axios-instance';
 import { logger } from '@/lib/logger';
 import { CreateUser } from '@/types/users/createUser';
 import { cookies } from 'next/headers';

@@ -16,7 +16,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import useSWRImmutable from 'swr/immutable';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../../ui/TailwindSpinner';
 import { getRoles } from '@/types/roles/getRoles';

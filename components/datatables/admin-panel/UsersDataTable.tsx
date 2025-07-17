@@ -9,7 +9,7 @@ import {
 import { flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import { getAllUsers, getAllUsersDeepCopy } from '@/types/users/getAllUsers';
-import UsersDataTableFilter from '../filters/UsersDataTableFilter';
+import UsersDataTableFilter from '../filters/UserDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import {
   getCoreRowModel,
@@ -19,7 +19,7 @@ import {
 } from '@tanstack/react-table';
 import useSWRImmutable from 'swr/immutable';
 import { usersColumns } from '@/lib/columns/usersColumns';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../../ui/TailwindSpinner';
 import { RolesContext } from '@/contexts/RolesContext';

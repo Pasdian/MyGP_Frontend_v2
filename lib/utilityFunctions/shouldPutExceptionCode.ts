@@ -6,9 +6,9 @@ export function shouldPutExceptionCode({
   finalDate,
   numDays,
 }: {
-  exceptionCode: string | undefined;
-  initialDate: string | undefined;
-  finalDate: string | undefined;
+  exceptionCode: string | undefined | null;
+  initialDate: string | undefined | null;
+  finalDate: string | undefined | null;
   numDays: number;
 }) {
   if (exceptionCode && initialDate && finalDate) {

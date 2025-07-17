@@ -4,7 +4,7 @@ export type VerifySession = {
   casa_user_name: string | null;
   name: string;
   email: string;
-  role: number;
+  role: string;
   iat: number;
   exp: number;
 };

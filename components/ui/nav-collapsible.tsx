@@ -1,12 +1,3 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import {
   ADMIN_ROLE_UUID,
@@ -14,7 +5,13 @@ import {
   OPERACIONES_STARS_LOGISTICS_UUID,
 } from '@/lib/roles/roles';
 import { IconListDetails, IconUser } from '@tabler/icons-react';
-import { ChevronRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useDEAStore } from '@/app/providers/dea-store-provider';
+import useSWRImmutable from 'swr/immutable';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { getRefsByClient } from '@/types/casa/getRefsByClient';
+import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
+import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 
 const userItems = {
   navCollapsible: [
@@ -56,61 +53,40 @@ const userItems = {
 };
 
 export default function NavCollapsible() {
-  const { user, isAuthLoading, userRoleUUID } = useAuth();
+  const { isLoading, user } = useAuth();
+  const { clientNumber } = useDEAStore((state) => state);
+  const pathname = usePathname();
+  const {
+    data: allReferences,
+    isLoading: isAllReferencesLoading,
+  }: { data: getRefsByClient[]; isLoading: boolean } = useSWRImmutable(
+    `/api/casa/getRefsByClient?client=${clientNumber}`,
+    axiosFetcher
+  );
 
-  if (isAuthLoading) return;
-  if (!user) return;
+  if (isLoading) return;
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {
-      const filteredItems = group.items.filter((item) => item.role.includes(userRoleUUID));
+      const filteredItems = group.items.filter((item) => item.role.includes(user.role));
       return filteredItems.length > 0 ? { ...group, items: filteredItems } : null;
     })
     .filter(Boolean);
 
   return (
     <>
-      {filteredNav.map((item) => {
-        if (!item) return;
-        return (
-          <Collapsible
-            key={item.title}
-            title={item.title}
-            defaultOpen
-            className="group/collapsible"
-          >
-            <SidebarGroup>
-              <SidebarGroupLabel
-                asChild
-                className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
-              >
-                <CollapsibleTrigger>
-                  {item.title}
-                  <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                </CollapsibleTrigger>
-              </SidebarGroupLabel>
-              <CollapsibleContent>
-                <SidebarGroupContent className="pl-4">
-                  <SidebarMenu>
-                    {item.items.map((item) => {
-                      return (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton asChild isActive={true}>
-                            <a href={item.url}>
-                              {item.icon && <item.icon className="mr-2" />}
-                              {item.title}
-                            </a>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-        );
-      })}
+      {pathname !== '/mygp/dea' ? (
+        filteredNav.map((item) => {
+          if (!item) return;
+          return <CollapsibleNavItem key={item.title} item={item} pathname={pathname} />;
+        })
+      ) : (
+        <CollapsibleReferences
+          references={allReferences}
+          clientNumber={clientNumber}
+          isLoading={isAllReferencesLoading}
+        />
+      )}
     </>
   );
 }

@@ -14,7 +14,7 @@ import React from 'react';
 import { Row } from '@tanstack/react-table';
 
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
-import InterfaceUpdatePhaseForm from '@/components/forms/transbel/InterfaceUpsertPhaseForm';
+import InterfaceUpsertPhaseForm from '@/components/forms/transbel/interface/InterfaceUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { IconBallpenFilled } from '@tabler/icons-react';
 
@@ -40,7 +40,7 @@ export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPe
           </DialogDescription>
         </DialogHeader>
 
-        <InterfaceUpdatePhaseForm row={row} setOpenDialog={setOpenDialog} />
+        <InterfaceUpsertPhaseForm row={row} setOpenDialog={setOpenDialog} />
       </DialogContent>
     </Dialog>
   );
