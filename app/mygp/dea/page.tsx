@@ -137,7 +137,7 @@ export default function DEA() {
         <Card className={`sm:col-span-2 row-span-3 ${cardClassName}`}>
           <p className={cardHeaderClassName}>Visor de Archivos</p>
           {fileContent && (
-            <div className="w-full h-[750px] overflow-y-auto">
+            <div className="w-full h-[720px] overflow-y-auto">
               <pre
                 style={{
                   whiteSpace: 'pre-wrap',
@@ -152,7 +152,7 @@ export default function DEA() {
           )}
 
           {pdfUrl && (
-            <div className="w-full h-[720px] mt-4">
+            <div className="w-full h-[720px]">
               <iframe
                 src={pdfUrl}
                 style={{ width: '100%', height: '100%', border: 'none' }}
@@ -162,7 +162,7 @@ export default function DEA() {
           )}
         </Card>
 
-        <Card className={`h-[250px] ${cardClassName}`}>
+        <Card className={`h-[230px] ${cardClassName}`}>
           <div className={stickyClassName}>
             <p className={cardHeaderClassName}>Expediente Aduanal</p>
           </div>
@@ -188,7 +188,7 @@ export default function DEA() {
           </div>
         </Card>
 
-        <Card className={`h-[250px] ${cardClassName}`}>
+        <Card className={`h-[230px] ${cardClassName}`}>
           <div className={stickyClassName}>
             <p className={cardHeaderClassName}>EDocs</p>
           </div>
@@ -214,7 +214,7 @@ export default function DEA() {
             })}
           </div>
         </Card>
-        <Card className={`h-[250px] ${cardClassName}`}>
+        <Card className={`h-[230px] ${cardClassName}`}>
           <div className={stickyClassName}>
             <p className={cardHeaderClassName}>Comprobantes Fiscales</p>
           </div>
@@ -239,7 +239,7 @@ export default function DEA() {
             })}
           </div>
         </Card>
-        <Card className={`h-[250px] ${cardClassName}`}>
+        <Card className={`h-[230px] ${cardClassName}`}>
           <div className={stickyClassName}>
             <p className={cardHeaderClassName}>Expediente Digital</p>
           </div>
