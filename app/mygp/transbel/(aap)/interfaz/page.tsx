@@ -3,31 +3,24 @@
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
-import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 import React from 'react';
 import { toast } from 'sonner';
-import AuthProvider from '@/components/AuthProvider/AuthProvider';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 import { ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID } from '@/lib/roles/roles';
-import { useAuth } from '@/hooks/useAuth';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 
 export default function Page() {
-  const allowedRoles = [ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID];
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
-
-  const { user, isAuthLoading, userRoleUUID } = useAuth();
 
   React.useEffect(() => {
     function validateDates() {
       const today = new Date();
 
       // Common mistakes that the user can do
-      if (initialDate == undefined) {
-        toast.error('Selecciona una fecha de inicio');
-        return;
-      } else if (initialDate > today) {
+      if (!initialDate) return;
+      if (initialDate > today) {
         toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
         return;
       } else if (finalDate == undefined) {
@@ -47,13 +40,8 @@ export default function Page() {
     validateDates();
   }, [initialDate, finalDate]);
 
-  if (isAuthLoading || !user) return;
-  if (!allowedRoles.includes(userRoleUUID)) {
-    return <p>No tienes permisos para ver este contenido.</p>;
-  }
-
   return (
-    <AuthProvider>
+    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID]}>
       <div className="flex flex-col justify-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
@@ -79,9 +67,9 @@ export default function Page() {
             finalDate: finalDate,
           }}
         >
-          <InterfaceDataTable columns={interfaceColumns} />
+          <InterfaceDataTable />
         </InterfaceContext.Provider>
       </div>
-    </AuthProvider>
+    </ProtectedRoute>
   );
 }

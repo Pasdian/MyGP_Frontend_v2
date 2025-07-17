@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -21,22 +20,22 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 
-export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPendingCE>[] }) {
+export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
     initialDate && finalDate
-      ? `/api/transbel/getRefsPendingCE?initialDate=${getFormattedDate(
+      ? `/api/transbel/getRefsPendingCE?initialDate=${
           initialDate.toISOString().split('T')[0]
-        )}&finalDate=${getFormattedDate(finalDate.toISOString().split('T')[0])}`
+        }&finalDate=${finalDate.toISOString().split('T')[0]}`
       : '/api/transbel/getRefsPendingCE',
     axiosFetcher
   );
@@ -46,7 +45,7 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
 
   const table = useReactTable({
     data: data ? data : [],
-    columns,
+    columns: interfaceColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(), // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -114,7 +113,7 @@ export function InterfaceDataTable({ columns }: { columns: ColumnDef<getRefsPend
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={interfaceColumns.length} className="h-24 text-center">
                 <div className="flex justify-center">
                   <p>Sin resultados...</p>
                 </div>

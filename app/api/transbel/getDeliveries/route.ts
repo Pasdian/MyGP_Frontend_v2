@@ -1,4 +1,4 @@
-import { GPServer } from '@/axios-instance';
+import { GPServer } from '@/lib/axiosUtils/axios-instance';
 import { logger } from '@/lib/logger';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { NextRequest, NextResponse } from 'next/server';
