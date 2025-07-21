@@ -12,6 +12,7 @@ import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
+import TailwindSpinner from './TailwindSpinner';
 
 const userItems = {
   navCollapsible: [
@@ -53,7 +54,7 @@ const userItems = {
 };
 
 export default function NavCollapsible() {
-  const { isLoading, user } = useAuth();
+  const { user } = useAuth();
   const { clientNumber } = useDEAStore((state) => state);
   const pathname = usePathname();
   const {
@@ -64,7 +65,12 @@ export default function NavCollapsible() {
     axiosFetcher
   );
 
-  if (isLoading) return;
+  if (isAllReferencesLoading)
+    return (
+      <div className="flex justify-center items-center">
+        <TailwindSpinner className="h-12 w-12" />
+      </div>
+    );
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {

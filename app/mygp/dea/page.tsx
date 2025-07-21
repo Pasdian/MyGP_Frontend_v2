@@ -5,6 +5,7 @@ import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import { Card } from '@/components/ui/card';
+import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
@@ -20,6 +21,7 @@ export default function DEA() {
     reference,
     setClientNumber: setDEAClientNumber,
   } = useDEAStore((state) => state);
+
   const [clientName, setClientName] = React.useState('');
   const [clickedFile, setClickedFile] = React.useState('');
   const [folder, setFolder] = React.useState('');
@@ -35,7 +37,7 @@ export default function DEA() {
     axiosFetcher
   );
 
-  const { data: myBlob } = useSWRImmutable(
+  const { data: myBlob, isLoading: isMyBlobLoading } = useSWRImmutable(
     deaClientNumber &&
       reference &&
       folder &&
@@ -135,7 +137,12 @@ export default function DEA() {
         </Card>
         <Card className={`sm:col-span-2 row-span-3 ${cardClassName}`}>
           <p className={cardHeaderClassName}>Visor de Archivos</p>
-          {fileContent && (
+          {isMyBlobLoading && (
+            <div className="w-full h-[720px] flex justify-center items-center">
+              <TailwindSpinner />
+            </div>
+          )}
+          {fileContent && !isMyBlobLoading && (
             <div className="w-full h-[720px] overflow-y-auto">
               <pre
                 style={{
@@ -150,7 +157,7 @@ export default function DEA() {
             </div>
           )}
 
-          {pdfUrl && (
+          {pdfUrl && !isMyBlobLoading && (
             <div className="w-full h-[720px]">
               <iframe
                 src={pdfUrl}
