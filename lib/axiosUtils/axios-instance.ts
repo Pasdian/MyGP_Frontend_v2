@@ -1,7 +1,6 @@
 import axios from "axios";
 
 export const GPClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
   withCredentials: true,
   headers: {
     "Cache-Control": "no-cache", // Avoid static routes by default

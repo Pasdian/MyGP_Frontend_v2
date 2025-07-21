@@ -18,7 +18,7 @@ export type DEAActions = {
 export type DEAStore = DEAState & DEAActions;
 
 export const initDEAStore = (): DEAState => {
-  return { clientNumber: '000041', reference: '' };
+  return { clientNumber: '000259', reference: '' };
 };
 
 export const createDEAStore = (initState: DEAState = defaultInitState) => {

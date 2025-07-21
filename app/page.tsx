@@ -6,5 +6,5 @@ export default function Root() {
   const router = useRouter();
   React.useEffect(() => {
     router.push('/mygp/dashboard');
-  }, []);
+  }, [router]);
 }
