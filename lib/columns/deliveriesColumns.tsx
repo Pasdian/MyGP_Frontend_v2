@@ -49,11 +49,17 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     accessorKey: "GUIA_HOUSE",
     header: "Guía House",
     cell: ({ row }) => {
-      if (!row.original.GUIA_HOUSE) {
+      const trafficTypeChar = row.original.REFERENCIA?.charAt(1);
+
+      if (
+        !row.original.GUIA_HOUSE &&
+        trafficTypeChar !== "M" &&
+        trafficTypeChar !== "V"
+      ) {
         return <ErrorTooltip value="--" errorMessage="No existe guía house" />;
       }
 
-      return <p className="text-center">{row.original.GUIA_HOUSE}</p>;
+      return <p className="text-center">{row.original.GUIA_HOUSE || "--"}</p>;
     },
   },
   {

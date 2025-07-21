@@ -9,7 +9,6 @@ import {
   IconSettings,
 } from '@tabler/icons-react';
 
-import { NavDocuments } from '@/components/ui/nav-documents';
 import { NavMain } from '@/components/ui/nav-main';
 import { NavSecondary } from '@/components/ui/nav-secondary';
 import { NavUser } from '@/components/ui/nav-user';
@@ -69,7 +68,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="gap-0">
         <NavMain />
         <NavCollapsible />
-        <NavDocuments items={data.extras} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
