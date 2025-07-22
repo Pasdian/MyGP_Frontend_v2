@@ -106,10 +106,10 @@ export default function DEA() {
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
       <div className="flex mb-5">
         <div className="mr-5">
-          <InitialDatePicker date={DEAFinalDate} setDate={setDEAInitialDate} />
+          <InitialDatePicker date={DEAFinalDate} setDate={setDEAFinalDate} />
         </div>
         <div className=" mr-5">
-          <FinalDatePicker date={DEAInitialDate} setDate={setDEAFinalDate} />
+          <FinalDatePicker date={DEAInitialDate} setDate={setDEAInitialDate} />
         </div>
         <div>
           <ClientsCombo
