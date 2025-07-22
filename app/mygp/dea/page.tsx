@@ -7,6 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import { Card } from '@/components/ui/card';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { clientsData } from '@/lib/clients/clientsData';
 import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
@@ -28,7 +29,9 @@ export default function DEA() {
     setFinalDate: setDEAFinalDate,
   } = useDEAStore((state) => state);
 
-  const [clientName, setClientName] = React.useState('');
+  const [clientName, setClientName] = React.useState(
+    clientsData.find((client) => client.CVE_IMP == deaClientNumber)?.NOM_IMP || ''
+  );
   const [clickedFile, setClickedFile] = React.useState('');
   const [folder, setFolder] = React.useState('');
   const [pdfUrl, setPdfUrl] = React.useState('');

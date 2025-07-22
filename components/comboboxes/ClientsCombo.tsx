@@ -65,7 +65,7 @@ export default function ClientsCombo({
                 {clients.map((client) => (
                   <CommandItem
                     key={client.value}
-                    value={client.value}
+                    value={client.label}
                     onSelect={(val) => {
                       setClientName(client.label);
                       setClientNumber(client.value);
