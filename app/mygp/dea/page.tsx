@@ -9,7 +9,7 @@ import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import useSWRImmutable from 'swr/immutable';
@@ -33,11 +33,8 @@ export default function DEA() {
   const [folder, setFolder] = React.useState('');
   const [pdfUrl, setPdfUrl] = React.useState('');
   const [fileContent, setFileContent] = React.useState('');
-  const [aMonthAgo] = React.useState(
-    new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]
-  );
 
-  const { data, error }: { data: getFilesByReference; isLoading: boolean; error: unknown } =
+  const { data }: { data: getFilesByReference; isLoading: boolean; error: unknown } =
     useSWRImmutable(
       reference &&
         deaClientNumber &&
@@ -103,11 +100,7 @@ export default function DEA() {
       );
     }
     validateDates();
-  }, [DEAInitialDate, DEAFinalDate, clientName]);
-
-  useEffect(() => {
-    console.log(error);
-  }, [error]);
+  }, [DEAInitialDate, DEAFinalDate, clientName, deaClientNumber]);
 
   return (
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>

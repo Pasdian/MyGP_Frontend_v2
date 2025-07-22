@@ -13,7 +13,6 @@ import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import TailwindSpinner from './TailwindSpinner';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import React from 'react';
 
 const userItems = {
