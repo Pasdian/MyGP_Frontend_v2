@@ -64,8 +64,8 @@ export default function NavCollapsible() {
   }: { data: getRefsByClient[]; isLoading: boolean } = useSWRImmutable(
     clientNumber && initialDate && finalDate
       ? `/api/casa/getRefsByClient?client=${clientNumber}&initialDate=${
-          finalDate.toISOString().split('T')[0]
-        }&finalDate=${initialDate.toISOString().split('T')[0]}`
+          initialDate.toISOString().split('T')[0]
+        }&finalDate=${finalDate.toISOString().split('T')[0]}`
       : `/api/casa/getRefsByClient?client=000041`,
     axiosFetcher
   );

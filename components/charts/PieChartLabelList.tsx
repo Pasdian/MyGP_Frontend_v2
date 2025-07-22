@@ -117,10 +117,10 @@ export default function PieChartLabelList() {
     <>
       <div className="flex mb-5">
         <div className="mr-5">
-          <InitialDatePicker date={initialDate} setDate={setInitialDate} />
+          <InitialDatePicker date={initialDate} setDate={setInitialDate} onSelect={() => {}} />
         </div>
         <div className=" mr-5">
-          <FinalDatePicker date={finalDate} setDate={setFinalDate} />
+          <FinalDatePicker date={finalDate} setDate={setFinalDate} onSelect={() => {}} />
         </div>
         <div>
           <ClientsCombo

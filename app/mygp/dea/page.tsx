@@ -109,10 +109,36 @@ export default function DEA() {
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
       <div className="flex mb-5">
         <div className="mr-5">
-          <InitialDatePicker date={DEAInitialDate} setDate={setDEAInitialDate} />
+          <InitialDatePicker
+            date={DEAInitialDate}
+            setDate={setDEAInitialDate}
+            onSelect={() => {
+              setClickedFile('');
+              setFolder('');
+              setPdfUrl('');
+              mutate(`/api/casa/getRefsByClient?client=${deaClientNumber}`);
+              mutate(
+                `/dea/getFilesByReference?reference=${reference}&client=${deaClientNumber}`,
+                undefined
+              );
+            }}
+          />
         </div>
         <div className=" mr-5">
-          <FinalDatePicker date={DEAFinalDate} setDate={setDEAFinalDate} />
+          <FinalDatePicker
+            date={DEAFinalDate}
+            setDate={setDEAFinalDate}
+            onSelect={() => {
+              setClickedFile('');
+              setFolder('');
+              setPdfUrl('');
+              mutate(`/api/casa/getRefsByClient?client=${deaClientNumber}`);
+              mutate(
+                `/dea/getFilesByReference?reference=${reference}&client=${deaClientNumber}`,
+                undefined
+              );
+            }}
+          />
         </div>
         <div>
           <ClientsCombo
@@ -120,8 +146,14 @@ export default function DEA() {
             setClientName={setClientName}
             setClientNumber={setDEAClientNumber}
             onSelect={() => {
-              mutate(`/api/casa/getRefsByClient?client=${deaClientNumber}`);
+              setClickedFile('');
+              setFolder('');
               setPdfUrl('');
+              mutate(`/api/casa/getRefsByClient?client=${deaClientNumber}`);
+              mutate(
+                `/dea/getFilesByReference?reference=${reference}&client=${deaClientNumber}`,
+                undefined
+              );
             }}
           />
         </div>

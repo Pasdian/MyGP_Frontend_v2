@@ -54,10 +54,10 @@ export default function Page() {
           </p>
         </div>
         <div className="mb-5">
-          <InitialDatePicker date={initialDate} setDate={setInitialDate} />
+          <InitialDatePicker date={initialDate} setDate={setInitialDate} onSelect={() => {}} />
         </div>
         <div className="mb-5">
-          <FinalDatePicker date={finalDate} setDate={setFinalDate} />
+          <FinalDatePicker date={finalDate} setDate={setFinalDate} onSelect={() => {}} />
         </div>
       </div>
       <div>
