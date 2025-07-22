@@ -99,7 +99,7 @@ export default function DEA() {
         return;
       }
       mutate(
-        `/api/casa/getRefsByClient?client=${deaClientNumber}&initialDate=${DEAFinalDate}&finalDate=${DEAInitialDate}`
+        `/api/casa/getRefsByClient?client=${deaClientNumber}&initialDate=${DEAInitialDate}&finalDate=${DEAFinalDate}`
       );
     }
     validateDates();
