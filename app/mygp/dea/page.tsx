@@ -9,7 +9,9 @@ import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { toast } from 'sonner';
+import { mutate } from 'swr';
 import useSWRImmutable from 'swr/immutable';
 const cardClassName = 'relative py-0 gap-0 text-xs overflow-y-auto';
 const stickyClassName = 'sticky top-0 right-0 left-0';
@@ -20,22 +22,28 @@ export default function DEA() {
     clientNumber: deaClientNumber,
     reference,
     setClientNumber: setDEAClientNumber,
+    initialDate: DEAInitialDate,
+    finalDate: DEAFinalDate,
+    setInitialDate: setDEAInitialDate,
+    setFinalDate: setDEAFinalDate,
   } = useDEAStore((state) => state);
 
   const [clientName, setClientName] = React.useState('');
   const [clickedFile, setClickedFile] = React.useState('');
   const [folder, setFolder] = React.useState('');
   const [pdfUrl, setPdfUrl] = React.useState('');
-  const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
-  const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
   const [fileContent, setFileContent] = React.useState('');
-
-  const { data }: { data: getFilesByReference; isLoading: boolean } = useSWRImmutable(
-    reference &&
-      deaClientNumber &&
-      `/dea/getFilesByReference?reference=${reference}&client=${deaClientNumber}`,
-    axiosFetcher
+  const [aMonthAgo] = React.useState(
+    new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]
   );
+
+  const { data, error }: { data: getFilesByReference; isLoading: boolean; error: unknown } =
+    useSWRImmutable(
+      reference &&
+        deaClientNumber &&
+        `/dea/getFilesByReference?reference=${reference}&client=${deaClientNumber}`,
+      axiosFetcher
+    );
 
   const { data: myBlob, isLoading: isMyBlobLoading } = useSWRImmutable(
     deaClientNumber &&
@@ -65,21 +73,60 @@ export default function DEA() {
     parseBlob();
   }, [myBlob]);
 
+  React.useEffect(() => {
+    function validateDates() {
+      const today = new Date();
+
+      // Common mistakes that the user can do
+      if (!DEAInitialDate) return;
+      if (new Date(DEAInitialDate) > today) {
+        toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
+        return;
+      } else if (DEAFinalDate == undefined) {
+        toast.error('Selecciona una fecha de termino');
+        return;
+      } else if (DEAInitialDate > DEAFinalDate) {
+        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de termino');
+        return;
+      } else if (DEAFinalDate <= DEAInitialDate) {
+        toast.error('La fecha de termino no puede ser menor o igual a la fecha de inicio');
+        return;
+      } else if (new Date(DEAFinalDate) > today) {
+        toast.error('La fecha de termino no puede ser mayor a la fecha actual');
+        return;
+      } else if (!clientName) {
+        toast.error('Selecciona un cliente');
+        return;
+      }
+      mutate(
+        `/api/casa/getRefsByClient?client=${deaClientNumber}&initialDate=${DEAInitialDate}&finalDate=${DEAFinalDate}`
+      );
+    }
+    validateDates();
+  }, [DEAInitialDate, DEAFinalDate, clientName]);
+
+  useEffect(() => {
+    console.log(error);
+  }, [error]);
+
   return (
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
       <div className="flex mb-5">
         <div className="mr-5">
-          <InitialDatePicker date={initialDate} setDate={setInitialDate} />
+          <InitialDatePicker date={DEAFinalDate} setDate={setDEAInitialDate} />
         </div>
         <div className=" mr-5">
-          <FinalDatePicker date={finalDate} setDate={setFinalDate} />
+          <FinalDatePicker date={DEAInitialDate} setDate={setDEAFinalDate} />
         </div>
         <div>
           <ClientsCombo
             clientName={clientName}
             setClientName={setClientName}
             setClientNumber={setDEAClientNumber}
-            onSelect={() => {}}
+            onSelect={() => {
+              mutate(`/api/casa/getRefsByClient?client=${deaClientNumber}`);
+              setPdfUrl('');
+            }}
           />
         </div>
       </div>
@@ -95,7 +142,7 @@ export default function DEA() {
                   className={
                     clickedFile == item
                       ? 'bg-green-300 cursor-pointer mb-1'
-                      : 'cursor-pointer mb-1 odd:bg-white even:bg-gray-200'
+                      : 'cursor-pointer mb-1 even:bg-gray-200'
                   }
                   key={item}
                   onClick={() => {
@@ -121,7 +168,7 @@ export default function DEA() {
                     className={
                       clickedFile == item
                         ? 'bg-green-300 cursor-pointer mb-1'
-                        : 'cursor-pointer mb-1 odd:bg-white even:bg-gray-200'
+                        : 'cursor-pointer mb-1 even:bg-gray-200'
                     }
                     key={item}
                     onClick={() => {
@@ -179,7 +226,7 @@ export default function DEA() {
                   className={
                     clickedFile == item
                       ? 'bg-green-300 cursor-pointer mb-1'
-                      : 'cursor-pointer mb-1 odd:bg-white even:bg-gray-200'
+                      : 'cursor-pointer mb-1 even:bg-gray-200'
                   }
                   key={item}
                   onClick={() => {
@@ -206,7 +253,7 @@ export default function DEA() {
                     className={
                       clickedFile == item
                         ? 'bg-green-300 cursor-pointer mb-1'
-                        : 'cursor-pointer mb-1 odd:bg-white even:bg-gray-200'
+                        : 'cursor-pointer mb-1   even:bg-gray-200'
                     }
                     key={item}
                     onClick={() => {
@@ -231,7 +278,7 @@ export default function DEA() {
                   className={
                     clickedFile == item
                       ? 'bg-green-300 cursor-pointer mb-1'
-                      : 'cursor-pointer mb-1 odd:bg-white even:bg-gray-200'
+                      : 'cursor-pointer mb-1 even:bg-gray-200'
                   }
                   key={item}
                   onClick={() => {

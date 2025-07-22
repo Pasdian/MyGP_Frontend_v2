@@ -47,7 +47,7 @@ export default function CollapsibleReferences({
                           className={
                             clickedReference == reference.NUM_REFE
                               ? 'bg-green-300 cursor-pointer mb-1'
-                              : 'cursor-pointer mb-1 odd:bg-white even:bg-gray-200'
+                              : 'cursor-pointer mb-1 even:bg-gray-200'
                           }
                         >
                           <p onClick={() => setClickedReference(reference.NUM_REFE)}>

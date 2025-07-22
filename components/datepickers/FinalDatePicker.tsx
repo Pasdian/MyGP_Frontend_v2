@@ -13,7 +13,9 @@ export default function FinalDatePicker({
   setDate,
 }: {
   date: Date | undefined;
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+  setDate:
+    | React.Dispatch<React.SetStateAction<Date | undefined>>
+    | ((initialDate: Date | undefined) => void);
 }) {
   const [open, setOpen] = React.useState(false);
   return (
