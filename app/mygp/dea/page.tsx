@@ -96,7 +96,7 @@ export default function DEA() {
         return;
       }
       mutate(
-        `/api/casa/getRefsByClient?client=${deaClientNumber}&initialDate=${DEAInitialDate}&finalDate=${DEAFinalDate}`
+        `/api/casa/getRefsByClient?client=${deaClientNumber}&initialDate=${DEAFinalDate}&finalDate=${DEAInitialDate}`
       );
     }
     validateDates();
@@ -106,10 +106,10 @@ export default function DEA() {
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
       <div className="flex mb-5">
         <div className="mr-5">
-          <InitialDatePicker date={DEAFinalDate} setDate={setDEAFinalDate} />
+          <InitialDatePicker date={DEAInitialDate} setDate={setDEAInitialDate} />
         </div>
         <div className=" mr-5">
-          <FinalDatePicker date={DEAInitialDate} setDate={setDEAInitialDate} />
+          <FinalDatePicker date={DEAFinalDate} setDate={setDEAFinalDate} />
         </div>
         <div>
           <ClientsCombo
