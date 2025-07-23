@@ -92,11 +92,7 @@ export default function NavCollapsible() {
           return <CollapsibleNavItem key={item.title} item={item} pathname={pathname} />;
         })
       ) : (
-        <CollapsibleReferences
-          references={allReferences}
-          clientNumber={clientNumber}
-          isLoading={isAllReferencesLoading}
-        />
+        <CollapsibleReferences references={allReferences} />
       )}
     </>
   );

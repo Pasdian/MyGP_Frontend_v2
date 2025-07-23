@@ -9,19 +9,38 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '../sidebar';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, DownloadIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { axiosBlobFetcher } from '@/lib/axiosUtils/axios-instance';
+import React from 'react';
+import TailwindSpinner from '../TailwindSpinner';
+import useSWRImmutable from 'swr/immutable';
 
-export default function CollapsibleReferences({
-  clientNumber,
-  references,
-  isLoading,
-}: {
-  clientNumber: string;
-  references: getRefsByClient[];
-  isLoading: boolean;
-}) {
-  const { reference: clickedReference, setClickedReference } = useDEAStore((state) => state);
+export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
+  const { reference, setClickedReference, clientNumber } = useDEAStore((state) => state);
+
+  const [url, setUrl] = React.useState('');
+
+  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
+  const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!zipBlob) return;
+    const downloadUrl = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `${clientNumber}-${reference}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setUrl('');
+    setLoadingReference('');
+    URL.revokeObjectURL(downloadUrl);
+
+    // Reset URL to allow re-download on next click
+    setUrl('');
+  }, [zipBlob, clientNumber, reference]);
 
   return (
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
@@ -39,24 +58,38 @@ export default function CollapsibleReferences({
           <CollapsibleContent>
             <SidebarGroupContent className="pl-4">
               <SidebarMenu>
-                {clientNumber && references && !isLoading
-                  ? references.map((reference, i) => {
-                      return (
-                        <SidebarMenuItem
-                          key={i}
-                          className={
-                            clickedReference == reference.NUM_REFE
-                              ? 'bg-green-300 cursor-pointer mb-1'
-                              : 'cursor-pointer mb-1 even:bg-gray-200'
-                          }
-                        >
-                          <p onClick={() => setClickedReference(reference.NUM_REFE)}>
-                            {reference.NUM_REFE}
-                          </p>
-                        </SidebarMenuItem>
-                      );
-                    })
-                  : ''}
+                {clientNumber &&
+                  references &&
+                  references.map(({ NUM_REFE }: getRefsByClient, i) => {
+                    const isDownloading = loadingReference === NUM_REFE;
+
+                    return (
+                      <SidebarMenuItem
+                        key={i}
+                        className={
+                          reference == NUM_REFE
+                            ? 'bg-green-300 cursor-pointer mb-1 p-2'
+                            : 'cursor-pointer mb-1 even:bg-gray-200 p-2'
+                        }
+                      >
+                        <div className="flex justify-between">
+                          <p onClick={() => setClickedReference(NUM_REFE)}>{NUM_REFE}</p>
+                          {!isDownloading ? (
+                            <DownloadIcon
+                              size={20}
+                              onClick={() => {
+                                setClickedReference(NUM_REFE);
+                                setLoadingReference(NUM_REFE);
+                                setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
+                              }}
+                            />
+                          ) : (
+                            <TailwindSpinner className="w-6 h-6" />
+                          )}
+                        </div>
+                      </SidebarMenuItem>
+                    );
+                  })}
               </SidebarMenu>
             </SidebarGroupContent>
           </CollapsibleContent>
