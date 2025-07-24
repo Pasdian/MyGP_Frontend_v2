@@ -103,33 +103,43 @@ export default function DEA() {
   // Effect for date validation
   React.useEffect(() => {
     function validateDates() {
-      const today = new Date();
-
-      // Common mistakes that the user can do
       if (!initialDate) return;
-      if (new Date() > today) {
+      if (!finalDate) {
+        toast.error('Selecciona una fecha de término');
+        return;
+      }
+
+      const today = new Date();
+      const start = new Date(initialDate);
+      const end = new Date(finalDate);
+
+      if (start > today) {
         toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
         return;
-      } else if (finalDate == undefined) {
-        toast.error('Selecciona una fecha de termino');
+      }
+
+      if (end > today) {
+        toast.error('La fecha de término no puede ser mayor a la fecha actual');
         return;
-      } else if (initialDate > finalDate) {
-        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de termino');
+      }
+
+      if (start >= end) {
+        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
         return;
-      } else if (finalDate <= initialDate) {
-        toast.error('La fecha de termino no puede ser menor o igual a la fecha de inicio');
-        return;
-      } else if (new Date() > today) {
-        toast.error('La fecha de termino no puede ser mayor a la fecha actual');
-        return;
-      } else if (!clientName) {
+      }
+
+      if (!clientName) {
         toast.error('Selecciona un cliente');
         return;
       }
+
       mutate(
         `/api/casa/getRefsByClient?client=${clientNumber}&initialDate=${initialDate}&finalDate=${finalDate}`
       );
+      mutate(`/api/casa/getRefsByClient?client=${clientNumber}`);
+      mutate(`/dea/getFilesByReference?reference=${reference}&client=${clientNumber}`, undefined);
     }
+
     validateDates();
   }, [initialDate, finalDate, clientName, clientNumber]);
 
@@ -144,11 +154,6 @@ export default function DEA() {
               setClickedFile('');
               setSubfolder('');
               setPdfUrl('');
-              mutate(`/api/casa/getRefsByClient?client=${clientNumber}`);
-              mutate(
-                `/dea/getFilesByReference?reference=${reference}&client=${clientNumber}`,
-                undefined
-              );
             }}
           />
         </div>
@@ -160,11 +165,6 @@ export default function DEA() {
               setClickedFile('');
               setSubfolder('');
               setPdfUrl('');
-              mutate(`/api/casa/getRefsByClient?client=${clientNumber}`);
-              mutate(
-                `/dea/getFilesByReference?reference=${reference}&client=${clientNumber}`,
-                undefined
-              );
             }}
           />
         </div>
@@ -177,11 +177,6 @@ export default function DEA() {
               setClickedFile('');
               setSubfolder('');
               setPdfUrl('');
-              mutate(`/api/casa/getRefsByClient?client=${clientNumber}`);
-              mutate(
-                `/dea/getFilesByReference?reference=${reference}&client=${clientNumber}`,
-                undefined
-              );
             }}
           />
         </div>
@@ -192,7 +187,7 @@ export default function DEA() {
             <div className={stickyClassName}>
               <p className="font-bold">
                 {reference && data
-                  ? `Cuenta de Gastos - ${data?.files['01-CTA-GASTOS'].length} archivos`
+                  ? `Cuenta de Gastos - ${data?.files['01-CTA-GASTOS']?.length || 0} archivos`
                   : 'Cuenta de Gastos'}
               </p>
               <div>
@@ -238,9 +233,9 @@ export default function DEA() {
               <p className="font-bold">
                 {reference && data
                   ? `COVES - ${
-                      data?.files['04-VUCEM'].filter((file: { name: string } | string) =>
+                      data?.files['04-VUCEM']?.filter((file: { name: string } | string) =>
                         (typeof file === 'string' ? file : file.name).includes('COVE')
-                      ).length
+                      ).length || 0
                     } archivos`
                   : 'COVES'}
               </p>
@@ -326,7 +321,9 @@ export default function DEA() {
             <div className={stickyClassName}>
               <p className="font-bold">
                 {reference && data
-                  ? `Expediente Aduanal - ${data?.files['02-EXPEDIENTE-ADUANAL'].length} archivos`
+                  ? `Expediente Aduanal - ${
+                      data?.files['02-EXPEDIENTE-ADUANAL']?.length || 0
+                    } archivos`
                   : 'Expediente Aduanal'}
               </p>
               <div>
@@ -375,10 +372,10 @@ export default function DEA() {
               <p className="font-bold">
                 {reference && data
                   ? `EDocs - ${
-                      data?.files['04-VUCEM'].filter(
+                      data?.files['04-VUCEM']?.filter(
                         (file: { name: string } | string) =>
                           !(typeof file === 'string' ? file : file.name).includes('COVE')
-                      ).length
+                      ).length || 0
                     } archivos`
                   : 'EDocs'}
               </p>
@@ -427,7 +424,7 @@ export default function DEA() {
             <div className={stickyClassName}>
               <p className="font-bold">
                 {reference && data
-                  ? `Comprobantes Fiscales - ${data?.files['03-FISCALES'].length} archivos`
+                  ? `Comprobantes Fiscales - ${data?.files['03-FISCALES']?.length || 0} archivos`
                   : 'Comprobantes Fiscales'}
               </p>
               <div>

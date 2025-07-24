@@ -26,10 +26,12 @@ import { customs } from '@/lib/customs/customs';
 export const description = 'A pie chart with a label list';
 
 export default function PieChartLabelList() {
-  const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
-  const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
-  const [clientName, setClientName] = React.useState('');
-  const [clientNumber, setClientNumber] = React.useState('');
+  const [initialDate, setInitialDate] = React.useState<Date | undefined>(
+    new Date(new Date().setMonth(new Date().getMonth() - 1))
+  );
+  const [finalDate, setFinalDate] = React.useState<Date | undefined>(new Date());
+  const [clientName, setClientName] = React.useState('TRANSBEL SA DE CV');
+  const [clientNumber, setClientNumber] = React.useState('000259'); // Transbel
 
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
@@ -56,27 +58,32 @@ export default function PieChartLabelList() {
 
   React.useEffect(() => {
     function validateDates() {
-      const today = new Date();
-
-      // Common mistakes that the user can do
       if (!initialDate) return;
-      if (initialDate > today) {
+      if (!finalDate) {
+        toast.error('Selecciona una fecha de término');
+        return;
+      }
+
+      const today = new Date();
+      const start = new Date(initialDate);
+      const end = new Date(finalDate);
+
+      if (start > today) {
         toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
         return;
-      } else if (finalDate == undefined) {
-        toast.error('Selecciona una fecha de termino');
+      }
+
+      if (end > today) {
+        toast.error('La fecha de término no puede ser mayor a la fecha actual');
         return;
-      } else if (initialDate > finalDate) {
-        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de termino');
-        return;
-      } else if (finalDate <= initialDate) {
-        toast.error('La fecha de termino no puede ser menor o igual a la fecha de inicio');
-        return;
-      } else if (finalDate > today) {
-        toast.error('La fecha de termino no puede ser mayor a la fecha actual');
+      }
+
+      if (start >= end) {
+        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
         return;
       }
     }
+
     validateDates();
   }, [initialDate, finalDate]);
 
@@ -165,7 +172,7 @@ export default function PieChartLabelList() {
             </PieChart>
           </ChartContainer>
         </CardContent>
-        {initialDate && finalDate && clientName ? (
+        {initialDate && finalDate && clientName && maxOperationValue !== 0 && (
           <CardFooter className="flex-col gap-2 text-sm">
             <div className="flex items-center gap-2 leading-none font-medium">
               {`El máximo número de operaciones fue ${maxOperationValue}`}
@@ -179,8 +186,6 @@ export default function PieChartLabelList() {
               )}`}
             </div>
           </CardFooter>
-        ) : (
-          ''
         )}
       </Card>
     </>

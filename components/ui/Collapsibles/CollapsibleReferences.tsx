@@ -71,9 +71,10 @@ export default function CollapsibleReferences({ references }: { references: getR
                             ? 'bg-green-300 cursor-pointer mb-1 p-2'
                             : 'cursor-pointer mb-1 even:bg-gray-200 p-2'
                         }
+                        onClick={() => setClickedReference(NUM_REFE)}
                       >
                         <div className="flex justify-between">
-                          <p onClick={() => setClickedReference(NUM_REFE)}>{NUM_REFE}</p>
+                          <p>{NUM_REFE}</p>
                           {!isDownloading ? (
                             <DownloadIcon
                               size={20}
