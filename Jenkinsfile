@@ -1,6 +1,11 @@
 pipeline {
   agent any
 
+  environment {
+    IMAGE_NAME = 'my-nextjs-app'
+    CONTAINER_NAME = 'nextjs-container'
+  }
+
   stages {
     stage('Checkout') {
       steps {
@@ -8,28 +13,24 @@ pipeline {
       }
     }
 
-    stage('Build Production Images') {
+    stage('Build Docker Image') {
       steps {
-        sh 'make build-prod'
+        script {
+          // Build the Docker image using your Dockerfile
+          sh "docker build -t ${IMAGE_NAME} ."
+        }
       }
     }
 
-    stage('Stop Production Containers') {
+    stage('Run Container') {
       steps {
-        sh 'make stop-prod'
-      }
-    }
+        script {
+          // Stop and remove any existing container with the same name (ignore errors)
+          sh "docker rm -f ${CONTAINER_NAME} || true"
 
-    stage('Start Production Containers') {
-      steps {
-        sh 'make start-prod'
-      }
-    }
-
-    stage('Show Logs') {
-      steps {
-        // Optional: tail logs for a while or until user abort
-        sh 'make logs'
+          // Run the container mapping port 3001
+          sh "docker run -d --name ${CONTAINER_NAME} -p 3001:3001 ${IMAGE_NAME}"
+        }
       }
     }
   }
