@@ -61,7 +61,6 @@ export default function DEA() {
 
   const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
   const [subfolderLoading, setSubfolderLoading] = React.useState('');
-  console.log(pdfUrl);
 
   // Effect for fileBlob
   React.useEffect(() => {
