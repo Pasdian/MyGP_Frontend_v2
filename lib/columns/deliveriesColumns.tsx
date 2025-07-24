@@ -49,11 +49,17 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     accessorKey: "GUIA_HOUSE",
     header: "Guía House",
     cell: ({ row }) => {
-      if (!row.original.GUIA_HOUSE) {
+      const trafficTypeChar = row.original.REFERENCIA?.charAt(1);
+
+      if (
+        !row.original.GUIA_HOUSE &&
+        trafficTypeChar !== "M" &&
+        trafficTypeChar !== "V"
+      ) {
         return <ErrorTooltip value="--" errorMessage="No existe guía house" />;
       }
 
-      return <p className="text-center">{row.original.GUIA_HOUSE}</p>;
+      return <p className="text-center">{row.original.GUIA_HOUSE || "--"}</p>;
     },
   },
   {
@@ -70,7 +76,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
@@ -82,8 +88,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
       if (
         row.original.ENTREGA_TRANSPORTE_138 &&
         row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138.split(" ")[0] >
-          row.original.ENTREGA_CDP_140.split(" ")[0]
+        row.original.ENTREGA_TRANSPORTE_138 > row.original.ENTREGA_CDP_140
       ) {
         return (
           <ErrorTooltip
@@ -95,8 +100,8 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         !row.original.CE_140 &&
         row.original.ENTREGA_CDP_140 &&
         businessDaysDiffWithHolidays(
-          new Date(row.original.ENTREGA_TRANSPORTE_138.split(" ")[0]),
-          new Date(row.original.ENTREGA_CDP_140?.split(" ")[0])
+          new Date(row.original.ENTREGA_TRANSPORTE_138),
+          new Date(row.original.ENTREGA_CDP_140)
         ) > 1
       ) {
         return (
@@ -128,7 +133,7 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_CDP_140.split(" ")[0])) {
+      if (!isCurrentYear(row.original.ENTREGA_CDP_140)) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_CDP_140)}
