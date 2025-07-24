@@ -80,7 +80,7 @@ export default function DEA() {
       }
     }
     parseBlob();
-  }, [fileBlob]);
+  }, [fileBlob, setPdfUrl]);
 
   // Effect for zipBlob
   React.useEffect(() => {
