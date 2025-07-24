@@ -17,10 +17,11 @@ import TailwindSpinner from '../TailwindSpinner';
 import useSWRImmutable from 'swr/immutable';
 
 export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
-  const { reference, setClickedReference, clientNumber } = useDEAStore((state) => state);
+  const { reference, setClickedReference, clientNumber, setPdfUrl, setFile } = useDEAStore(
+    (state) => state
+  );
 
   const [url, setUrl] = React.useState('');
-
   const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
   const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
 
@@ -71,7 +72,11 @@ export default function CollapsibleReferences({ references }: { references: getR
                             ? 'bg-green-300 cursor-pointer mb-1 p-2'
                             : 'cursor-pointer mb-1 even:bg-gray-200 p-2'
                         }
-                        onClick={() => setClickedReference(NUM_REFE)}
+                        onClick={() => {
+                          setPdfUrl('');
+                          setFile('');
+                          setClickedReference(NUM_REFE);
+                        }}
                       >
                         <div className="flex justify-between">
                           <p>{NUM_REFE}</p>

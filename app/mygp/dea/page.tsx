@@ -29,15 +29,17 @@ export default function DEA() {
     finalDate,
     setInitialDate,
     setFinalDate,
+    pdfUrl,
+    setPdfUrl,
+    file,
+    setFile,
   } = useDEAStore((state) => state);
 
   const [url, setUrl] = React.useState('');
   const [clientName, setClientName] = React.useState(
     clientsData.find((client) => client.CVE_IMP == clientNumber)?.NOM_IMP || ''
   );
-  const [clickedFile, setClickedFile] = React.useState('');
   const [subfolder, setSubfolder] = React.useState('');
-  const [pdfUrl, setPdfUrl] = React.useState('');
   const [fileContent, setFileContent] = React.useState('');
 
   const { data }: { data: getFilesByReference; isLoading: boolean; error: unknown } =
@@ -52,13 +54,14 @@ export default function DEA() {
     clientNumber &&
       reference &&
       subfolder &&
-      clickedFile &&
-      `/dea/getFileContent?filepath=${clientNumber}/${reference}/${subfolder}/${clickedFile}`,
+      file &&
+      `/dea/getFileContent?filepath=${clientNumber}/${reference}/${subfolder}/${file}`,
     axiosBlobFetcher
   );
 
   const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
   const [subfolderLoading, setSubfolderLoading] = React.useState('');
+  console.log(pdfUrl);
 
   // Effect for fileBlob
   React.useEffect(() => {
@@ -151,7 +154,7 @@ export default function DEA() {
             date={initialDate}
             setDate={setInitialDate}
             onSelect={() => {
-              setClickedFile('');
+              setFile('');
               setSubfolder('');
               setPdfUrl('');
             }}
@@ -162,7 +165,7 @@ export default function DEA() {
             date={finalDate}
             setDate={setFinalDate}
             onSelect={() => {
-              setClickedFile('');
+              setFile('');
               setSubfolder('');
               setPdfUrl('');
             }}
@@ -174,7 +177,7 @@ export default function DEA() {
             setClientName={setClientName}
             setClientNumber={setClientNumber}
             onSelect={() => {
-              setClickedFile('');
+              setFile('');
               setSubfolder('');
               setPdfUrl('');
             }}
@@ -211,13 +214,13 @@ export default function DEA() {
               {data?.files['01-CTA-GASTOS']?.map((item) => (
                 <p
                   className={
-                    clickedFile === item
+                    file === item
                       ? 'bg-green-300 cursor-pointer mb-1'
                       : 'cursor-pointer mb-1 even:bg-gray-200'
                   }
                   key={item}
                   onClick={() => {
-                    setClickedFile(item);
+                    setFile(item);
                     setSubfolder('01-CTA-GASTOS');
                   }}
                 >
@@ -262,13 +265,13 @@ export default function DEA() {
                   return (
                     <p
                       className={
-                        clickedFile == item
+                        file == item
                           ? 'bg-green-300 cursor-pointer mb-1'
                           : 'cursor-pointer mb-1 even:bg-gray-200'
                       }
                       key={item}
                       onClick={() => {
-                        setClickedFile(item);
+                        setFile(item);
                         setSubfolder('04-VUCEM');
                       }}
                     >
@@ -348,13 +351,13 @@ export default function DEA() {
                 return (
                   <p
                     className={
-                      clickedFile == item
+                      file == item
                         ? 'bg-green-300 cursor-pointer mb-1'
                         : 'cursor-pointer mb-1 even:bg-gray-200'
                     }
                     key={item}
                     onClick={() => {
-                      setClickedFile(item);
+                      setFile(item);
                       setSubfolder('02-EXPEDIENTE-ADUANAL');
                     }}
                   >
@@ -402,13 +405,13 @@ export default function DEA() {
                   return (
                     <p
                       className={
-                        clickedFile == item
+                        file == item
                           ? 'bg-green-300 cursor-pointer mb-1'
                           : 'cursor-pointer mb-1   even:bg-gray-200'
                       }
                       key={item}
                       onClick={() => {
-                        setClickedFile(item);
+                        setFile(item);
                         setSubfolder('04-VUCEM');
                       }}
                     >
@@ -449,13 +452,13 @@ export default function DEA() {
                 return (
                   <p
                     className={
-                      clickedFile == item
+                      file == item
                         ? 'bg-green-300 cursor-pointer mb-1'
                         : 'cursor-pointer mb-1 even:bg-gray-200'
                     }
                     key={item}
                     onClick={() => {
-                      setClickedFile(item);
+                      setFile(item);
                       setSubfolder('03-FISCALES');
                     }}
                   >
@@ -469,7 +472,47 @@ export default function DEA() {
         <Card className={cardClassName}>
           <div className={cardHeaderClassName}>
             <div className={stickyClassName}>
-              <p className="font-bold">Expediente Digital</p>
+              <p className="font-bold">
+                {reference && data
+                  ? `Expediente Digital - ${data?.files['05-EXP-DIGITAL']?.length || 0} archivos`
+                  : 'Expediente Digital'}
+              </p>
+              <div>
+                {reference &&
+                  (subfolderLoading !== '05-EXP-DIGITAL' ? (
+                    <DownloadIcon
+                      size={20}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setSubfolderLoading('05-EXP-DIGITAL');
+                        setSubfolder('05-EXP-DIGITAL');
+                        setUrl(`/dea/zip/${clientNumber}/${reference}/05-EXP-DIGITAL`);
+                      }}
+                    />
+                  ) : (
+                    <TailwindSpinner className="w-6 h-6" />
+                  ))}
+              </div>
+            </div>
+            <div className="p-2 break-words">
+              {data?.files['05-EXP-DIGITAL']?.map((item) => {
+                return (
+                  <p
+                    className={
+                      file == item
+                        ? 'bg-green-300 cursor-pointer mb-1'
+                        : 'cursor-pointer mb-1 even:bg-gray-200'
+                    }
+                    key={item}
+                    onClick={() => {
+                      setFile(item);
+                      setSubfolder('05-EXP-DIGITAL');
+                    }}
+                  >
+                    {item}
+                  </p>
+                );
+              })}
             </div>
           </div>
           <div className="p-2 break-words"></div>
