@@ -2,8 +2,8 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = 'my-nextjs-app'
-    CONTAINER_NAME = 'nextjs-container'
+    IMAGE_NAME = 'mygp-frontend'
+    CONTAINER_NAME = 'mygp-frontend'
   }
 
   stages {
@@ -16,8 +16,7 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         script {
-          // Build the Docker image using your Dockerfile
-          sh "docker build -t ${IMAGE_NAME} ."
+          sh "docker build -f prod.Dockerfile -t ${IMAGE_NAME} ."
         }
       }
     }
@@ -25,11 +24,9 @@ pipeline {
     stage('Run Container') {
       steps {
         script {
-          // Stop and remove any existing container with the same name (ignore errors)
-          sh "docker rm -f ${CONTAINER_NAME} || true"
-
-          // Run the container mapping port 3001
-          sh "docker run -d --name ${CONTAINER_NAME} -p 3001:3001 ${IMAGE_NAME}"
+          sh "docker stop ${CONTAINER_NAME} || true"
+          sh "docker rm ${CONTAINER_NAME} || true"
+          sh "docker run -d --restart unless-stopped --name ${CONTAINER_NAME} -p 3001:3001 ${IMAGE_NAME}"
         }
       }
     }
