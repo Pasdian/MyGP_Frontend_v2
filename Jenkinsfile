@@ -2,23 +2,34 @@ pipeline {
   agent any
 
   stages {
-    stage('Clone Repo') {
+    stage('Checkout') {
       steps {
-        echo 'Cloning repository...'
         checkout scm
       }
     }
 
-    stage('List Files') {
+    stage('Build Production Images') {
       steps {
-        echo 'Listing files in workspace...'
-        sh 'ls -la'
+        sh 'make build-prod'
       }
     }
 
-    stage('Done') {
+    stage('Stop Production Containers') {
       steps {
-        echo 'SCM pull was successful ✅'
+        sh 'make stop-prod'
+      }
+    }
+
+    stage('Start Production Containers') {
+      steps {
+        sh 'make start-prod'
+      }
+    }
+
+    stage('Show Logs') {
+      steps {
+        // Optional: tail logs for a while or until user abort
+        sh 'make logs'
       }
     }
   }
