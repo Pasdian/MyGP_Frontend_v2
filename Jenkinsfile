@@ -2,8 +2,8 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = 'mygp-frontend'
-    CONTAINER_NAME = 'mygp-frontend'
+    IMAGE_NAME = 'mygp-frontend-jenkins'
+    CONTAINER_NAME = 'mygp-frontend-jenkins'
   }
 
   stages {
