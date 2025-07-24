@@ -141,7 +141,7 @@ export default function DEA() {
     }
 
     validateDates();
-  }, [initialDate, finalDate, clientName, clientNumber]);
+  }, [initialDate, finalDate, clientName, clientNumber, reference]);
 
   return (
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
