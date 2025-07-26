@@ -26,7 +26,10 @@ pipeline {
         script {
           sh "docker stop ${CONTAINER_NAME} || true"
           sh "docker rm ${CONTAINER_NAME} || true"
-          sh "docker run -d --restart unless-stopped --name ${CONTAINER_NAME} -p 3001:3001 ${IMAGE_NAME}"
+          sh "docker run -d --restart unless-stopped --name ${CONTAINER_NAME} -p 3001:3001 \
+                -e BACKEND_URL=http://localhost:3000 \
+                -e NEXT_PUBLIC_DEA_URL=http://localhost:8000 \
+                ${IMAGE_NAME}"
         }
       }
     }
