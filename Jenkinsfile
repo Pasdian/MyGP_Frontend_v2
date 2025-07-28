@@ -4,6 +4,7 @@ pipeline {
   environment {
     IMAGE_NAME='mygp-frontend-jenkins'
     CONTAINER_NAME='mygp-frontend-jenkins'
+    EVENT_TEST="TEST"
     BACKEND_URL='http://localhost:3000' 
     NEXT_PUBLIC_DEA_URL='http://localhost:8000'
   }
