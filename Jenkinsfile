@@ -29,8 +29,12 @@ pipeline {
         script {
           sh "docker stop ${CONTAINER_NAME} || true"
           sh "docker rm ${CONTAINER_NAME} || true"
-          sh "docker run -d --restart unless-stopped --name ${CONTAINER_NAME} --network host \
-          ${IMAGE_NAME}"
+          sh ''' 
+          docker run -d --restart unless-stopped --name ${CONTAINER_NAME} --network host \
+            -e BACKEND_URL="$BACKEND_URL" \
+            -e NEXT_PUBLIC_DEA_URL="$NEXT_PUBLIC_DEA_URL" \
+            ${IMAGE_NAME}"
+          '''
           }
         }
       }
