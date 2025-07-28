@@ -2,8 +2,10 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = 'mygp-frontend-jenkins'
-    CONTAINER_NAME = 'mygp-frontend-jenkins'
+    IMAGE_NAME='mygp-frontend-jenkins'
+    CONTAINER_NAME='mygp-frontend-jenkins'
+    BACKEND_URL='http://localhost:3000' 
+    NEXT_PUBLIC_DEA_URL='http://localhost:8000'
   }
 
   stages {
@@ -26,9 +28,7 @@ pipeline {
         script {
           sh "docker stop ${CONTAINER_NAME} || true"
           sh "docker rm ${CONTAINER_NAME} || true"
-          sh "docker run -d --restart unless-stopped --name ${CONTAINER_NAME} -p 3001:3001 \
-                -e BACKEND_URL=http://localhost:3000 \
-                -e NEXT_PUBLIC_DEA_URL=http://localhost:8000 \
+          sh "docker run -d --restart unless-stopped --name ${CONTAINER_NAME} --network host \
                 ${IMAGE_NAME}"
         }
       }
