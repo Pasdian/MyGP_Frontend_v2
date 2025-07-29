@@ -17,7 +17,7 @@ import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
 import useSWRImmutable from 'swr/immutable';
-import { axiosFetcher } from '@/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
@@ -40,6 +40,16 @@ export default function DeliveriesDataTable() {
       pagination, // Pagination
     },
   });
+
+  React.useEffect(() => {
+    if (!data) return;
+    data.map((item) => {
+      item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138
+        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
+        : '';
+      item.ENTREGA_CDP_140 = item.ENTREGA_CDP_140 ? item.ENTREGA_CDP_140.split(' ')[0] : '';
+    });
+  }, [data]);
 
   if (isValidating) return <TailwindSpinner />;
 

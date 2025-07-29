@@ -11,9 +11,13 @@ import React from 'react';
 export default function FinalDatePicker({
   date,
   setDate,
+  onSelect,
 }: {
   date: Date | undefined;
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+  setDate:
+    | React.Dispatch<React.SetStateAction<Date | undefined>>
+    | ((initialDate: Date | undefined) => void);
+  onSelect: (value: Date | undefined) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   return (
@@ -37,6 +41,7 @@ export default function FinalDatePicker({
             onSelect={(date) => {
               setDate(date);
               setOpen(false);
+              onSelect(date);
             }}
           />
         </PopoverContent>

@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import { getRoles } from "@/types/roles/getRoles";
-import AdminPanelModifyRoleButton from "@/components/buttons/admin-panel/roles/AdminPanelModifyRoleButton";
+import AdminPanelModifyRoleButton from "@/components/buttons/admin-panel/roles/ModifyRoleButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
