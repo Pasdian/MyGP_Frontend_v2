@@ -4,6 +4,10 @@ export const clientsData = [
     NOM_IMP: "TRANSBEL SA DE CV",
   },
   {
+    CVE_IMP: "005009",
+    NOM_IMP: "TRANSBEL SA DE CV - Nuevo",
+  },
+  {
     CVE_IMP: "004563",
     NOM_IMP: "ELEVADORES OTIS S DE RL DE CV",
   },
