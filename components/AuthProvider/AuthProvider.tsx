@@ -86,6 +86,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       });
   }
 
+  if (isLoading) return;
+
   return (
     <AuthContext.Provider value={{ user, setUser, isLoading, isAuthenticated, logout, login }}>
       {children}

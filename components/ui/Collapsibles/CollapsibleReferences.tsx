@@ -15,12 +15,14 @@ import { axiosBlobFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../TailwindSpinner';
 import useSWRImmutable from 'swr/immutable';
+import { Input } from '../input';
 
 export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
   const { reference, setClickedReference, clientNumber, setPdfUrl, setFile } = useDEAStore(
     (state) => state
   );
 
+  const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
   const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
   const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
@@ -43,6 +45,35 @@ export default function CollapsibleReferences({ references }: { references: getR
     setUrl('');
   }, [zipBlob, clientNumber, reference]);
 
+  function fuzzyFilterObjects(
+    query: string,
+    list: getRefsByClient[],
+    keys: (keyof getRefsByClient)[]
+  ) {
+    if (!list) return;
+    const lowerQuery = query.toLowerCase();
+
+    return list.filter((item) =>
+      keys.some((key) => {
+        const value = item[key];
+        if (typeof value !== 'string') return false;
+
+        const lowerValue = value.toLowerCase();
+        let qIndex = 0;
+
+        for (let i = 0; i < lowerValue.length && qIndex < lowerQuery.length; i++) {
+          if (lowerValue[i] === lowerQuery[qIndex]) {
+            qIndex++;
+          }
+        }
+
+        return qIndex === lowerQuery.length;
+      })
+    );
+  }
+
+  const filteredItems = fuzzyFilterObjects(filterValue, references, ['NUM_REFE']);
+
   return (
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
       <Collapsible defaultOpen className="group/collapsible">
@@ -59,9 +90,16 @@ export default function CollapsibleReferences({ references }: { references: getR
           <CollapsibleContent>
             <SidebarGroupContent className="pl-4">
               <SidebarMenu>
+                <Input
+                  type="text"
+                  placeholder="Buscar..."
+                  className="mb-3"
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value)}
+                />
                 {clientNumber &&
-                  references &&
-                  references.map(({ NUM_REFE }: getRefsByClient, i) => {
+                  filteredItems &&
+                  filteredItems.map(({ NUM_REFE }: getRefsByClient, i) => {
                     const isDownloading = loadingReference === NUM_REFE;
 
                     return (
