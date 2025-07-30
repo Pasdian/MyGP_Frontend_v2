@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { clientsData } from '@/lib/clients/clientsData';
-import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
+import { ADMIN_ROLE_UUID, DEA_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
 import { toast } from 'sonner';
@@ -147,7 +147,7 @@ export default function DEA() {
   }, [initialDate, finalDate, clientName, clientNumber, reference]);
 
   return (
-    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
+    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID, DEA_ROLE_UUID]}>
       <div className="flex mb-5">
         <div className="mr-5">
           <InitialDatePicker

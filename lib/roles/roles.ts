@@ -4,3 +4,5 @@ export const OPERACIONES_STARS_LOGISTICS_UUID =
   "68d6cd1c-ba19-4755-974c-3b32afc1187b";
 
 export const OPERACIONES_AAP_UUID = "368e17d8-52ab-4840-b192-72ef837e6d79";
+
+export const DEA_ROLE_UUID = "f0dc3c45-b6e6-4991-840e-07c5347af792";

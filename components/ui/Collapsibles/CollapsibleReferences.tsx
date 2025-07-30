@@ -1,6 +1,6 @@
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
+import { ADMIN_ROLE_UUID, DEA_ROLE_UUID } from '@/lib/roles/roles';
 import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import {
   SidebarGroup,
@@ -74,7 +74,7 @@ export default function CollapsibleReferences({ references }: { references: getR
   const filteredItems = fuzzyFilterObjects(filterValue, references, ['NUM_REFE']);
 
   return (
-    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
+    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID, DEA_ROLE_UUID]}>
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup>
           <SidebarGroupLabel
