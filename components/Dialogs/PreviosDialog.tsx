@@ -39,18 +39,21 @@ export default function PreviosDialog({ reference }: { reference: string }) {
   const [imageUrl, setImageUrl] = React.useState<string | undefined>(undefined);
   const [selectedItemId, setSelectedItemId] = React.useState<string | undefined>('');
 
-  const key =
+  const previoImageKey =
     custom && reference && folder && selectedItemId
       ? `/dea/centralizada/3901/${custom}/Previos/${reference}/${folder}/${selectedItemId}`
       : null;
 
+  const partidasPreviosKey =
+    custom && reference && `/dea/centralizada/3901/${custom}/Previos/${reference}`;
+
   const { data: PartidasPreviosData, isLoading } = useSWRImmutable<PartidasPrevios>(
-    custom && reference && `/dea/centralizada/3901/${custom}/Previos/${reference}`,
+    partidasPreviosKey,
     axiosFetcher
   );
 
   const { data: previoImage, isLoading: isPrevioImageLoading } = useSWRImmutable(
-    key,
+    previoImageKey,
     axiosBlobFetcher
   );
 
@@ -106,9 +109,7 @@ export default function PreviosDialog({ reference }: { reference: string }) {
                 onChange={(val) => {
                   setCustom(val);
                   setTreeData([]);
-                  mutate(
-                    custom && reference && `/dea/centralizada/3901/${custom}/Previos/${reference}`
-                  );
+                  mutate(partidasPreviosKey);
                 }}
               />
             )}
