@@ -7,18 +7,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
 import { Button } from '@/components/ui/button';
-import { customs } from '@/lib/customs/customs';
 import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
 
 import React from 'react';
@@ -26,13 +15,27 @@ import { Folder, Image } from 'lucide-react';
 import useSWRImmutable from 'swr/immutable';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
-import { mutate } from 'swr';
 import TailwindSpinner from '../ui/TailwindSpinner';
 import ImageDialog from './ImageDialog';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 
-export default function PreviosDialog({ reference }: { reference: string }) {
-  const { custom, setCustom } = useDEAStore((state) => state);
+function getFolder(custom: string) {
+  const char = custom.charAt(1);
+
+  if (['A', 'L', 'T'].includes(char)) {
+    return '3901';
+  }
+
+  if (['M', 'F'].includes(char)) {
+    return '3072';
+  }
+
+  return '640';
+}
+
+export default function PreviosDialog() {
+  const { custom, reference } = useDEAStore((state) => state);
+
   const [folder, setFolder] = React.useState('');
   const [openImageDialog, setOpenImageDialog] = React.useState(false);
   const [TreeData, setTreeData] = React.useState<TreeDataItem[]>([]);
@@ -41,11 +44,15 @@ export default function PreviosDialog({ reference }: { reference: string }) {
 
   const previoImageKey =
     custom && reference && folder && selectedItemId
-      ? `/dea/centralizada/3901/${custom}/Previos/${reference}/${folder}/${selectedItemId}`
+      ? `/dea/centralizada/${getFolder(
+          reference
+        )}/${custom}/Previos/${reference}/${folder}/${selectedItemId}`
       : null;
 
   const partidasPreviosKey =
-    custom && reference && `/dea/centralizada/3901/${custom}/Previos/${reference}`;
+    custom &&
+    reference &&
+    `/dea/centralizada/${getFolder(reference)}/${custom}/Previos/${reference}`;
 
   const { data: PartidasPreviosData, isLoading } = useSWRImmutable<PartidasPrevios>(
     partidasPreviosKey,
@@ -103,18 +110,6 @@ export default function PreviosDialog({ reference }: { reference: string }) {
             </DialogDescription>
           </DialogHeader>
           <div>
-            {customs && (
-              <CustomsSelect
-                customs={customs}
-                onChange={(val) => {
-                  setCustom(val);
-                  setTreeData([]);
-                  mutate(partidasPreviosKey);
-                }}
-              />
-            )}
-          </div>
-          <div>
             {isLoading && <TailwindSpinner className="w-10 h-10" />}
             {TreeData.length == 0 && !isLoading && (
               <p className="text-sm ml-3">No se encontraron datos.</p>
@@ -135,31 +130,5 @@ export default function PreviosDialog({ reference }: { reference: string }) {
         />
       </Dialog>
     </>
-  );
-}
-
-function CustomsSelect({
-  customs,
-  onChange,
-}: {
-  customs: { name: string; key: number }[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <Select onValueChange={onChange}>
-      <SelectTrigger className="w-[200px]">
-        <SelectValue placeholder="Selecciona una aduana" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Aduanas</SelectLabel>
-          {customs.map(({ name, key }) => (
-            <SelectItem key={key} value={key.toString()}>
-              {name}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
   );
 }

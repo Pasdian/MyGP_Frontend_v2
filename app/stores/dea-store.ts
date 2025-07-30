@@ -23,7 +23,7 @@ export const defaultInitState: DEAState = {
 export type DEAActions = {
   setClientNumber: (clientNumber: string) => void;
   setCustom: (custom: string) => void;
-  setClickedReference: (clientReference: string) => void;
+  setReference: (clientReference: string) => void;
   setInitialDate: (initialDate: Date | undefined) => void;
   setFinalDate: (finalDate: Date | undefined) => void;
   setPdfUrl: (pdfUrl: string) => void;
@@ -48,7 +48,7 @@ export const createDEAStore = (initState: DEAState = defaultInitState) => {
   return createStore<DEAStore>()((set) => ({
     ...initState,
     setClientNumber: (clientNumber) => set(() => ({ clientNumber })),
-    setClickedReference: (reference) => set(() => ({ reference })),
+    setReference: (reference) => set(() => ({ reference })),
     setInitialDate: (initialDate) => set(() => ({ initialDate })),
     setFinalDate: (finalDate) => set(() => ({ finalDate })),
     setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),

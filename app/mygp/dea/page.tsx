@@ -42,6 +42,7 @@ export default function DEA() {
   );
   const [subfolder, setSubfolder] = React.useState('');
   const [fileContent, setFileContent] = React.useState('');
+  const [subfolderLoading, setSubfolderLoading] = React.useState('');
 
   const { data }: { data: getFilesByReference; isLoading: boolean; error: unknown } =
     useSWRImmutable(
@@ -61,7 +62,6 @@ export default function DEA() {
   );
 
   const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
-  const [subfolderLoading, setSubfolderLoading] = React.useState('');
 
   // Effect for fileBlob
   React.useEffect(() => {
@@ -183,7 +183,7 @@ export default function DEA() {
             }}
           />
         </div>
-        <div className="mt-5">{reference && <PreviosDialog reference={reference} />}</div>
+        <div className="mt-5">{reference && <PreviosDialog />}</div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DocumentCard

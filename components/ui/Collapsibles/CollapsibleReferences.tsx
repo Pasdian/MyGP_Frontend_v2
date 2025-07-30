@@ -16,10 +16,12 @@ import React from 'react';
 import TailwindSpinner from '../TailwindSpinner';
 import useSWRImmutable from 'swr/immutable';
 import { Input } from '../input';
+import { getCustomKeyByRef } from '@/lib/customs/customs';
 
 export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
-  const { reference, setClickedReference, clientNumber, setPdfUrl, setFile, setCustom } =
-    useDEAStore((state) => state);
+  const { reference, setReference, clientNumber, setPdfUrl, setFile, setCustom } = useDEAStore(
+    (state) => state
+  );
 
   const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
@@ -110,10 +112,11 @@ export default function CollapsibleReferences({ references }: { references: getR
                             : 'cursor-pointer mb-1 even:bg-gray-200 p-2'
                         }
                         onClick={() => {
+                          const custom = getCustomKeyByRef(NUM_REFE);
+                          setCustom(custom || '');
                           setPdfUrl('');
                           setFile('');
-                          setClickedReference(NUM_REFE);
-                          setCustom('');
+                          setReference(NUM_REFE);
                         }}
                       >
                         <div className="flex justify-between">
@@ -122,7 +125,7 @@ export default function CollapsibleReferences({ references }: { references: getR
                             <DownloadIcon
                               size={20}
                               onClick={() => {
-                                setClickedReference(NUM_REFE);
+                                setReference(NUM_REFE);
                                 setLoadingReference(NUM_REFE);
                                 setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
                               }}
