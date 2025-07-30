@@ -108,7 +108,7 @@ export default function PieChartLabelList() {
       if (curValue > maxValue * 0.05) {
         // If my current value is greater than the 5% of my maximum value then add a label
         chartConfig[item.CUSTOMS] = {
-          label: customs.find((custom) => custom.key == +item.CUSTOMS)?.name,
+          label: customs.find((custom) => custom.key == item.CUSTOMS)?.name,
         };
       }
       const lightness = minLight + i * lightStep;
