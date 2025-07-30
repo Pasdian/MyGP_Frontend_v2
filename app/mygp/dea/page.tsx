@@ -1,4 +1,5 @@
 'use client';
+
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import ClientsCombo from '@/components/comboboxes/ClientsCombo';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
@@ -10,13 +11,13 @@ import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance'
 import { clientsData } from '@/lib/clients/clientsData';
 import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
-import { DownloadIcon } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import useSWRImmutable from 'swr/immutable';
+import DocumentCard from '@/components/Cards/DocumentCard';
+import PreviosDialog from '@/components/Dialogs/PreviosDialog';
 
-const cardClassName = 'h-[240px] py-0 rounded-md';
 const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
 const stickyClassName = 'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
 
@@ -170,7 +171,7 @@ export default function DEA() {
             }}
           />
         </div>
-        <div>
+        <div className="mr-5">
           <ClientsCombo
             clientName={clientName}
             setClientName={setClientName}
@@ -182,105 +183,42 @@ export default function DEA() {
             }}
           />
         </div>
+        <div className="mt-5">{reference && <PreviosDialog reference={reference} />}</div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className={cardClassName}>
-          <div className={cardHeaderClassName}>
-            <div className={stickyClassName}>
-              <p className="font-bold">
-                {reference && data
-                  ? `Cuenta de Gastos - ${data?.files['01-CTA-GASTOS']?.length || 0} archivos`
-                  : 'Cuenta de Gastos'}
-              </p>
-              <div>
-                {reference &&
-                  (subfolderLoading !== '01-CTA-GASTOS' ? (
-                    <DownloadIcon
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setSubfolderLoading('01-CTA-GASTOS');
-                        setSubfolder('01-CTA-GASTOS');
-                        setUrl(`/dea/zip/${clientNumber}/${reference}/01-CTA-GASTOS`);
-                      }}
-                    />
-                  ) : (
-                    <TailwindSpinner className="w-6 h-6" />
-                  ))}
-              </div>
-            </div>
-            <div className="p-2 break-words">
-              {data?.files['01-CTA-GASTOS']?.map((item) => (
-                <p
-                  className={
-                    file === item
-                      ? 'bg-green-300 cursor-pointer mb-1'
-                      : 'cursor-pointer mb-1 even:bg-gray-200'
-                  }
-                  key={item}
-                  onClick={() => {
-                    setFile(item);
-                    setSubfolder('01-CTA-GASTOS');
-                  }}
-                >
-                  {item}
-                </p>
-              ))}
-            </div>
-          </div>
-        </Card>
-        <Card className={cardClassName}>
-          <div className={cardHeaderClassName}>
-            <div className={stickyClassName}>
-              <p className="font-bold">
-                {reference && data
-                  ? `COVES - ${
-                      data?.files['04-VUCEM']?.filter((file: { name: string } | string) =>
-                        (typeof file === 'string' ? file : file.name).includes('COVE')
-                      ).length || 0
-                    } archivos`
-                  : 'COVES'}
-              </p>
-              <div>
-                {reference &&
-                  (subfolderLoading !== '04-VUCEM-COVES' ? (
-                    <DownloadIcon
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setSubfolderLoading('04-VUCEM-COVES');
-                        setSubfolder('04-VUCEM');
-                        setUrl(`/dea/zip/${clientNumber}/${reference}/04-VUCEM`);
-                      }}
-                    />
-                  ) : (
-                    <TailwindSpinner className="w-6 h-6" />
-                  ))}
-              </div>
-            </div>
-            <div className="p-2 break-words">
-              {data?.files['04-VUCEM']?.map((item) => {
-                if (item.includes('COVE'))
-                  return (
-                    <p
-                      className={
-                        file == item
-                          ? 'bg-green-300 cursor-pointer mb-1'
-                          : 'cursor-pointer mb-1 even:bg-gray-200'
-                      }
-                      key={item}
-                      onClick={() => {
-                        setFile(item);
-                        setSubfolder('04-VUCEM');
-                      }}
-                    >
-                      {item}
-                    </p>
-                  );
-              })}
-            </div>
-          </div>
-        </Card>
+        <DocumentCard
+          title="Cuenta de Gastos"
+          files={data?.files['01-CTA-GASTOS'] || []}
+          isLoading={subfolderLoading === '01-CTA-GASTOS'}
+          onDownload={() => {
+            setSubfolderLoading('01-CTA-GASTOS');
+            setSubfolder('01-CTA-GASTOS');
+            setUrl(`/dea/zip/${clientNumber}/${reference}/01-CTA-GASTOS`);
+          }}
+          onFileSelect={(item) => {
+            setFile(item);
+            setSubfolder('01-CTA-GASTOS');
+          }}
+          activeFile={file}
+        />
+
+        <DocumentCard
+          title="COVES"
+          files={data?.files['04-VUCEM'] || []}
+          isLoading={subfolderLoading === '04-VUCEM-COVES'}
+          onDownload={() => {
+            setSubfolderLoading('04-VUCEM-COVES');
+            setSubfolder('04-VUCEM');
+            setUrl(`/dea/zip/${clientNumber}/${reference}/04-VUCEM`);
+          }}
+          onFileSelect={(item) => {
+            setFile(item);
+            setSubfolder('04-VUCEM');
+          }}
+          activeFile={file}
+          filterFn={(item) => item.includes('COVE')}
+        />
+
         <Card className="sm:col-span-2 row-span-3 py-0">
           <div className={cardHeaderClassName}>
             <div className={stickyClassName}>
@@ -318,204 +256,70 @@ export default function DEA() {
           </div>
         </Card>
 
-        <Card className={cardClassName}>
-          <div className={cardHeaderClassName}>
-            <div className={stickyClassName}>
-              <p className="font-bold">
-                {reference && data
-                  ? `Expediente Aduanal - ${
-                      data?.files['02-EXPEDIENTE-ADUANAL']?.length || 0
-                    } archivos`
-                  : 'Expediente Aduanal'}
-              </p>
-              <div>
-                {reference &&
-                  (subfolderLoading !== '02-EXPEDIENTE-ADUANAL' ? (
-                    <DownloadIcon
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setSubfolderLoading('02-EXPEDIENTE-ADUANAL');
-                        setSubfolder('02-EXPEDIENTE-ADUANAL');
-                        setUrl(`/dea/zip/${clientNumber}/${reference}/02-EXPEDIENTE-ADUANAL`);
-                      }}
-                    />
-                  ) : (
-                    <TailwindSpinner className="w-6 h-6" />
-                  ))}
-              </div>
-            </div>
-            <div className="p-2 break-words">
-              {data?.files['02-EXPEDIENTE-ADUANAL']?.map((item) => {
-                return (
-                  <p
-                    className={
-                      file == item
-                        ? 'bg-green-300 cursor-pointer mb-1'
-                        : 'cursor-pointer mb-1 even:bg-gray-200'
-                    }
-                    key={item}
-                    onClick={() => {
-                      setFile(item);
-                      setSubfolder('02-EXPEDIENTE-ADUANAL');
-                    }}
-                  >
-                    {item}
-                  </p>
-                );
-              })}
-            </div>
-          </div>
-        </Card>
+        <DocumentCard
+          title="Expediente Aduanal"
+          files={data?.files['02-EXPEDIENTE-ADUANAL'] || []}
+          isLoading={subfolderLoading === '02-EXPEDIENTE-ADUANAL'}
+          onDownload={() => {
+            setSubfolderLoading('02-EXPEDIENTE-ADUANAL');
+            setSubfolder('02-EXPEDIENTE-ADUANAL');
+            setUrl(`/dea/zip/${clientNumber}/${reference}/02-EXPEDIENTE-ADUANAL`);
+          }}
+          onFileSelect={(item) => {
+            setFile(item);
+            setSubfolder('02-EXPEDIENTE-ADUANAL');
+          }}
+          activeFile={file}
+        />
 
-        <Card className={cardClassName}>
-          <div className={cardHeaderClassName}>
-            <div className={stickyClassName}>
-              <p className="font-bold">
-                {reference && data
-                  ? `EDocs - ${
-                      data?.files['04-VUCEM']?.filter(
-                        (file: { name: string } | string) =>
-                          !(typeof file === 'string' ? file : file.name).includes('COVE')
-                      ).length || 0
-                    } archivos`
-                  : 'EDocs'}
-              </p>
-              <div>
-                {reference &&
-                  (subfolderLoading !== '04-VUCEM-EDOCS' ? (
-                    <DownloadIcon
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setSubfolderLoading('04-VUCEM-EDOCS');
-                        setSubfolder('04-VUCEM');
-                        setUrl(`/dea/zip/${clientNumber}/${reference}/04-VUCEM`);
-                      }}
-                    />
-                  ) : (
-                    <TailwindSpinner className="w-6 h-6" />
-                  ))}
-              </div>
-            </div>
-            <div className="p-2 break-words">
-              {data?.files['04-VUCEM']?.map((item) => {
-                if (!item.includes('COVE'))
-                  return (
-                    <p
-                      className={
-                        file == item
-                          ? 'bg-green-300 cursor-pointer mb-1'
-                          : 'cursor-pointer mb-1   even:bg-gray-200'
-                      }
-                      key={item}
-                      onClick={() => {
-                        setFile(item);
-                        setSubfolder('04-VUCEM');
-                      }}
-                    >
-                      {item}
-                    </p>
-                  );
-              })}
-            </div>
-          </div>
-        </Card>
-        <Card className={cardClassName}>
-          <div className={cardHeaderClassName}>
-            <div className={stickyClassName}>
-              <p className="font-bold">
-                {reference && data
-                  ? `Comprobantes Fiscales - ${data?.files['03-FISCALES']?.length || 0} archivos`
-                  : 'Comprobantes Fiscales'}
-              </p>
-              <div>
-                {reference &&
-                  (subfolderLoading !== '03-FISCALES' ? (
-                    <DownloadIcon
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setSubfolderLoading('03-FISCALES');
-                        setSubfolder('03-FISCALES');
-                        setUrl(`/dea/zip/${clientNumber}/${reference}/03-FISCALES`);
-                      }}
-                    />
-                  ) : (
-                    <TailwindSpinner className="w-6 h-6" />
-                  ))}
-              </div>
-            </div>
-            <div className="p-2 break-words">
-              {data?.files['03-FISCALES']?.map((item) => {
-                return (
-                  <p
-                    className={
-                      file == item
-                        ? 'bg-green-300 cursor-pointer mb-1'
-                        : 'cursor-pointer mb-1 even:bg-gray-200'
-                    }
-                    key={item}
-                    onClick={() => {
-                      setFile(item);
-                      setSubfolder('03-FISCALES');
-                    }}
-                  >
-                    {item}
-                  </p>
-                );
-              })}
-            </div>
-          </div>
-        </Card>
-        <Card className={cardClassName}>
-          <div className={cardHeaderClassName}>
-            <div className={stickyClassName}>
-              <p className="font-bold">
-                {reference && data
-                  ? `Expediente Digital - ${data?.files['05-EXP-DIGITAL']?.length || 0} archivos`
-                  : 'Expediente Digital'}
-              </p>
-              <div>
-                {reference &&
-                  (subfolderLoading !== '05-EXP-DIGITAL' ? (
-                    <DownloadIcon
-                      size={20}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setSubfolderLoading('05-EXP-DIGITAL');
-                        setSubfolder('05-EXP-DIGITAL');
-                        setUrl(`/dea/zip/${clientNumber}/${reference}/05-EXP-DIGITAL`);
-                      }}
-                    />
-                  ) : (
-                    <TailwindSpinner className="w-6 h-6" />
-                  ))}
-              </div>
-            </div>
-            <div className="p-2 break-words">
-              {data?.files['05-EXP-DIGITAL']?.map((item) => {
-                return (
-                  <p
-                    className={
-                      file == item
-                        ? 'bg-green-300 cursor-pointer mb-1'
-                        : 'cursor-pointer mb-1 even:bg-gray-200'
-                    }
-                    key={item}
-                    onClick={() => {
-                      setFile(item);
-                      setSubfolder('05-EXP-DIGITAL');
-                    }}
-                  >
-                    {item}
-                  </p>
-                );
-              })}
-            </div>
-          </div>
-          <div className="p-2 break-words"></div>
-        </Card>
+        <DocumentCard
+          title="EDocs"
+          files={data?.files['04-VUCEM'] || []}
+          isLoading={subfolderLoading === '04-VUCEM-EDOCS'}
+          onDownload={() => {
+            setSubfolderLoading('04-VUCEM-EDOCS');
+            setSubfolder('04-VUCEM');
+            setUrl(`/dea/zip/${clientNumber}/${reference}/04-VUCEM`);
+          }}
+          onFileSelect={(item) => {
+            setFile(item);
+            setSubfolder('04-VUCEM');
+          }}
+          activeFile={file}
+          filterFn={(item) => !item.includes('COVE')}
+        />
+
+        <DocumentCard
+          title="Comprobantes Fiscales"
+          files={data?.files['03-FISCALES'] || []}
+          isLoading={subfolderLoading === '03-FISCALES'}
+          onDownload={() => {
+            setSubfolderLoading('03-FISCALES');
+            setSubfolder('03-FISCALES');
+            setUrl(`/dea/zip/${clientNumber}/${reference}/03-FISCALES`);
+          }}
+          onFileSelect={(item) => {
+            setFile(item);
+            setSubfolder('03-FISCALES');
+          }}
+          activeFile={file}
+        />
+
+        <DocumentCard
+          title="Expediente Digital"
+          files={data?.files['05-EXP-DIGITAL'] || []}
+          isLoading={subfolderLoading === '05-EXP-DIGITAL'}
+          onDownload={() => {
+            setSubfolderLoading('05-EXP-DIGITAL');
+            setSubfolder('05-EXP-DIGITAL');
+            setUrl(`/dea/zip/${clientNumber}/${reference}/05-EXP-DIGITAL`);
+          }}
+          onFileSelect={(item) => {
+            setFile(item);
+            setSubfolder('05-EXP-DIGITAL');
+          }}
+          activeFile={file}
+        />
       </div>
     </ProtectedRoute>
   );
