@@ -18,9 +18,8 @@ import useSWRImmutable from 'swr/immutable';
 import { Input } from '../input';
 
 export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
-  const { reference, setClickedReference, clientNumber, setPdfUrl, setFile } = useDEAStore(
-    (state) => state
-  );
+  const { reference, setClickedReference, clientNumber, setPdfUrl, setFile, setCustom } =
+    useDEAStore((state) => state);
 
   const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
@@ -114,6 +113,7 @@ export default function CollapsibleReferences({ references }: { references: getR
                           setPdfUrl('');
                           setFile('');
                           setClickedReference(NUM_REFE);
+                          setCustom('');
                         }}
                       >
                         <div className="flex justify-between">

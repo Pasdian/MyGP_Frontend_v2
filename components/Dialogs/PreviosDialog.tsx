@@ -29,31 +29,10 @@ import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import { mutate } from 'swr';
 import TailwindSpinner from '../ui/TailwindSpinner';
 import ImageDialog from './ImageDialog';
-const defaultData = [
-  {
-    id: 'PARTIDAS',
-    name: 'PARTIDAS',
-    children: [
-      {
-        id: '1',
-        name: 'No se encontraron partidas para la referencia seleccionada',
-      },
-    ],
-  },
-  {
-    id: 'PREVIO',
-    name: 'PREVIO',
-    children: [
-      {
-        id: '1',
-        name: 'No se encontraron previos para la referencia seleccionada',
-      },
-    ],
-  },
-];
+import { useDEAStore } from '@/app/providers/dea-store-provider';
 
 export default function PreviosDialog({ reference }: { reference: string }) {
-  const [custom, setCustom] = React.useState('');
+  const { custom, setCustom } = useDEAStore((state) => state);
   const [folder, setFolder] = React.useState('');
   const [openImageDialog, setOpenImageDialog] = React.useState(false);
   const [TreeData, setTreeData] = React.useState<TreeDataItem[]>([]);
@@ -77,19 +56,21 @@ export default function PreviosDialog({ reference }: { reference: string }) {
 
   React.useEffect(() => {
     if (!PartidasPreviosData) return;
-    const result = Object.entries(PartidasPreviosData).map(([folderKey, items]) => ({
-      id: folderKey,
-      name: folderKey,
-      children: items.map((item) => ({
-        id: item,
-        name: item,
-        onClick: () => {
-          setOpenImageDialog(true);
-          setFolder(folderKey);
-          setSelectedItemId(item);
-        },
-      })),
-    }));
+    const result = Object.entries(PartidasPreviosData)
+      .filter(([, items]) => items.length > 0) // Exclude empty arrays
+      .map(([folderKey, items]) => ({
+        id: folderKey,
+        name: folderKey,
+        children: items.map((item) => ({
+          id: item,
+          name: item,
+          onClick: () => {
+            setOpenImageDialog(true);
+            setFolder(folderKey);
+            setSelectedItemId(item);
+          },
+        })),
+      }));
 
     setTreeData(result);
   }, [PartidasPreviosData, custom, reference]);
@@ -124,7 +105,7 @@ export default function PreviosDialog({ reference }: { reference: string }) {
                 customs={customs}
                 onChange={(val) => {
                   setCustom(val);
-                  setTreeData(defaultData);
+                  setTreeData([]);
                   mutate(
                     custom && reference && `/dea/centralizada/3901/${custom}/Previos/${reference}`
                   );
@@ -134,13 +115,11 @@ export default function PreviosDialog({ reference }: { reference: string }) {
           </div>
           <div>
             {isLoading && <TailwindSpinner className="w-10 h-10" />}
+            {TreeData.length == 0 && !isLoading && (
+              <p className="text-sm ml-3">No se encontraron datos.</p>
+            )}
             {custom && !isLoading && (
-              <TreeView
-                defaultNodeIcon={Folder}
-                defaultLeafIcon={Image}
-                data={TreeData}
-                initialSelectedItemId={selectedItemId ?? undefined} // triggers update
-              />
+              <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={TreeData} />
             )}
           </div>
         </DialogContent>
