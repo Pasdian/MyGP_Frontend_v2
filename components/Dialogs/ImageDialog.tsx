@@ -26,7 +26,11 @@ export default function ImageDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="w-[900px]">
+      <DialogContent
+        className="w-[900px]"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{alt}</DialogTitle>
           <DialogDescription>Haz click en la imagen para hacer zoom</DialogDescription>

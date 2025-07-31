@@ -111,7 +111,15 @@ export default function PreviosDialog() {
         <DialogTrigger asChild>
           <Button className="bg-blue-500 hover:bg-blue-600 font-bold">Ver Previos</Button>
         </DialogTrigger>
-        <DialogContent className="max-h-[800px] overflow-y-auto">
+        <DialogContent
+          className="max-h-[800px] overflow-y-auto"
+          onInteractOutside={(e) => {
+            e.preventDefault();
+          }}
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Previos - {reference}</DialogTitle>
             <DialogDescription>
@@ -128,16 +136,16 @@ export default function PreviosDialog() {
             )}
           </div>
         </DialogContent>
-        <ImageDialog
-          onOpenChange={(val) => {
-            setOpenImageDialog(val);
-          }}
-          src={imageUrl}
-          alt={selectedItemId || 'image'}
-          open={openImageDialog}
-          isImageLoading={isPrevioImageLoading}
-        />
       </Dialog>
+      <ImageDialog
+        onOpenChange={(val) => {
+          setOpenImageDialog(val);
+        }}
+        src={imageUrl}
+        alt={selectedItemId || 'image'}
+        open={openImageDialog}
+        isImageLoading={isPrevioImageLoading}
+      />
     </>
   );
 }
