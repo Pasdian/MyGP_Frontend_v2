@@ -96,7 +96,9 @@ export default function PreviosDialog() {
     }
   }, [previoImage]);
 
-  if (!PartidasPreviosData && !isPartidosPreviosLoading)
+  if (isPartidosPreviosLoading) return;
+
+  if (!PartidasPreviosData)
     return (
       <Button disabled className="bg-blue-500 hover:bg-blue-600 font-bold">
         No existen previos
