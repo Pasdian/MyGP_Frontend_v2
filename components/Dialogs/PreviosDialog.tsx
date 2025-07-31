@@ -43,21 +43,21 @@ export default function PreviosDialog() {
   const [selectedItemId, setSelectedItemId] = React.useState<string | undefined>('');
 
   const previoImageKey =
-    custom && reference && folder && selectedItemId
-      ? `/dea/centralizada/${getFolder(
-          reference
-        )}/${custom}/Previos/${reference}/${folder}/${selectedItemId}`
-      : null;
+    custom &&
+    reference &&
+    folder &&
+    selectedItemId &&
+    `/dea/centralizada/${getFolder(
+      reference
+    )}/${custom}/Previos/${reference}/${folder}/${selectedItemId}`;
 
   const partidasPreviosKey =
     custom &&
     reference &&
     `/dea/centralizada/${getFolder(reference)}/${custom}/Previos/${reference}`;
 
-  const { data: PartidasPreviosData, isLoading } = useSWRImmutable<PartidasPrevios>(
-    partidasPreviosKey,
-    axiosFetcher
-  );
+  const { data: PartidasPreviosData, isLoading: isPartidosPreviosLoading } =
+    useSWRImmutable<PartidasPrevios>(partidasPreviosKey, axiosFetcher);
 
   const { data: previoImage, isLoading: isPrevioImageLoading } = useSWRImmutable(
     previoImageKey,
@@ -83,7 +83,7 @@ export default function PreviosDialog() {
       }));
 
     setTreeData(result);
-  }, [PartidasPreviosData, custom, reference]);
+  }, [PartidasPreviosData]);
 
   React.useEffect(() => {
     if (previoImage) {
@@ -95,6 +95,12 @@ export default function PreviosDialog() {
       };
     }
   }, [previoImage]);
+  if (!PartidasPreviosData)
+    return (
+      <Button disabled className="bg-blue-500 hover:bg-blue-600 font-bold">
+        No existen previos
+      </Button>
+    );
 
   return (
     <>
@@ -110,11 +116,11 @@ export default function PreviosDialog() {
             </DialogDescription>
           </DialogHeader>
           <div>
-            {isLoading && <TailwindSpinner className="w-10 h-10" />}
-            {TreeData.length == 0 && !isLoading && (
+            {isPartidosPreviosLoading && <TailwindSpinner className="w-10 h-10" />}
+            {TreeData.length == 0 && !isPartidosPreviosLoading && (
               <p className="text-sm ml-3">No se encontraron datos.</p>
             )}
-            {custom && !isLoading && (
+            {custom && !isPartidosPreviosLoading && (
               <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={TreeData} />
             )}
           </div>
