@@ -13,11 +13,12 @@ import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
 import React from 'react';
 import { Folder, Image } from 'lucide-react';
 import useSWRImmutable from 'swr/immutable';
-import { axiosFetcher, axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import TailwindSpinner from '../ui/TailwindSpinner';
 import ImageDialog from './ImageDialog';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { IconEye } from '@tabler/icons-react';
 
 function getcurrentFolder(custom: string) {
   const char = custom.charAt(1);
@@ -110,7 +111,10 @@ export default function PreviosDialog() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="bg-blue-500 hover:bg-blue-600 font-bold">Ver Previos</Button>
+          <Button className="bg-blue-500 hover:bg-blue-600 font-bold">
+            <IconEye />
+            Ver Previos
+          </Button>
         </DialogTrigger>
         <DialogContent className="max-h-[800px] overflow-y-auto">
           <DialogHeader>
