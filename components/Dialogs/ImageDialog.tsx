@@ -103,10 +103,7 @@ export default function ImageDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <Carousel>
-        <DialogContent
-          onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-        >
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {previoInfo.currentFolder} - {currentFilename}

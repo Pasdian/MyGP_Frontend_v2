@@ -112,15 +112,7 @@ export default function PreviosDialog() {
         <DialogTrigger asChild>
           <Button className="bg-blue-500 hover:bg-blue-600 font-bold">Ver Previos</Button>
         </DialogTrigger>
-        <DialogContent
-          className="max-h-[800px] overflow-y-auto"
-          onInteractOutside={(e) => {
-            e.preventDefault();
-          }}
-          onEscapeKeyDown={(e) => {
-            e.preventDefault();
-          }}
-        >
+        <DialogContent className="max-h-[800px] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Previos - {reference}</DialogTitle>
             <DialogDescription>
