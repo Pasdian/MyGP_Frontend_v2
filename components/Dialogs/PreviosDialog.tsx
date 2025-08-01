@@ -63,13 +63,6 @@ export default function PreviosDialog() {
     );
   };
 
-  const curImageKey = getImageKey({
-    custom,
-    reference,
-    currentFolder,
-    imageName: currentItem,
-  });
-
   const partidasPreviosKey =
     custom &&
     reference &&
@@ -77,11 +70,6 @@ export default function PreviosDialog() {
 
   const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } =
     useSWRImmutable<PartidasPrevios>(partidasPreviosKey, axiosFetcher);
-
-  const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWRImmutable(
-    curImageKey,
-    axiosImageFetcher
-  );
 
   React.useEffect(() => {
     if (!partidasPrevios) return;
@@ -92,7 +80,7 @@ export default function PreviosDialog() {
       .filter(([, items]) => items.length > 0)
       .map(([currentFolderKey, items]) => ({
         id: currentFolderKey,
-        name: currentFolderKey,
+        name: `${currentFolderKey} - ${partidasPrevios[currentFolderKey].length}`,
         onClick: () => {
           setCurrentFolder(currentFolderKey);
         },
@@ -108,13 +96,6 @@ export default function PreviosDialog() {
 
     setTreeData(result);
   }, [partidasPrevios]);
-
-  React.useEffect(() => {
-    if (!curImageUrl) return;
-    return () => {
-      URL.revokeObjectURL(curImageUrl);
-    };
-  }, [curImageUrl]);
 
   if (isPartidosPreviosLoading) return;
 
@@ -157,7 +138,7 @@ export default function PreviosDialog() {
           </div>
         </DialogContent>
       </Dialog>
-      {currentFolder && custom && reference && currentFolder && currentItem && curImageUrl && (
+      {currentFolder && custom && reference && currentFolder && currentItem && (
         <ImageDialog
           onOpenChange={(val) => {
             setOpenImageDialog(val);
@@ -165,14 +146,12 @@ export default function PreviosDialog() {
           key={currentItem}
           partidasPrevios={partidasPrevios}
           open={openImageDialog}
-          isImageLoading={isCurImageUrlLoading}
           getImageKey={getImageKey}
           previoInfo={{
             custom,
             reference,
             currentFolder,
             imageName: currentItem,
-            imageBlobUrl: curImageUrl,
           }}
         />
       )}

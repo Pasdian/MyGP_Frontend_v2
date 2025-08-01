@@ -90,7 +90,6 @@ export default function DEA() {
     const a = document.createElement('a');
     a.href = downloadUrl;
     a.download = `${clientNumber}-${reference}-${subfolder}.zip`;
-    console.log(a.download);
     document.body.appendChild(a);
     a.click();
     a.remove();

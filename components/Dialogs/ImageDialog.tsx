@@ -8,24 +8,17 @@ import {
 import Image from 'next/image';
 import React from 'react';
 import TailwindSpinner from '../ui/TailwindSpinner';
-import {
-  Carousel,
-  CarouselApi,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '../ui/carousel';
+import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import useSWRImmutable from 'swr/immutable';
 import { axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Button } from '../ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 export default function ImageDialog({
   onOpenChange,
   open,
-  isImageLoading,
   partidasPrevios,
   previoInfo,
   getImageKey,
@@ -33,7 +26,6 @@ export default function ImageDialog({
   onOpenChange: (open: boolean) => void;
   open: boolean;
   partidasPrevios: PartidasPrevios;
-  isImageLoading: boolean;
   getImageKey: ({
     custom,
     reference,
@@ -47,7 +39,6 @@ export default function ImageDialog({
   }) => string | undefined;
   previoInfo: {
     custom: string;
-    imageBlobUrl: string | undefined;
     reference: string;
     currentFolder: 'PARTIDAS' | 'PREVIO';
     imageName: string;
@@ -56,38 +47,56 @@ export default function ImageDialog({
   const [currentIndex, setCurrentIndex] = React.useState(
     partidasPrevios[previoInfo.currentFolder].indexOf(previoInfo.imageName)
   );
-  const currentFilename = partidasPrevios[previoInfo.currentFolder][currentIndex];
-  const currentImageKey = getImageKey({ ...previoInfo, imageName: currentFilename });
-  const [imageBlobUrlArray, setImageBlobUrlArray] = React.useState<(string | undefined)[]>(() => {
-    const arr = Array(partidasPrevios[previoInfo.currentFolder].length).fill(undefined);
-    arr[currentIndex] = previoInfo.imageBlobUrl;
-    return arr;
-  }); // Allocate an undefined array of size partidasPrevios
-  const { data: curImageUrl } = useSWRImmutable(currentImageKey, axiosImageFetcher);
 
-  const [isZoomed, setIsZoomed] = React.useState(false);
-  const [api, setApi] = React.useState<CarouselApi>();
+  const currentFilename = partidasPrevios[previoInfo.currentFolder][currentIndex];
+
+  const currentImageKey = getImageKey({ ...previoInfo, imageName: currentFilename });
+
+  const [imageBlobUrlMap, setImageBlobUrlMap] = React.useState<Map<string, string>>(new Map());
+
+  const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWRImmutable(
+    currentImageKey,
+    axiosImageFetcher
+  ); // Current blob url
 
   React.useEffect(() => {
     if (!curImageUrl) return;
 
-    // Set blob in right position
-    setImageBlobUrlArray((prev) => {
-      const newArray = [...prev];
-      newArray[currentIndex] = curImageUrl;
-      return newArray;
+    const filename = partidasPrevios[previoInfo.currentFolder][currentIndex];
+
+    setImageBlobUrlMap((prev) => {
+      const newMap = new Map(prev);
+
+      // Revoke old URL if exists
+      const oldUrl = newMap.get(filename);
+      if (oldUrl && oldUrl !== curImageUrl) {
+        URL.revokeObjectURL(oldUrl);
+      }
+
+      newMap.set(filename, curImageUrl);
+      return newMap;
     });
   }, [curImageUrl, currentIndex]);
 
+  React.useEffect(() => {
+    return () => {
+      imageBlobUrlMap.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
+
   const goNext = () => {
     if (currentIndex < partidasPrevios[previoInfo.currentFolder].length - 1) {
-      setCurrentIndex((i) => i + 1);
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
     }
   };
 
   const goPrev = () => {
     if (currentIndex > 0) {
-      setCurrentIndex((i) => i - 1);
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
     }
   };
 
@@ -99,58 +108,139 @@ export default function ImageDialog({
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>{previoInfo.imageName}</DialogTitle>
-            <DialogDescription>Haz click en la imagen para hacer zoom</DialogDescription>
+            <DialogTitle>
+              {previoInfo.currentFolder} - {currentFilename}
+            </DialogTitle>
+            <DialogDescription>
+              <p>Usa la rueda del mouse para hacer zoom.</p>
+              <p>Puedes arrastrar la imagen en cualquier momento.</p>
+            </DialogDescription>
           </DialogHeader>
-          {isImageLoading && <TailwindSpinner />}
-          {!isImageLoading && (
-            <>
-              <CarouselContent>
-                {imageBlobUrlArray.map((blobUrl, i) => {
-                  return (
-                    <CarouselItem key={i}>
-                      <div
-                        className={`transition-transform duration-300 z-1 cursor-zoom-${
-                          isZoomed ? 'out' : 'in'
-                        }`}
-                        style={{
-                          transform: isZoomed ? 'scale(2)' : 'scale(1)',
-                          transformOrigin: 'center center',
-                          display: 'flex',
-                          justifyContent: 'center',
-                        }}
-                        onClick={() => setIsZoomed((prev) => !prev)}
-                      >
-                        {curImageUrl && (
-                          <Image
-                            src={curImageUrl}
-                            alt={'image.jpg'}
-                            height={700}
-                            width={700}
-                            style={{
-                              borderRadius: 8,
-                              transition: 'transform 0.3s ease',
-                            }}
-                          />
-                        )}
-                      </div>
-                    </CarouselItem>
-                  );
-                })}
-              </CarouselContent>
-
-              <div className="flex justify-between">
-                <Button variant="outline" size="sm" onClick={goPrev} className="mr-2">
-                  <ChevronLeft /> Anterior
-                </Button>
-                <Button variant="outline" size="sm" onClick={goNext}>
-                  <ChevronRight /> Siguiente
-                </Button>
+          <div className="overflow-hidden">
+            {isCurImageUrlLoading && (
+              <div className="flex justify-center">
+                <TailwindSpinner />
               </div>
-            </>
-          )}
+            )}
+            {imageBlobUrlMap.has(currentFilename) && (
+              <ImageWithPanningCursor
+                currentFilename={currentFilename}
+                imageBlobUrlMap={imageBlobUrlMap}
+                key={currentFilename}
+              />
+            )}
+          </div>
+
+          <div className="flex justify-between">
+            <NextPrevButton
+              title="Anterior"
+              icon={<ChevronLeft />}
+              curIndex={currentIndex}
+              lastIndex={partidasPrevios[previoInfo.currentFolder].length - 1}
+              isCurImageLoading={isCurImageUrlLoading}
+              onClickFn={goPrev}
+            />
+            <NextPrevButton
+              title="Siguiente"
+              icon={<ChevronRight />}
+              curIndex={currentIndex}
+              lastIndex={partidasPrevios[previoInfo.currentFolder].length - 1}
+              isCurImageLoading={isCurImageUrlLoading}
+              onClickFn={goNext}
+            />
+          </div>
         </DialogContent>
       </Carousel>
     </Dialog>
+  );
+}
+
+function NextPrevButton({
+  title,
+  curIndex,
+  lastIndex,
+  icon,
+  isCurImageLoading,
+  onClickFn,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  curIndex: number;
+  lastIndex: number;
+  isCurImageLoading: boolean;
+  onClickFn: () => void;
+}) {
+  if (isCurImageLoading) return;
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => !isCurImageLoading && onClickFn()}
+      className={`mr-2 ${
+        (curIndex === 0 && title !== 'Siguiente') ||
+        (curIndex === lastIndex && title !== 'Anterior')
+          ? 'invisible'
+          : ''
+      } text-white bg-blue-600 hover:bg-blue-700 hover:text-white cursor-pointer`}
+    >
+      <div className="flex items-center">
+        {title == 'Siguiente' ? (
+          <>
+            <p>{title}</p>
+            {icon}
+          </>
+        ) : (
+          <>
+            {icon} <p>{title}</p>
+          </>
+        )}
+      </div>
+    </Button>
+  );
+}
+
+function ImageWithPanningCursor({
+  currentFilename,
+  imageBlobUrlMap,
+}: {
+  currentFilename: string;
+  imageBlobUrlMap: Map<string, string>;
+}) {
+  const [isPanning, setIsPanning] = React.useState(false);
+
+  return (
+    <>
+      {imageBlobUrlMap.has(currentFilename) && (
+        <TransformWrapper
+          wheel={{ step: 0.1 }}
+          pinch={{ step: 5 }}
+          panning={{ velocityDisabled: true }}
+          minScale={1}
+          limitToBounds={true}
+          centerZoomedOut={true}
+          onPanningStart={() => setIsPanning(true)}
+          onPanningStop={() => setIsPanning(false)}
+        >
+          <TransformComponent>
+            <div
+              style={{
+                cursor: isPanning ? 'grabbing' : 'grab',
+                display: 'inline-block',
+                borderRadius: 8,
+              }}
+            >
+              <Image
+                src={imageBlobUrlMap.get(currentFilename)!}
+                alt={currentFilename}
+                height={700}
+                width={700}
+                draggable={false}
+                style={{ borderRadius: 8, userSelect: 'none' }}
+              />
+            </div>
+          </TransformComponent>
+        </TransformWrapper>
+      )}
+    </>
   );
 }
