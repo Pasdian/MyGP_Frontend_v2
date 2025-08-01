@@ -6,12 +6,20 @@ export async function GET(
   _req: NextRequest,
   {
     params,
-  }: { params: Promise<{ custom: string; reference: string; folder: string; image: string }> }
+  }: {
+    params: Promise<{
+      custom: string;
+      reference: string;
+      folder: string;
+      image: string;
+      patent: string;
+    }>;
+  }
 ) {
-  const { custom, reference, folder, image } = await params;
+  const { custom, reference, folder, image, patent } = await params;
 
   return await GPClientDEA.get(
-    `/dea/centralizada/3901/${custom}/Previos/${reference}/${folder}/${image}`,
+    `/dea/centralizada/${patent}/${custom}/Previos/${reference}/${folder}/${image}`,
     { responseType: 'arraybuffer' }
   )
     .then((res) => {

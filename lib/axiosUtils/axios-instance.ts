@@ -28,3 +28,8 @@ export const axiosBlobFetcher = (url: string) =>
     // Create a new Blob instance from the response data and avoid caching
     return new Blob([res.data], { type: res.data.type });
   });
+
+export const axiosImageFetcher = async (url: string): Promise<string> => {
+  const res = await GPClient.get(url, { responseType: "blob" });
+  return URL.createObjectURL(res.data);
+};

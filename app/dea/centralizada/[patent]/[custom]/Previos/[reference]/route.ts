@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ custom: string; reference: string }> }
+  { params }: { params: Promise<{ custom: string; reference: string; patent: string }> }
 ) {
-  const { custom, reference } = await params;
+  const { custom, reference, patent } = await params;
 
-  return await GPClientDEA.get(`/dea/centralizada/3901/${custom}/Previos/${reference}`)
+  return await GPClientDEA.get(`/dea/centralizada/${patent}/${custom}/Previos/${reference}`)
     .then((res) => {
       return NextResponse.json(res.data, { status: res.status });
     })

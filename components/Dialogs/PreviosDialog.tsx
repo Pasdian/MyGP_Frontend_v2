@@ -13,13 +13,13 @@ import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
 import React from 'react';
 import { Folder, Image } from 'lucide-react';
 import useSWRImmutable from 'swr/immutable';
-import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { axiosFetcher, axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import TailwindSpinner from '../ui/TailwindSpinner';
 import ImageDialog from './ImageDialog';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 
-function getFolder(custom: string) {
+function getcurrentFolder(custom: string) {
   const char = custom.charAt(1);
 
   if (['A', 'L', 'T'].includes(char)) {
@@ -36,69 +36,89 @@ function getFolder(custom: string) {
 export default function PreviosDialog() {
   const { custom, reference } = useDEAStore((state) => state);
 
-  const [folder, setFolder] = React.useState('');
+  const [currentFolder, setCurrentFolder] = React.useState<'PARTIDAS' | 'PREVIO' | ''>('');
   const [openImageDialog, setOpenImageDialog] = React.useState(false);
   const [TreeData, setTreeData] = React.useState<TreeDataItem[]>([]);
-  const [imageUrl, setImageUrl] = React.useState<string | undefined>(undefined);
-  const [selectedItemId, setSelectedItemId] = React.useState<string | undefined>('');
+  const [currentItem, setCurrentItem] = React.useState<string | undefined>('');
 
-  const previoImageKey =
-    custom &&
-    reference &&
-    folder &&
-    selectedItemId &&
-    `/dea/centralizada/${getFolder(
-      reference
-    )}/${custom}/Previos/${reference}/${folder}/${selectedItemId}`;
+  const getImageKey = ({
+    custom,
+    reference,
+    currentFolder,
+    imageName,
+  }: {
+    custom?: string;
+    reference?: string;
+    currentFolder?: string;
+    imageName?: string;
+  }) => {
+    return (
+      custom &&
+      reference &&
+      currentFolder &&
+      imageName &&
+      `/dea/centralizada/${getcurrentFolder(
+        reference
+      )}/${custom}/Previos/${reference}/${currentFolder}/${imageName}`
+    );
+  };
+
+  const curImageKey = getImageKey({
+    custom,
+    reference,
+    currentFolder,
+    imageName: currentItem,
+  });
 
   const partidasPreviosKey =
     custom &&
     reference &&
-    `/dea/centralizada/${getFolder(reference)}/${custom}/Previos/${reference}`;
+    `/dea/centralizada/${getcurrentFolder(reference)}/${custom}/Previos/${reference}`;
 
-  const { data: PartidasPreviosData, isLoading: isPartidosPreviosLoading } =
+  const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } =
     useSWRImmutable<PartidasPrevios>(partidasPreviosKey, axiosFetcher);
 
-  const { data: previoImage, isLoading: isPrevioImageLoading } = useSWRImmutable(
-    previoImageKey,
-    axiosBlobFetcher
+  const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWRImmutable(
+    curImageKey,
+    axiosImageFetcher
   );
 
   React.useEffect(() => {
-    if (!PartidasPreviosData) return;
-    const result = Object.entries(PartidasPreviosData)
-      .filter(([, items]) => items.length > 0) // Exclude empty arrays
-      .map(([folderKey, items]) => ({
-        id: folderKey,
-        name: folderKey,
+    if (!partidasPrevios) return;
+
+    const entries = Object.entries(partidasPrevios) as [keyof PartidasPrevios, string[]][];
+
+    const result = entries
+      .filter(([, items]) => items.length > 0)
+      .map(([currentFolderKey, items]) => ({
+        id: currentFolderKey,
+        name: currentFolderKey,
+        onClick: () => {
+          setCurrentFolder(currentFolderKey);
+        },
         children: items.map((item) => ({
           id: item,
           name: item,
           onClick: () => {
             setOpenImageDialog(true);
-            setFolder(folderKey);
-            setSelectedItemId(item);
+            setCurrentItem(item);
           },
         })),
       }));
 
     setTreeData(result);
-  }, [PartidasPreviosData]);
+  }, [partidasPrevios]);
 
   React.useEffect(() => {
-    if (previoImage) {
-      const url = URL.createObjectURL(previoImage);
-      setImageUrl(url);
-
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    }
-  }, [previoImage]);
+    if (!curImageUrl) return;
+    return () => {
+      URL.revokeObjectURL(curImageUrl);
+    };
+  }, [curImageUrl]);
 
   if (isPartidosPreviosLoading) return;
 
-  if (!PartidasPreviosData)
+  if (!partidasPrevios)
     return (
       <Button disabled className="bg-blue-500 hover:bg-blue-600 font-bold">
         No existen previos
@@ -137,15 +157,25 @@ export default function PreviosDialog() {
           </div>
         </DialogContent>
       </Dialog>
-      <ImageDialog
-        onOpenChange={(val) => {
-          setOpenImageDialog(val);
-        }}
-        src={imageUrl}
-        alt={selectedItemId || 'image'}
-        open={openImageDialog}
-        isImageLoading={isPrevioImageLoading}
-      />
+      {currentFolder && custom && reference && currentFolder && currentItem && curImageUrl && (
+        <ImageDialog
+          onOpenChange={(val) => {
+            setOpenImageDialog(val);
+          }}
+          key={currentItem}
+          partidasPrevios={partidasPrevios}
+          open={openImageDialog}
+          isImageLoading={isCurImageUrlLoading}
+          getImageKey={getImageKey}
+          previoInfo={{
+            custom,
+            reference,
+            currentFolder,
+            imageName: currentItem,
+            imageBlobUrl: curImageUrl,
+          }}
+        />
+      )}
     </>
   );
 }
