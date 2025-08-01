@@ -109,8 +109,9 @@ export default function ImageDialog({
               {previoInfo.currentFolder} - {currentFilename}
             </DialogTitle>
             <DialogDescription>
-              <p>Usa la rueda del mouse para hacer zoom.</p>
-              <p>Puedes arrastrar la imagen en cualquier momento.</p>
+              Usa la rueda del mouse para hacer zoom.
+              <br />
+              Puedes arrastrar la imagen en cualquier momento.
             </DialogDescription>
           </DialogHeader>
           <div className="overflow-hidden">
