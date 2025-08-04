@@ -23,14 +23,14 @@ pipeline {
           }
         }
       }
+    }
 
-      post {
-        success {
-          echo "✅ Image ${IMAGE_NAME}:latest built and available locally."
-        }
-        cleanup {
-          sh 'docker system prune -f || true'
-        }
-      }
+  post {
+    success {
+      echo "✅ Image ${IMAGE_NAME}:latest built and available locally."
+    }
+    cleanup {
+      sh 'docker system prune -f || true'
     }
   }
+}
