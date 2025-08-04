@@ -81,7 +81,7 @@ export default function PreviosDialog() {
       .filter(([, items]) => items.length > 0)
       .map(([currentFolderKey, items]) => ({
         id: currentFolderKey,
-        name: `${currentFolderKey} - ${partidasPrevios[currentFolderKey].length}`,
+        name: `${currentFolderKey} - ${partidasPrevios[currentFolderKey].length || 0} archivos`,
         onClick: () => {
           setCurrentFolder(currentFolderKey);
         },
