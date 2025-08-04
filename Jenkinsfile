@@ -4,9 +4,9 @@ pipeline {
   environment {
     IMAGE_NAME='mygp-frontend'
     CONTAINER_NAME='mygp-frontend'
-    EVENT_TEST="TEST"
     BACKEND_URL='http://localhost:3000' 
     NEXT_PUBLIC_DEA_URL='http://localhost:8000'
+    DEA_API_KEY= credentials('DEA_API_KEY')
   }
 
   stages {
