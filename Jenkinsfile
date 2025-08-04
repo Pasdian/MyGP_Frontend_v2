@@ -10,19 +10,6 @@ pipeline {
   }
 
   stages {
-      stage('Generate .env') {
-        steps {
-              script {
-                writeFile file: '.env', text: 
-                '''
-                BACKEND_URL=${env.BACKEND_URL}
-                NEXT_PUBLIC_DEA_URL=${env.NEXT_PUBLIC_DEA_URL}
-                DEA_API_KEY=${env.DEA_API_KEY}
-                '''
-              }
-        }
-      }
-
       stage('Checkout') {
         steps {
           checkout scm
@@ -33,6 +20,21 @@ pipeline {
         steps {
           script {
             sh "docker build -f prod.Dockerfile -t ${IMAGE_NAME} ."
+          }
+        }
+      }
+
+      stage('Run Container') {
+        steps {
+          script {
+            sh "docker stop ${CONTAINER_NAME} || true"
+            sh "docker rm ${CONTAINER_NAME} || true"
+            sh '''
+            docker run -d --restart unless-stopped --name ${CONTAINER_NAME} --network host \
+            -e BACKEND_URL="$BACKEND_URL" \
+            -e NEXT_PUBLIC_DEA_URL="$NEXT_PUBLIC_DEA_URL" \
+            ${IMAGE_NAME}
+            '''
           }
         }
       }
