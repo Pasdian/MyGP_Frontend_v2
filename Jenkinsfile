@@ -10,6 +10,19 @@ pipeline {
   }
 
   stages {
+      stage('Generate .env') {
+        steps {
+              script {
+                writeFile file: '.env', text: 
+                '''
+                BACKEND_URL=${env.BACKEND_URL}
+                NEXT_PUBLIC_DEA_URL=${env.NEXT_PUBLIC_DEA_URL}
+                DEA_API_KEY=${env.DEA_API_KEY}
+                '''
+              }
+        }
+      }
+
       stage('Checkout') {
         steps {
           checkout scm
@@ -19,7 +32,7 @@ pipeline {
       stage('Build Docker Image') {
         steps {
           script {
-            sh "docker build -f prod.Dockerfile -t ${IMAGE_NAME} ."
+            sh "docker build -f prod.Dockerfile -t ${IMAGE_NAME} ./frontend"
           }
         }
       }
