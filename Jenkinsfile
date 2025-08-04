@@ -32,7 +32,7 @@ pipeline {
       stage('Build Docker Image') {
         steps {
           script {
-            sh "docker build -f prod.Dockerfile -t ${IMAGE_NAME} ./frontend"
+            sh "docker build -f prod.Dockerfile -t ${IMAGE_NAME} ."
           }
         }
       }
