@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
-import { IconListDetails, IconUser } from '@tabler/icons-react';
+import { IconBuilding, IconListDetails, IconShield, IconUser } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import useSWRImmutable from 'swr/immutable';
@@ -42,7 +42,13 @@ const userItems = {
           title: 'Roles',
           url: '/mygp/admin-panel/roles',
           role: ['ADMIN'],
-          icon: IconUser,
+          icon: IconShield,
+        },
+        {
+          title: 'Compañias',
+          url: '/mygp/admin-panel/companies',
+          role: ['ADMIN'],
+          icon: IconBuilding,
         },
       ],
     },

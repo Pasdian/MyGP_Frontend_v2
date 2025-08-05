@@ -83,7 +83,7 @@ export default function CollapsibleReferences({ references }: { references: getR
             className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
           >
             <CollapsibleTrigger>
-              <p className="font-bold">Referencias - {filteredItems?.length} referencias</p>
+              <p className="font-bold">Referencias - {filteredItems?.length || 0} referencias</p>
               <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
