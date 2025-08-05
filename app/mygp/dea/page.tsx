@@ -1,7 +1,6 @@
 'use client';
 
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import { EyeOpenIcon, MagicWandIcon } from '@radix-ui/react-icons';
 import ClientsCombo from '@/components/comboboxes/ClientsCombo';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
@@ -48,14 +47,11 @@ export default function DEA() {
   const [fileContent, setFileContent] = React.useState('');
   const [subfolderLoading, setSubfolderLoading] = React.useState('');
 
-  const {
-    trigger: triggerDigitalRecordGeneration,
-    data: _,
-    isMutating: isDigitalRecordGenerationMutating,
-  } = useSWRMutation(
-    client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
-    axiosFetcher
-  );
+  const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
+    useSWRMutation(
+      client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
+      axiosFetcher
+    );
 
   const getFilesByReferenceKey =
     reference && client && `/dea/getFilesByReference?reference=${reference}&client=${client}`;
@@ -158,7 +154,7 @@ export default function DEA() {
     }
 
     validateDates();
-  }, [initialDate, finalDate, clientName, client, reference]);
+  }, [initialDate, finalDate, clientName, client, reference, getFilesByReferenceKey]);
 
   return (
     <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID, DEA_ROLE_UUID]}>

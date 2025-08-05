@@ -8,12 +8,12 @@ import {
 import Image from 'next/image';
 import React from 'react';
 import TailwindSpinner from '../ui/TailwindSpinner';
-import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
+import { Carousel } from '../ui/carousel';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import useSWRImmutable from 'swr/immutable';
 import { axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Button } from '../ui/button';
-import { ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 export default function ImageDialog({
@@ -76,7 +76,7 @@ export default function ImageDialog({
       newMap.set(filename, curImageUrl);
       return newMap;
     });
-  }, [curImageUrl, currentIndex]);
+  }, [curImageUrl, currentIndex, previoInfo.currentFolder, partidasPrevios]);
 
   React.useEffect(() => {
     return () => {
@@ -84,7 +84,7 @@ export default function ImageDialog({
         URL.revokeObjectURL(url);
       });
     };
-  }, []);
+  }, [imageBlobUrlMap]);
 
   const goNext = () => {
     if (currentIndex < partidasPrevios[previoInfo.currentFolder].length - 1) {
