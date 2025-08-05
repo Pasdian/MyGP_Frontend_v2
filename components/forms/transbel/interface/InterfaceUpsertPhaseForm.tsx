@@ -202,7 +202,7 @@ export default function InterfaceUpsertPhaseForm({
       exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
-      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
+      user: user.user.casa_user_name ? user.user.casa_user_name : 'MYGP',
     },
   });
 

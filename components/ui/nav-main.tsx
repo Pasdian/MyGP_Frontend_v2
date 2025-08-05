@@ -12,7 +12,6 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
-import { ADMIN_ROLE_UUID, DEA_ROLE_UUID } from '@/lib/roles/roles';
 import ProtectedResource from '../ProtectedResource/ProtectedResource';
 
 const activeItemClass =
@@ -51,7 +50,7 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           )}
-          <ProtectedResource allowedRoles={[ADMIN_ROLE_UUID, DEA_ROLE_UUID]}>
+          <ProtectedResource allowedRoles={['ADMIN', 'DEA']}>
             <Link href="/mygp/dea">
               <SidebarMenuItem className="flex items-center gap-2">
                 <SidebarMenuButton

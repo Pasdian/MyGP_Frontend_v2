@@ -22,7 +22,7 @@ export default function ProtectedResource({
     }
   }, [isAuthenticated, user, allowedRoles, isLoading, router, pathname]);
 
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role))) {
+  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role.name))) {
     return;
   }
 

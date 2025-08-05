@@ -1,10 +1,20 @@
 export type VerifySession = {
-  id: number;
-  uuid: string;
-  casa_user_name: string | null;
-  name: string;
-  email: string;
-  role: string;
+  user: {
+    uuid: string;
+    name: string;
+    casa_user_name: string;
+    email: string;
+    mobile: string;
+    status: string;
+    company_name: string | null;
+    company_uuid: string | null;
+    company_casa_id: string | null;
+  };
+  role: {
+    name: string;
+    description: string;
+  };
+  modules: string[];
   iat: number;
   exp: number;
 };

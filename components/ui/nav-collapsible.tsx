@@ -1,9 +1,4 @@
 import { useAuth } from '@/hooks/useAuth';
-import {
-  ADMIN_ROLE_UUID,
-  OPERACIONES_AAP_UUID,
-  OPERACIONES_STARS_LOGISTICS_UUID,
-} from '@/lib/roles/roles';
 import { IconListDetails, IconUser } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
@@ -23,13 +18,13 @@ const userItems = {
         {
           title: 'Entregas a Cliente',
           url: '/mygp/transbel/entregas',
-          role: [ADMIN_ROLE_UUID, OPERACIONES_STARS_LOGISTICS_UUID, OPERACIONES_AAP_UUID],
+          role: ['ADMIN', 'STARS', 'AAP'],
           icon: IconListDetails,
         },
         {
           title: 'Interfaz - Cod. Exc.',
           url: '/mygp/transbel/interfaz',
-          role: [ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID],
+          role: ['ADMIN', 'AAP'],
           icon: IconListDetails,
         },
       ],
@@ -40,13 +35,13 @@ const userItems = {
         {
           title: 'Usuarios',
           url: '/mygp/admin-panel/users',
-          role: [ADMIN_ROLE_UUID],
+          role: ['ADMIN'],
           icon: IconUser,
         },
         {
           title: 'Roles',
           url: '/mygp/admin-panel/roles',
-          role: [ADMIN_ROLE_UUID],
+          role: ['ADMIN'],
           icon: IconUser,
         },
       ],
@@ -79,7 +74,7 @@ export default function NavCollapsible() {
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {
-      const filteredItems = group.items.filter((item) => item.role.includes(user.role));
+      const filteredItems = group.items.filter((item) => item.role.includes(user.role.name));
       return filteredItems.length > 0 ? { ...group, items: filteredItems } : null;
     })
     .filter(Boolean);

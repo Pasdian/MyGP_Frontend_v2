@@ -5,7 +5,6 @@ import UsersDataTable from '@/components/datatables/admin-panel/UsersDataTable';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 import { RolesContext } from '@/contexts/RolesContext';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
 import { getRoles } from '@/types/roles/getRoles';
 import React from 'react';
 import useSWRImmutable from 'swr/immutable';
@@ -15,7 +14,7 @@ export default function AdminPanelUsers() {
   if (isLoading) return;
 
   return (
-    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
+    <ProtectedRoute allowedRoles={['ADMIN']}>
       <RolesContext.Provider value={roles}>
         <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Usuarios</h1>
         <AddUserButton />

@@ -61,7 +61,7 @@ export default function AddRoleForm({
               <FormItem>
                 <FormLabel>Nombre del Rol</FormLabel>
                 <FormControl>
-                  <Input placeholder="Nombre del Rol..." {...field} />
+                  <Input className="uppercase" placeholder="Nombre del Rol..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

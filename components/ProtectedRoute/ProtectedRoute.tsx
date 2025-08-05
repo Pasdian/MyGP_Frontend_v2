@@ -24,7 +24,7 @@ export default function ProtectedRoute({
   }, [isAuthenticated, user, allowedRoles, isLoading, router, pathname]);
 
   if (isLoading) return <TailwindSpinner className="h-12 w-12" />;
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role))) {
+  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role.name))) {
     return;
   }
 
