@@ -23,33 +23,6 @@ import {
 } from '@/components/ui/sidebar';
 import NavCollapsible from './nav-collapsible';
 
-const data = {
-  navSecondary: [
-    {
-      title: 'Ajustes',
-      url: '#',
-      icon: IconSettings,
-    },
-  ],
-  extras: [
-    {
-      name: 'Apartado 1',
-      url: '#',
-      icon: IconDatabase,
-    },
-    {
-      name: 'Apartado 2',
-      url: '#',
-      icon: IconReport,
-    },
-    {
-      name: 'Apartado 3',
-      url: '#',
-      icon: IconFileWord,
-    },
-  ],
-};
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -68,7 +41,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="gap-0">
         <NavMain />
         <NavCollapsible />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
