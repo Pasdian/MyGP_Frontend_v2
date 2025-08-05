@@ -4,20 +4,8 @@ export const GPClient = axios.create({
   withCredentials: true,
   headers: {
     "Cache-Control": "no-cache", // Avoid static routes by default
+    "X-API-Key": process.env.NEXT_PUBLIC_DEA_API_KEY,
   },
-});
-
-export const GPClientDEA = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_DEA_URL,
-  withCredentials: true,
-  headers: {
-    "X-API-Key": process.env.DEA_API_KEY,
-  },
-});
-
-export const GPServer = axios.create({
-  baseURL: process.env.BACKEND_URL,
-  withCredentials: true,
 });
 
 export const axiosFetcher = (url: string) =>
