@@ -1,4 +1,4 @@
-import { GPServer } from '@/lib/axiosUtils/axios-instance';
+import { GPClientDEA, GPServer } from '@/lib/axiosUtils/axios-instance';
 import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -9,11 +9,11 @@ export async function GET(req: NextRequest) {
   const finalDate = searchParams.get('finalDate') || '';
 
   logger.info(
-    `GET /api/casa/getRefsByClient?client=${client}&initialDate=${initialDate}&finalDate=${finalDate}`
+    `GET /dea/getRefsByClient?client=${client}&initialDate=${initialDate}&finalDate=${finalDate}`
   );
 
-  return await GPServer.get(
-    `/api/casa/getRefsByClient?client=${client}&initialDate=${initialDate}&finalDate=${finalDate}`,
+  return await GPClientDEA.get(
+    `/dea/getRefsByClient?client=${client}&initialDate=${initialDate}&finalDate=${finalDate}`,
     {
       headers: { Authorization: `Bearer ${req.cookies.get('session_token')?.value}` },
     }

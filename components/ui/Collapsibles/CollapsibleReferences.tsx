@@ -83,7 +83,7 @@ export default function CollapsibleReferences({ references }: { references: getR
             className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
           >
             <CollapsibleTrigger>
-              <p className="font-bold">Referencias</p>
+              <p className="font-bold">Referencias - {filteredItems?.length} referencias</p>
               <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
@@ -99,18 +99,21 @@ export default function CollapsibleReferences({ references }: { references: getR
                 />
                 {clientNumber &&
                   filteredItems &&
-                  filteredItems.map(({ NUM_REFE }: getRefsByClient, i) => {
+                  filteredItems.map(({ NUM_REFE, FOLDER_EXISTS }: getRefsByClient, i) => {
                     const isDownloading = loadingReference === NUM_REFE;
 
                     return (
                       <SidebarMenuItem
                         key={i}
                         className={
-                          reference == NUM_REFE
+                          reference === NUM_REFE && FOLDER_EXISTS
                             ? 'bg-green-300 cursor-pointer mb-1 p-2'
+                            : !FOLDER_EXISTS
+                            ? 'bg-red-400 cursor-not-allowed opacity-60 mb-1 p-2'
                             : 'cursor-pointer mb-1 even:bg-gray-200 p-2'
                         }
                         onClick={() => {
+                          if (!FOLDER_EXISTS) return;
                           const custom = getCustomKeyByRef(NUM_REFE);
                           setCustom(custom || '');
                           setPdfUrl('');
@@ -120,18 +123,20 @@ export default function CollapsibleReferences({ references }: { references: getR
                       >
                         <div className="flex justify-between">
                           <p>{NUM_REFE}</p>
-                          {!isDownloading ? (
-                            <DownloadIcon
-                              size={20}
-                              onClick={() => {
-                                setReference(NUM_REFE);
-                                setLoadingReference(NUM_REFE);
-                                setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
-                              }}
-                            />
-                          ) : (
-                            <TailwindSpinner className="w-6 h-6" />
-                          )}
+                          {FOLDER_EXISTS &&
+                            (!isDownloading ? (
+                              <DownloadIcon
+                                size={20}
+                                onClick={(e) => {
+                                  e.stopPropagation(); // prevent triggering parent onClick
+                                  setReference(NUM_REFE);
+                                  setLoadingReference(NUM_REFE);
+                                  setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
+                                }}
+                              />
+                            ) : (
+                              <TailwindSpinner className="w-6 h-6" />
+                            ))}
                         </div>
                       </SidebarMenuItem>
                     );
