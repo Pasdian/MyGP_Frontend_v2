@@ -33,7 +33,7 @@ export async function GET(
     })
     .catch((err) => {
       console.error(err);
-      logger.error(err.response.data.message);
-      return NextResponse.json({ error: err.response.data.message }, { status: 500 });
+      logger.error(err.response.data.detail);
+      return NextResponse.json({ error: err.response.data.detail }, { status: 500 });
     });
 }
