@@ -206,6 +206,8 @@ export default function InterfaceUpsertPhaseForm({
     },
   });
 
+  const phase = form.watch('phase');
+
   async function onSubmit(data: z.infer<typeof schema>) {
     await GPClient.post('/api/casa/upsertPhase', {
       ref: data.ref,
@@ -292,10 +294,10 @@ export default function InterfaceUpsertPhaseForm({
               </FormItem>
             )}
           />
-          {form.watch('phase') == '073' ? <FormItemsRevalidacion form={form} row={row} /> : ''}
-          {form.watch('phase') == '114' ? <FormItemsUltimoDocumento form={form} row={row} /> : ''}
-          {form.watch('phase') == '130' ? <FormItemsMSA form={form} row={row} /> : ''}
-          {form.watch('phase') == '138' ? <FormItemsEntregaTransporte form={form} row={row} /> : ''}
+          {phase == '073' ? <FormItemsRevalidacion form={form} row={row} /> : ''}
+          {phase == '114' ? <FormItemsUltimoDocumento form={form} row={row} /> : ''}
+          {phase == '130' ? <FormItemsMSA form={form} row={row} /> : ''}
+          {phase == '138' ? <FormItemsEntregaTransporte form={form} row={row} /> : ''}
 
           <FormField
             control={form.control}
