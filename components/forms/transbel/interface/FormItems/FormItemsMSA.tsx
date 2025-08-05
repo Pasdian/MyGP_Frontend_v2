@@ -18,7 +18,15 @@ export default function FormItemsMSA({
       time: string;
       user: string | undefined;
     },
-    undefined
+    any,
+    {
+      ref: string;
+      phase: string;
+      exceptionCode: string | undefined;
+      date: string;
+      time: string;
+      user: string | undefined;
+    }
   >;
 
   row: Row<getRefsPendingCE>;

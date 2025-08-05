@@ -18,7 +18,15 @@ export default function FormItemsUltimoDocumento({
       time: string;
       user: string | undefined;
     },
-    undefined
+    unknown,
+    {
+      ref: string;
+      phase: string;
+      exceptionCode: string | undefined;
+      date: string;
+      time: string;
+      user: string | undefined;
+    }
   >;
 
   row: Row<getRefsPendingCE>;
