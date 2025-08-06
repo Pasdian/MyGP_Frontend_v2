@@ -1,4 +1,3 @@
-import ModifyCompanyForm from '@/components/forms/admin-panel/ModifyCompanyForm';
 import ModifyModuleForm from '@/components/forms/admin-panel/ModifyModuleForm';
 import {
   Dialog,

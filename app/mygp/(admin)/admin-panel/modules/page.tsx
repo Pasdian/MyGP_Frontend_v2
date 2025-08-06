@@ -1,11 +1,7 @@
 'use client';
 
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
-import AddCompanyButton from '@/components/buttons/admin-panel/companies/AddCompanyButton';
-import ModifyCompanyButton from '@/components/buttons/admin-panel/companies/ModifyCompanyButton';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
-import { getAllCompaniesColumns } from '@/lib/columns/getAllCompaniesColumns';
-import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
