@@ -18,8 +18,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { Row } from '@tanstack/react-table';
+import { getAllModulesColumns } from '@/lib/columns/getAllModulesColumns';
+import { getAllModules } from '@/types/getAllModules/getAllModules';
+import AddModuleButton from '@/components/buttons/admin-panel/modules/AddModuleButton';
+import ModifyModuleButton from '@/components/buttons/admin-panel/modules/ModifyModuleButton';
 
-function CompanyActions({ row }: { row: Row<getAllCompanies> }) {
+function ModulesActions({ row }: { row: Row<getAllModules> }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,22 +35,22 @@ function CompanyActions({ row }: { row: Row<getAllCompanies> }) {
         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <ModifyCompanyButton row={row} />
+          <ModifyModuleButton row={row} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-const columns = getAllCompaniesColumns(CompanyActions);
+const columns = getAllModulesColumns(ModulesActions);
 
-export default function Companies() {
+export default function Modules() {
   return (
     <ProtectedRoute allowedRoles={['ADMIN']}>
-      <AdminCrud<getAllCompanies>
-        addButton={<AddCompanyButton />}
-        dataTableUrl="/api/companies/getAllCompanies"
-        title="Compañias"
+      <AdminCrud<getAllModules>
+        addButton={<AddModuleButton />}
+        dataTableUrl="/api/modules"
+        title="Módulos"
         columns={columns}
       />
     </ProtectedRoute>

@@ -17,9 +17,9 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { Eye, EyeOff } from 'lucide-react';
-import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
+import AdminPanelRoleSelect from '@/components/selects/RoleSelect';
 import { z } from 'zod/v4';
-import { addUserSchema } from '@/lib/schemas/admin-panel/addUserSchema';
+import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 
 export default function AddUserForm({
   setIsOpen,

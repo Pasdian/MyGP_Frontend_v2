@@ -5,8 +5,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
-import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
+import { dropdownModifyClassName } from '@/lib/classNames/adminActions';
+import { getAllUsers } from '@/types/users/getAllUsers';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 
@@ -15,12 +17,15 @@ export default function ModifyUserButton({
   open,
   setIsOpen,
 }: {
-  row: Row<getAllUsersDeepCopy>;
+  row: Row<getAllUsers>;
   open: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   return (
     <Dialog open={open} onOpenChange={setIsOpen}>
+      <DialogTrigger className={`${dropdownModifyClassName} mb-1`}>
+        <span className="text-sm text-white font-bold">Modificar</span>
+      </DialogTrigger>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Usuario</DialogTitle>
@@ -29,7 +34,7 @@ export default function ModifyUserButton({
             cuando termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        <ModifyUserForm row={row} />
+        {open && <ModifyUserForm row={row} />}
       </DialogContent>
     </Dialog>
   );

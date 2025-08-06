@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { flexRender } from '@tanstack/react-table';
+import { ColumnDef, flexRender } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import TablePagination from '../pagination/TablePagination';
 import {
@@ -19,18 +19,21 @@ import useSWRImmutable from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../../ui/TailwindSpinner';
-import { getRoles } from '@/types/roles/getRoles';
-import { rolesColumns } from '@/lib/columns/rolesColumns';
-import RolesDataTableFilter from '../filters/RolesDataTableFilter';
+import AdminDataTableFilter from '../filters/AdminDataTableFilter';
 
-export default function CompaniesDataTable() {
-  const { data, isValidating } = useSWRImmutable<getRoles[]>('/api/roles', axiosFetcher);
+type AdminDataTableProps<T> = {
+  dataTableUrl: string;
+  columns: ColumnDef<T>[];
+};
+
+export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTableProps<T>) {
+  const { data, isValidating } = useSWRImmutable<T[]>(dataTableUrl, axiosFetcher);
 
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
-    data: data ? data : [],
-    columns: rolesColumns,
+    data: data || [],
+    columns: columns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -56,7 +59,7 @@ export default function CompaniesDataTable() {
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanFilter() ? (
                           <div>
-                            <RolesDataTableFilter column={header.column} />
+                            <AdminDataTableFilter<T> column={header.column} />
                           </div>
                         ) : null}
                       </div>

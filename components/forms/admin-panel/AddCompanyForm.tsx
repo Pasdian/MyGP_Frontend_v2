@@ -16,34 +16,33 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
-import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
+import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
 
-export default function AddRoleForm({
+export default function AddCompanyForm({
   setIsOpen,
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof roleSchema>>({
-    resolver: zodResolver(roleSchema),
+  const form = useForm<z.infer<typeof companySchema>>({
+    resolver: zodResolver(companySchema),
     mode: 'onChange',
     defaultValues: {
       name: '',
-      description: '',
+      casa_id: '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof roleSchema>) {
-    await GPClient.post(`/api/roles`, {
+  async function onSubmit(data: z.infer<typeof companySchema>) {
+    await GPClient.post(`/api/companies/createCompany`, {
       name: data.name,
-      description: data.description,
+      casa_id: data.casa_id,
     })
       .then((res) => {
         toast.success(res.data.message);
         setIsOpen((opened) => !opened);
-        mutate('/api/users/getAllUsers');
-        mutate('/api/roles');
+        mutate('/api/companies/getAllCompanies');
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -59,9 +58,9 @@ export default function AddRoleForm({
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre del Rol</FormLabel>
+                <FormLabel>Nombre de la Compañia</FormLabel>
                 <FormControl>
-                  <Input className="uppercase" placeholder="Nombre del Rol..." {...field} />
+                  <Input className="uppercase" placeholder="Nombre de la Compañia..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -70,12 +69,12 @@ export default function AddRoleForm({
 
           <FormField
             control={form.control}
-            name="description"
+            name="casa_id"
             render={({ field }) => (
               <FormItem className="mb-4">
-                <FormLabel>Descripción del Rol</FormLabel>
+                <FormLabel>ID CASA</FormLabel>
                 <FormControl>
-                  <Input placeholder="Descripción del Rol..." {...field} />
+                  <Input placeholder="ID CASA" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -10,6 +10,13 @@ export type getAllUsers = {
   role_id: number;
   created_at: string;
   updated_at: string;
+  role: {
+    id: number;
+    name: string;
+    description: string;
+  };
+  company: {
+    uuid: string;
+    name: string;
+  } | null;
 };
-
-export type getAllUsersDeepCopy = getAllUsers & { role_description: string };

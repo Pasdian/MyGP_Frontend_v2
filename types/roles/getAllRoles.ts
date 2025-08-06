@@ -1,4 +1,4 @@
-export type getRoles = {
+export type getAllRoles = {
   id: number;
   uuid: string;
   name: string;

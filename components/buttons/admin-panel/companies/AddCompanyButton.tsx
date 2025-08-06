@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import React from 'react';
 import { IconPlus } from '@tabler/icons-react';
+import AddCompanyForm from '@/components/forms/admin-panel/AddCompanyForm';
 
 export default function AddCompanyButton() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -30,6 +31,9 @@ export default function AddCompanyButton() {
             los campos.
           </DialogDescription>
         </DialogHeader>
+        <div>
+          <AddCompanyForm setIsOpen={setIsOpen} />
+        </div>
       </DialogContent>
     </Dialog>
   );

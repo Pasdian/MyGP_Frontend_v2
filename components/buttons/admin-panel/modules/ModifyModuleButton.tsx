@@ -1,5 +1,5 @@
-import ModifyRoleForm from '@/components/forms/admin-panel/ModifyRoleForm';
-
+import ModifyCompanyForm from '@/components/forms/admin-panel/ModifyCompanyForm';
+import ModifyModuleForm from '@/components/forms/admin-panel/ModifyModuleForm';
 import {
   Dialog,
   DialogContent,
@@ -9,27 +9,26 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { dropdownModifyClassName } from '@/lib/classNames/adminActions';
-import { getAllRoles } from '@/types/roles/getAllRoles';
-
+import { getAllModules } from '@/types/getAllModules/getAllModules';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 
-export default function ModifyRoleButton({ row }: { row: Row<getAllRoles> }) {
+export default function ModifyModuleButton({ row }: { row: Row<getAllModules> }) {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger className={dropdownModifyClassName}>
-        <span className="text-sm text-white font-bold">Modificar</span>
+        <span className="text-sm text-white">Modificar</span>
       </DialogTrigger>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Rol</DialogTitle>
+          <DialogTitle>Editar Módulo</DialogTitle>
           <DialogDescription>
-            Aquí podrás realizar la modificación de los datos de un rol. Haz click en guardar cuando
-            termines de editar los campos.
+            Aquí podrás realizar la modificación de los datos de un modulo. Haz click en guardar
+            cuando termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        {isOpen && <ModifyRoleForm row={row} setIsOpen={setIsOpen} />}
+        {isOpen && row && <ModifyModuleForm row={row} setIsOpen={setIsOpen} />}
       </DialogContent>
     </Dialog>
   );

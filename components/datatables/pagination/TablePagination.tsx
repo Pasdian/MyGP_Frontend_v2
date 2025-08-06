@@ -1,22 +1,14 @@
-import { Button } from '@/components/ui/button';
-import { getRoles } from '@/types/roles/getRoles';
-import { getDeliveries } from '@/types/transbel/getDeliveries';
-import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
-import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
 import { Table } from '@tanstack/react-table';
+import { Button } from '@/components/ui/button'; // Adjust path if needed
 
-export default function TablePagination({
-  table,
-}: {
-  table:
-    | Table<getDeliveries>
-    | Table<getRefsPendingCE>
-    | Table<getAllUsersDeepCopy>
-    | Table<getRoles>;
-}) {
+type TablePaginationProps<T> = {
+  table: Table<T>;
+};
+
+export default function TablePagination<T>({ table }: TablePaginationProps<T>) {
   return (
     <div>
-      {/* Pagination starts here*/}
+      {/* Pagination starts here */}
       <div className="flex items-center justify-end space-x-2">
         <Button variant="outline" size="sm">
           {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}

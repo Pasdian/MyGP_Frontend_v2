@@ -1,5 +1,11 @@
 import { useAuth } from '@/hooks/useAuth';
-import { IconBuilding, IconListDetails, IconShield, IconUser } from '@tabler/icons-react';
+import {
+  IconBuilding,
+  IconLayoutGrid,
+  IconListDetails,
+  IconShield,
+  IconUser,
+} from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import useSWRImmutable from 'swr/immutable';
@@ -49,6 +55,12 @@ const userItems = {
           url: '/mygp/admin-panel/companies',
           role: ['ADMIN'],
           icon: IconBuilding,
+        },
+        {
+          title: 'Módulos',
+          url: '/mygp/admin-panel/modules',
+          role: ['ADMIN'],
+          icon: IconLayoutGrid,
         },
       ],
     },

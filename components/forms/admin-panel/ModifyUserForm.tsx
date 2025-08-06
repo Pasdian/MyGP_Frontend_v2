@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
+import { getAllUsers } from '@/types/users/getAllUsers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
@@ -22,10 +22,11 @@ import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
-import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
-import { modifyUserSchema } from '@/lib/schemas/admin-panel/modifyUserSchema';
+import RoleSelect from '@/components/selects/RoleSelect';
+import CompanySelect from '@/components/selects/CompanySelect';
+import { modifyUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 
-export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> }) {
+export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);
   const { mutate } = useSWRConfig();
 
@@ -40,6 +41,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> 
       role_id: row.original.role_id ? row.original.role_id.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
       status: row.original.status == 'Activo' ? true : false,
+      company_uuid: row.original.company?.uuid || '',
     },
   });
 
@@ -52,6 +54,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> 
       role_id: data.role_id,
       casa_user_name: data.casa_user_name,
       status: data.status == true ? 'active' : 'inactive',
+      company_uuid: data.company_uuid,
     })
       .then((res) => {
         toast.success(res.data.message);
@@ -149,7 +152,20 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsersDeepCopy> 
               <FormItem>
                 <FormLabel>Rol de Usuario</FormLabel>
                 <FormControl>
-                  <AdminPanelRoleSelect onValueChange={field.onChange} defaultValue={field.value} />
+                  <RoleSelect onValueChange={field.onChange} defaultValue={field.value} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="company_uuid"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Compañia del Usuario</FormLabel>
+                <FormControl>
+                  <CompanySelect onValueChange={field.onChange} defaultValue={field.value} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

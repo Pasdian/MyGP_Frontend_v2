@@ -4,7 +4,7 @@ import {
   ROLE_NAME_VALIDATION,
 } from "@/lib/validations/roleValidations";
 
-export const modifyRoleSchema = z.object({
+export const roleSchema = z.object({
   name: ROLE_NAME_VALIDATION,
   description: ROLE_DESCRIPTION_VALIDATION,
 });

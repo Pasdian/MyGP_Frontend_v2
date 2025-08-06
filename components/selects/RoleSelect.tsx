@@ -1,15 +1,38 @@
+'use client';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import React from 'react';
-import { RolesContext } from '@/contexts/RolesContext';
+import useSWR from 'swr';
+import { getAllRoles } from '@/types/roles/getAllRoles';
+import { Loader2 } from 'lucide-react';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 
-export default function AdminPanelRoleSelect({
+export default function RoleSelect({
   onValueChange,
   defaultValue = '',
 }: {
   onValueChange?(value: string): void;
   defaultValue?: string;
 }) {
-  const roles = React.useContext(RolesContext);
+  const { data: roles, isLoading: isRolesLoading } = useSWR<getAllRoles[]>(
+    '/api/roles',
+    axiosFetcher
+  );
+
+  if (isRolesLoading)
+    return (
+      <div className="flex items-center">
+        <div className="mr-2">
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Cargando roles..." />
+            </SelectTrigger>
+          </Select>
+        </div>
+        <Loader2 className="w-5 animate-spin" />
+      </div>
+    );
+
   if (!roles)
     return (
       <Select>
