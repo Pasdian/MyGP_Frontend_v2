@@ -18,7 +18,10 @@ import DocumentCard from '@/components/Cards/DocumentCard';
 import PreviosDialog from '@/components/Dialogs/PreviosDialog';
 import { Button } from '@/components/ui/button';
 import useSWRMutation from 'swr/mutation';
-import { LoaderCircle, RocketIcon } from 'lucide-react';
+import { ExternalLink, LoaderCircle, RocketIcon } from 'lucide-react';
+import DEADraggableWindow from '@/components/Windows/DEADraggableWindow';
+import DEAFileVisualizer from '@/components/DEAVisualizer/DEAVisualizer';
+import { DEAWindowData } from '@/types/dea/deaFileVisualizerData';
 
 const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
 const stickyClassName = 'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
@@ -34,7 +37,7 @@ export default function DEA() {
     setFinalDate,
     pdfUrl,
     setPdfUrl,
-    file,
+    fileName,
     setFile,
   } = useDEAStore((state) => state);
 
@@ -45,12 +48,16 @@ export default function DEA() {
   const [subfolder, setSubfolder] = React.useState('');
   const [fileContent, setFileContent] = React.useState('');
   const [subfolderLoading, setSubfolderLoading] = React.useState('');
+  const [windows, setWindows] = React.useState<DEAWindowData[]>([]);
+  const [nextId, setNextId] = React.useState(1);
 
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
     useSWRMutation(
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
+
+  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
 
   const getFilesByReferenceKey =
     reference && client && `/dea/getFilesByReference?reference=${reference}&client=${client}`;
@@ -67,12 +74,10 @@ export default function DEA() {
     client &&
       reference &&
       subfolder &&
-      file &&
-      `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${file}`,
+      fileName &&
+      `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${fileName}`,
     axiosBlobFetcher
   );
-
-  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
 
   // Effect for fileBlob
   React.useEffect(() => {
@@ -155,6 +160,31 @@ export default function DEA() {
     validateDates();
   }, [initialDate, finalDate, clientName, client, reference, getFilesByReferenceKey]);
 
+  const handleFileClick = (pdfUrl: string, fileContent: string, isLoading: boolean) => {
+    const data = {
+      id: nextId,
+      title: fileName,
+      pdfUrl: pdfUrl,
+      windowTitle: 'My current filename',
+      content: fileContent,
+      isLoading: isLoading,
+      x: 100,
+      y: 100,
+      width: 760,
+      height: 800,
+      visible: true,
+      collapse: false,
+    };
+
+    const newData = {
+      ...data,
+      prev: data,
+    };
+    setWindows((prev) => [...prev, newData]);
+    setNextId((id) => id + 1);
+  };
+
+  console.log(windows);
   return (
     <ProtectedRoute allowedRoles={['ADMIN', 'DEA']}>
       <div className="flex mb-5">
@@ -239,7 +269,7 @@ export default function DEA() {
               setFile(item);
               setSubfolder('01-CTA-GASTOS');
             }}
-            activeFile={file}
+            activeFile={fileName}
           />
 
           <DocumentCard
@@ -255,44 +285,28 @@ export default function DEA() {
               setFile(item);
               setSubfolder('04-VUCEM');
             }}
-            activeFile={file}
+            activeFile={fileName}
             filterFn={(item) => item.includes('COVE')}
           />
 
           <Card className="sm:col-span-2 row-span-3 py-0">
             <div className={cardHeaderClassName}>
               <div className={stickyClassName}>
-                <p className="font-bold">Visor de Archivos</p>
-              </div>
-              {isFileBlobLoading && (
-                <div className="w-full h-[720px] flex justify-center items-center">
-                  <TailwindSpinner />
-                </div>
-              )}
-              {fileContent && !isFileBlobLoading && (
-                <div className="w-full h-[720px] overflow-y-auto">
-                  <pre
-                    style={{
-                      whiteSpace: 'pre-wrap',
-                      background: '#f6f8fa',
-                      padding: '1rem',
-                      wordBreak: 'break-word',
+                <p className="font-bold">Visor de Archivos - {fileName}</p>
+                {fileName && (
+                  <ExternalLink
+                    className="cursor-pointer"
+                    onClick={() => {
+                      handleFileClick(pdfUrl, fileContent, isFileBlobLoading);
                     }}
-                  >
-                    {fileContent}
-                  </pre>
-                </div>
-              )}
-
-              {pdfUrl && !isFileBlobLoading && (
-                <div className="w-full h-[720px]">
-                  <iframe
-                    src={pdfUrl}
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                    title="PDF Viewer"
                   />
-                </div>
-              )}
+                )}
+              </div>
+              <DEAFileVisualizer
+                pdfUrl={pdfUrl}
+                content={fileContent}
+                isLoading={isFileBlobLoading}
+              />
             </div>
           </Card>
 
@@ -309,7 +323,7 @@ export default function DEA() {
               setFile(item);
               setSubfolder('02-EXPEDIENTE-ADUANAL');
             }}
-            activeFile={file}
+            activeFile={fileName}
           />
 
           <DocumentCard
@@ -325,7 +339,7 @@ export default function DEA() {
               setFile(item);
               setSubfolder('04-VUCEM');
             }}
-            activeFile={file}
+            activeFile={fileName}
             filterFn={(item) => !item.includes('COVE')}
           />
 
@@ -342,7 +356,7 @@ export default function DEA() {
               setFile(item);
               setSubfolder('03-FISCALES');
             }}
-            activeFile={file}
+            activeFile={fileName}
           />
 
           <DocumentCard
@@ -358,10 +372,13 @@ export default function DEA() {
               setFile(item);
               setSubfolder('05-EXP-DIGITAL');
             }}
-            activeFile={file}
+            activeFile={fileName}
           />
         </div>
       )}
+      {windows.map((window) => (
+        <DEADraggableWindow window={window} setWindows={setWindows} key={window.id} />
+      ))}
     </ProtectedRoute>
   );
 }

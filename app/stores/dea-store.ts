@@ -7,7 +7,7 @@ export type DEAState = {
   pdfUrl: string;
   initialDate: Date | undefined;
   finalDate: Date | undefined;
-  file: string;
+  fileName: string;
 };
 
 export const defaultInitState: DEAState = {
@@ -17,7 +17,7 @@ export const defaultInitState: DEAState = {
   pdfUrl: '',
   initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
   finalDate: new Date(),
-  file: '',
+  fileName: '',
 };
 
 export type DEAActions = {
@@ -40,7 +40,7 @@ export const initDEAStore = (): DEAState => {
     pdfUrl: '',
     initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
     finalDate: new Date(),
-    file: '',
+    fileName: '',
   };
 };
 
@@ -52,7 +52,7 @@ export const createDEAStore = (initState: DEAState = defaultInitState) => {
     setInitialDate: (initialDate) => set(() => ({ initialDate })),
     setFinalDate: (finalDate) => set(() => ({ finalDate })),
     setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),
-    setFile: (file) => set(() => ({ file })),
+    setFile: (fileName) => set(() => ({ fileName })),
     setCustom: (custom) => set(() => ({ custom })),
   }));
 };
