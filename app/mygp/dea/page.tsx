@@ -193,7 +193,6 @@ export default function DEA() {
     setNextId((id) => id + 1);
   };
 
-  console.log(windows);
   return (
     <ProtectedRoute allowedRoles={['ADMIN', 'DEA']}>
       <div className="flex mb-5">
