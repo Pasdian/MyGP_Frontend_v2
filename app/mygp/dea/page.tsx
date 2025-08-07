@@ -242,6 +242,7 @@ export default function DEA() {
               try {
                 await triggerDigitalRecordGeneration();
                 mutate(getFilesByReferenceKey);
+                toast.success('Expediente digital generado exitosamente');
               } catch (err) {
                 console.error('Generation Failed', err);
               }
