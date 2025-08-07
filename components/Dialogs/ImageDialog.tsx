@@ -78,14 +78,6 @@ export default function ImageDialog({
     });
   }, [curImageUrl, currentIndex, previoInfo.currentFolder, partidasPrevios]);
 
-  React.useEffect(() => {
-    return () => {
-      imageBlobUrlMap.forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
-    };
-  }, [imageBlobUrlMap]);
-
   const goNext = () => {
     if (currentIndex < partidasPrevios[previoInfo.currentFolder].length - 1) {
       const newIndex = currentIndex + 1;
