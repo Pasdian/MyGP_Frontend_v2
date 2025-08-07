@@ -81,12 +81,13 @@ export default function DEADraggableWindow({
         updateWindowPosition(window.id, position.x, position.y);
       }}
       style={{
-        border: '1px solid #ccc',
+        border: '2px solid black',
+        position: 'fixed',
         background: '#fff',
         zIndex: 1000 + window.id,
       }}
     >
-      <div className="flex justify-between items-center px-4 py-2 bg-purple-500 border-4 border-purple-800">
+      <div className="flex justify-between items-center px-4 py-2 bg-purple-500">
         <h2 className="text-sm text-white font-bold">{window.title}</h2>
         <div className="flex">
           {!window.collapse ? (

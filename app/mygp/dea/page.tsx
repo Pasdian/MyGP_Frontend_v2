@@ -161,17 +161,26 @@ export default function DEA() {
   }, [initialDate, finalDate, clientName, client, reference, getFilesByReferenceKey]);
 
   const handleFileClick = (pdfUrl: string, fileContent: string, isLoading: boolean) => {
+    // Spawn at the center of the browser
+    const windowWidth = 760;
+    const windowHeight = 800;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const x = (viewportWidth - windowWidth) / 2;
+    const y = (viewportHeight - windowHeight) / 2;
+
     const data = {
       id: nextId,
       title: fileName,
       pdfUrl: pdfUrl,
-      windowTitle: 'My current filename',
       content: fileContent,
       isLoading: isLoading,
-      x: 100,
-      y: 100,
-      width: 760,
-      height: 800,
+      x: x,
+      y: y,
+      width: windowWidth,
+      height: windowHeight,
       visible: true,
       collapse: false,
     };

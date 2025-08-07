@@ -1,7 +1,6 @@
 export interface DEAWindowData {
   id: number;
   title: string;
-  windowTitle: string;
   pdfUrl: string;
   content: string;
   isLoading: boolean;
