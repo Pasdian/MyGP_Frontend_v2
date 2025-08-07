@@ -51,7 +51,7 @@ export default function RoleSelect({
         {roles.map((role) => {
           return (
             <div key={role.name}>
-              <SelectItem value={role.id.toString()}>
+              <SelectItem value={role.uuid || ''}>
                 {role.id} - {role.name}
               </SelectItem>
             </div>

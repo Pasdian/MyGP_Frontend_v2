@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
-import AddRoleButton from '@/components/buttons/admin-panel/roles/AddRoleButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +18,7 @@ import { getAllUsers } from '@/types/users/getAllUsers';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
+import AddUserButton from '@/components/buttons/admin-panel/users/AddUserButton';
 
 function UserActionsDropdown({ row }: { row: Row<getAllUsers> }) {
   const [isModifyUserDialogOpen, setIsModifyUserDialogOpen] = React.useState(false);
@@ -65,7 +65,7 @@ export default function Users() {
   return (
     <ProtectedRoute allowedRoles={['ADMIN']}>
       <AdminCrud<getAllUsers>
-        addButton={<AddRoleButton />}
+        addButton={<AddUserButton />}
         dataTableUrl="/api/users/getAllUsers"
         title="Usuarios"
         columns={columns}

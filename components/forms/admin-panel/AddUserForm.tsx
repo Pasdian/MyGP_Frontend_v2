@@ -37,10 +37,10 @@ export default function AddUserForm({
       email: '',
       password: '',
       confirm_password: '',
-      role_id: '',
       mobile: '',
       has_casa_user: true,
       casa_user_name: '',
+      role_uuid: '',
     },
   });
 
@@ -49,7 +49,7 @@ export default function AddUserForm({
       name: data.name,
       email: data.email,
       password: data.password,
-      role_id: data.role_id,
+      role_uuid: data.role_uuid,
       mobile: data.mobile,
       has_casa_user: data.has_casa_user,
       casa_user_name: data.casa_user_name,
@@ -166,7 +166,7 @@ export default function AddUserForm({
 
           <FormField
             control={form.control}
-            name="role_id"
+            name="role_uuid"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol del Usuario</FormLabel>

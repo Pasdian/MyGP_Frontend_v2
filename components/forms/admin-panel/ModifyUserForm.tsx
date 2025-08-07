@@ -38,7 +38,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
       email: row.original.email ? row.original.email : '',
       mobile: row.original.mobile ? row.original.mobile : '',
       password: '',
-      role_id: row.original.role_id ? row.original.role_id.toString() : '',
+      role_uuid: row.original.role_uuid ? row.original.role_uuid.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
       status: row.original.status == 'Activo' ? true : false,
       company_uuid: row.original.company?.uuid || '',
@@ -51,7 +51,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
       email: data.email,
       mobile: data.mobile,
       password: data.password,
-      role_id: data.role_id,
+      role_uuid: data.role_uuid,
       casa_user_name: data.casa_user_name,
       status: data.status == true ? 'active' : 'inactive',
       company_uuid: data.company_uuid,
@@ -147,7 +147,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
 
           <FormField
             control={form.control}
-            name="role_id"
+            name="role_uuid"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol de Usuario</FormLabel>
