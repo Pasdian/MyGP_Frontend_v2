@@ -31,7 +31,7 @@ export default function AddRoleButton() {
             campos.
           </DialogDescription>
         </DialogHeader>
-        <AddRoleForm setIsOpen={setIsOpen} />
+        {isOpen && <AddRoleForm setIsOpen={setIsOpen} />}
       </DialogContent>
     </Dialog>
   );

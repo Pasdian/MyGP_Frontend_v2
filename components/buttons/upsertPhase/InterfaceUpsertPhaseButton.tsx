@@ -40,7 +40,7 @@ export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPe
           </DialogDescription>
         </DialogHeader>
 
-        <InterfaceUpsertPhaseForm row={row} setOpenDialog={setOpenDialog} />
+        {openDialog && row && <InterfaceUpsertPhaseForm row={row} setOpenDialog={setOpenDialog} />}
       </DialogContent>
     </Dialog>
   );

@@ -1,16 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import {
-  IconDatabase,
-  IconFileWord,
-  IconInnerShadowTop,
-  IconReport,
-  IconSettings,
-} from '@tabler/icons-react';
+import { IconInnerShadowTop } from '@tabler/icons-react';
 
 import { NavMain } from '@/components/ui/nav-main';
-import { NavSecondary } from '@/components/ui/nav-secondary';
 import { NavUser } from '@/components/ui/nav-user';
 import {
   Sidebar,
@@ -22,33 +15,6 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import NavCollapsible from './nav-collapsible';
-
-const data = {
-  navSecondary: [
-    {
-      title: 'Ajustes',
-      url: '#',
-      icon: IconSettings,
-    },
-  ],
-  extras: [
-    {
-      name: 'Apartado 1',
-      url: '#',
-      icon: IconDatabase,
-    },
-    {
-      name: 'Apartado 2',
-      url: '#',
-      icon: IconReport,
-    },
-    {
-      name: 'Apartado 3',
-      url: '#',
-      icon: IconFileWord,
-    },
-  ],
-};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -68,7 +34,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="gap-0">
         <NavMain />
         <NavCollapsible />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

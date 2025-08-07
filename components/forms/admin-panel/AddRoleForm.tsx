@@ -10,13 +10,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { addRoleSchema } from '@/lib/schemas/admin-panel/addRoleSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
+import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
 
 export default function AddRoleForm({
   setIsOpen,
@@ -25,8 +25,8 @@ export default function AddRoleForm({
 }) {
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof addRoleSchema>>({
-    resolver: zodResolver(addRoleSchema),
+  const form = useForm<z.infer<typeof roleSchema>>({
+    resolver: zodResolver(roleSchema),
     mode: 'onChange',
     defaultValues: {
       name: '',
@@ -34,7 +34,7 @@ export default function AddRoleForm({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof addRoleSchema>) {
+  async function onSubmit(data: z.infer<typeof roleSchema>) {
     await GPClient.post(`/api/roles`, {
       name: data.name,
       description: data.description,
@@ -61,7 +61,7 @@ export default function AddRoleForm({
               <FormItem>
                 <FormLabel>Nombre del Rol</FormLabel>
                 <FormControl>
-                  <Input placeholder="Nombre del Rol..." {...field} />
+                  <Input className="uppercase" placeholder="Nombre del Rol..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

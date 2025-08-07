@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +29,7 @@ export default function ClientsCombo({
 }) {
   const [open, setOpen] = React.useState(false);
   const [clients, setClients] = React.useState<{ value: string; label: string }[]>([]);
+  const [search, setSearch] = React.useState('');
 
   React.useEffect(() => {
     const transformedArray = clientsData.map((item) => ({
@@ -38,6 +38,13 @@ export default function ClientsCombo({
     }));
     setClients(transformedArray);
   }, []);
+
+  // 👇 Filter by client name or ID
+  const filteredClients = clients.filter(
+    (client) =>
+      client.label.toLowerCase().includes(search.toLowerCase()) ||
+      client.value.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -53,27 +60,36 @@ export default function ClientsCombo({
             {clientName
               ? clients.find((client) => client.label === clientName)?.label
               : 'Selecciona un cliente...'}
-            <ChevronsUpDown className="opacity-50" />
+            <ChevronsUpDown className="opacity-50 ml-2" />
           </Button>
         </PopoverTrigger>
         <PopoverContent id="clientsCombo" className="w-[250px] p-0">
           <Command>
-            <CommandInput placeholder="Buscar por cliente..." className="h-9" />
+            <CommandInput
+              placeholder="Buscar por cliente o ID..."
+              className="h-9"
+              value={search}
+              onValueChange={setSearch} // 👈 Track user input
+            />
             <CommandList>
-              <CommandEmpty>No se encontro el cliente.</CommandEmpty>
+              <CommandEmpty>No se encontró el cliente.</CommandEmpty>
               <CommandGroup>
-                {clients.map((client) => (
+                {filteredClients.map((client) => (
                   <CommandItem
                     key={client.value}
-                    value={client.label}
-                    onSelect={(val) => {
+                    value={`${client.label} ${client.value}`}
+                    onSelect={() => {
                       setClientName(client.label);
                       setClientNumber(client.value);
                       setOpen(false);
-                      onSelect(val);
+                      onSelect(client.value);
+                      setSearch(''); // Optional: clear search after select
                     }}
                   >
-                    {client.label}
+                    <div className="flex justify-between w-full">
+                      <span>{client.label}</span>
+                      <span className="text-xs text-gray-500">({client.value})</span>
+                    </div>
                     <Check
                       className={cn(
                         'ml-auto',

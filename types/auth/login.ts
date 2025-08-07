@@ -1,11 +1,19 @@
 export type Login = {
+  message: string;
   token: string;
-  user: {
-    id: number | null;
-    uuid: string | null;
-    casa_user_name: string | null;
-    name: string | null;
-    email: string | null;
-    role: number | null;
+  complete_user: {
+    user: {
+      uuid: string;
+      name: string;
+      casa_user_name: string;
+      email: string;
+      mobile: string;
+      status: string;
+      company_name: string;
+      company_uuid: string;
+      company_casa_id: string;
+    };
+    role: { name: string; description: string };
+    modules: string[];
   };
 };

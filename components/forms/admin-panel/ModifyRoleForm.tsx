@@ -17,21 +17,21 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 
-import { getRoles } from '@/types/roles/getRoles';
 import { Row } from '@tanstack/react-table';
-import { modifyRoleSchema } from '@/lib/schemas/admin-panel/modifyRoleSchema';
+import { getAllRoles } from '@/types/roles/getAllRoles';
+import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
 
 export default function ModifyRoleForm({
   row,
   setIsOpen,
 }: {
-  row: Row<getRoles>;
+  row: Row<getAllRoles>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof modifyRoleSchema>>({
-    resolver: zodResolver(modifyRoleSchema),
+  const form = useForm<z.infer<typeof roleSchema>>({
+    resolver: zodResolver(roleSchema),
     mode: 'onChange',
     defaultValues: {
       name: row.original.name ? row.original.name : '',
@@ -39,7 +39,7 @@ export default function ModifyRoleForm({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof modifyRoleSchema>) {
+  async function onSubmit(data: z.infer<typeof roleSchema>) {
     await GPClient.put(`/api/roles/${row.original.uuid}`, {
       name: data.name,
       description: data.description,

@@ -39,7 +39,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       exceptionCode: row.original.CE_140 ? row.original.CE_140 : '',
       cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140 : '',
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
-      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
+      user: user.user.casa_user_name ? user.user.casa_user_name : 'MYGP',
       transporte: row.original.ENTREGA_TRANSPORTE_138 ? row.original.ENTREGA_TRANSPORTE_138 : '',
     },
   });

@@ -1,0 +1,54 @@
+'use client';
+
+import AdminCrud from '@/components/AdminCrud/AdminCrud';
+import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
+import { Row } from '@tanstack/react-table';
+import { getAllModulesColumns } from '@/lib/columns/getAllModulesColumns';
+import { getAllModules } from '@/types/getAllModules/getAllModules';
+import AddModuleButton from '@/components/buttons/admin-panel/modules/AddModuleButton';
+import ModifyModuleButton from '@/components/buttons/admin-panel/modules/ModifyModuleButton';
+
+function ModulesActions({ row }: { row: Row<getAllModules> }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <ModifyModuleButton row={row} />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const columns = getAllModulesColumns(ModulesActions);
+
+export default function Modules() {
+  return (
+    <ProtectedRoute allowedRoles={['ADMIN']}>
+      <AdminCrud<getAllModules>
+        addButton={<AddModuleButton />}
+        dataTableUrl="/api/modules"
+        title="Módulos"
+        columns={columns}
+      />
+    </ProtectedRoute>
+  );
+}

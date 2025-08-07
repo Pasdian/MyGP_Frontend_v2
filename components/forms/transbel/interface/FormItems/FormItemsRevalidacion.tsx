@@ -28,6 +28,7 @@ export default function FormItemsRevalidacion({
       user: string | undefined;
     }
   >;
+
   row: Row<getRefsPendingCE>;
 }) {
   return (

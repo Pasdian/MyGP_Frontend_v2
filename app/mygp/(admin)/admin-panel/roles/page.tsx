@@ -1,17 +1,55 @@
 'use client';
 
+import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import AddRoleButton from '@/components/buttons/admin-panel/roles/AddRoleButton';
-import RolesDataTable from '@/components/datatables/admin-panel/RolesDataTable';
+import ModifyRoleButton from '@/components/buttons/admin-panel/roles/ModifyRoleButton';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
-import { ADMIN_ROLE_UUID } from '@/lib/roles/roles';
+import { getAllRolesColumns } from '@/lib/columns/getAllRolesColumns';
+import { getAllRoles } from '@/types/roles/getAllRoles';
 import React from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal } from 'lucide-react';
+import { Row } from '@tanstack/react-table';
 
-export default function AdminPanelRoles() {
+function RolesActions({ row }: { row: Row<getAllRoles> }) {
   return (
-    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID]}>
-      <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Roles</h1>
-      <AddRoleButton />
-      <RolesDataTable />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Abrir Menú</span>
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <ModifyRoleButton row={row} />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const columns = getAllRolesColumns(RolesActions);
+
+export default function Roles() {
+  return (
+    <ProtectedRoute allowedRoles={['ADMIN']}>
+      <AdminCrud<getAllRoles>
+        addButton={<AddRoleButton />}
+        dataTableUrl="/api/roles"
+        title="Roles"
+        columns={columns}
+      />
     </ProtectedRoute>
   );
 }

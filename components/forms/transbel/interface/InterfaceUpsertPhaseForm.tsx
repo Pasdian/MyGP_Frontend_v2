@@ -202,9 +202,11 @@ export default function InterfaceUpsertPhaseForm({
       exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
-      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
+      user: user.user.casa_user_name ? user.user.casa_user_name : 'MYGP',
     },
   });
+
+  const phase = form.watch('phase');
 
   async function onSubmit(data: z.infer<typeof schema>) {
     await GPClient.post('/api/casa/upsertPhase', {
@@ -292,10 +294,10 @@ export default function InterfaceUpsertPhaseForm({
               </FormItem>
             )}
           />
-          {form.watch('phase') == '073' ? <FormItemsRevalidacion form={form} row={row} /> : ''}
-          {form.watch('phase') == '114' ? <FormItemsUltimoDocumento form={form} row={row} /> : ''}
-          {form.watch('phase') == '130' ? <FormItemsMSA form={form} row={row} /> : ''}
-          {form.watch('phase') == '138' ? <FormItemsEntregaTransporte form={form} row={row} /> : ''}
+          {phase == '073' ? <FormItemsRevalidacion form={form} row={row} /> : ''}
+          {phase == '114' ? <FormItemsUltimoDocumento form={form} row={row} /> : ''}
+          {phase == '130' ? <FormItemsMSA form={form} row={row} /> : ''}
+          {phase == '138' ? <FormItemsEntregaTransporte form={form} row={row} /> : ''}
 
           <FormField
             control={form.control}

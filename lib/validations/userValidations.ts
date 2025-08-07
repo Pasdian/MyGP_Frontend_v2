@@ -31,7 +31,11 @@ export const USER_HAS_CASA_USER_VALIDATION = z.boolean();
 
 export const USER_ROLE_ID_VALIDATION = z.string();
 
+export const USER_COMPANY_VALIDATION = z.string();
+
 export const USER_OPTIONAL_PASSWORD_VALIDATION = z
   .string()
   .optional()
   .or(z.literal(""));
+
+export const USER_ROLE_UUID_VALIDATION = z.string();
