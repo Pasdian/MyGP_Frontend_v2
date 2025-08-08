@@ -14,12 +14,15 @@ export default function DEAFileVisualizer({
   return (
     <div>
       {isLoading && (
-        <div className={`w-full h-[${visualizerSize}px] flex justify-center items-center`}>
+        <div
+          className={`w-full flex justify-center items-center`}
+          style={{ height: `${visualizerSize}px` }}
+        >
           <TailwindSpinner />
         </div>
       )}
       {content && !isLoading && (
-        <div className={`w-full h-[${visualizerSize}px] overflow-y-auto`}>
+        <div className={`w-full overflow-y-auto`} style={{ height: `${visualizerSize}px` }}>
           <pre
             style={{
               whiteSpace: 'pre-wrap',
@@ -34,7 +37,7 @@ export default function DEAFileVisualizer({
       )}
 
       {pdfUrl && !isLoading && (
-        <div className={`w-full h-[${visualizerSize}px]`}>
+        <div className={`w-full`} style={{ height: `${visualizerSize}px` }}>
           <iframe
             src={pdfUrl}
             style={{ width: '100%', height: '100%', border: 'none' }}

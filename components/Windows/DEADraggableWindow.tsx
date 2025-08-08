@@ -48,7 +48,6 @@ export default function DEADraggableWindow({
     setWindows((prev) =>
       prev.map((win) => {
         if (win.id === id && win.prevData) {
-          console.log('Restoring window:', win.id, win.prevData);
           return {
             ...win,
             width: win.prevData.width,
