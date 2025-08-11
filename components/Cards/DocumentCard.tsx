@@ -1,6 +1,9 @@
 import { Card } from '@/components/ui/card';
-import { DownloadIcon } from 'lucide-react';
+import { DownloadIcon, Upload } from 'lucide-react';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
+import React from 'react';
+import { IconUpload } from '@tabler/icons-react';
+import UploadFileDialog from '../Dialogs/UploadFileDialog';
 
 export default function DocumentCard({
   title,
@@ -9,6 +12,7 @@ export default function DocumentCard({
   onDownload,
   onFileSelect,
   activeFile,
+  folder,
   filterFn = () => true,
 }: {
   title: string;
@@ -18,11 +22,14 @@ export default function DocumentCard({
   onFileSelect: (item: string) => void;
   activeFile: string;
   filterFn?: (item: string) => void;
+  folder: string;
 }) {
   const cardClassName = 'h-[240px] py-0 rounded-md';
   const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
   const stickyClassName =
     'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
+
+  const [openDialog, setOpenDialog] = React.useState(false);
   return (
     <Card className={cardClassName}>
       <div className={cardHeaderClassName}>
@@ -31,11 +38,19 @@ export default function DocumentCard({
             {title} - {files.filter(filterFn).length} archivos
           </p>
           <div>
-            {!isLoading ? (
-              <DownloadIcon size={20} className="cursor-pointer" onClick={onDownload} />
-            ) : (
+            {files.length > 0 && !isLoading ? (
+              <div className="flex">
+                <IconUpload
+                  size={20}
+                  color="white"
+                  className="cursor-pointer mr-2"
+                  onClick={() => setOpenDialog(true)}
+                />
+                <DownloadIcon size={20} className="cursor-pointer" onClick={onDownload} />
+              </div>
+            ) : isLoading ? (
               <TailwindSpinner className="w-6 h-6" />
-            )}
+            ) : null}
           </div>
         </div>
         <div className="p-2 break-words">
@@ -54,6 +69,12 @@ export default function DocumentCard({
           ))}
         </div>
       </div>
+      <UploadFileDialog
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        title={title}
+        folder={folder}
+      />
     </Card>
   );
 }

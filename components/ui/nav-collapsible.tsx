@@ -8,7 +8,7 @@ import {
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
@@ -74,7 +74,7 @@ export default function NavCollapsible() {
   const {
     data: allReferences,
     isLoading: isAllReferencesLoading,
-  }: { data: getRefsByClient[]; isLoading: boolean } = useSWRImmutable(
+  }: { data: getRefsByClient[]; isLoading: boolean } = useSWR(
     clientNumber && initialDate && finalDate
       ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
           initialDate.toISOString().split('T')[0]

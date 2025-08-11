@@ -12,7 +12,7 @@ import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
 
 import React from 'react';
 import { Folder, Image } from 'lucide-react';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import TailwindSpinner from '../ui/TailwindSpinner';
@@ -69,8 +69,10 @@ export default function PreviosDialog() {
     reference &&
     `/dea/centralizada/${getcurrentFolder(reference)}/${custom}/Previos/${reference}`;
 
-  const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } =
-    useSWRImmutable<PartidasPrevios>(partidasPreviosKey, axiosFetcher);
+  const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } = useSWR<PartidasPrevios>(
+    partidasPreviosKey,
+    axiosFetcher
+  );
 
   React.useEffect(() => {
     if (!partidasPrevios) return;

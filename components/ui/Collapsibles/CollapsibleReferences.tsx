@@ -8,23 +8,29 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '../sidebar';
-import { ChevronRight, DownloadIcon } from 'lucide-react';
+import { ChevronRight, DownloadIcon, RefreshCwIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { axiosBlobFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../TailwindSpinner';
-import useSWRImmutable from 'swr/immutable';
+import useSWR, { mutate } from 'swr';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 
 export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
-  const { reference, setReference, clientNumber, setPdfUrl, setFile, setCustom } = useDEAStore(
-    (state) => state
-  );
+  const {
+    reference,
+    setReference,
+    clientNumber,
+    setPdfUrl,
+    setFile,
+    setCustom,
+    getFilesByReferenceKey,
+  } = useDEAStore((state) => state);
 
   const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
-  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
+  const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
   const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -122,21 +128,32 @@ export default function CollapsibleReferences({ references }: { references: getR
                         }}
                       >
                         <div className="flex justify-between">
-                          <p>{NUM_REFE}</p>
-                          {FOLDER_EXISTS &&
-                            (!isDownloading ? (
-                              <DownloadIcon
+                          <div>
+                            <p>{NUM_REFE}</p>
+                          </div>
+                          <div className="flex">
+                            {FOLDER_EXISTS &&
+                              (!isDownloading ? (
+                                <DownloadIcon
+                                  size={20}
+                                  className={reference === NUM_REFE && FOLDER_EXISTS ? `mr-2` : ''}
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // prevent triggering parent onClick
+                                    setReference(NUM_REFE);
+                                    setLoadingReference(NUM_REFE);
+                                    setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
+                                  }}
+                                />
+                              ) : (
+                                <TailwindSpinner className="w-6 h-6" />
+                              ))}
+                            {reference === NUM_REFE && FOLDER_EXISTS && (
+                              <RefreshCwIcon
                                 size={20}
-                                onClick={(e) => {
-                                  e.stopPropagation(); // prevent triggering parent onClick
-                                  setReference(NUM_REFE);
-                                  setLoadingReference(NUM_REFE);
-                                  setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
-                                }}
+                                onClick={() => mutate(getFilesByReferenceKey)}
                               />
-                            ) : (
-                              <TailwindSpinner className="w-6 h-6" />
-                            ))}
+                            )}
+                          </div>
                         </div>
                       </SidebarMenuItem>
                     );

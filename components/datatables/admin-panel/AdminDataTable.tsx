@@ -15,7 +15,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../../ui/TailwindSpinner';
@@ -27,7 +27,7 @@ type AdminDataTableProps<T> = {
 };
 
 export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTableProps<T>) {
-  const { data, isValidating } = useSWRImmutable<T[]>(dataTableUrl, axiosFetcher);
+  const { data, isValidating } = useSWR<T[]>(dataTableUrl, axiosFetcher);
 
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 

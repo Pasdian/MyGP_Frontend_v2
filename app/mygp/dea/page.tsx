@@ -13,7 +13,7 @@ import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import DocumentCard from '@/components/Cards/DocumentCard';
 import PreviosDialog from '@/components/Dialogs/PreviosDialog';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ export default function DEA() {
     setPdfUrl,
     fileName,
     setFile,
+    getFilesByReferenceKey,
   } = useDEAStore((state) => state);
 
   const [url, setUrl] = React.useState('');
@@ -57,20 +58,17 @@ export default function DEA() {
       axiosFetcher
     );
 
-  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
-
-  const getFilesByReferenceKey =
-    reference && client && `/dea/getFilesByReference?reference=${reference}&client=${client}`;
+  const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
 
   const {
     data: filesByReference,
     isValidating: isFilesByReferenceValidating,
-  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWRImmutable(
+  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWR(
     getFilesByReferenceKey,
     axiosFetcher
   );
 
-  const { data: fileBlob, isLoading: isFileBlobLoading } = useSWRImmutable(
+  const { data: fileBlob, isLoading: isFileBlobLoading } = useSWR(
     client &&
       reference &&
       subfolder &&
@@ -151,9 +149,6 @@ export default function DEA() {
         return;
       }
 
-      mutate(
-        `/api/casa/getRefsByClient?client=${client}&initialDate=${initialDate}&finalDate=${finalDate}`
-      );
       mutate(getFilesByReferenceKey);
     }
 
@@ -268,6 +263,7 @@ export default function DEA() {
           <DocumentCard
             title="Cuenta de Gastos"
             files={filesByReference?.files['01-CTA-GASTOS'] || []}
+            folder="01-CTA-GASTOS"
             isLoading={subfolderLoading === '01-CTA-GASTOS'}
             onDownload={() => {
               setSubfolderLoading('01-CTA-GASTOS');
@@ -285,6 +281,7 @@ export default function DEA() {
             title="COVES"
             files={filesByReference?.files['04-VUCEM'] || []}
             isLoading={subfolderLoading === '04-VUCEM-COVES'}
+            folder="04-VUCEM"
             onDownload={() => {
               setSubfolderLoading('04-VUCEM-COVES');
               setSubfolder('04-VUCEM');
@@ -323,6 +320,7 @@ export default function DEA() {
             title="Expediente Aduanal"
             files={filesByReference?.files['02-EXPEDIENTE-ADUANAL'] || []}
             isLoading={subfolderLoading === '02-EXPEDIENTE-ADUANAL'}
+            folder="02-EXPEDIENTE-ADUANAL"
             onDownload={() => {
               setSubfolderLoading('02-EXPEDIENTE-ADUANAL');
               setSubfolder('02-EXPEDIENTE-ADUANAL');
@@ -339,6 +337,7 @@ export default function DEA() {
             title="EDocs"
             files={filesByReference?.files['04-VUCEM'] || []}
             isLoading={subfolderLoading === '04-VUCEM-EDOCS'}
+            folder="04-VUCEM"
             onDownload={() => {
               setSubfolderLoading('04-VUCEM-EDOCS');
               setSubfolder('04-VUCEM');
@@ -356,6 +355,7 @@ export default function DEA() {
             title="Comprobantes Fiscales"
             files={filesByReference?.files['03-FISCALES'] || []}
             isLoading={subfolderLoading === '03-FISCALES'}
+            folder="03-FISCALES"
             onDownload={() => {
               setSubfolderLoading('03-FISCALES');
               setSubfolder('03-FISCALES');
@@ -372,6 +372,7 @@ export default function DEA() {
             title="Expediente Digital"
             files={filesByReference?.files['05-EXP-DIGITAL'] || []}
             isLoading={subfolderLoading === '05-EXP-DIGITAL'}
+            folder="05-EXP-DIGITAL"
             onDownload={() => {
               setSubfolderLoading('05-EXP-DIGITAL');
               setSubfolder('05-EXP-DIGITAL');
