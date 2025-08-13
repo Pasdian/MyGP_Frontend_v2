@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card';
-import { DownloadIcon, Trash2, Trash2Icon, TrashIcon, Upload } from 'lucide-react';
+import { DownloadIcon, Trash2Icon } from 'lucide-react';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import React from 'react';
 import { IconUpload } from '@tabler/icons-react';

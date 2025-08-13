@@ -1,19 +1,15 @@
 import { useAuth } from '@/hooks/useAuth';
 import {
   IconBuilding,
+  IconKey,
   IconLayoutGrid,
   IconListDetails,
   IconShield,
   IconUser,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
-import useSWR from 'swr';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
-import TailwindSpinner from './TailwindSpinner';
 import React from 'react';
 
 const userItems = {
@@ -62,6 +58,12 @@ const userItems = {
           role: ['ADMIN'],
           icon: IconLayoutGrid,
         },
+        {
+          title: 'Permisos',
+          url: '/mygp/admin-panel/permissions',
+          role: ['ADMIN'],
+          icon: IconKey,
+        },
       ],
     },
   ],
@@ -69,26 +71,7 @@ const userItems = {
 
 export default function NavCollapsible() {
   const { user } = useAuth();
-  const { clientNumber, initialDate, finalDate } = useDEAStore((state) => state);
   const pathname = usePathname();
-  const {
-    data: allReferences,
-    isLoading: isAllReferencesLoading,
-  }: { data: getRefsByClient[]; isLoading: boolean } = useSWR(
-    clientNumber && initialDate && finalDate
-      ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
-          initialDate.toISOString().split('T')[0]
-        }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : `/dea/getRefsByClient?client=000041`,
-    axiosFetcher
-  );
-
-  if (isAllReferencesLoading)
-    return (
-      <div className="flex justify-center items-center">
-        <TailwindSpinner className="h-12 w-12" />
-      </div>
-    );
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {
@@ -105,7 +88,7 @@ export default function NavCollapsible() {
           return <CollapsibleNavItem key={item.title} item={item} pathname={pathname} />;
         })
       ) : (
-        <CollapsibleReferences references={allReferences} />
+        <CollapsibleReferences />
       )}
     </>
   );

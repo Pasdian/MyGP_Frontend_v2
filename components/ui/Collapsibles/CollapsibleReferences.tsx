@@ -10,14 +10,14 @@ import {
 } from '../sidebar';
 import { ChevronRight, DownloadIcon, RefreshCwIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import { axiosBlobFetcher } from '@/lib/axiosUtils/axios-instance';
+import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../TailwindSpinner';
 import useSWR, { mutate } from 'swr';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 
-export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
+export default function CollapsibleReferences() {
   const {
     reference,
     setReference,
@@ -26,12 +26,26 @@ export default function CollapsibleReferences({ references }: { references: getR
     setFile,
     setCustom,
     getFilesByReferenceKey,
+    initialDate,
+    finalDate,
   } = useDEAStore((state) => state);
 
   const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
   const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
   const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
+
+  const {
+    data: allReferences,
+    isLoading: isAllReferencesLoading,
+  }: { data: getRefsByClient[]; isLoading: boolean } = useSWR(
+    clientNumber && initialDate && finalDate
+      ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
+          initialDate.toISOString().split('T')[0]
+        }&finalDate=${finalDate.toISOString().split('T')[0]}`
+      : `/dea/getRefsByClient?client=000041`,
+    axiosFetcher
+  );
 
   React.useEffect(() => {
     if (!zipBlob) return;
@@ -78,7 +92,14 @@ export default function CollapsibleReferences({ references }: { references: getR
     );
   }
 
-  const filteredItems = fuzzyFilterObjects(filterValue, references, ['NUM_REFE']);
+  const filteredItems = fuzzyFilterObjects(filterValue, allReferences, ['NUM_REFE']);
+
+  if (isAllReferencesLoading)
+    return (
+      <div className="flex justify-center items-center">
+        <TailwindSpinner className="h-8 w-8" />
+      </div>
+    );
 
   return (
     <ProtectedRoute allowedRoles={['ADMIN', 'DEA']}>
