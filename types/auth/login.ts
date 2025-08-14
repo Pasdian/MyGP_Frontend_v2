@@ -1,5 +1,3 @@
-import { Permission } from '../permissions/permission';
-
 export type Login = {
   message: string | null;
   token: string | null;

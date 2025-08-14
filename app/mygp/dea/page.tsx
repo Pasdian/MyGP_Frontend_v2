@@ -22,6 +22,7 @@ import { ExternalLink, LoaderCircle, RocketIcon } from 'lucide-react';
 import DEADraggableWindow from '@/components/Windows/DEADraggableWindow';
 import DEAFileVisualizer from '@/components/DEAVisualizer/DEAVisualizer';
 import { DEAWindowData } from '@/types/dea/deaFileVisualizerData';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 
 const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
 const stickyClassName = 'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
@@ -225,37 +226,41 @@ export default function DEA() {
             }}
           />
         </div>
-        {filesByReference && reference && (
-          <div className="mt-5 mr-5">
-            <PreviosDialog key={reference} />
-          </div>
-        )}
-        {filesByReference && reference && client && (
-          <Button
-            className="mt-5 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
-            onClick={async () => {
-              try {
-                await triggerDigitalRecordGeneration();
-                mutate(getFilesByReferenceKey);
-                toast.success('Expediente digital generado exitosamente');
-              } catch (err) {
-                console.error('Generation Failed', err);
-              }
-            }}
-            disabled={isDigitalRecordGenerationMutating}
-          >
-            {isDigitalRecordGenerationMutating ? (
-              <div className="flex items-center animate-pulse">
-                <LoaderCircle className="animate-spin mr-2" />
-                Generando
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <RocketIcon className="mr-2" /> Generar Expediente Digital
-              </div>
-            )}
-          </Button>
-        )}
+        <PermissionGuard allowedPermissions={['DEA_PREVIOS']}>
+          {filesByReference && reference && (
+            <div className="mt-5 mr-5">
+              <PreviosDialog key={reference} />
+            </div>
+          )}
+        </PermissionGuard>
+        <PermissionGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
+          {filesByReference && reference && client && (
+            <Button
+              className="mt-5 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
+              onClick={async () => {
+                try {
+                  await triggerDigitalRecordGeneration();
+                  mutate(getFilesByReferenceKey);
+                  toast.success('Expediente digital generado exitosamente');
+                } catch (err) {
+                  console.error('Generation Failed', err);
+                }
+              }}
+              disabled={isDigitalRecordGenerationMutating}
+            >
+              {isDigitalRecordGenerationMutating ? (
+                <div className="flex items-center animate-pulse">
+                  <LoaderCircle className="animate-spin mr-2" />
+                  Generando
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <RocketIcon className="mr-2" /> Generar Expediente Digital
+                </div>
+              )}
+            </Button>
+          )}
+        </PermissionGuard>
       </div>
       {isFilesByReferenceValidating && <TailwindSpinner />}
       {!isFilesByReferenceValidating && (

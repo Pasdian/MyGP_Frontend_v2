@@ -8,6 +8,7 @@ import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
+import PermissionGuard from '../PermissionGuard/PermissionGuard';
 
 export default function DocumentCard({
   title,
@@ -124,14 +125,18 @@ export default function DocumentCard({
                 <p className="break-words">{item}</p>
               </div>
               <div className="flex">
-                <DownloadIcon
-                  className="mr-2"
-                  size={20}
-                  onClick={() => {
-                    handleDownloadFile(item);
-                  }}
-                />
-                <Trash2Icon size={20} onClick={() => handleDeleteFile(item)} />
+                <PermissionGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
+                  <DownloadIcon
+                    className="mr-2"
+                    size={20}
+                    onClick={() => {
+                      handleDownloadFile(item);
+                    }}
+                  />
+                </PermissionGuard>
+                <PermissionGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
+                  <Trash2Icon size={20} onClick={() => handleDeleteFile(item)} />
+                </PermissionGuard>
               </div>
             </div>
           ))}

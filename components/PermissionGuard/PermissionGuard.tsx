@@ -3,12 +3,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 
-export default function RoleGuard({
+export default function PermissionGuard({
   children,
-  allowedRoles,
+  allowedPermissions,
 }: {
   children: React.ReactNode;
-  allowedRoles: string[];
+  allowedPermissions: string[];
 }) {
   const pathname = usePathname();
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -20,9 +20,15 @@ export default function RoleGuard({
     if (!isAuthenticated) {
       router.push('/login'); // Redirect to login if not authenticated
     }
-  }, [isAuthenticated, user, allowedRoles, isLoading, router, pathname]);
+  }, [isAuthenticated, user, allowedPermissions, isLoading, router, pathname]);
 
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role.name || ''))) {
+  if (
+    !isAuthenticated ||
+    (allowedPermissions &&
+      !allowedPermissions.some((allowedPermission) =>
+        user.role.permissions.some((userPermission) => userPermission.action === allowedPermission)
+      ))
+  ) {
     return;
   }
 
