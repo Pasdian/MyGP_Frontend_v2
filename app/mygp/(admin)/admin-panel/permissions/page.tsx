@@ -1,207 +1,126 @@
 'use client';
 import React from 'react';
-import useSWR from 'swr';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { getRolesWithModulesAndPermissions } from '@/types/users/getRolesWithModulesAndPermissions';
-import { getAllModules } from '@/types/getAllModules/getAllModules';
+import useSWR, { mutate } from 'swr';
+import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import TailwindSpinner from '@/components/ui/TailwindSpinner';
+import { Role } from '@/types/permissions/role';
 
-type PermissionState = {
-  [permissionUuid: string]: boolean;
-};
+type getRoleModulesAndPermissions = Role[] | null;
 
-type ModuleState = {
-  [module_uuid: string]: {
-    checked: boolean;
-    permissions: PermissionState;
-  };
-};
-
-type RoleState = {
-  [role_uuid: string]: ModuleState;
-};
+const roleModulesPermissionsKey = '/api/role-modules/getRoleModulesAndPermissions';
 
 export default function Permissions() {
-  const { data: rolesModulesPermissions, isLoading: isRolesModulesPermissionsLoading } = useSWR<
-    getRolesWithModulesAndPermissions[]
-  >('/api/role-modules/getRolesWithModulesAndPermissions', axiosFetcher);
+  const {
+    data: serverData,
+    isLoading: isServerDataLoading,
+    isValidating: isServerDataValidating,
+  } = useSWR<getRoleModulesAndPermissions>(roleModulesPermissionsKey, axiosFetcher);
 
-  const { data: allModules, isLoading: isAllModulesLoading } = useSWR<getAllModules[]>(
-    '/api/modules',
-    axiosFetcher
-  );
+  // Local state to track changes
+  const [rolesData, setRolesData] = React.useState<getRoleModulesAndPermissions>(serverData || []);
 
-  const [rolesState, setRolesState] = React.useState<RoleState>({});
-
+  // Sync local state when serverData changes
   React.useEffect(() => {
-    if (!rolesModulesPermissions) return;
+    if (serverData) setRolesData(serverData);
+  }, [serverData]);
 
-    const newState: RoleState = {};
-
-    rolesModulesPermissions.forEach((role) => {
-      newState[role.uuid] = {};
-      if (!role.modules) return;
-
-      role.modules.forEach((module) => {
-        const permissionsState: PermissionState = {};
-        if (!module.permissions) return;
-
-        module.permissions.forEach((perm) => {
-          permissionsState[perm.uuid] = true; // permisos activos inicialmente
-        });
-
-        newState[role.uuid][module.uuid] = {
-          checked: true, // módulo activo
-          permissions: permissionsState,
-        };
-      });
-    });
-
-    setRolesState(newState);
-  }, [rolesModulesPermissions]);
-
-  if (isRolesModulesPermissionsLoading || isAllModulesLoading) return;
-  if (!rolesModulesPermissions || !allModules) return <p>No hay datos</p>;
-
-  const toggleModule = (role_uuid: string, module_uuid: string) => {
-    setRolesState((prev) => {
-      const roleModules = prev[role_uuid] || {};
-      const currentModule = roleModules[module_uuid];
-
-      if (!currentModule) return prev;
-
-      const newChecked = !currentModule.checked;
-
-      // If module gets deativated, also the permissions
-      const newPermissions = Object.fromEntries(
-        Object.keys(currentModule.permissions).map((permUuid) => [
-          permUuid,
-          newChecked ? true : false,
-        ])
-      );
-
-      return {
-        ...prev,
-        [role_uuid]: {
-          ...roleModules,
-          [module_uuid]: {
-            checked: newChecked,
-            permissions: newPermissions,
-          },
-        },
-      };
-    });
+  const handlePermissionChange = (roleIdx: number, moduleIdx: number, permIdx: number) => {
+    setRolesData(
+      (prev) =>
+        prev?.map((role, rIdx) => {
+          if (rIdx !== roleIdx) return role;
+          const newModules =
+            role.modules?.map((mod, mIdx) => {
+              if (mIdx !== moduleIdx) return mod;
+              const newPermissions =
+                mod.permissions?.map((perm, pIdx) => {
+                  if (pIdx !== permIdx) return perm;
+                  return { ...perm, isChecked: !perm.isChecked };
+                }) || [];
+              // Update module isChecked if at least one permission is checked
+              const moduleIsChecked = newPermissions.some((p) => p.isChecked);
+              return { ...mod, permissions: newPermissions, isChecked: moduleIsChecked };
+            }) || [];
+          return { ...role, modules: newModules };
+        }) || []
+    );
   };
 
-  // Toggle individual permission, if permission is enabled, also enable module
-  const togglePermission = (role_uuid: string, module_uuid: string, permUuid: string) => {
-    setRolesState((prev) => {
-      const roleModules = prev[role_uuid] || {};
-      const currentModule = roleModules[module_uuid];
-
-      if (!currentModule) return prev;
-
-      const currentPermChecked = currentModule.permissions[permUuid] || false;
-      const newPermChecked = !currentPermChecked;
-
-      // Update permission
-      const newPermissions = {
-        ...currentModule.permissions,
-        [permUuid]: newPermChecked,
-      };
-
-      // If you enable a permission, it activates the module
-      const newModuleChecked = newPermChecked ? true : Object.values(newPermissions).some((v) => v);
-
-      return {
-        ...prev,
-        [role_uuid]: {
-          ...roleModules,
-          [module_uuid]: {
-            checked: newModuleChecked,
-            permissions: newPermissions,
-          },
-        },
-      };
-    });
+  const handleModuleChange = (roleIdx: number, moduleIdx: number) => {
+    setRolesData(
+      (prev) =>
+        prev?.map((role, rIdx) => {
+          if (rIdx !== roleIdx) return role;
+          const newModules =
+            role.modules?.map((mod, mIdx) => {
+              if (mIdx !== moduleIdx) return mod;
+              const newIsChecked = !mod.isChecked;
+              const newPermissions =
+                mod.permissions?.map((perm) => ({ ...perm, isChecked: newIsChecked })) || [];
+              return { ...mod, isChecked: newIsChecked, permissions: newPermissions };
+            }) || [];
+          return { ...role, modules: newModules };
+        }) || []
+    );
   };
 
   const handleSave = async () => {
     try {
-      const payload = Object.entries(rolesState).map(([role_uuid, modules]) => ({
-        role_uuid,
-        modules: Object.entries(modules).map(([module_uuid, { checked, permissions }]) => ({
-          module_uuid,
-          checked,
-          permissions: Object.entries(permissions)
-            .filter(([, isChecked]) => isChecked)
-            .map(([permUuid]) => permUuid),
-        })),
-      }));
-
-      // TO-DO: Send to api
+      toast.info('Cargando...');
+      const res = await GPClient.post('/api/role-permissions/upsertRoles', rolesData);
+      toast.success(res.data.message);
+      mutate(roleModulesPermissionsKey);
     } catch (error) {
       console.error(error);
     }
   };
 
+  if (isServerDataLoading) return;
+  if (!rolesData) return <p>No hay datos</p>;
+  if (isServerDataValidating) return <TailwindSpinner />;
   return (
     <div>
-      {rolesModulesPermissions.map((role) => (
+      {rolesData.map((role, roleIdx) => (
         <div key={role.uuid} className="mb-12 border p-4 rounded shadow-sm">
-          <h3 className="font-bold mb-3 text-lg">Rol: {role.role}</h3>
+          <h3 className="font-bold mb-3 text-lg">Rol: {role.name}</h3>
 
-          {role.modules && role.modules.length > 0 ? (
-            Object.entries(rolesState[role.uuid] || {}).map(([module_uuid, moduleState]) => {
-              if (!role.modules) return;
-              const moduleData = role.modules.find((m) => m.uuid === module_uuid);
-              if (!moduleData) return null;
+          {role.modules?.map((mod, moduleIdx) => (
+            <div key={mod.uuid}>
+              <div className="flex items-center">
+                <Checkbox
+                  className="mr-2"
+                  checked={mod.isChecked || false}
+                  onCheckedChange={() => handleModuleChange(roleIdx, moduleIdx)}
+                />
+                <p>{mod.name}</p>
+              </div>
 
-              return (
-                <div key={module_uuid} className="mb-4">
-                  <div className="flex items-center mb-1">
-                    <Checkbox
-                      checked={moduleState.checked}
-                      onCheckedChange={() => toggleModule(role.uuid, module_uuid)}
-                      className="mr-2"
-                    />
-                    <p className="font-semibold">Módulo: {moduleData.name}</p>
+              <div>
+                {mod.permissions?.map((perm, permIdx) => (
+                  <div key={perm.uuid} className="ml-4">
+                    <div className="flex items-center">
+                      <Checkbox
+                        className="mr-2"
+                        checked={perm.isChecked || false}
+                        onCheckedChange={() => handlePermissionChange(roleIdx, moduleIdx, permIdx)}
+                      />
+                      {perm.action} - {perm.description}
+                    </div>
                   </div>
-
-                  <div className="ml-8 space-y-1">
-                    {moduleData.permissions && moduleData.permissions.length > 0 ? (
-                      moduleData.permissions.map((perm) => (
-                        <div key={perm.uuid} className="flex items-center">
-                          <Checkbox
-                            checked={moduleState.permissions[perm.uuid] || false}
-                            onCheckedChange={() =>
-                              togglePermission(role.uuid, module_uuid, perm.uuid)
-                            }
-                            className="mr-2"
-                          />
-                          <span>
-                            <strong>{perm.action}</strong> - {perm.description}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="italic text-gray-500">Este módulo no tiene permisos.</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p className="italic text-gray-500">Este rol no tiene módulos asignados.</p>
-          )}
+                ))}
+              </div>
+            </div>
+          ))}
 
           {role.users && role.users.length > 0 && (
             <div className="mt-4">
               <p className="font-semibold">Usuarios con este rol:</p>
               <ul className="list-disc ml-6">
                 {role.users.map((user) => (
-                  <li key={user.user_uuid}>
+                  <li key={user.email}>
                     {user.name} ({user.email})
                   </li>
                 ))}
