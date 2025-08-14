@@ -1,19 +1,31 @@
+import { Permission } from '../permissions/permission';
+
 export type Login = {
-  message: string;
-  token: string;
+  message: string | null;
+  token: string | null;
   complete_user: {
     user: {
-      uuid: string;
-      name: string;
-      casa_user_name: string;
-      email: string;
-      mobile: string;
-      status: string;
-      company_name: string;
-      company_uuid: string;
-      company_casa_id: string;
+      uuid: string | null;
+      name: string | null;
+      casa_user_name: string | null;
+      email: string | null;
+      mobile: string | null;
+      status: string | null;
+      company_name: string | null;
+      company_uuid: string | null;
+      company_casa_id: string | null;
     };
-    role: { name: string; description: string };
-    modules: string[];
+    role:
+      | {
+          uuid: string;
+          name: string;
+          description: string;
+          permissions: {
+            action: string;
+            description: string;
+          };
+        }[]
+      | null;
+    modules: string[] | null;
   };
 };

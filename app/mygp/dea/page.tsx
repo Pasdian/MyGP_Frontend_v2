@@ -4,7 +4,7 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import ClientsCombo from '@/components/comboboxes/ClientsCombo';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Card } from '@/components/ui/card';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
@@ -189,7 +189,7 @@ export default function DEA() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['ADMIN', 'DEA']}>
+    <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
       <div className="flex mb-5">
         <div className="mr-5">
           <InitialDatePicker
@@ -389,6 +389,6 @@ export default function DEA() {
       {windows.map((window) => (
         <DEADraggableWindow window={window} setWindows={setWindows} key={window.id} />
       ))}
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }

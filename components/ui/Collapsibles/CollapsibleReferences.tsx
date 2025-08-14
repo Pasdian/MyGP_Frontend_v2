@@ -1,4 +1,4 @@
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import {
@@ -102,7 +102,7 @@ export default function CollapsibleReferences() {
     );
 
   return (
-    <ProtectedRoute allowedRoles={['ADMIN', 'DEA']}>
+    <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup>
           <SidebarGroupLabel
@@ -184,6 +184,6 @@ export default function CollapsibleReferences() {
           </CollapsibleContent>
         </SidebarGroup>
       </Collapsible>
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,13 +42,13 @@ const columns = getAllModulesColumns(ModulesActions);
 
 export default function Modules() {
   return (
-    <ProtectedRoute allowedRoles={['ADMIN']}>
+    <RoleGuard allowedRoles={['ADMIN']}>
       <AdminCrud<getAllModules>
         addButton={<AddModuleButton />}
         dataTableUrl="/api/modules"
         title="Módulos"
         columns={columns}
       />
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }
