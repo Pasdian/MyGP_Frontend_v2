@@ -22,14 +22,19 @@ export default function PermissionGuard({
     }
   }, [isAuthenticated, user, allowedPermissions, isLoading, router, pathname]);
 
+  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
+
   if (
     !isAuthenticated ||
-    (allowedPermissions &&
+    (!isAdmin &&
+      allowedPermissions &&
       !allowedPermissions.some((allowedPermission) =>
-        user.role.permissions.some((userPermission) => userPermission.action === allowedPermission)
+        user.complete_user.role.permissions.some(
+          (userPermission) => userPermission.action === allowedPermission
+        )
       ))
   ) {
-    return;
+    return null;
   }
 
   return children;
