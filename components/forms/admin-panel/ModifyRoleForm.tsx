@@ -20,6 +20,11 @@ import { z } from 'zod/v4';
 import { Row } from '@tanstack/react-table';
 import { getAllRoles } from '@/types/roles/getAllRoles';
 import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
+import { rolesModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  rolesModuleEvents.find((e) => e.alias === 'ROLES_MODIFY_ROLE')?.eventName || '';
 
 export default function ModifyRoleForm({
   row,
@@ -46,6 +51,7 @@ export default function ModifyRoleForm({
     })
       .then((res) => {
         toast.success(res.data.message);
+        posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
         mutate('/api/users/getAllUsers');
         mutate('/api/roles');

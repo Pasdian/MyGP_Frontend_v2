@@ -25,6 +25,11 @@ import { Eye, EyeOff } from 'lucide-react';
 import RoleSelect from '@/components/selects/RoleSelect';
 import CompanySelect from '@/components/selects/CompanySelect';
 import { modifyUserSchema } from '@/lib/schemas/admin-panel/userSchema';
+import { usersModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  usersModuleEvents.find((e) => e.alias === 'USERS_MODIFY_USER')?.eventName || '';
 
 export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);
@@ -58,6 +63,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
     })
       .then((res) => {
         toast.success(res.data.message);
+        posthog.capture(posthogEvent);
         mutate('/api/users/getAllUsers');
       })
       .catch((error) => {

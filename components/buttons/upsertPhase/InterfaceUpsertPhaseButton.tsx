@@ -17,16 +17,15 @@ import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import InterfaceUpsertPhaseForm from '@/components/forms/transbel/interface/InterfaceUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { IconBallpenFilled } from '@tabler/icons-react';
+import { transbelModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
 
 export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPendingCE> }) {
   const [openDialog, setOpenDialog] = React.useState(false);
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button
-          onClick={() => setOpenDialog((opened) => !opened)}
-          className="cursor-pointer bg-yellow-400 hover:bg-yellow-500"
-        >
+        <Button className="cursor-pointer bg-yellow-400 hover:bg-yellow-500">
           <IconBallpenFilled />
           Modificar
         </Button>

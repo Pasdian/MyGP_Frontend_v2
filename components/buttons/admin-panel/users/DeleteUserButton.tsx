@@ -15,6 +15,11 @@ import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import { dropdownDeleteClassName } from '@/lib/classNames/adminActions';
+import { usersModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  usersModuleEvents.find((e) => e.alias === 'USERS_DELETE_USER')?.eventName || '';
 
 export default function DeleteUserButton({
   row,
@@ -30,6 +35,7 @@ export default function DeleteUserButton({
       .then((res) => {
         toast.success(res.data.message);
         mutate('/api/users/getAllUsers');
+        posthog.capture(posthogEvent);
       })
       .catch((error) => {
         toast.error(error.response.data.message);

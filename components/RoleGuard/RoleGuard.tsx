@@ -22,7 +22,10 @@ export default function RoleGuard({
     }
   }, [isAuthenticated, user, allowedRoles, isLoading, router, pathname]);
 
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role.name || ''))) {
+  if (
+    !isAuthenticated ||
+    (allowedRoles && !allowedRoles.includes(user.complete_user.role.name || ''))
+  ) {
     return;
   }
 

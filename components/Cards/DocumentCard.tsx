@@ -9,6 +9,13 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
+import { deaModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const deaDownloadFileEvent =
+  deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
+const deaDeleteFileEvent =
+  deaModuleEvents.find((e) => e.alias === 'DEA_DELETE_FILE')?.eventName || '';
 
 export default function DocumentCard({
   title,
@@ -125,17 +132,24 @@ export default function DocumentCard({
                 <p className="break-words">{item}</p>
               </div>
               <div className="flex">
-                <PermissionGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
+                <PermissionGuard allowedPermissions={['DEA_DOWNLOAD_FILES']}>
                   <DownloadIcon
                     className="mr-2"
                     size={20}
                     onClick={() => {
                       handleDownloadFile(item);
+                      posthog.capture(deaDownloadFileEvent);
                     }}
                   />
                 </PermissionGuard>
-                <PermissionGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
-                  <Trash2Icon size={20} onClick={() => handleDeleteFile(item)} />
+                <PermissionGuard allowedPermissions={['DEA_DELETE_FILES']}>
+                  <Trash2Icon
+                    size={20}
+                    onClick={() => {
+                      handleDeleteFile(item);
+                      posthog.capture(deaDeleteFileEvent);
+                    }}
+                  />
                 </PermissionGuard>
               </div>
             </div>

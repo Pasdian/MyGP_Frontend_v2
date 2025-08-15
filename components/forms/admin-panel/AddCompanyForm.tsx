@@ -17,6 +17,11 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
+import { companyModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  companyModuleEvents.find((e) => e.alias === 'COMPANY_ADD_COMPANY')?.eventName || '';
 
 export default function AddCompanyForm({
   setIsOpen,
@@ -41,6 +46,7 @@ export default function AddCompanyForm({
     })
       .then((res) => {
         toast.success(res.data.message);
+        posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
         mutate('/api/companies/getAllCompanies');
       })

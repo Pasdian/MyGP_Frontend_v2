@@ -17,6 +17,10 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
+import posthog from 'posthog-js';
+import { rolesModuleEvents } from '@/lib/posthog/events';
+
+const posthogEvent = rolesModuleEvents.find((e) => e.alias === 'ROLES_ADD_ROLE')?.eventName || '';
 
 export default function AddRoleForm({
   setIsOpen,
@@ -42,6 +46,7 @@ export default function AddRoleForm({
       .then((res) => {
         toast.success(res.data.message);
         setIsOpen((opened) => !opened);
+        posthog.capture(posthogEvent);
         mutate('/api/users/getAllUsers');
         mutate('/api/roles');
       })

@@ -39,6 +39,11 @@ import FormItemsRevalidacion from './FormItems/FormItemsRevalidacion';
 import FormItemsUltimoDocumento from './FormItems/FormItemsUltimoDocumento';
 import FormItemsEntregaTransporte from './FormItems/FormItemsEntregaTransporte';
 import FormItemsMSA from './FormItems/FormItemsMSA';
+import { transbelModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_INTERFACE')?.eventName || '';
 
 export default function InterfaceUpsertPhaseForm({
   row,
@@ -202,7 +207,9 @@ export default function InterfaceUpsertPhaseForm({
       exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
-      user: user.user.casa_user_name ? user.user.casa_user_name : 'MYGP',
+      user: user.complete_user.user.casa_user_name
+        ? user.complete_user.user.casa_user_name
+        : 'MYGP',
     },
   });
 
@@ -219,6 +226,7 @@ export default function InterfaceUpsertPhaseForm({
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
+          posthog.capture(posthogEvent);
           setOpenDialog((opened) => !opened);
           if (!initialDate || !finalDate) return mutate('/api/transbel/getRefsPendingCE');
 

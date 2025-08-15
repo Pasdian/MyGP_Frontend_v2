@@ -20,6 +20,10 @@ import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/RoleSelect';
 import { z } from 'zod/v4';
 import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
+import { usersModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent = usersModuleEvents.find((e) => e.alias === 'USERS_ADD_USER')?.eventName || '';
 
 export default function AddUserForm({
   setIsOpen,
@@ -57,6 +61,7 @@ export default function AddUserForm({
       .then((res) => {
         toast.success(res.data.message);
         setIsOpen((opened) => !opened);
+        posthog.capture(posthogEvent);
         mutate('/api/users/getAllUsers');
       })
       .catch((error) => {

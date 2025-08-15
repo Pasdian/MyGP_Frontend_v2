@@ -23,9 +23,12 @@ import DEADraggableWindow from '@/components/Windows/DEADraggableWindow';
 import DEAFileVisualizer from '@/components/DEAVisualizer/DEAVisualizer';
 import { DEAWindowData } from '@/types/dea/deaFileVisualizerData';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { deaModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
 
 const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
 const stickyClassName = 'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
+const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
 export default function DEA() {
   const {
@@ -242,6 +245,7 @@ export default function DEA() {
                   await triggerDigitalRecordGeneration();
                   mutate(getFilesByReferenceKey);
                   toast.success('Expediente digital generado exitosamente');
+                  posthog.capture(posthogEvent);
                 } catch (err) {
                   console.error('Generation Failed', err);
                 }
