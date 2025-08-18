@@ -3,7 +3,7 @@
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import AddCompanyButton from '@/components/buttons/admin-panel/companies/AddCompanyButton';
 import ModifyCompanyButton from '@/components/buttons/admin-panel/companies/ModifyCompanyButton';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { getAllCompaniesColumns } from '@/lib/columns/getAllCompaniesColumns';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import React from 'react';
@@ -42,13 +42,13 @@ const columns = getAllCompaniesColumns(CompanyActions);
 
 export default function Companies() {
   return (
-    <ProtectedRoute allowedRoles={['ADMIN']}>
+    <RoleGuard allowedRoles={['ADMIN']}>
       <AdminCrud<getAllCompanies>
         addButton={<AddCompanyButton />}
         dataTableUrl="/api/companies/getAllCompanies"
         title="Compañias"
         columns={columns}
       />
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }

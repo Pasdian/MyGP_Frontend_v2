@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import React from 'react';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
@@ -31,7 +31,7 @@ import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
-  const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
+  const { data, isValidating } = useSWR<getRefsPendingCE[]>(
     initialDate && finalDate
       ? `/api/transbel/getRefsPendingCE?initialDate=${
           initialDate.toISOString().split('T')[0]

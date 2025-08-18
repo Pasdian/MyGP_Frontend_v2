@@ -4,7 +4,7 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import ClientsCombo from '@/components/comboboxes/ClientsCombo';
 import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
 import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Card } from '@/components/ui/card';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
@@ -13,7 +13,7 @@ import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import DocumentCard from '@/components/Cards/DocumentCard';
 import PreviosDialog from '@/components/Dialogs/PreviosDialog';
 import { Button } from '@/components/ui/button';
@@ -22,9 +22,13 @@ import { ExternalLink, LoaderCircle, RocketIcon } from 'lucide-react';
 import DEADraggableWindow from '@/components/Windows/DEADraggableWindow';
 import DEAFileVisualizer from '@/components/DEAVisualizer/DEAVisualizer';
 import { DEAWindowData } from '@/types/dea/deaFileVisualizerData';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { deaModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
 
 const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
 const stickyClassName = 'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
+const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
 export default function DEA() {
   const {
@@ -39,6 +43,8 @@ export default function DEA() {
     setPdfUrl,
     fileName,
     setFile,
+    getFilesByReferenceKey,
+    resetDEAState,
   } = useDEAStore((state) => state);
 
   const [url, setUrl] = React.useState('');
@@ -57,20 +63,17 @@ export default function DEA() {
       axiosFetcher
     );
 
-  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
-
-  const getFilesByReferenceKey =
-    reference && client && `/dea/getFilesByReference?reference=${reference}&client=${client}`;
+  const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
 
   const {
     data: filesByReference,
     isValidating: isFilesByReferenceValidating,
-  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWRImmutable(
+  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWR(
     getFilesByReferenceKey,
     axiosFetcher
   );
 
-  const { data: fileBlob, isLoading: isFileBlobLoading } = useSWRImmutable(
+  const { data: fileBlob, isLoading: isFileBlobLoading } = useSWR(
     client &&
       reference &&
       subfolder &&
@@ -78,6 +81,9 @@ export default function DEA() {
       `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${fileName}`,
     axiosBlobFetcher
   );
+
+  // No state when user visits page
+  React.useEffect(() => resetDEAState(), [resetDEAState]);
 
   // Effect for fileBlob
   React.useEffect(() => {
@@ -151,9 +157,6 @@ export default function DEA() {
         return;
       }
 
-      mutate(
-        `/api/casa/getRefsByClient?client=${client}&initialDate=${initialDate}&finalDate=${finalDate}`
-      );
       mutate(getFilesByReferenceKey);
     }
 
@@ -194,7 +197,7 @@ export default function DEA() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['ADMIN', 'DEA']}>
+    <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
       <div className="flex mb-5">
         <div className="mr-5">
           <InitialDatePicker
@@ -230,37 +233,53 @@ export default function DEA() {
             }}
           />
         </div>
-        {filesByReference && reference && (
-          <div className="mt-5 mr-5">
-            <PreviosDialog key={reference} />
-          </div>
-        )}
-        {filesByReference && reference && client && (
-          <Button
-            className="mt-5 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
-            onClick={async () => {
-              try {
-                await triggerDigitalRecordGeneration();
-                mutate(getFilesByReferenceKey);
-                toast.success('Expediente digital generado exitosamente');
-              } catch (err) {
-                console.error('Generation Failed', err);
+        <PermissionGuard allowedPermissions={['DEA_PREVIOS']}>
+          {filesByReference && reference && (
+            <div className="mt-5 mr-5">
+              <PreviosDialog key={reference} />
+            </div>
+          )}
+        </PermissionGuard>
+        <PermissionGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
+          {filesByReference && reference && client && (
+            <Button
+              className="mt-5 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
+              onClick={async () => {
+                try {
+                  await triggerDigitalRecordGeneration();
+                  mutate(getFilesByReferenceKey);
+                  toast.success('Expediente digital generado exitosamente');
+                  posthog.capture(posthogEvent);
+                } catch (err) {
+                  console.error('Generation Failed', err);
+                }
+              }}
+              disabled={
+                isDigitalRecordGenerationMutating ||
+                filesByReference?.files['05-EXP-DIGITAL'].length >= 1
               }
-            }}
-            disabled={isDigitalRecordGenerationMutating}
-          >
-            {isDigitalRecordGenerationMutating ? (
-              <div className="flex items-center animate-pulse">
-                <LoaderCircle className="animate-spin mr-2" />
-                Generando
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <RocketIcon className="mr-2" /> Generar Expediente Digital
-              </div>
-            )}
-          </Button>
-        )}
+            >
+              {isDigitalRecordGenerationMutating ? (
+                <div className="flex items-center animate-pulse">
+                  <LoaderCircle className="animate-spin mr-2" />
+                  Generando
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  {filesByReference?.files['05-EXP-DIGITAL'].length >= 1 ? (
+                    <>
+                      <RocketIcon className="mr-2" /> Ya Existe un Expediente Digital
+                    </>
+                  ) : (
+                    <>
+                      <RocketIcon className="mr-2" /> Generar Expediente Digital
+                    </>
+                  )}
+                </div>
+              )}
+            </Button>
+          )}
+        </PermissionGuard>
       </div>
       {isFilesByReferenceValidating && <TailwindSpinner />}
       {!isFilesByReferenceValidating && (
@@ -268,6 +287,7 @@ export default function DEA() {
           <DocumentCard
             title="Cuenta de Gastos"
             files={filesByReference?.files['01-CTA-GASTOS'] || []}
+            folder="01-CTA-GASTOS"
             isLoading={subfolderLoading === '01-CTA-GASTOS'}
             onDownload={() => {
               setSubfolderLoading('01-CTA-GASTOS');
@@ -285,6 +305,7 @@ export default function DEA() {
             title="COVES"
             files={filesByReference?.files['04-VUCEM'] || []}
             isLoading={subfolderLoading === '04-VUCEM-COVES'}
+            folder="04-VUCEM"
             onDownload={() => {
               setSubfolderLoading('04-VUCEM-COVES');
               setSubfolder('04-VUCEM');
@@ -323,6 +344,7 @@ export default function DEA() {
             title="Expediente Aduanal"
             files={filesByReference?.files['02-EXPEDIENTE-ADUANAL'] || []}
             isLoading={subfolderLoading === '02-EXPEDIENTE-ADUANAL'}
+            folder="02-EXPEDIENTE-ADUANAL"
             onDownload={() => {
               setSubfolderLoading('02-EXPEDIENTE-ADUANAL');
               setSubfolder('02-EXPEDIENTE-ADUANAL');
@@ -339,6 +361,7 @@ export default function DEA() {
             title="EDocs"
             files={filesByReference?.files['04-VUCEM'] || []}
             isLoading={subfolderLoading === '04-VUCEM-EDOCS'}
+            folder="04-VUCEM"
             onDownload={() => {
               setSubfolderLoading('04-VUCEM-EDOCS');
               setSubfolder('04-VUCEM');
@@ -356,6 +379,7 @@ export default function DEA() {
             title="Comprobantes Fiscales"
             files={filesByReference?.files['03-FISCALES'] || []}
             isLoading={subfolderLoading === '03-FISCALES'}
+            folder="03-FISCALES"
             onDownload={() => {
               setSubfolderLoading('03-FISCALES');
               setSubfolder('03-FISCALES');
@@ -372,6 +396,7 @@ export default function DEA() {
             title="Expediente Digital"
             files={filesByReference?.files['05-EXP-DIGITAL'] || []}
             isLoading={subfolderLoading === '05-EXP-DIGITAL'}
+            folder="05-EXP-DIGITAL"
             onDownload={() => {
               setSubfolderLoading('05-EXP-DIGITAL');
               setSubfolder('05-EXP-DIGITAL');
@@ -388,6 +413,6 @@ export default function DEA() {
       {windows.map((window) => (
         <DEADraggableWindow window={window} setWindows={setWindows} key={window.id} />
       ))}
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }

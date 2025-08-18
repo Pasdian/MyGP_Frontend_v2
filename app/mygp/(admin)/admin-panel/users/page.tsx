@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import DeleteUserButton from '@/components/buttons/admin-panel/users/DeleteUserButton';
 import ModifyUserButton from '@/components/buttons/admin-panel/users/ModifyUserButton';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { getAllUsersColumns } from '@/lib/columns/getAllUsersColumns';
 import { getAllUsers } from '@/types/users/getAllUsers';
 import { Row } from '@tanstack/react-table';
@@ -63,13 +63,13 @@ const columns = getAllUsersColumns(UserActionsDropdown);
 
 export default function Users() {
   return (
-    <ProtectedRoute allowedRoles={['ADMIN']}>
+    <RoleGuard allowedRoles={['ADMIN']}>
       <AdminCrud<getAllUsers>
         addButton={<AddUserButton />}
         dataTableUrl="/api/users/getAllUsers"
         title="Usuarios"
         columns={columns}
       />
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }

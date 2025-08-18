@@ -1,4 +1,4 @@
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import {
@@ -8,24 +8,44 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '../sidebar';
-import { ChevronRight, DownloadIcon } from 'lucide-react';
+import { ChevronRight, DownloadIcon, RefreshCwIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import { axiosBlobFetcher } from '@/lib/axiosUtils/axios-instance';
+import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../TailwindSpinner';
-import useSWRImmutable from 'swr/immutable';
+import useSWR, { mutate } from 'swr';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 
-export default function CollapsibleReferences({ references }: { references: getRefsByClient[] }) {
-  const { reference, setReference, clientNumber, setPdfUrl, setFile, setCustom } = useDEAStore(
-    (state) => state
-  );
+export default function CollapsibleReferences() {
+  const {
+    reference,
+    setReference,
+    clientNumber,
+    setPdfUrl,
+    setFile,
+    setCustom,
+    getFilesByReferenceKey,
+    initialDate,
+    finalDate,
+  } = useDEAStore((state) => state);
 
   const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
-  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
+  const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
   const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
+
+  const {
+    data: allReferences,
+    isLoading: isAllReferencesLoading,
+  }: { data: getRefsByClient[]; isLoading: boolean } = useSWR(
+    clientNumber && initialDate && finalDate
+      ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
+          initialDate.toISOString().split('T')[0]
+        }&finalDate=${finalDate.toISOString().split('T')[0]}`
+      : `/dea/getRefsByClient?client=000041`,
+    axiosFetcher
+  );
 
   React.useEffect(() => {
     if (!zipBlob) return;
@@ -72,10 +92,17 @@ export default function CollapsibleReferences({ references }: { references: getR
     );
   }
 
-  const filteredItems = fuzzyFilterObjects(filterValue, references, ['NUM_REFE']);
+  const filteredItems = fuzzyFilterObjects(filterValue, allReferences, ['NUM_REFE']);
+
+  if (isAllReferencesLoading)
+    return (
+      <div className="flex justify-center items-center">
+        <TailwindSpinner className="h-8 w-8" />
+      </div>
+    );
 
   return (
-    <ProtectedRoute allowedRoles={['ADMIN', 'DEA']}>
+    <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup>
           <SidebarGroupLabel
@@ -122,21 +149,32 @@ export default function CollapsibleReferences({ references }: { references: getR
                         }}
                       >
                         <div className="flex justify-between">
-                          <p>{NUM_REFE}</p>
-                          {FOLDER_EXISTS &&
-                            (!isDownloading ? (
-                              <DownloadIcon
+                          <div>
+                            <p>{NUM_REFE}</p>
+                          </div>
+                          <div className="flex">
+                            {FOLDER_EXISTS &&
+                              (!isDownloading ? (
+                                <DownloadIcon
+                                  size={20}
+                                  className={reference === NUM_REFE && FOLDER_EXISTS ? `mr-2` : ''}
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // prevent triggering parent onClick
+                                    setReference(NUM_REFE);
+                                    setLoadingReference(NUM_REFE);
+                                    setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
+                                  }}
+                                />
+                              ) : (
+                                <TailwindSpinner className="w-6 h-6" />
+                              ))}
+                            {reference === NUM_REFE && FOLDER_EXISTS && (
+                              <RefreshCwIcon
                                 size={20}
-                                onClick={(e) => {
-                                  e.stopPropagation(); // prevent triggering parent onClick
-                                  setReference(NUM_REFE);
-                                  setLoadingReference(NUM_REFE);
-                                  setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
-                                }}
+                                onClick={() => mutate(getFilesByReferenceKey)}
                               />
-                            ) : (
-                              <TailwindSpinner className="w-6 h-6" />
-                            ))}
+                            )}
+                          </div>
                         </div>
                       </SidebarMenuItem>
                     );
@@ -146,6 +184,6 @@ export default function CollapsibleReferences({ references }: { references: getR
           </CollapsibleContent>
         </SidebarGroup>
       </Collapsible>
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }

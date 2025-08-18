@@ -1,19 +1,15 @@
 import { useAuth } from '@/hooks/useAuth';
 import {
   IconBuilding,
+  IconKey,
   IconLayoutGrid,
   IconListDetails,
   IconShield,
   IconUser,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
-import useSWRImmutable from 'swr/immutable';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
-import TailwindSpinner from './TailwindSpinner';
 import React from 'react';
 
 const userItems = {
@@ -46,21 +42,31 @@ const userItems = {
         },
         {
           title: 'Roles',
+
           url: '/mygp/admin-panel/roles',
           role: ['ADMIN'],
           icon: IconShield,
         },
         {
           title: 'Compañias',
+
           url: '/mygp/admin-panel/companies',
           role: ['ADMIN'],
           icon: IconBuilding,
         },
         {
           title: 'Módulos',
+
           url: '/mygp/admin-panel/modules',
           role: ['ADMIN'],
           icon: IconLayoutGrid,
+        },
+        {
+          title: 'Permisos',
+
+          url: '/mygp/admin-panel/permissions',
+          role: ['ADMIN'],
+          icon: IconKey,
         },
       ],
     },
@@ -69,30 +75,13 @@ const userItems = {
 
 export default function NavCollapsible() {
   const { user } = useAuth();
-  const { clientNumber, initialDate, finalDate } = useDEAStore((state) => state);
   const pathname = usePathname();
-  const {
-    data: allReferences,
-    isLoading: isAllReferencesLoading,
-  }: { data: getRefsByClient[]; isLoading: boolean } = useSWRImmutable(
-    clientNumber && initialDate && finalDate
-      ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
-          initialDate.toISOString().split('T')[0]
-        }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : `/dea/getRefsByClient?client=000041`,
-    axiosFetcher
-  );
-
-  if (isAllReferencesLoading)
-    return (
-      <div className="flex justify-center items-center">
-        <TailwindSpinner className="h-12 w-12" />
-      </div>
-    );
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {
-      const filteredItems = group.items.filter((item) => item.role.includes(user.role.name));
+      const filteredItems = group.items.filter((item) =>
+        item.role.includes(user.complete_user?.role?.name)
+      );
       return filteredItems.length > 0 ? { ...group, items: filteredItems } : null;
     })
     .filter(Boolean);
@@ -105,7 +94,7 @@ export default function NavCollapsible() {
           return <CollapsibleNavItem key={item.title} item={item} pathname={pathname} />;
         })
       ) : (
-        <CollapsibleReferences references={allReferences} />
+        <CollapsibleReferences />
       )}
     </>
   );

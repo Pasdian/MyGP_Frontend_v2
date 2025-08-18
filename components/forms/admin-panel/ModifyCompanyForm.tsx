@@ -19,6 +19,11 @@ import { z } from 'zod/v4';
 import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import { Row } from '@tanstack/react-table';
+import { companyModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  companyModuleEvents.find((e) => e.alias === 'COMPANY_MODIFY_COMPANY')?.eventName || '';
 
 export default function ModifyCompanyForm({
   row,
@@ -45,6 +50,7 @@ export default function ModifyCompanyForm({
     })
       .then((res) => {
         toast.success(res.data.message);
+        posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
         mutate('/api/companies/getAllCompanies');
       })

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import InitialDatePicker from '../datepickers/InitialDatePicker';
 import FinalDatePicker from '../datepickers/FinalDatePicker';
 import React from 'react';
@@ -35,7 +35,7 @@ export default function PieChartLabelList() {
 
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
-  const { data: chartData } = useSWRImmutable(
+  const { data: chartData } = useSWR(
     initialDate && finalDate && clientName
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
           initialDate.toISOString().split('T')[0]

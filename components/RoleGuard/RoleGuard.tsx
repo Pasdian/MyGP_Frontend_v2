@@ -2,9 +2,8 @@
 import { useAuth } from '@/hooks/useAuth';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
-import TailwindSpinner from '../ui/TailwindSpinner';
 
-export default function ProtectedRoute({
+export default function RoleGuard({
   children,
   allowedRoles,
 }: {
@@ -23,8 +22,10 @@ export default function ProtectedRoute({
     }
   }, [isAuthenticated, user, allowedRoles, isLoading, router, pathname]);
 
-  if (isLoading) return <TailwindSpinner className="h-12 w-12" />;
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user.role.name))) {
+  if (
+    !isAuthenticated ||
+    (allowedRoles && !allowedRoles.includes(user?.complete_user?.role?.name))
+  ) {
     return;
   }
 

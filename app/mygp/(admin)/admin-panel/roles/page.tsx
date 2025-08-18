@@ -3,7 +3,7 @@
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import AddRoleButton from '@/components/buttons/admin-panel/roles/AddRoleButton';
 import ModifyRoleButton from '@/components/buttons/admin-panel/roles/ModifyRoleButton';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { getAllRolesColumns } from '@/lib/columns/getAllRolesColumns';
 import { getAllRoles } from '@/types/roles/getAllRoles';
 import React from 'react';
@@ -43,13 +43,13 @@ const columns = getAllRolesColumns(RolesActions);
 
 export default function Roles() {
   return (
-    <ProtectedRoute allowedRoles={['ADMIN']}>
+    <RoleGuard allowedRoles={['ADMIN']}>
       <AdminCrud<getAllRoles>
         addButton={<AddRoleButton />}
         dataTableUrl="/api/roles"
         title="Roles"
         columns={columns}
       />
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }
