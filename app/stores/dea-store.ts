@@ -12,7 +12,7 @@ export type DEAState = {
 };
 
 export const defaultInitState: DEAState = {
-  clientNumber: '',
+  clientNumber: '000041', // RICOH MEXICANA SA DE CV
   custom: '',
   reference: '',
   pdfUrl: '',
@@ -31,6 +31,7 @@ export type DEAActions = {
   setPdfUrl: (pdfUrl: string) => void;
   setFile: (file: string) => void;
   setGetFilesByReferenceKey: (key: string) => void;
+  resetDEAState: () => void;
 };
 
 export type DEAStore = DEAState & DEAActions;
@@ -82,5 +83,6 @@ export const createDEAStore = (initState: DEAState = defaultInitState) => {
     setCustom: (custom) => set(() => ({ custom })),
 
     setGetFilesByReferenceKey: (getFilesByReferenceKey) => set(() => ({ getFilesByReferenceKey })),
+    resetDEAState: () => set(() => ({ ...defaultInitState })),
   }));
 };

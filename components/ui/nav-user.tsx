@@ -43,13 +43,13 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="bg-indigo-400 rounded-lg">
-                  {`${user.complete_user.user.name.split(' ')[0][0]}`}
+                  {`${user?.complete_user?.user?.name?.split(' ')[0][0]}`}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.complete_user.user.name}</span>
+                <span className="truncate font-medium">{user?.complete_user?.user?.name}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.complete_user.user.email}
+                  {user?.complete_user?.user?.email}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -65,13 +65,13 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarFallback className="bg-indigo-400 rounded-lg">
-                    {`${user.complete_user.user.name.split(' ')[0][0]}`}
+                    {`${user?.complete_user?.user?.name?.split(' ')[0][0]}`}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.complete_user.user.name}</span>
+                  <span className="truncate font-medium">{user?.complete_user?.user?.name}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user.complete_user.user.email}
+                    {user?.complete_user?.user?.email}
                   </span>
                 </div>
               </div>

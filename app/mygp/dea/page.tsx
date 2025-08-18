@@ -44,6 +44,7 @@ export default function DEA() {
     fileName,
     setFile,
     getFilesByReferenceKey,
+    resetDEAState,
   } = useDEAStore((state) => state);
 
   const [url, setUrl] = React.useState('');
@@ -80,6 +81,9 @@ export default function DEA() {
       `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${fileName}`,
     axiosBlobFetcher
   );
+
+  // No state when user visits page
+  React.useEffect(() => resetDEAState(), [resetDEAState]);
 
   // Effect for fileBlob
   React.useEffect(() => {
@@ -250,7 +254,10 @@ export default function DEA() {
                   console.error('Generation Failed', err);
                 }
               }}
-              disabled={isDigitalRecordGenerationMutating}
+              disabled={
+                isDigitalRecordGenerationMutating ||
+                filesByReference?.files['05-EXP-DIGITAL'].length >= 1
+              }
             >
               {isDigitalRecordGenerationMutating ? (
                 <div className="flex items-center animate-pulse">
@@ -259,7 +266,15 @@ export default function DEA() {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <RocketIcon className="mr-2" /> Generar Expediente Digital
+                  {filesByReference?.files['05-EXP-DIGITAL'].length >= 1 ? (
+                    <>
+                      <RocketIcon className="mr-2" /> Ya Existe un Expediente Digital
+                    </>
+                  ) : (
+                    <>
+                      <RocketIcon className="mr-2" /> Generar Expediente Digital
+                    </>
+                  )}
                 </div>
               )}
             </Button>

@@ -7,8 +7,10 @@ export const AuthContext = React.createContext<
       setUser: React.Dispatch<React.SetStateAction<LoginResponse>>;
       isLoading: boolean;
       isAuthenticated: boolean;
+      accessToken: string | null;
       logout: () => void;
       login: (data: { email: string; password: string }) => void;
+      refresh: () => Promise<boolean>;
     }
   | undefined
 >(undefined);

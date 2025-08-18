@@ -45,7 +45,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
       password: '',
       role_uuid: row.original.role_uuid ? row.original.role_uuid.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
-      status: row.original.status == 'Activo' ? true : false,
+      status: row.original.status == 'active' ? true : false,
       company_uuid: row.original.company?.uuid || '',
     },
   });

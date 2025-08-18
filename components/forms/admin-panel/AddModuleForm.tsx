@@ -17,11 +17,11 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { moduleSchema } from '@/lib/schemas/admin-panel/moduleSchema';
-import { moduleModuleEvent } from '@/lib/posthog/events';
+import { moduleModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 
 const posthogEvent =
-  moduleModuleEvent.find((e) => e.alias === 'MODULE_ADD_MODULE')?.eventName || '';
+  moduleModuleEvents.find((e) => e.alias === 'MODULE_ADD_MODULE')?.eventName || '';
 
 export default function AddModuleForm({
   setIsOpen,

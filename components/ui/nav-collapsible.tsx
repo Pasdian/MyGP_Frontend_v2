@@ -80,7 +80,7 @@ export default function NavCollapsible() {
   const filteredNav = userItems.navCollapsible
     .map((group) => {
       const filteredItems = group.items.filter((item) =>
-        item.role.includes(user.complete_user.role.name || '')
+        item.role.includes(user.complete_user?.role?.name)
       );
       return filteredItems.length > 0 ? { ...group, items: filteredItems } : null;
     })

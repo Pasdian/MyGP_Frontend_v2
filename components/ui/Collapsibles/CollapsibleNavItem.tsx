@@ -12,7 +12,6 @@ import { ChevronRight } from 'lucide-react';
 import { ForwardRefExoticComponent, RefAttributes } from 'react';
 import { Icon, IconProps } from '@tabler/icons-react';
 import Link from 'next/link';
-import posthog from 'posthog-js';
 
 export default function CollapsibleNavItem({
   item,

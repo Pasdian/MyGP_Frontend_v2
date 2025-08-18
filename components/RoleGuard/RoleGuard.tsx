@@ -24,7 +24,7 @@ export default function RoleGuard({
 
   if (
     !isAuthenticated ||
-    (allowedRoles && !allowedRoles.includes(user.complete_user.role.name || ''))
+    (allowedRoles && !allowedRoles.includes(user?.complete_user?.role?.name))
   ) {
     return;
   }

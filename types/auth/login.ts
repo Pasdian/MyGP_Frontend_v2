@@ -1,6 +1,6 @@
 export interface LoginResponse {
   message: string;
-  token: string;
+  accessToken: string;
   complete_user: CompleteUser;
 }
 

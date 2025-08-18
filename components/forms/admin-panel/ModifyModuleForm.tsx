@@ -19,11 +19,11 @@ import { z } from 'zod/v4';
 import { moduleSchema } from '@/lib/schemas/admin-panel/moduleSchema';
 import { getAllModules } from '@/types/getAllModules/getAllModules';
 import { Row } from '@tanstack/react-table';
-import { moduleModuleEvent } from '@/lib/posthog/events';
+import { moduleModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 
 const posthogEvent =
-  moduleModuleEvent.find((e) => e.alias === 'MODULE_MODIFY_MODULE')?.eventName || '';
+  moduleModuleEvents.find((e) => e.alias === 'MODULE_MODIFY_MODULE')?.eventName || '';
 
 export default function ModifyModuleForm({
   row,

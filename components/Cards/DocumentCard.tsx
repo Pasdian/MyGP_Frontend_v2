@@ -132,7 +132,7 @@ export default function DocumentCard({
                 <p className="break-words">{item}</p>
               </div>
               <div className="flex">
-                <PermissionGuard allowedPermissions={['DEA_DOWNLOAD_FILES']}>
+                <PermissionGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
                   <DownloadIcon
                     className="mr-2"
                     size={20}
@@ -142,7 +142,7 @@ export default function DocumentCard({
                     }}
                   />
                 </PermissionGuard>
-                <PermissionGuard allowedPermissions={['DEA_DELETE_FILES']}>
+                <PermissionGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
                   <Trash2Icon
                     size={20}
                     onClick={() => {
