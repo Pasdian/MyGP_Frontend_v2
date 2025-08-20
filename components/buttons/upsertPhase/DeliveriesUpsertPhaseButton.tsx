@@ -22,8 +22,9 @@ import { IconBallpenFilled } from '@tabler/icons-react';
 export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);
 
 export default function DeliveriesUpsertPhaseButton({ row }: { row: Row<getDeliveries> }) {
+  const [isOpen, setIsOpen] = React.useState(false);
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="cursor-pointer bg-yellow-400 hover:bg-yellow-500">
           <IconBallpenFilled />
@@ -38,7 +39,7 @@ export default function DeliveriesUpsertPhaseButton({ row }: { row: Row<getDeliv
             termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        <DeliveriesUpsertPhaseForm row={row} />
+        {isOpen && row && <DeliveriesUpsertPhaseForm row={row} />}
       </DialogContent>
     </Dialog>
   );

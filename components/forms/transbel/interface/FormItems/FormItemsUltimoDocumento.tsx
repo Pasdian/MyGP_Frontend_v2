@@ -28,6 +28,7 @@ export default function FormItemsUltimoDocumento({
       user: string | undefined;
     }
   >;
+
   row: Row<getRefsPendingCE>;
 }) {
   return (

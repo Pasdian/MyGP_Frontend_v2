@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import InitialDatePicker from '../datepickers/InitialDatePicker';
 import FinalDatePicker from '../datepickers/FinalDatePicker';
 import React from 'react';
@@ -35,7 +35,7 @@ export default function PieChartLabelList() {
 
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
-  const { data: chartData } = useSWRImmutable(
+  const { data: chartData } = useSWR(
     initialDate && finalDate && clientName
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
           initialDate.toISOString().split('T')[0]
@@ -108,7 +108,7 @@ export default function PieChartLabelList() {
       if (curValue > maxValue * 0.05) {
         // If my current value is greater than the 5% of my maximum value then add a label
         chartConfig[item.CUSTOMS] = {
-          label: customs.find((custom) => custom.key == +item.CUSTOMS)?.name,
+          label: customs.find((custom) => custom.key == item.CUSTOMS)?.name,
         };
       }
       const lightness = minLight + i * lightStep;

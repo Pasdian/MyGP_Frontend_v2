@@ -25,6 +25,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { IconTrashFilled } from '@tabler/icons-react';
 import { deliveriesUpsertPhaseSchema } from '@/lib/schemas/transbel/deliveries/deliveriesUpsertPhaseSchema';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { transbelModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_DELIVERY')?.eventName || '';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
@@ -39,7 +44,9 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       exceptionCode: row.original.CE_140 ? row.original.CE_140 : '',
       cdp: row.original.ENTREGA_CDP_140 ? row.original.ENTREGA_CDP_140 : '',
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
-      user: user.casa_user_name ? user.casa_user_name : 'MYGP',
+      user: user.complete_user.user.casa_user_name
+        ? user.complete_user.user.casa_user_name
+        : 'MYGP',
       transporte: row.original.ENTREGA_TRANSPORTE_138 ? row.original.ENTREGA_TRANSPORTE_138 : '',
     },
   });
@@ -55,6 +62,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       .then((res) => {
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
+          posthog.capture(posthogEvent);
           mutate('/api/transbel/getDeliveries');
         } else {
           toast.error('No se pudieron actualizar tus datos');

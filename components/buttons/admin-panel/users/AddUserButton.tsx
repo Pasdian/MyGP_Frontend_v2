@@ -31,7 +31,7 @@ export default function AddUserButton() {
             campos.
           </DialogDescription>
         </DialogHeader>
-        <AddUserForm setIsOpen={setIsOpen} />
+        {isOpen && <AddUserForm setIsOpen={setIsOpen} />}
       </DialogContent>
     </Dialog>
   );

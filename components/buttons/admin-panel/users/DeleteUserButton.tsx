@@ -7,19 +7,26 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
-import { getAllUsersDeepCopy } from '@/types/users/getAllUsers';
+import { getAllUsers } from '@/types/users/getAllUsers';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
+import { dropdownDeleteClassName } from '@/lib/classNames/adminActions';
+import { usersModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  usersModuleEvents.find((e) => e.alias === 'USERS_DELETE_USER')?.eventName || '';
 
 export default function DeleteUserButton({
   row,
   open,
   setIsOpen,
 }: {
-  row: Row<getAllUsersDeepCopy>;
+  row: Row<getAllUsers>;
   open: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
@@ -28,6 +35,7 @@ export default function DeleteUserButton({
       .then((res) => {
         toast.success(res.data.message);
         mutate('/api/users/getAllUsers');
+        posthog.capture(posthogEvent);
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -35,6 +43,9 @@ export default function DeleteUserButton({
   }
   return (
     <Dialog open={open} onOpenChange={setIsOpen}>
+      <DialogTrigger className={dropdownDeleteClassName}>
+        <span className="text-sm text-white font-bold">Eliminar</span>
+      </DialogTrigger>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Eliminar Usuario</DialogTitle>

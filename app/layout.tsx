@@ -22,12 +22,12 @@ export default function RootLayout({
   return (
     <html lang="es-MX" className={roboto.className}>
       <body>
-        <AuthProvider>
-          <DEAStoreProvider>
+        <DEAStoreProvider>
+          <AuthProvider>
             {children}
             <Toaster position="top-center" />
-          </DEAStoreProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </DEAStoreProvider>
       </body>
     </html>
   );

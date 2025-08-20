@@ -17,21 +17,26 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 
-import { getRoles } from '@/types/roles/getRoles';
 import { Row } from '@tanstack/react-table';
-import { modifyRoleSchema } from '@/lib/schemas/admin-panel/modifyRoleSchema';
+import { getAllRoles } from '@/types/roles/getAllRoles';
+import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
+import { rolesModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent =
+  rolesModuleEvents.find((e) => e.alias === 'ROLES_MODIFY_ROLE')?.eventName || '';
 
 export default function ModifyRoleForm({
   row,
   setIsOpen,
 }: {
-  row: Row<getRoles>;
+  row: Row<getAllRoles>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof modifyRoleSchema>>({
-    resolver: zodResolver(modifyRoleSchema),
+  const form = useForm<z.infer<typeof roleSchema>>({
+    resolver: zodResolver(roleSchema),
     mode: 'onChange',
     defaultValues: {
       name: row.original.name ? row.original.name : '',
@@ -39,13 +44,14 @@ export default function ModifyRoleForm({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof modifyRoleSchema>) {
+  async function onSubmit(data: z.infer<typeof roleSchema>) {
     await GPClient.put(`/api/roles/${row.original.uuid}`, {
       name: data.name,
       description: data.description,
     })
       .then((res) => {
         toast.success(res.data.message);
+        posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
         mutate('/api/users/getAllUsers');
         mutate('/api/roles');

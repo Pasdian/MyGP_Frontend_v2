@@ -6,9 +6,8 @@ import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
 import React from 'react';
 import { toast } from 'sonner';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
-import { ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID } from '@/lib/roles/roles';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import RoleGuard from '@/components/RoleGuard/RoleGuard';
 
 export default function Page() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
@@ -46,7 +45,7 @@ export default function Page() {
   }, [initialDate, finalDate]);
 
   return (
-    <ProtectedRoute allowedRoles={[ADMIN_ROLE_UUID, OPERACIONES_AAP_UUID]}>
+    <RoleGuard allowedRoles={['ADMIN', 'AAP']}>
       <div className="flex flex-col justify-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
@@ -75,6 +74,6 @@ export default function Page() {
           <InterfaceDataTable />
         </InterfaceContext.Provider>
       </div>
-    </ProtectedRoute>
+    </RoleGuard>
   );
 }

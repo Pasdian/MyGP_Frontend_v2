@@ -8,17 +8,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { getRoles } from '@/types/roles/getRoles';
+import { dropdownModifyClassName } from '@/lib/classNames/adminActions';
+import { getAllRoles } from '@/types/roles/getAllRoles';
 
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 
-export default function ModifyRoleButton({ row }: { row: Row<getRoles> }) {
+export default function ModifyRoleButton({ row }: { row: Row<getAllRoles> }) {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <p>Modificar</p>
+      <DialogTrigger className={dropdownModifyClassName}>
+        <span className="text-sm text-white font-bold">Modificar</span>
       </DialogTrigger>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
@@ -28,7 +29,7 @@ export default function ModifyRoleButton({ row }: { row: Row<getRoles> }) {
             termines de editar los campos.
           </DialogDescription>
         </DialogHeader>
-        <ModifyRoleForm row={row} setIsOpen={setIsOpen} />
+        {isOpen && <ModifyRoleForm row={row} setIsOpen={setIsOpen} />}
       </DialogContent>
     </Dialog>
   );

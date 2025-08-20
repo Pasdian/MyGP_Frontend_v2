@@ -23,10 +23,7 @@ export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPe
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogTrigger asChild>
-        <Button
-          onClick={() => setOpenDialog((opened) => !opened)}
-          className="cursor-pointer bg-yellow-400 hover:bg-yellow-500"
-        >
+        <Button className="cursor-pointer bg-yellow-400 hover:bg-yellow-500">
           <IconBallpenFilled />
           Modificar
         </Button>
@@ -40,7 +37,7 @@ export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPe
           </DialogDescription>
         </DialogHeader>
 
-        <InterfaceUpsertPhaseForm row={row} setOpenDialog={setOpenDialog} />
+        {openDialog && row && <InterfaceUpsertPhaseForm row={row} setOpenDialog={setOpenDialog} />}
       </DialogContent>
     </Dialog>
   );

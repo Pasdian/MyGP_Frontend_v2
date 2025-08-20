@@ -17,9 +17,13 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { Eye, EyeOff } from 'lucide-react';
-import AdminPanelRoleSelect from '@/components/selects/AdminPanelRoleSelect';
+import AdminPanelRoleSelect from '@/components/selects/RoleSelect';
 import { z } from 'zod/v4';
-import { addUserSchema } from '@/lib/schemas/admin-panel/addUserSchema';
+import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
+import { usersModuleEvents } from '@/lib/posthog/events';
+import posthog from 'posthog-js';
+
+const posthogEvent = usersModuleEvents.find((e) => e.alias === 'USERS_ADD_USER')?.eventName || '';
 
 export default function AddUserForm({
   setIsOpen,
@@ -37,10 +41,10 @@ export default function AddUserForm({
       email: '',
       password: '',
       confirm_password: '',
-      role_id: '',
       mobile: '',
       has_casa_user: true,
       casa_user_name: '',
+      role_uuid: '',
     },
   });
 
@@ -49,7 +53,7 @@ export default function AddUserForm({
       name: data.name,
       email: data.email,
       password: data.password,
-      role_id: data.role_id,
+      role_uuid: data.role_uuid,
       mobile: data.mobile,
       has_casa_user: data.has_casa_user,
       casa_user_name: data.casa_user_name,
@@ -57,6 +61,7 @@ export default function AddUserForm({
       .then((res) => {
         toast.success(res.data.message);
         setIsOpen((opened) => !opened);
+        posthog.capture(posthogEvent);
         mutate('/api/users/getAllUsers');
       })
       .catch((error) => {
@@ -166,7 +171,7 @@ export default function AddUserForm({
 
           <FormField
             control={form.control}
-            name="role_id"
+            name="role_uuid"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Rol del Usuario</FormLabel>
