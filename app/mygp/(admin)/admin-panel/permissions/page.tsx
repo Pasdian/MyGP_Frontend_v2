@@ -115,7 +115,7 @@ export default function Permissions() {
             </div>
           ))}
 
-          {role.users && role.users.length > 0 && (
+          {Array.isArray(role.users) && role.users.length > 0 && (
             <div className="mt-4">
               <p className="font-semibold">Usuarios con este rol:</p>
               <ul className="list-disc ml-6">

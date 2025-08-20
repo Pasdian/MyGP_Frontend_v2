@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import { LoginResponse } from '@/types/auth/login';
 import { jwtDecode } from 'jwt-decode';
 import posthog from 'posthog-js';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
 
 type JwtClaims = { exp?: number };
 
@@ -32,29 +31,20 @@ const defaultUser: LoginResponse = {
   },
 };
 
-// helper: ms until we should refresh (slightly before exp)
 function msUntilRefresh(token: string | null | undefined): number {
   try {
     if (!token) return 0;
     const { exp } = jwtDecode<JwtClaims>(token);
     if (!exp) return 0;
-
     const expMs = exp * 1000;
-    const threshold =
-      process.env.NODE_ENV === 'production'
-        ? 2 * 60_000 // refresh 2 min before expiry
-        : 10_000; // refresh 10s before expiry in dev
-
-    const diff = expMs - Date.now() - threshold;
-
-    return Math.max(0, diff);
+    const threshold = process.env.NODE_ENV === 'production' ? 2 * 60_000 : 10_000;
+    return Math.max(0, expMs - Date.now() - threshold);
   } catch {
     return 0;
   }
 }
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { resetDEAState } = useDEAStore((state) => state);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -63,17 +53,23 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
 
-  // refresh with refresh_token (cookie)
+  // Try to refresh using HttpOnly cookie
   const refresh = React.useCallback(async () => {
     try {
-      const res = await GPClient.post('/api/auth/refreshToken');
+      // withCredentials is already true in GPClient, but keeping it explicit is fine:
+      const res = await GPClient.post('/api/auth/refreshToken', {}, { withCredentials: true });
       setAccessToken(res.data.accessToken);
       setUser(res.data);
       setIsAuthenticated(true);
 
       const person = res.data.complete_user.user;
-      posthog?.identify(person.uuid, { $email: person.email });
-      posthog?.group('company', person.company_uuid || '', { name: person.company_name });
+      posthog.identify(person.email, {
+        uuid: person.uuid,
+        company_id: person.company_uuid,
+      });
+      posthog.group('company', person.company_uuid || '', {
+        name: person.company_name,
+      });
       return true;
     } catch (error) {
       console.error('Error refreshing token', error);
@@ -86,13 +82,22 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     let cancelled = false;
 
     (async () => {
+      // If user visits /login, still attempt refresh (HttpOnly cookie)
       if (pathname === '/login') {
-        setIsLoading(false);
+        const ok = await refresh();
+        if (!cancelled && ok) {
+          router.replace('/mygp/dashboard'); // avoid back nav to /login
+          return;
+        }
+        if (!cancelled) setIsLoading(false);
         return;
       }
 
+      // Any other route needs a valid session
       const ok = await refresh();
-      if (!ok && !cancelled) router.push('/login');
+      if (!cancelled && !ok) {
+        router.replace('/login');
+      }
       if (!cancelled) setIsLoading(false);
     })();
 
@@ -101,21 +106,17 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     };
   }, [pathname, refresh, router]);
 
-  // Schedule refresh dynamically (instead of polling)
+  // Schedule refresh before token expiry
   React.useEffect(() => {
     if (pathname === '/login' || !accessToken) return;
-
     const delay = msUntilRefresh(accessToken);
-
     const id = setTimeout(async () => {
       const ok = await refresh();
-      if (!ok) router.push('/login');
+      if (!ok) router.replace('/login');
     }, delay);
-
     return () => clearTimeout(id);
   }, [pathname, accessToken, refresh, router]);
 
-  // login
   async function login(data: { email: string; password: string }) {
     return GPClient.post('/api/auth/login', data, { withCredentials: true })
       .then((res: { data: LoginResponse }) => {
@@ -124,16 +125,20 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         setUser(res.data);
         setIsAuthenticated(true);
         const person = res.data.complete_user.user;
-        posthog?.identify(person.uuid, { $email: person.email });
-        posthog?.group('company', person.company_uuid || '', { name: person.company_name });
-        router.push('/mygp/dashboard');
+        posthog.identify(person.email, {
+          uuid: person.uuid,
+          company_id: person.company_uuid,
+        });
+        posthog.group('company', person.company_uuid || '', {
+          name: person.company_name,
+        });
+        router.replace('/mygp/dashboard');
       })
       .catch((error) => {
         toast.error(error.response?.data?.message || 'Login failed');
       });
   }
 
-  // logout
   async function logout() {
     return GPClient.post('/api/auth/logout', {}, { withCredentials: true })
       .then((res) => {
@@ -141,8 +146,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         setAccessToken(null);
         setUser(defaultUser);
         setIsAuthenticated(false);
-        router.push('/login');
-        resetDEAState();
+        router.replace('/login');
       })
       .catch((error) => {
         toast.error(error.response?.data?.message || 'Logout failed');

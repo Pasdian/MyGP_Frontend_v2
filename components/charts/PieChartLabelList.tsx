@@ -23,20 +23,28 @@ import { getOperationsDistributionByCustomsDeepCopy } from '@/types/bi/getOperat
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { customs } from '@/lib/customs/customs';
 
-export const description = 'A pie chart with a label list';
+export const COLORS_6 = ['#0B2B66', '#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#8FB2FF'];
+
+function bluePalette(n: number): string[] {
+  if (n <= 0) return [];
+  const base = COLORS_6;
+  return Array.from({ length: n }, (_, i) => base[i % base.length]);
+}
+
+type ChartConfig = Record<string, { label: string | undefined }>;
+export const description = 'Operaciones por Aduana';
 
 export default function PieChartLabelList() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(
     new Date(new Date().setMonth(new Date().getMonth() - 1))
   );
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(new Date());
-  const [clientName, setClientName] = React.useState('TRANSBEL SA DE CV');
-  const [clientNumber, setClientNumber] = React.useState('000259'); // Transbel
-
+  const [clientName, setClientName] = React.useState('TRANSBEL SA DE CV - Nuevo');
+  const [clientNumber, setClientNumber] = React.useState('005009'); // Transbel Nuevo
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
   const { data: chartData } = useSWR(
-    initialDate && finalDate && clientName
+    initialDate && finalDate
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
           initialDate.toISOString().split('T')[0]
         }&finalDate=${finalDate.toISOString().split('T')[0]}&client=${clientNumber}`
@@ -46,14 +54,9 @@ export default function PieChartLabelList() {
   const [modifiedChartData, setModifiedChartData] = React.useState<
     getOperationsDistributionByCustomsDeepCopy[]
   >([]);
-  const [chartConfig, setChartConfig] = React.useState<{
-    [key: string]: {
-      label: string | undefined;
-    };
-  }>({
-    OPERATIONS: {
-      label: 'Operaciones',
-    },
+
+  const [chartConfig, setChartConfig] = React.useState<ChartConfig>({
+    OPERATIONS: { label: 'Operaciones' },
   });
 
   React.useEffect(() => {
@@ -88,37 +91,37 @@ export default function PieChartLabelList() {
   }, [initialDate, finalDate]);
 
   React.useEffect(() => {
-    if (!chartData) return;
-    const localDeepCopy: getOperationsDistributionByCustomsDeepCopy[] = JSON.parse(
-      JSON.stringify(chartData)
-    );
+    if (!Array.isArray(chartData) || chartData.length === 0) {
+      setModifiedChartData([]);
+      setChartConfig({ OPERATIONS: { label: 'Operaciones' } });
+      setMaxOperationValue(0);
+      return;
+    }
 
-    const n = localDeepCopy.length;
-    const hue = 220; // Blue
-    const saturation = 100; // Full saturation
-    const minLight = 30; // Dark blue
-    const maxLight = 80; // Light blue
+    const local: getOperationsDistributionByCustomsDeepCopy[] = chartData.map((r) => ({
+      ...r,
+    }));
 
-    const lightStep = (maxLight - minLight) / (n - 1);
-    const maxValue = Math.max(...localDeepCopy.map((obj) => obj.OPERATIONS));
+    const maxValue = local.reduce((acc, cur) => Math.max(acc, Number(cur.OPERATIONS) || 0), 0) || 0;
     setMaxOperationValue(maxValue);
 
-    localDeepCopy.map((item, i) => {
-      const curValue = item.OPERATIONS;
-      if (curValue > maxValue * 0.05) {
-        // If my current value is greater than the 5% of my maximum value then add a label
-        chartConfig[item.CUSTOMS] = {
-          label: customs.find((custom) => custom.key == item.CUSTOMS)?.name,
+    const nextConfig: ChartConfig = { OPERATIONS: { label: 'Operaciones' } };
+
+    const palette = bluePalette(local.length);
+
+    local.forEach((item, i) => {
+      const curValue = Number(item.OPERATIONS) || 0;
+      if (maxValue > 0 && curValue >= maxValue * 0.05) {
+        nextConfig[item.CUSTOMS] = {
+          label: customs.find((c) => c.key == item.CUSTOMS)?.name ?? undefined,
         };
       }
-      const lightness = minLight + i * lightStep;
-      const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-      item.fill = color;
+      item.fill = palette[i];
     });
-
-    setModifiedChartData(localDeepCopy);
-    setChartConfig(chartConfig);
-  }, [chartData, chartConfig]);
+    setModifiedChartData(local);
+    setChartConfig(nextConfig);
+    // Do NOT depend on chartConfig to avoid loops.
+  }, [chartData]);
 
   return (
     <>
@@ -160,13 +163,17 @@ export default function PieChartLabelList() {
           >
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent nameKey="OPERATIONS" hideLabel />} />
-              <Pie data={modifiedChartData} dataKey="OPERATIONS">
+              <Pie data={modifiedChartData} dataKey="OPERATIONS" stroke="#162155ff" strokeWidth={1}>
                 <LabelList
                   dataKey="CUSTOMS"
-                  className="fill-background"
-                  stroke="none"
-                  fontSize={20}
-                  formatter={(value: keyof typeof chartConfig) => chartConfig[value]?.label}
+                  offset={12}
+                  className="font-semibold text-lg tracking-wide"
+                  style={{
+                    paintOrder: 'stroke fill', // outline text for contrast
+                    stroke: 'rgba(11,16,38,.35)',
+                    strokeWidth: 3,
+                  }}
+                  formatter={(value: string) => chartConfig[value]?.label ?? value}
                 />
               </Pie>
             </PieChart>
