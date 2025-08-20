@@ -465,11 +465,13 @@ export default function DEA() {
         !reference &&
         (logoUrl === undefined || isLogoBlobLoading ? null : logoUrl ? (
           <div className="flex w-full h-[calc(100%_-_85px)] items-center justify-center">
-            <div className="max-w-[500px]">
+            <div className="relative max-w-[600px]">
               <Image
                 src={logoUrl}
-                alt="Client logo"
-                className="w-auto h-auto max-w-full object-contain"
+                alt="client_logo"
+                width={500} // just a "max size", not forced
+                height={600} // keeps ratio
+                className="w-full h-auto object-contain"
               />
             </div>
           </div>
