@@ -39,3 +39,4 @@ export const USER_OPTIONAL_PASSWORD_VALIDATION = z
   .or(z.literal(""));
 
 export const USER_ROLE_UUID_VALIDATION = z.string();
+export const USER_COMPANY_UUID_VALIDATION = z.string();

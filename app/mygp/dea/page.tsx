@@ -53,9 +53,7 @@ export default function DEA() {
   } = useDEAStore((state) => state);
 
   const [url, setUrl] = React.useState('');
-  const [clientName, setClientName] = React.useState(
-    clientsData.find(({ CVE_IMP }) => CVE_IMP == client)?.NOM_IMP || ''
-  );
+  const [clientName, setClientName] = React.useState('');
   const [subfolder, setSubfolder] = React.useState('');
   const [fileContent, setFileContent] = React.useState('');
   const [subfolderLoading, setSubfolderLoading] = React.useState('');
@@ -78,6 +76,21 @@ export default function DEA() {
     getFilesByReferenceKey,
     axiosFetcher
   );
+
+  const files = React.useMemo(
+    () => filesByReference?.files ?? ({} as Record<string, string[]>),
+    [filesByReference]
+  );
+
+  // per-folder memos (stable array refs unless SWR data actually changes)
+  const filesCTA = React.useMemo(() => files['01-CTA-GASTOS'] ?? [], [files]);
+  const filesVUCEM = React.useMemo(() => files['04-VUCEM'] ?? [], [files]);
+  const filesExpAduanal = React.useMemo(() => files['02-EXPEDIENTE-ADUANAL'] ?? [], [files]);
+  const filesFiscales = React.useMemo(() => files['03-FISCALES'] ?? [], [files]);
+  const filesExpDigital = React.useMemo(() => files['05-EXP-DIGITAL'] ?? [], [files]);
+
+  // convenience booleans also memoized
+  const hasExpDigital = React.useMemo(() => filesExpDigital.length >= 1, [filesExpDigital]);
 
   const { data: fileBlob, isLoading: isFileBlobLoading } = useSWR(
     client &&
@@ -107,6 +120,7 @@ export default function DEA() {
           clientNum = user.complete_user?.user?.company_casa_id ?? '';
         }
         setClientNumber(clientNum);
+        setClientName(clientsData.find(({ CVE_IMP }) => CVE_IMP == clientNum)?.NOM_IMP || '');
       }
     }
     DEAAuthSync();
@@ -298,10 +312,7 @@ export default function DEA() {
                   console.error('Generation Failed', err);
                 }
               }}
-              disabled={
-                isDigitalRecordGenerationMutating ||
-                (filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1
-              }
+              disabled={isDigitalRecordGenerationMutating || hasExpDigital}
             >
               {isDigitalRecordGenerationMutating ? (
                 <div className="flex items-center animate-pulse">
@@ -332,7 +343,7 @@ export default function DEA() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <DocumentCard
                 title="Cuenta de Gastos"
-                files={filesByReference?.files['01-CTA-GASTOS'] || []}
+                files={filesCTA}
                 folder="01-CTA-GASTOS"
                 isLoading={subfolderLoading === '01-CTA-GASTOS'}
                 onDownload={() => {
@@ -349,7 +360,7 @@ export default function DEA() {
 
               <DocumentCard
                 title="COVES"
-                files={filesByReference?.files['04-VUCEM'] || []}
+                files={filesVUCEM}
                 isLoading={subfolderLoading === '04-VUCEM-COVES'}
                 folder="04-VUCEM"
                 onDownload={() => {
@@ -388,7 +399,7 @@ export default function DEA() {
 
               <DocumentCard
                 title="Expediente Aduanal"
-                files={filesByReference?.files['02-EXPEDIENTE-ADUANAL'] || []}
+                files={filesExpAduanal}
                 isLoading={subfolderLoading === '02-EXPEDIENTE-ADUANAL'}
                 folder="02-EXPEDIENTE-ADUANAL"
                 onDownload={() => {
@@ -405,7 +416,7 @@ export default function DEA() {
 
               <DocumentCard
                 title="EDocs"
-                files={filesByReference?.files['04-VUCEM'] || []}
+                files={filesVUCEM}
                 isLoading={subfolderLoading === '04-VUCEM-EDOCS'}
                 folder="04-VUCEM"
                 onDownload={() => {
@@ -423,7 +434,7 @@ export default function DEA() {
 
               <DocumentCard
                 title="Comprobantes Fiscales"
-                files={filesByReference?.files['03-FISCALES'] || []}
+                files={filesFiscales}
                 isLoading={subfolderLoading === '03-FISCALES'}
                 folder="03-FISCALES"
                 onDownload={() => {
@@ -440,7 +451,7 @@ export default function DEA() {
 
               <DocumentCard
                 title="Expediente Digital"
-                files={filesByReference?.files['05-EXP-DIGITAL'] || []}
+                files={filesExpDigital}
                 isLoading={subfolderLoading === '05-EXP-DIGITAL'}
                 folder="05-EXP-DIGITAL"
                 onDownload={() => {
