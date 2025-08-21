@@ -11,15 +11,17 @@ export type DEAState = {
   getFilesByReferenceKey: string;
 };
 
-export const defaultInitState: DEAState = {
-  clientNumber: '000041', // RICOH MEXICANA SA DE CV
-  custom: '',
-  reference: '',
-  pdfUrl: '',
-  initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-  finalDate: new Date(),
-  fileName: '',
-  getFilesByReferenceKey: '',
+export const defaultInitState: () => DEAState = () => {
+  return {
+    clientNumber: '',
+    custom: '',
+    reference: '',
+    pdfUrl: '',
+    initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+    finalDate: new Date(),
+    fileName: '',
+    getFilesByReferenceKey: '',
+  };
 };
 
 export type DEAActions = {
@@ -42,10 +44,10 @@ const getFilesByReference = (reference: string, client: string) => {
 };
 
 export const initDEAStore = (): DEAState => {
-  const clientNumber = '000041';
+  const clientNumber = '';
   const reference = '';
   return {
-    clientNumber,
+    clientNumber: '',
     reference,
     custom: '',
     pdfUrl: '',
@@ -56,7 +58,7 @@ export const initDEAStore = (): DEAState => {
   };
 };
 
-export const createDEAStore = (initState: DEAState = defaultInitState) => {
+export const createDEAStore = (initState: DEAState = defaultInitState()) => {
   return createStore<DEAStore>()((set) => ({
     ...initState,
 

@@ -10,7 +10,16 @@ import { toast } from 'sonner';
 import { mutate } from 'swr';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
 import { deaModuleEvents } from '@/lib/posthog/events';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import posthog from 'posthog-js';
+import { Button } from '../ui/button';
 
 const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
@@ -43,7 +52,8 @@ export default function DocumentCard({
   const stickyClassName =
     'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
 
-  const [openDialog, setOpenDialog] = React.useState(false);
+  const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
+  const [openDeleteFileDialog, setOpenDeleteFileDialog] = React.useState(false);
 
   async function handleDownloadFile(file: string) {
     try {
@@ -79,9 +89,11 @@ export default function DocumentCard({
     }
   }
 
-  async function handleDeleteFile(file: string) {
+  async function handleDeleteFile() {
     try {
-      const res = await GPClient.post(`/dea/deleteFile/${client}/${reference}/${folder}/${file}`);
+      const res = await GPClient.post(
+        `/dea/deleteFile/${client}/${reference}/${folder}/${activeFile}`
+      );
 
       if (res.status !== 200) {
         toast.error(`Error al eliminar el archivo (${res.status})`);
@@ -100,21 +112,23 @@ export default function DocumentCard({
       <div className={cardHeaderClassName}>
         <div className={stickyClassName}>
           <p className="font-bold">
-            {title} - {files.filter(filterFn).length} archivos
+            {`${title} - ${
+              (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true)).length
+            } archivos`}
           </p>
           <div>
-            {files.length > 0 && !isLoading ? (
+            {isLoading ? (
+              <TailwindSpinner className="w-6 h-6" />
+            ) : (files?.length ?? 0) > 0 ? (
               <div className="flex">
                 <IconUpload
                   size={20}
                   color="white"
                   className="cursor-pointer mr-2"
-                  onClick={() => setOpenDialog(true)}
+                  onClick={() => setOpenUploadDialog(true)}
                 />
                 <DownloadIcon size={20} className="cursor-pointer" onClick={onDownload} />
               </div>
-            ) : isLoading ? (
-              <TailwindSpinner className="w-6 h-6" />
             ) : null}
           </div>
         </div>
@@ -126,7 +140,7 @@ export default function DocumentCard({
                 item === activeFile ? 'bg-green-300' : ''
               }`}
               onClick={() => onFileSelect(item)}
-              style={{ maxWidth: '100%' }} // asegurar ancho máximo si necesario
+              style={{ maxWidth: '100%' }}
             >
               <div className="max-w-[70%]">
                 <p className="break-words">{item}</p>
@@ -146,8 +160,7 @@ export default function DocumentCard({
                   <Trash2Icon
                     size={20}
                     onClick={() => {
-                      handleDeleteFile(item);
-                      posthog.capture(deaDeleteFileEvent);
+                      setOpenDeleteFileDialog(true);
                     }}
                   />
                 </PermissionGuard>
@@ -156,9 +169,35 @@ export default function DocumentCard({
           ))}
         </div>
       </div>
+
+      <Dialog open={openDeleteFileDialog} onOpenChange={setOpenDeleteFileDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Eliminar archivo?</DialogTitle>
+            <DialogDescription>
+              {activeFile ? `¿Seguro que quieres eliminar "${activeFile}"?` : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenDeleteFileDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              className="cursor-pointer"
+              variant="destructive"
+              onClick={() => {
+                handleDeleteFile();
+                posthog.capture(deaDeleteFileEvent);
+              }}
+            >
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <UploadFileDialog
-        open={openDialog}
-        onOpenChange={setOpenDialog}
+        open={openUploadDialog}
+        onOpenChange={setOpenUploadDialog}
         title={title}
         folder={folder}
       />

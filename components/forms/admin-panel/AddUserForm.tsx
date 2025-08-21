@@ -22,6 +22,7 @@ import { z } from 'zod/v4';
 import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import CompanySelect from '@/components/selects/CompanySelect';
 
 const posthogEvent = usersModuleEvents.find((e) => e.alias === 'USERS_ADD_USER')?.eventName || '';
 
@@ -45,6 +46,7 @@ export default function AddUserForm({
       has_casa_user: true,
       casa_user_name: '',
       role_uuid: '',
+      company_uuid: '',
     },
   });
 
@@ -57,6 +59,7 @@ export default function AddUserForm({
       mobile: data.mobile,
       has_casa_user: data.has_casa_user,
       casa_user_name: data.casa_user_name,
+      company_uuid: data.company_uuid,
     })
       .then((res) => {
         toast.success(res.data.message);
@@ -177,6 +180,20 @@ export default function AddUserForm({
                 <FormLabel>Rol del Usuario</FormLabel>
                 <FormControl>
                   <AdminPanelRoleSelect onValueChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="company_uuid"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Compañia del Usuario</FormLabel>
+                <FormControl>
+                  <CompanySelect onValueChange={field.onChange} defaultValue={field.value} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

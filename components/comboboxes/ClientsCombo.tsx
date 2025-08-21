@@ -16,6 +16,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { clientsData } from '@/lib/clients/clientsData';
 import { Label } from '../ui/label';
 
+type ClientOption = { value: string; label: string };
+
+function normalize(str: string) {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, ''); // remove accents
+}
+
 export default function ClientsCombo({
   clientName,
   setClientName,
@@ -28,23 +37,50 @@ export default function ClientsCombo({
   onSelect: (value: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [clients, setClients] = React.useState<{ value: string; label: string }[]>([]);
   const [search, setSearch] = React.useState('');
 
-  React.useEffect(() => {
-    const transformedArray = clientsData.map((item) => ({
-      value: item.CVE_IMP,
-      label: item.NOM_IMP,
-    }));
-    setClients(transformedArray);
-  }, []);
-
-  // 👇 Filter by client name or ID
-  const filteredClients = clients.filter(
-    (client) =>
-      client.label.toLowerCase().includes(search.toLowerCase()) ||
-      client.value.toLowerCase().includes(search.toLowerCase())
+  // 1) Derive options with memo (no state+effect)
+  const options: ClientOption[] = React.useMemo(
+    () =>
+      clientsData.map((item) => ({
+        value: String(item.CVE_IMP ?? ''),
+        label: String(item.NOM_IMP ?? ''),
+      })),
+    []
   );
+
+  // 2) Create quick maps for O(1) lookups
+  const labelByValue = React.useMemo(() => {
+    const m = new Map<string, string>();
+    for (const o of options) m.set(o.value, o.label);
+    return m;
+  }, [options]);
+
+  const valueByLabel = React.useMemo(() => {
+    const m = new Map<string, string>();
+    for (const o of options) m.set(o.label, o.value);
+    return m;
+  }, [options]);
+
+  // 3) Filter with normalized search (accent/case insensitive)
+  const filtered = React.useMemo(() => {
+    const q = normalize(search);
+    if (!q) return options;
+    return options.filter((o) => normalize(o.label).includes(q) || normalize(o.value).includes(q));
+  }, [options, search]);
+
+  // 4) Compute selected label efficiently
+  const selectedValue = valueByLabel.get(clientName) ?? '';
+  const selectedLabel = clientName || (selectedValue ? labelByValue.get(selectedValue) ?? '' : '');
+
+  const pick = (opt: ClientOption) => {
+    // prefer ID as source of truth, but keep name in state for your UI
+    setClientName(opt.label);
+    setClientNumber(opt.value);
+    onSelect(opt.value);
+    setOpen(false);
+    setSearch('');
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -57,47 +93,39 @@ export default function ClientsCombo({
             aria-expanded={open}
             aria-labelledby="client-label"
           >
-            {clientName
-              ? clients.find((client) => client.label === clientName)?.label
-              : 'Selecciona un cliente...'}
+            {selectedLabel || 'Selecciona un cliente...'}
             <ChevronsUpDown className="opacity-50 ml-2" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent id="clientsCombo" className="w-[250px] p-0">
+        <PopoverContent id="clientsCombo" className="w-[280px] p-0">
           <Command>
             <CommandInput
-              placeholder="Buscar por cliente o ID..."
+              placeholder="Buscar por cliente o ID…"
               className="h-9"
               value={search}
-              onValueChange={setSearch} // 👈 Track user input
+              onValueChange={setSearch}
             />
             <CommandList>
               <CommandEmpty>No se encontró el cliente.</CommandEmpty>
               <CommandGroup>
-                {filteredClients.map((client) => (
-                  <CommandItem
-                    key={client.value}
-                    value={`${client.label} ${client.value}`}
-                    onSelect={() => {
-                      setClientName(client.label);
-                      setClientNumber(client.value);
-                      setOpen(false);
-                      onSelect(client.value);
-                      setSearch(''); // Optional: clear search after select
-                    }}
-                  >
-                    <div className="flex justify-between w-full">
-                      <span>{client.label}</span>
-                      <span className="text-xs text-gray-500">({client.value})</span>
-                    </div>
-                    <Check
-                      className={cn(
-                        'ml-auto',
-                        clientName === client.label ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                  </CommandItem>
-                ))}
+                {filtered.map((client) => {
+                  const isSelected = selectedValue
+                    ? client.value === selectedValue
+                    : client.label === clientName; // fallback for legacy name-based selection
+                  return (
+                    <CommandItem
+                      key={client.value}
+                      value={`${client.label} ${client.value}`}
+                      onSelect={() => pick(client)}
+                    >
+                      <div className="flex justify-between w-full">
+                        <span>{client.label}</span>
+                        <span className="text-xs text-muted-foreground">({client.value})</span>
+                      </div>
+                      <Check className={cn('ml-auto', isSelected ? 'opacity-100' : 'opacity-0')} />
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             </CommandList>
           </Command>

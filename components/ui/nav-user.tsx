@@ -25,8 +25,10 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { useDEAStore } from '@/app/providers/dea-store-provider';
 
 export function NavUser() {
+  const { resetDEAState } = useDEAStore((state) => state);
   const { user, logout, isLoading } = useAuth();
   const { isMobile } = useSidebar();
 
@@ -92,7 +94,12 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem
+              onClick={() => {
+                logout();
+                resetDEAState();
+              }}
+            >
               <IconLogout />
               Cerrar Sesión
             </DropdownMenuItem>

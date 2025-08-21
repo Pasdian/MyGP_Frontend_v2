@@ -43,7 +43,7 @@ export default function CollapsibleReferences() {
       ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
           initialDate.toISOString().split('T')[0]
         }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : `/dea/getRefsByClient?client=000041`,
+      : `/dea/getRefsByClient?client=${clientNumber}`,
     axiosFetcher
   );
 
