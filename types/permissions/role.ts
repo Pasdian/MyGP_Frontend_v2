@@ -1,4 +1,5 @@
 import { Module } from './module';
+import { Permission } from './permission';
 import { User } from './user';
 
 export type Role = {
@@ -6,4 +7,5 @@ export type Role = {
   name: string | null;
   users: User[] | null;
   modules: Module[] | null;
+  permissions: Permission[] | null;
 };
