@@ -101,7 +101,7 @@ export default function DEA() {
       setClientName(clientsData.find(({ CVE_IMP }) => CVE_IMP == clientNum)?.NOM_IMP || '');
     }
     initDoneRef.current = true;
-  }, [isAuthLoading, user, isAdmin, client, setClientNumber, setClientName]);
+  }, [isAuthLoading, user, isAdmin, client, setClientNumber, setClientName, isAAP]);
 
   // View logo effect
   React.useEffect(() => {
