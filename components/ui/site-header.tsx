@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import DEAInitialDatePicker from '../datepickers/DEAInitialDatePicker';
 import DEAFinalDatePicker from '../datepickers/DEAFinalDatePicker';
 import DEAClientsCombo from '../comboboxes/DEAClientsCombo';
+import { AAP_UUID } from '@/lib/companiesUUIDs/companiesUUIDs';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -27,6 +28,7 @@ export function SiteHeader() {
   const { user } = useAuth();
 
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
+  const isAAP = user?.complete_user.user.company_uuid === AAP_UUID;
 
   const pathname = usePathname();
   const {
@@ -59,7 +61,6 @@ export function SiteHeader() {
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
-  console.log(filesByReference);
 
   return (
     <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-1">
@@ -95,7 +96,7 @@ export function SiteHeader() {
             />
           </div>
           <div className="mr-2">
-            {isAdmin && (
+            {(isAdmin || isAAP) && (
               <div className="flex items-center">
                 <p className="font-bold text-xs mr-1">Cliente:</p>
                 <DEAClientsCombo

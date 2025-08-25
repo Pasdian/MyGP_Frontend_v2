@@ -21,6 +21,7 @@ import Image from 'next/image';
 import { WindowManagerProvider } from '@/app/providers/WIndowManagerProvider';
 import WindowsDock from '@/components/Windows/WindowsDock';
 import WindowsLayer from '@/components/Windows/WindowsLayer';
+import { AAP_UUID } from '@/lib/companiesUUIDs/companiesUUIDs';
 
 const viewerHeaderClass =
   'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center z-10';
@@ -28,6 +29,7 @@ const viewerHeaderClass =
 export default function DEA() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
+  const isAAP = user?.complete_user.user.company_uuid === AAP_UUID;
   const {
     clientNumber: client,
     reference,
@@ -93,7 +95,7 @@ export default function DEA() {
   React.useEffect(() => {
     if (isAuthLoading || !user || initDoneRef.current) return;
 
-    const clientNum = isAdmin ? '000041' : user.complete_user?.user?.company_casa_id ?? '';
+    const clientNum = isAdmin || isAAP ? '000041' : user.complete_user?.user?.company_casa_id ?? '';
     if (!client) {
       setClientNumber(clientNum);
       setClientName(clientsData.find(({ CVE_IMP }) => CVE_IMP == clientNum)?.NOM_IMP || '');
