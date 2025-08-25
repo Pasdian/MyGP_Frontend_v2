@@ -183,7 +183,7 @@ export default function Permissions() {
   if (!rolesData) return <p>No hay datos</p>;
 
   return (
-    <div>
+    <div className="overflow-y-auto max-h-full">
       <div className="mb-4">
         <AddPermissionDialog />
       </div>
