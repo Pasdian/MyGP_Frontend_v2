@@ -18,7 +18,6 @@ import { Row } from '@tanstack/react-table';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
@@ -27,13 +26,14 @@ import CompanySelect from '@/components/selects/CompanySelect';
 import { modifyUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   usersModuleEvents.find((e) => e.alias === 'USERS_MODIFY_USER')?.eventName || '';
 
 export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);
-  const { mutate } = useSWRImmutableConfig();
+  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof modifyUserSchema>>({
     resolver: zodResolver(modifyUserSchema),

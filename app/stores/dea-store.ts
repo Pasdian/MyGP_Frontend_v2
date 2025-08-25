@@ -1,3 +1,4 @@
+import type { getFilesByReference as GetFilesByReference } from '@/types/dea/getFilesByReferences';
 import { createStore } from 'zustand/vanilla';
 
 export type DEAState = {
@@ -9,19 +10,9 @@ export type DEAState = {
   finalDate: Date | undefined;
   fileName: string;
   getFilesByReferenceKey: string;
-};
-
-export const defaultInitState: () => DEAState = () => {
-  return {
-    clientNumber: '',
-    custom: '',
-    reference: '',
-    pdfUrl: '',
-    initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-    finalDate: new Date(),
-    fileName: '',
-    getFilesByReferenceKey: '',
-  };
+  subfolder: string;
+  clientName: string;
+  filesByReference: GetFilesByReference;
 };
 
 export type DEAActions = {
@@ -33,30 +24,48 @@ export type DEAActions = {
   setPdfUrl: (pdfUrl: string) => void;
   setFile: (file: string) => void;
   setGetFilesByReferenceKey: (key: string) => void;
+  setSubfolder: (subfolder: string) => void;
+  setClientName: (clientName: string) => void;
+  setFilesByReference: (filesByReference: GetFilesByReference) => void;
   resetDEAState: () => void;
 };
 
 export type DEAStore = DEAState & DEAActions;
 
-// New helper that builds the URL using reference and client
-const getFilesByReference = (reference: string, client: string) => {
-  return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
-};
+const buildFilesByReferenceKey = (reference: string, client: string) =>
+  `/dea/getFilesByReference?reference=${reference}&client=${client}`;
 
-export const initDEAStore = (): DEAState => {
+const emptyFilesByReference = (): GetFilesByReference => ({
+  files: {
+    '01-CTA-GASTOS': [],
+    '02-EXPEDIENTE-ADUANAL': [],
+    '03-FISCALES': [],
+    '04-VUCEM': [],
+    '05-EXP-DIGITAL': [],
+    SIN_CLASIFICAR: [],
+  },
+  message: '',
+});
+
+export const defaultInitState: () => DEAState = () => {
   const clientNumber = '';
   const reference = '';
   return {
-    clientNumber: '',
-    reference,
+    clientNumber,
     custom: '',
+    reference,
     pdfUrl: '',
     initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
     finalDate: new Date(),
     fileName: '',
-    getFilesByReferenceKey: getFilesByReference(reference, clientNumber),
+    subfolder: '',
+    clientName: '',
+    filesByReference: emptyFilesByReference(),
+    getFilesByReferenceKey: buildFilesByReferenceKey(reference, clientNumber),
   };
 };
+
+export const initDEAStore = (): DEAState => defaultInitState();
 
 export const createDEAStore = (initState: DEAState = defaultInitState()) => {
   return createStore<DEAStore>()((set) => ({
@@ -65,26 +74,27 @@ export const createDEAStore = (initState: DEAState = defaultInitState()) => {
     setClientNumber: (clientNumber) =>
       set((state) => ({
         clientNumber,
-        getFilesByReferenceKey: getFilesByReference(state.reference, clientNumber),
+        getFilesByReferenceKey: buildFilesByReferenceKey(state.reference, clientNumber),
       })),
 
     setReference: (reference) =>
       set((state) => ({
         reference,
-        getFilesByReferenceKey: getFilesByReference(reference, state.clientNumber),
+        getFilesByReferenceKey: buildFilesByReferenceKey(reference, state.clientNumber),
       })),
 
     setInitialDate: (initialDate) => set(() => ({ initialDate })),
-
     setFinalDate: (finalDate) => set(() => ({ finalDate })),
-
     setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),
-
     setFile: (fileName) => set(() => ({ fileName })),
-
     setCustom: (custom) => set(() => ({ custom })),
+    setSubfolder: (subfolder) => set(() => ({ subfolder })),
+    setClientName: (clientName) => set(() => ({ clientName })),
+
+    setFilesByReference: (filesByReference) => set(() => ({ filesByReference })),
 
     setGetFilesByReferenceKey: (getFilesByReferenceKey) => set(() => ({ getFilesByReferenceKey })),
-    resetDEAState: () => set(() => ({ ...defaultInitState })),
+
+    resetDEAState: () => set(() => defaultInitState()),
   }));
 };

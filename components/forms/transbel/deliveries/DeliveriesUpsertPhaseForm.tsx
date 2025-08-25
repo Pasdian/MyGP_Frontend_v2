@@ -2,7 +2,6 @@
 
 import React from 'react';
 
-import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,13 +26,14 @@ import { deliveriesUpsertPhaseSchema } from '@/lib/schemas/transbel/deliveries/d
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { transbelModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_DELIVERY')?.eventName || '';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
-  const { mutate } = useSWRImmutableConfig();
+  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),

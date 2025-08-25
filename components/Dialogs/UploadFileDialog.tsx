@@ -11,19 +11,19 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import UploadMultipartToServer from '../UploadMultipartToServer/UploadMultipartToServer';
 
 export default function UploadFileDialog({
-  onOpenChange,
+  setOpen,
   open,
   title,
   folder,
 }: {
-  onOpenChange: (open: boolean) => void;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   open: boolean;
   title: string;
   folder: string;
 }) {
   const { clientNumber: client, reference, getFilesByReferenceKey } = useDEAStore((state) => state);
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <Carousel>
         <DialogContent>
           <DialogHeader>
@@ -35,6 +35,8 @@ export default function UploadFileDialog({
               apiEndpointPath={`/dea/uploadFiles/${client}/${reference}/${folder}`}
               placeholder="Arrastra o da click aquí para subir archivos"
               mutationKey={getFilesByReferenceKey}
+              open={open}
+              setOpen={setOpen}
             />
           </div>
         </DialogContent>

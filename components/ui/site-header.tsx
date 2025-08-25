@@ -1,24 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import { usePathname } from 'next/navigation';
-import InitialDatePicker from '../datepickers/ChartInitialDatePicker';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable, { mutate } from 'swr';
-import FinalDatePicker from '../datepickers/ChartFinalDatePicker';
-import ClientsCombo from '../comboboxes/ClientsCombo';
+import { mutate } from 'swr';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
 import PreviosDialog from '../Dialogs/PreviosDialog';
 import { Button } from './button';
@@ -31,20 +18,23 @@ import { useAuth } from '@/hooks/useAuth';
 import DEAInitialDatePicker from '../datepickers/DEAInitialDatePicker';
 import DEAFinalDatePicker from '../datepickers/DEAFinalDatePicker';
 import DEAClientsCombo from '../comboboxes/DEAClientsCombo';
+
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
 export function SiteHeader() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { setSubfolder } = useDEAStore((state) => state);
 
-  const [subfolder, setSubfolder] = React.useState('');
+  const { user } = useAuth();
+
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
-  const [clientName, setClientName] = React.useState('');
 
   const pathname = usePathname();
   const {
     clientNumber: client,
+    clientName,
     reference,
     setClientNumber,
+    setClientName,
     initialDate,
     finalDate,
     setInitialDate,
@@ -52,24 +42,10 @@ export function SiteHeader() {
     setPdfUrl,
     setFile,
     getFilesByReferenceKey,
+    filesByReference,
   } = useDEAStore((state) => state);
-  const {
-    data: filesByReference,
-    isValidating: isFilesByReferenceValidating,
-  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWRImmutable(
-    getFilesByReferenceKey,
-    axiosFetcher
-  );
 
-  // Generate breadcrumbs from the current path
-  const breadcrumbs = pathname
-    .split('/')
-    .filter(Boolean)
-    .map((segment, index, array) => {
-      const href = '/' + array.slice(0, index + 1).join('/');
-      const label = segment.charAt(0).toUpperCase() + segment.slice(1);
-      return { href, label };
-    });
+  // Memoize files
   const files = React.useMemo(
     () => filesByReference?.files ?? ({} as Record<string, string[]>),
     [filesByReference]
@@ -77,11 +53,13 @@ export function SiteHeader() {
 
   const filesExpDigital = React.useMemo(() => files['05-EXP-DIGITAL'] ?? [], [files]);
   const hasExpDigital = React.useMemo(() => filesExpDigital.length >= 1, [filesExpDigital]);
+
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
     useSWRImmutableMutation(
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
+  console.log(filesByReference);
 
   return (
     <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-1">
@@ -90,7 +68,7 @@ export function SiteHeader() {
       </div>
       {pathname == '/mygp/dea' && (
         <div className="flex items-center">
-          <p className="font-bold text-sm mr-1">Periodo:</p>
+          <p className="font-bold text-xs mr-1">Periodo:</p>
           <div>
             <DEAInitialDatePicker
               date={initialDate}
@@ -116,21 +94,21 @@ export function SiteHeader() {
               }}
             />
           </div>
-          <div>
-            <p className="font-bold text-sm mr-1">Cliente:</p>
-          </div>
           <div className="mr-2">
             {isAdmin && (
-              <DEAClientsCombo
-                clientName={clientName}
-                setClientName={setClientName}
-                setClientNumber={setClientNumber}
-                onSelect={() => {
-                  setFile('');
-                  setSubfolder('');
-                  setPdfUrl('');
-                }}
-              />
+              <div className="flex items-center">
+                <p className="font-bold text-xs mr-1">Cliente:</p>
+                <DEAClientsCombo
+                  clientName={clientName}
+                  setClientName={setClientName}
+                  setClientNumber={setClientNumber}
+                  onSelect={() => {
+                    setFile('');
+                    setSubfolder('');
+                    setPdfUrl('');
+                  }}
+                />
+              </div>
             )}
           </div>
           <PermissionGuard allowedPermissions={['DEA_PREVIOS']}>
@@ -163,7 +141,7 @@ export function SiteHeader() {
                       Generando
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center">
+                    <div className="flex items-center justify-center text-xs">
                       {(filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1 ? (
                         <>
                           <RocketIcon className="mr-2" /> Ya Existe un Expediente Digital

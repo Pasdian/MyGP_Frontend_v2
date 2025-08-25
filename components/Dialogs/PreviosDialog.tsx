@@ -102,7 +102,7 @@ export default function PreviosDialog() {
 
   if (!partidasPrevios)
     return (
-      <Button disabled className="h-7 bg-blue-500 hover:bg-blue-600 font-bold">
+      <Button disabled className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs">
         No existen previos
       </Button>
     );
@@ -111,7 +111,7 @@ export default function PreviosDialog() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="h-7 bg-blue-500 hover:bg-blue-600 font-bold">
+          <Button className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs cursor-pointer">
             <IconEye />
             Ver Previos
           </Button>

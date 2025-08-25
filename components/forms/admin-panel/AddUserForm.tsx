@@ -15,7 +15,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRImmutableConfig } from 'swr';
 import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/RoleSelect';
 import { z } from 'zod/v4';
@@ -23,6 +22,7 @@ import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import CompanySelect from '@/components/selects/CompanySelect';
+import { useSWRConfig } from 'swr';
 
 const posthogEvent = usersModuleEvents.find((e) => e.alias === 'USERS_ADD_USER')?.eventName || '';
 
@@ -32,7 +32,7 @@ export default function AddUserForm({
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [shouldView, setShouldView] = React.useState(false);
-  const { mutate } = useSWRImmutableConfig();
+  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof addUserSchema>>({
     resolver: zodResolver(addUserSchema),

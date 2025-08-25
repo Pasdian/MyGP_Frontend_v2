@@ -14,11 +14,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
 import { companyModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   companyModuleEvents.find((e) => e.alias === 'COMPANY_ADD_COMPANY')?.eventName || '';
@@ -28,7 +28,7 @@ export default function AddCompanyForm({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRImmutableConfig();
+  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof companySchema>>({
     resolver: zodResolver(companySchema),

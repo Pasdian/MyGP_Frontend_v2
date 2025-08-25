@@ -14,13 +14,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { moduleSchema } from '@/lib/schemas/admin-panel/moduleSchema';
 import { getAllModules } from '@/types/getAllModules/getAllModules';
 import { Row } from '@tanstack/react-table';
 import { moduleModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   moduleModuleEvents.find((e) => e.alias === 'MODULE_MODIFY_MODULE')?.eventName || '';
@@ -32,7 +32,7 @@ export default function ModifyModuleForm({
   row: Row<getAllModules>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRImmutableConfig();
+  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof moduleSchema>>({
     resolver: zodResolver(moduleSchema),

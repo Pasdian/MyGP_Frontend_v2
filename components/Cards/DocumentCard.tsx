@@ -50,11 +50,7 @@ export default function DocumentCard({
 }) {
   const { reference, clientNumber: client, getFilesByReferenceKey } = useDEAStore((state) => state);
 
-  // ✅ Key layout fixes:
-  // - Card gets min-h-0 + overflow-hidden to contain internals
-  // - Wrapper remains flex-col + min-h-0
-  // - List becomes flex-1 so it takes remaining space and scrolls internally
-  const cardClassName = 'py-0 rounded-md h-full min-h-0 overflow-hidden';
+  const cardClassName = 'py-0 rounded-none h-full min-h-0 overflow-hidden';
   const wrapperClassName = 'h-full flex flex-col min-h-0';
   const stickyClassName =
     'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center z-10';
@@ -63,6 +59,7 @@ export default function DocumentCard({
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
   const [openDeleteFileDialog, setOpenDeleteFileDialog] = React.useState(false);
+  const [fileToDelete, setFileToDelete] = React.useState('');
 
   async function handleDownloadFile(file: string) {
     try {
@@ -97,7 +94,7 @@ export default function DocumentCard({
   async function handleDeleteFile() {
     try {
       const res = await GPClient.post(
-        `/dea/deleteFile/${client}/${reference}/${folder}/${activeFile}`
+        `/dea/deleteFile/${client}/${reference}/${folder}/${fileToDelete}`
       );
       if (res.status !== 200) {
         toast.error(`Error al eliminar el archivo (${res.status})`);
@@ -105,6 +102,7 @@ export default function DocumentCard({
       }
       toast.success(res.data.message);
       mutate(getFilesByReferenceKey);
+      setOpenDeleteFileDialog(false);
     } catch {
       toast.error('Error al descargar el archivo');
     }
@@ -119,7 +117,7 @@ export default function DocumentCard({
           <p className="font-bold">{`${title} - ${visibleFiles.length} archivos`}</p>
           <div>
             {isLoading ? (
-              <TailwindSpinner className="w-6 h-6" />
+              <TailwindSpinner className="w-4 h-4" />
             ) : (files?.length ?? 0) > 0 ? (
               <div className="flex">
                 <IconUpload
@@ -134,43 +132,52 @@ export default function DocumentCard({
           </div>
         </div>
 
-        {/* ✅ This area now expands and scrolls instead of overflowing */}
         <div className={listClassName}>
-          {visibleFiles.map((item) => (
-            <div
-              key={item}
-              className={`flex justify-between p-1 items-center cursor-pointer mb-1 even:bg-gray-100 ${
-                item === activeFile ? 'bg-green-300' : ''
-              }`}
-              onClick={() => onFileSelect(item)}
-            >
-              <div className="max-w-[70%]">
-                <p className="break-words">{item}</p>
+          {visibleFiles.map((item) => {
+            const isActive = item === activeFile;
+            const isPedimentoSimplificado = item.includes('PSIM');
+
+            return (
+              <div
+                key={item}
+                className={`flex justify-between p-1 items-center cursor-pointer mb-1 ${
+                  isActive
+                    ? 'bg-green-300'
+                    : isPedimentoSimplificado
+                    ? 'bg-yellow-200'
+                    : 'even:bg-gray-100'
+                }`}
+                onClick={() => onFileSelect(item)}
+              >
+                <div className="max-w-[70%]">
+                  <p className="break-words">{item}</p>
+                </div>
+                <div className="flex">
+                  <PermissionGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
+                    <DownloadIcon
+                      className="mr-2"
+                      size={iconSize}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadFile(item);
+                        posthog.capture(deaDownloadFileEvent);
+                      }}
+                    />
+                  </PermissionGuard>
+                  <PermissionGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
+                    <Trash2Icon
+                      size={iconSize}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFileToDelete(item);
+                        setOpenDeleteFileDialog(true);
+                      }}
+                    />
+                  </PermissionGuard>
+                </div>
               </div>
-              <div className="flex">
-                <PermissionGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
-                  <DownloadIcon
-                    className="mr-2"
-                    size={iconSize}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownloadFile(item);
-                      posthog.capture(deaDownloadFileEvent);
-                    }}
-                  />
-                </PermissionGuard>
-                <PermissionGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
-                  <Trash2Icon
-                    size={iconSize}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenDeleteFileDialog(true);
-                    }}
-                  />
-                </PermissionGuard>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -179,7 +186,7 @@ export default function DocumentCard({
           <DialogHeader>
             <DialogTitle>¿Eliminar archivo?</DialogTitle>
             <DialogDescription>
-              {activeFile ? `¿Seguro que quieres eliminar "${activeFile}"?` : ''}
+              {fileToDelete ? `¿Seguro que quieres eliminar "${fileToDelete}"?` : ''}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -203,7 +210,7 @@ export default function DocumentCard({
 
       <UploadFileDialog
         open={openUploadDialog}
-        onOpenChange={setOpenUploadDialog}
+        setOpen={setOpenUploadDialog}
         title={title}
         folder={folder}
       />

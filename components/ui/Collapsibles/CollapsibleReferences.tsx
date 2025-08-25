@@ -47,6 +47,7 @@ export default function CollapsibleReferences() {
     axiosFetcher
   );
 
+  // Zip downloading effect
   React.useEffect(() => {
     if (!zipBlob) return;
     const downloadUrl = URL.createObjectURL(zipBlob);
@@ -150,7 +151,7 @@ export default function CollapsibleReferences() {
                       >
                         <div className="flex justify-between items-center">
                           <div>
-                            <p className="text-[13px]">{NUM_REFE}</p>
+                            <p className="text-sm">{NUM_REFE}</p>
                           </div>
                           <div className="flex">
                             {FOLDER_EXISTS &&

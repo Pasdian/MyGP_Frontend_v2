@@ -40,7 +40,7 @@ export function InterfaceDataTable() {
     axiosFetcher
   );
 
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 12 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const table = useReactTable({

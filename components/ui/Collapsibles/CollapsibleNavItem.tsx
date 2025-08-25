@@ -27,9 +27,9 @@ export default function CollapsibleNavItem({
     title: string;
   } | null;
   pathname: string;
-  key: string;
 }) {
-  if (!item) return;
+  if (!item) return null;
+
   return (
     <Collapsible key={item.title} title={item.title} defaultOpen className="group/collapsible">
       <SidebarGroup>
@@ -42,23 +42,25 @@ export default function CollapsibleNavItem({
             <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
           </CollapsibleTrigger>
         </SidebarGroupLabel>
+
         <CollapsibleContent>
           <SidebarGroupContent className="pl-4">
             <SidebarMenu>
-              {item.items.map((item) => {
+              {item.items.map((link) => {
+                const active = pathname === link.url;
                 return (
                   <SidebarMenuItem
-                    key={item.title}
+                    key={link.title}
                     className={
-                      pathname == item.url
+                      active
                         ? 'bg-blue-200 active:bg-blue-200 hover:bg-blue-300 rounded-md font-bold cursor-pointer'
                         : 'rounded-md font-bold cursor-pointer'
                     }
                   >
-                    <SidebarMenuButton asChild isActive={true}>
-                      <Link href={item.url}>
-                        {item.icon && <item.icon className="mr-2" />}
-                        {item.title}
+                    <SidebarMenuButton asChild isActive={active} className="text-xs">
+                      <Link href={link.url} className="flex items-center gap-2">
+                        {link.icon && <link.icon className="mr-2 h-4 w-4" />}
+                        <span className="truncate font-bold">{link.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

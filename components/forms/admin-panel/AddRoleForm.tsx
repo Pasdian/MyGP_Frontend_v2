@@ -14,11 +14,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
 import posthog from 'posthog-js';
 import { rolesModuleEvents } from '@/lib/posthog/events';
+import { useSWRConfig } from 'swr';
 
 const posthogEvent = rolesModuleEvents.find((e) => e.alias === 'ROLES_ADD_ROLE')?.eventName || '';
 
@@ -27,7 +27,7 @@ export default function AddRoleForm({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRImmutableConfig();
+  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof roleSchema>>({
     resolver: zodResolver(roleSchema),

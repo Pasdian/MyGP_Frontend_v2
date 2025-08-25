@@ -14,7 +14,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 
 import { Row } from '@tanstack/react-table';
@@ -22,6 +21,7 @@ import { getAllRoles } from '@/types/roles/getAllRoles';
 import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
 import { rolesModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   rolesModuleEvents.find((e) => e.alias === 'ROLES_MODIFY_ROLE')?.eventName || '';
@@ -33,7 +33,7 @@ export default function ModifyRoleForm({
   row: Row<getAllRoles>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRImmutableConfig();
+  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof roleSchema>>({
     resolver: zodResolver(roleSchema),

@@ -33,7 +33,7 @@ export function NavMain() {
                   className="rounded-md font-bold cursor-pointer"
                 >
                   <IconArrowLeft />
-                  <span>Regresar al Dashboard</span>
+                  <span className="text-xs">Regresar al Dashboard</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </Link>

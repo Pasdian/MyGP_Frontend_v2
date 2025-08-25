@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { clientsData } from '@/lib/clients/clientsData';
-import { Label } from '../ui/label';
+import { useDEAStore } from '@/app/providers/dea-store-provider';
 
 type ClientOption = { value: string; label: string };
 
@@ -32,10 +32,12 @@ export default function DEAClientsCombo({
   onSelect,
 }: {
   clientName: string;
-  setClientName: React.Dispatch<React.SetStateAction<string>>;
+  setClientName: (clientName: string) => void;
   setClientNumber: React.Dispatch<React.SetStateAction<string>> | ((clientNumber: string) => void);
   onSelect: (value: string) => void;
 }) {
+  const { setReference } = useDEAStore((state) => state);
+
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
 
@@ -91,9 +93,11 @@ export default function DEAClientsCombo({
             role="combobox"
             aria-expanded={open}
             aria-labelledby="client-label"
-            className="w-[200px] h-6 justify-between font-normal text-[12px]"
+            className="w-[300px] h-6 justify-between font-normal text-[12px]"
           >
-            {selectedLabel || 'Selecciona un cliente...'}
+            <span className="truncate max-w-[250px]">
+              {selectedLabel || 'Selecciona un cliente...'}
+            </span>
             <ChevronsUpDown className="opacity-50 ml-2" />
           </Button>
         </PopoverTrigger>
@@ -116,10 +120,13 @@ export default function DEAClientsCombo({
                     <CommandItem
                       key={client.value}
                       value={`${client.label} ${client.value}`}
-                      onSelect={() => pick(client)}
+                      onSelect={() => {
+                        pick(client);
+                        setReference('');
+                      }}
                     >
                       <div className="flex justify-between w-full">
-                        <span>{client.label}</span>
+                        <span className="text-xs truncate max-w-[200px]">{client.label}</span>
                         <span className="text-xs text-muted-foreground">({client.value})</span>
                       </div>
                       <Check className={cn('ml-auto', isSelected ? 'opacity-100' : 'opacity-0')} />

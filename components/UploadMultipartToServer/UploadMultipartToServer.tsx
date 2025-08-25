@@ -11,10 +11,14 @@ export default function UploadMultipartToServer({
   apiEndpointPath,
   placeholder,
   mutationKey,
+  setOpen,
+  open,
 }: {
   apiEndpointPath: string;
   placeholder: string;
   mutationKey: string;
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  open?: boolean;
 }) {
   const [files, setFiles] = React.useState<File[]>([]);
   const [uploading, setUploading] = React.useState(false);
@@ -83,6 +87,7 @@ export default function UploadMultipartToServer({
       toast.success(res.data.message);
       setFiles([]);
       if (mutationKey) mutate(mutationKey);
+      if (open && setOpen) setOpen(false);
     } catch (error) {
       const err = error as AxiosError<{ message?: string; detail?: string }>;
 
