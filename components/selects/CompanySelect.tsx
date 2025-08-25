@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import useSWR from 'swr';
+import useSWRImmutable from 'swr';
 import { Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +22,7 @@ type Props = {
 };
 
 export default function CompanySelect({ onValueChange, defaultValue = '' }: Props) {
-  const { data: companies, isLoading } = useSWR<getAllCompanies[]>(
+  const { data: companies, isLoading } = useSWRImmutable<getAllCompanies[]>(
     '/api/companies/getAllCompanies',
     axiosFetcher
   );

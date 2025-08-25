@@ -1,9 +1,6 @@
 'use client';
 
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import ClientsCombo from '@/components/comboboxes/ClientsCombo';
-import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
-import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
 import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Card } from '@/components/ui/card';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
@@ -13,24 +10,22 @@ import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
-import useSWR from 'swr';
+import useSWRImmutable from 'swr';
 import DocumentCard from '@/components/Cards/DocumentCard';
-import PreviosDialog from '@/components/Dialogs/PreviosDialog';
-import { Button } from '@/components/ui/button';
-import useSWRMutation from 'swr/mutation';
-import { ExternalLink, LoaderCircle, RocketIcon } from 'lucide-react';
+import useSWRImmutableMutation from 'swr/mutation';
+import { ExternalLink } from 'lucide-react';
 import DEADraggableWindow from '@/components/Windows/DEADraggableWindow';
 import DEAFileVisualizer from '@/components/DEAVisualizer/DEAVisualizer';
 import { DEAWindowData } from '@/types/dea/deaFileVisualizerData';
-import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { deaModuleEvents } from '@/lib/posthog/events';
-import posthog from 'posthog-js';
 import { useAuth } from '@/hooks/useAuth';
 import UploadMultipartToServer from '@/components/UploadMultipartToServer/UploadMultipartToServer';
 import Image from 'next/image';
 
-const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
-const stickyClassName = 'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
+const viewerWrapperClass = 'h-full flex flex-col min-h-0 text-xs'; // <— FIXED: column + min-h-0
+const viewerHeaderClass =
+  'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center z-10';
+
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
 export default function DEA() {
@@ -62,17 +57,17 @@ export default function DEA() {
   const [logoUrl, setLogoUrl] = React.useState<string | null | undefined>(undefined);
 
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
-    useSWRMutation(
+    useSWRImmutableMutation(
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
 
-  const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
+  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
 
   const {
     data: filesByReference,
     isValidating: isFilesByReferenceValidating,
-  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWR(
+  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWRImmutable(
     getFilesByReferenceKey,
     axiosFetcher
   );
@@ -82,17 +77,14 @@ export default function DEA() {
     [filesByReference]
   );
 
-  // per-folder memos (stable array refs unless SWR data actually changes)
   const filesCTA = React.useMemo(() => files['01-CTA-GASTOS'] ?? [], [files]);
   const filesVUCEM = React.useMemo(() => files['04-VUCEM'] ?? [], [files]);
   const filesExpAduanal = React.useMemo(() => files['02-EXPEDIENTE-ADUANAL'] ?? [], [files]);
   const filesFiscales = React.useMemo(() => files['03-FISCALES'] ?? [], [files]);
   const filesExpDigital = React.useMemo(() => files['05-EXP-DIGITAL'] ?? [], [files]);
-
-  // convenience booleans also memoized
   const hasExpDigital = React.useMemo(() => filesExpDigital.length >= 1, [filesExpDigital]);
 
-  const { data: fileBlob, isLoading: isFileBlobLoading } = useSWR(
+  const { data: fileBlob, isLoading: isFileBlobLoading } = useSWRImmutable(
     client &&
       reference &&
       subfolder &&
@@ -105,20 +97,15 @@ export default function DEA() {
     data: logoBlob,
     error: logoError,
     isLoading: isLogoBlobLoading,
-  } = useSWR(client ? `/dea/getClientLogo/${client}` : null, axiosBlobFetcher, {
+  } = useSWRImmutable(client ? `/dea/getClientLogo/${client}` : null, axiosBlobFetcher, {
     revalidateOnFocus: false,
   });
 
-  // Sync DEA Client Number
   React.useEffect(() => {
     function DEAAuthSync() {
       let clientNum = '';
       if (!isAuthLoading && user) {
-        if (isAdmin) {
-          clientNum = '000041';
-        } else {
-          clientNum = user.complete_user?.user?.company_casa_id ?? '';
-        }
+        clientNum = isAdmin ? '000041' : user.complete_user?.user?.company_casa_id ?? '';
         setClientNumber(clientNum);
         setClientName(clientsData.find(({ CVE_IMP }) => CVE_IMP == clientNum)?.NOM_IMP || '');
       }
@@ -126,10 +113,8 @@ export default function DEA() {
     DEAAuthSync();
   }, [isAuthLoading, user, setClientNumber, isAdmin]);
 
-  // No state when user visits page
   React.useEffect(() => resetDEAState(), [resetDEAState]);
 
-  // Effect for logo blob
   React.useEffect(() => {
     if (logoError) {
       setLogoUrl(null);
@@ -146,7 +131,6 @@ export default function DEA() {
     }
   }, [logoBlob, logoError]);
 
-  // Effect for fileBlob
   React.useEffect(() => {
     async function parseBlob() {
       if (!fileBlob) return;
@@ -155,7 +139,6 @@ export default function DEA() {
         setFileContent('');
         const url = URL.createObjectURL(fileBlob);
         setPdfUrl(url);
-
         return () => URL.revokeObjectURL(url);
       } else {
         setPdfUrl('');
@@ -166,7 +149,6 @@ export default function DEA() {
     parseBlob();
   }, [fileBlob, setPdfUrl]);
 
-  // Effect for zipBlob
   React.useEffect(() => {
     if (!zipBlob) return;
     const downloadUrl = URL.createObjectURL(zipBlob);
@@ -179,13 +161,10 @@ export default function DEA() {
 
     setUrl('');
     URL.revokeObjectURL(downloadUrl);
-
-    // Reset URL to allow re-download on next click
     setUrl('');
     setSubfolderLoading('');
   }, [zipBlob, client, reference, subfolder]);
 
-  // Effect for date validation
   React.useEffect(() => {
     function validateDates() {
       if (!initialDate || !user || isAuthLoading || !client) return;
@@ -193,311 +172,248 @@ export default function DEA() {
         toast.error('Selecciona una fecha de término');
         return;
       }
-
       const today = new Date();
       const start = new Date(initialDate);
       const end = new Date(finalDate);
 
-      if (start > today) {
-        toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
-        return;
-      }
-
-      if (end > today) {
-        toast.error('La fecha de término no puede ser mayor a la fecha actual');
-        return;
-      }
-
-      if (start >= end) {
-        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
-        return;
-      }
+      if (start > today)
+        return toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
+      if (end > today)
+        return toast.error('La fecha de término no puede ser mayor a la fecha actual');
+      if (start >= end)
+        return toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
 
       mutate(getFilesByReferenceKey);
     }
-
     validateDates();
   }, [initialDate, finalDate, client, reference, getFilesByReferenceKey, isAuthLoading, user]);
 
   const handleFileClick = (pdfUrl: string, fileContent: string, isLoading: boolean) => {
-    // Spawn at the center of the browser
     const windowWidth = 760;
     const windowHeight = 800;
-
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-
     const x = (viewportWidth - windowWidth) / 2;
     const y = (viewportHeight - windowHeight) / 2;
 
     const data = {
       id: nextId,
       title: fileName,
-      pdfUrl: pdfUrl,
+      pdfUrl,
       content: fileContent,
-      isLoading: isLoading,
-      x: x,
-      y: y,
+      isLoading,
+      x,
+      y,
       width: windowWidth,
       height: windowHeight,
       visible: true,
       collapse: false,
     };
 
-    const newData = {
-      ...data,
-      prev: data,
-    };
-    setWindows((prev) => [...prev, newData]);
+    setWindows((prev) => [...prev, { ...data, prev: data }]);
     setNextId((id) => id + 1);
   };
 
   return (
     <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
-      <div className="flex mb-5">
-        <div className="mr-5">
-          <InitialDatePicker
-            date={initialDate}
-            setDate={setInitialDate}
-            onSelect={() => {
-              setFile('');
-              setSubfolder('');
-              setPdfUrl('');
-            }}
-          />
-        </div>
-        <div className=" mr-5">
-          <FinalDatePicker
-            date={finalDate}
-            setDate={setFinalDate}
-            onSelect={() => {
-              setFile('');
-              setSubfolder('');
-              setPdfUrl('');
-            }}
-          />
-        </div>
-        <div className="mr-5">
-          {isAdmin && (
-            <ClientsCombo
-              clientName={clientName}
-              setClientName={setClientName}
-              setClientNumber={setClientNumber}
-              onSelect={() => {
-                setFile('');
-                setSubfolder('');
-                setPdfUrl('');
-              }}
-            />
-          )}
-        </div>
-        <PermissionGuard allowedPermissions={['DEA_PREVIOS']}>
-          {filesByReference && reference && (
-            <div className="mt-5 mr-5">
-              <PreviosDialog key={reference} />
-            </div>
-          )}
-        </PermissionGuard>
-        <PermissionGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
-          {filesByReference && reference && client && (
-            <Button
-              className="mt-5 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
-              onClick={async () => {
-                try {
-                  await triggerDigitalRecordGeneration();
-                  mutate(getFilesByReferenceKey);
-                  toast.success('Expediente digital generado exitosamente');
-                  posthog.capture(posthogEvent);
-                } catch (err) {
-                  console.error('Generation Failed', err);
-                }
-              }}
-              disabled={isDigitalRecordGenerationMutating || hasExpDigital}
-            >
-              {isDigitalRecordGenerationMutating ? (
-                <div className="flex items-center animate-pulse">
-                  <LoaderCircle className="animate-spin mr-2" />
-                  Generando
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  {(filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1 ? (
-                    <>
-                      <RocketIcon className="mr-2" /> Ya Existe un Expediente Digital
-                    </>
-                  ) : (
-                    <>
-                      <RocketIcon className="mr-2" /> Generar Expediente Digital
-                    </>
-                  )}
-                </div>
-              )}
-            </Button>
-          )}
-        </PermissionGuard>
-      </div>
-      {reference && client && (
-        <div>
-          {isFilesByReferenceValidating && <TailwindSpinner />}
-          {!isFilesByReferenceValidating && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <DocumentCard
-                title="Cuenta de Gastos"
-                files={filesCTA}
-                folder="01-CTA-GASTOS"
-                isLoading={subfolderLoading === '01-CTA-GASTOS'}
-                onDownload={() => {
-                  setSubfolderLoading('01-CTA-GASTOS');
-                  setSubfolder('01-CTA-GASTOS');
-                  setUrl(`/dea/zip/${client}/${reference}/01-CTA-GASTOS`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('01-CTA-GASTOS');
-                }}
-                activeFile={fileName}
-              />
-
-              <DocumentCard
-                title="COVES"
-                files={filesVUCEM}
-                isLoading={subfolderLoading === '04-VUCEM-COVES'}
-                folder="04-VUCEM"
-                onDownload={() => {
-                  setSubfolderLoading('04-VUCEM-COVES');
-                  setSubfolder('04-VUCEM');
-                  setUrl(`/dea/zip/${client}/${reference}/04-VUCEM`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('04-VUCEM');
-                }}
-                activeFile={fileName}
-                filterFn={(item) => item.includes('COVE')}
-              />
-
-              <Card className="sm:col-span-2 row-span-3 py-0">
-                <div className={cardHeaderClassName}>
-                  <div className={stickyClassName}>
-                    <p className="font-bold">Visor de Archivos - {fileName}</p>
-                    {fileName && (
-                      <ExternalLink
-                        className="cursor-pointer"
-                        onClick={() => {
-                          handleFileClick(pdfUrl, fileContent, isFileBlobLoading);
-                        }}
-                      />
-                    )}
+      <div className="h-full min-h-0">
+        {reference && client && (
+          <div className="h-full min-h-0">
+            {isFilesByReferenceValidating && <TailwindSpinner />}
+            {!isFilesByReferenceValidating && (
+              <div className="flex h-full min-h-0 gap-4 overflow-hidden">
+                <div className="flex flex-col min-h-0 gap-4 overflow-hidden">
+                  {/* Cuenta de Gastos */}
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <DocumentCard
+                      className="h-full min-h-0"
+                      title="Cuenta de Gastos"
+                      files={filesCTA}
+                      folder="01-CTA-GASTOS"
+                      isLoading={subfolderLoading === '01-CTA-GASTOS'}
+                      onDownload={() => {
+                        setSubfolderLoading('01-CTA-GASTOS');
+                        setSubfolder('01-CTA-GASTOS');
+                        setUrl(`/dea/zip/${client}/${reference}/01-CTA-GASTOS`);
+                      }}
+                      onFileSelect={(item) => {
+                        setFile(item);
+                        setSubfolder('01-CTA-GASTOS');
+                      }}
+                      activeFile={fileName}
+                    />
                   </div>
-                  <DEAFileVisualizer
-                    pdfUrl={pdfUrl}
-                    content={fileContent}
-                    isLoading={isFileBlobLoading}
-                  />
+
+                  {/* Expediente Aduanal */}
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <DocumentCard
+                      className="h-full min-h-0"
+                      title="Expediente Aduanal"
+                      files={filesExpAduanal}
+                      isLoading={subfolderLoading === '02-EXPEDIENTE-ADUANAL'}
+                      folder="02-EXPEDIENTE-ADUANAL"
+                      onDownload={() => {
+                        setSubfolderLoading('02-EXPEDIENTE-ADUANAL');
+                        setSubfolder('02-EXPEDIENTE-ADUANAL');
+                        setUrl(`/dea/zip/${client}/${reference}/02-EXPEDIENTE-ADUANAL`);
+                      }}
+                      onFileSelect={(item) => {
+                        setFile(item);
+                        setSubfolder('02-EXPEDIENTE-ADUANAL');
+                      }}
+                      activeFile={fileName}
+                    />
+                  </div>
+
+                  {/* Comprobantes Fiscales */}
+                  <div className="min-h-0 overflow-hidden max-h-[clamp(200px,30vh,480px)]">
+                    <DocumentCard
+                      className="h-full min-h-0"
+                      title="Comprobantes Fiscales"
+                      files={filesFiscales}
+                      isLoading={subfolderLoading === '03-FISCALES'}
+                      folder="03-FISCALES"
+                      onDownload={() => {
+                        setSubfolderLoading('03-FISCALES');
+                        setSubfolder('03-FISCALES');
+                        setUrl(`/dea/zip/${client}/${reference}/03-FISCALES`);
+                      }}
+                      onFileSelect={(item) => {
+                        setFile(item);
+                        setSubfolder('03-FISCALES');
+                      }}
+                      activeFile={fileName}
+                    />
+                  </div>
                 </div>
-              </Card>
 
-              <DocumentCard
-                title="Expediente Aduanal"
-                files={filesExpAduanal}
-                isLoading={subfolderLoading === '02-EXPEDIENTE-ADUANAL'}
-                folder="02-EXPEDIENTE-ADUANAL"
-                onDownload={() => {
-                  setSubfolderLoading('02-EXPEDIENTE-ADUANAL');
-                  setSubfolder('02-EXPEDIENTE-ADUANAL');
-                  setUrl(`/dea/zip/${client}/${reference}/02-EXPEDIENTE-ADUANAL`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('02-EXPEDIENTE-ADUANAL');
-                }}
-                activeFile={fileName}
-              />
+                <div className="flex flex-col min-h-0 gap-4 overflow-hidden">
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <DocumentCard
+                      className="h-full min-h-0"
+                      title="COVES"
+                      files={filesVUCEM}
+                      isLoading={subfolderLoading === '04-VUCEM-COVES'}
+                      folder="04-VUCEM"
+                      onDownload={() => {
+                        setSubfolderLoading('04-VUCEM-COVES');
+                        setSubfolder('04-VUCEM');
+                        setUrl(`/dea/zip/${client}/${reference}/04-VUCEM`);
+                      }}
+                      onFileSelect={(item) => {
+                        setFile(item);
+                        setSubfolder('04-VUCEM');
+                      }}
+                      activeFile={fileName}
+                      filterFn={(item) => item.includes('COVE')}
+                    />
+                  </div>
+                  {/* EDocs */}
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <DocumentCard
+                      className="h-full min-h-0"
+                      title="EDocs"
+                      files={filesVUCEM}
+                      isLoading={subfolderLoading === '04-VUCEM-EDOCS'}
+                      folder="04-VUCEM"
+                      onDownload={() => {
+                        setSubfolderLoading('04-VUCEM-EDOCS');
+                        setSubfolder('04-VUCEM');
+                        setUrl(`/dea/zip/${client}/${reference}/04-VUCEM`);
+                      }}
+                      onFileSelect={(item) => {
+                        setFile(item);
+                        setSubfolder('04-VUCEM');
+                      }}
+                      activeFile={fileName}
+                      filterFn={(item) => !item.includes('COVE')}
+                    />
+                  </div>
+                  {/* Expediente Digital */}
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <DocumentCard
+                      className="h-full min-h-0"
+                      title="Expediente Digital"
+                      files={filesExpDigital}
+                      isLoading={subfolderLoading === '05-EXP-DIGITAL'}
+                      folder="05-EXP-DIGITAL"
+                      onDownload={() => {
+                        setSubfolderLoading('05-EXP-DIGITAL');
+                        setSubfolder('05-EXP-DIGITAL');
+                        setUrl(`/dea/zip/${client}/${reference}/05-EXP-DIGITAL`);
+                      }}
+                      onFileSelect={(item) => {
+                        setFile(item);
+                        setSubfolder('05-EXP-DIGITAL');
+                      }}
+                      activeFile={fileName}
+                    />
+                  </div>
+                </div>
 
-              <DocumentCard
-                title="EDocs"
-                files={filesVUCEM}
-                isLoading={subfolderLoading === '04-VUCEM-EDOCS'}
-                folder="04-VUCEM"
-                onDownload={() => {
-                  setSubfolderLoading('04-VUCEM-EDOCS');
-                  setSubfolder('04-VUCEM');
-                  setUrl(`/dea/zip/${client}/${reference}/04-VUCEM`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('04-VUCEM');
-                }}
-                activeFile={fileName}
-                filterFn={(item) => !item.includes('COVE')}
-              />
+                <Card className="min-h-0 flex-[1.5] p-0 overflow-hidden">
+                  <div className="h-full flex flex-col min-h-0 text-xs">
+                    {/* Header */}
+                    <div className={viewerHeaderClass}>
+                      <p className="font-bold truncate">
+                        Visor de Archivos{fileName ? ` - ${fileName}` : ''}
+                      </p>
+                      {fileName && (
+                        <ExternalLink
+                          className="cursor-pointer"
+                          onClick={() => {
+                            handleFileClick(pdfUrl, fileContent, isFileBlobLoading);
+                          }}
+                        />
+                      )}
+                    </div>
 
-              <DocumentCard
-                title="Comprobantes Fiscales"
-                files={filesFiscales}
-                isLoading={subfolderLoading === '03-FISCALES'}
-                folder="03-FISCALES"
-                onDownload={() => {
-                  setSubfolderLoading('03-FISCALES');
-                  setSubfolder('03-FISCALES');
-                  setUrl(`/dea/zip/${client}/${reference}/03-FISCALES`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('03-FISCALES');
-                }}
-                activeFile={fileName}
-              />
+                    {/* Visualizer fills remaining space */}
+                    <div className="flex-1 min-h-0 overflow-auto">
+                      <DEAFileVisualizer
+                        pdfUrl={pdfUrl}
+                        content={fileContent}
+                        isLoading={isFileBlobLoading}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
 
-              <DocumentCard
-                title="Expediente Digital"
-                files={filesExpDigital}
-                isLoading={subfolderLoading === '05-EXP-DIGITAL'}
-                folder="05-EXP-DIGITAL"
-                onDownload={() => {
-                  setSubfolderLoading('05-EXP-DIGITAL');
-                  setSubfolder('05-EXP-DIGITAL');
-                  setUrl(`/dea/zip/${client}/${reference}/05-EXP-DIGITAL`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('05-EXP-DIGITAL');
-                }}
-                activeFile={fileName}
+            {windows.map((window) => (
+              <DEADraggableWindow window={window} setWindows={setWindows} key={window.id} />
+            ))}
+          </div>
+        )}
+
+        {client &&
+          !reference &&
+          (logoUrl === undefined || isLogoBlobLoading ? null : logoUrl ? (
+            <div className="flex w-full h-full items-center justify-center">
+              <div className="relative max-w-[600px]">
+                <Image
+                  src={logoUrl}
+                  alt="client_logo"
+                  width={500}
+                  height={600}
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="h-full overflow-auto p-4">
+              <p className="mb-4">
+                Tu compañía no tiene un logo registrado, arrástralo en la zona de abajo para subirlo
+              </p>
+              <UploadMultipartToServer
+                apiEndpointPath={`/dea/uploadClientLogo/${client}`}
+                placeholder="Arrastra o da click aquí para subir el logo de tu compañía en formato .png"
+                mutationKey={`/dea/getClientLogo/${client}`}
               />
             </div>
-          )}
-          {windows.map((window) => (
-            <DEADraggableWindow window={window} setWindows={setWindows} key={window.id} />
           ))}
-        </div>
-      )}
-      {client &&
-        !reference &&
-        (logoUrl === undefined || isLogoBlobLoading ? null : logoUrl ? (
-          <div className="flex w-full h-[calc(100%_-_85px)] items-center justify-center">
-            <div className="relative max-w-[600px]">
-              <Image
-                src={logoUrl}
-                alt="client_logo"
-                width={500} // just a "max size", not forced
-                height={600} // keeps ratio
-                className="w-full h-auto object-contain"
-              />
-            </div>
-          </div>
-        ) : (
-          <div>
-            <p className="mb-4">
-              Tu compañía no tiene un logo registrado, arrástralo en la zona de abajo para subirlo
-            </p>
-            <UploadMultipartToServer
-              apiEndpointPath={`/dea/uploadClientLogo/${client}`}
-              placeholder="Arrastra o da click aquí para subir el logo de tu compañía en formato .png"
-              mutationKey={`/dea/getClientLogo/${client}`}
-            />
-          </div>
-        ))}
+      </div>
     </RoleGuard>
   );
 }

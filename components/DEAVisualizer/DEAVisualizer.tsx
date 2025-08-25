@@ -11,24 +11,27 @@ export default function DEAFileVisualizer({
   content: string;
   isLoading: boolean;
 }) {
+  const hasText = !!content && !isLoading;
+  const hasPdf = !!pdfUrl && !isLoading;
+
   return (
-    <div>
+    // Fill parent and allow inner scrolling panes
+    <div className="h-full min-h-0 flex flex-col">
       {isLoading && (
-        <div
-          className={`w-full flex justify-center items-center`}
-          style={{ height: `${visualizerSize}px` }}
-        >
+        <div className="flex-1 min-h-0 w-full flex items-center justify-center">
           <TailwindSpinner />
         </div>
       )}
-      {content && !isLoading && (
-        <div className={`w-full overflow-y-auto`} style={{ height: `${visualizerSize}px` }}>
+
+      {hasText && (
+        <div className="flex-1 min-h-0 w-full overflow-auto">
           <pre
+            className="p-4"
             style={{
               whiteSpace: 'pre-wrap',
               background: '#f6f8fa',
-              padding: '1rem',
               wordBreak: 'break-word',
+              margin: 0,
             }}
           >
             {content}
@@ -36,13 +39,19 @@ export default function DEAFileVisualizer({
         </div>
       )}
 
-      {pdfUrl && !isLoading && (
-        <div className={`w-full`} style={{ height: `${visualizerSize}px` }}>
+      {hasPdf && (
+        <div className="flex-1 min-h-0 w-full">
           <iframe
             src={pdfUrl}
-            style={{ width: '100%', height: '100%', border: 'none' }}
             title="PDF Viewer"
+            style={{ width: '100%', height: '100%', border: 'none' }}
           />
+        </div>
+      )}
+
+      {!isLoading && !hasText && !hasPdf && (
+        <div className="flex-1 min-h-0 w-full flex items-center justify-center text-sm text-muted-foreground">
+          Sin archivo seleccionado.
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { useSWRConfig } from 'swr';
+import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +33,7 @@ const posthogEvent =
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
-  const { mutate } = useSWRConfig();
+  const { mutate } = useSWRImmutableConfig();
 
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),

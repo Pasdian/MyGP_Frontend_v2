@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
+import { useSWRImmutableConfig } from 'swr';
 import { Eye, EyeOff } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/RoleSelect';
 import { z } from 'zod/v4';
@@ -32,7 +32,7 @@ export default function AddUserForm({
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [shouldView, setShouldView] = React.useState(false);
-  const { mutate } = useSWRConfig();
+  const { mutate } = useSWRImmutableConfig();
 
   const form = useForm<z.infer<typeof addUserSchema>>({
     resolver: zodResolver(addUserSchema),

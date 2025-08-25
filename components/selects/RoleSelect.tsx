@@ -2,7 +2,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import React from 'react';
-import useSWR from 'swr';
+import useSWRImmutable from 'swr';
 import { getAllRoles } from '@/types/roles/getAllRoles';
 import { Loader2 } from 'lucide-react';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
@@ -14,7 +14,7 @@ export default function RoleSelect({
   onValueChange?(value: string): void;
   defaultValue?: string;
 }) {
-  const { data: roles, isLoading: isRolesLoading } = useSWR<getAllRoles[]>(
+  const { data: roles, isLoading: isRolesLoading } = useSWRImmutable<getAllRoles[]>(
     '/api/roles',
     axiosFetcher
   );

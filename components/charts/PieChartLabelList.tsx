@@ -13,9 +13,9 @@ import {
 } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import useSWR from 'swr';
-import InitialDatePicker from '../datepickers/InitialDatePicker';
-import FinalDatePicker from '../datepickers/FinalDatePicker';
+import useSWRImmutable from 'swr';
+import InitialDatePicker from '../datepickers/ChartInitialDatePicker';
+import FinalDatePicker from '../datepickers/ChartFinalDatePicker';
 import React from 'react';
 import { toast } from 'sonner';
 import ClientsCombo from '../comboboxes/ClientsCombo';
@@ -43,7 +43,7 @@ export default function PieChartLabelList() {
   const [clientNumber, setClientNumber] = React.useState('005009'); // Transbel Nuevo
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
-  const { data: chartData } = useSWR(
+  const { data: chartData } = useSWRImmutable(
     initialDate && finalDate
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
           initialDate.toISOString().split('T')[0]

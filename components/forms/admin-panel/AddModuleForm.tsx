@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
+import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { moduleSchema } from '@/lib/schemas/admin-panel/moduleSchema';
 import { moduleModuleEvents } from '@/lib/posthog/events';
@@ -28,7 +28,7 @@ export default function AddModuleForm({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
+  const { mutate } = useSWRImmutableConfig();
 
   const form = useForm<z.infer<typeof moduleSchema>>({
     resolver: zodResolver(moduleSchema),

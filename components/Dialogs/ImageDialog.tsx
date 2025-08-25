@@ -10,7 +10,7 @@ import React from 'react';
 import TailwindSpinner from '../ui/TailwindSpinner';
 import { Carousel } from '../ui/carousel';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
-import useSWR from 'swr';
+import useSWRImmutable from 'swr';
 import { axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -54,7 +54,7 @@ export default function ImageDialog({
 
   const [imageBlobUrlMap, setImageBlobUrlMap] = React.useState<Map<string, string>>(new Map());
 
-  const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWR(
+  const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWRImmutable(
     currentImageKey,
     axiosImageFetcher
   ); // Current blob url

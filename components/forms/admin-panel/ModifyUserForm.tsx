@@ -18,7 +18,7 @@ import { Row } from '@tanstack/react-table';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
+import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Switch } from '@/components/ui/switch';
 import { Eye, EyeOff } from 'lucide-react';
@@ -33,7 +33,7 @@ const posthogEvent =
 
 export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);
-  const { mutate } = useSWRConfig();
+  const { mutate } = useSWRImmutableConfig();
 
   const form = useForm<z.infer<typeof modifyUserSchema>>({
     resolver: zodResolver(modifyUserSchema),

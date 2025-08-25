@@ -13,7 +13,7 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../TailwindSpinner';
-import useSWR, { mutate } from 'swr';
+import useSWRImmutable, { mutate } from 'swr';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 
@@ -32,13 +32,13 @@ export default function CollapsibleReferences() {
 
   const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
-  const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
+  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
   const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
 
   const {
     data: allReferences,
     isLoading: isAllReferencesLoading,
-  }: { data: getRefsByClient[]; isLoading: boolean } = useSWR(
+  }: { data: getRefsByClient[]; isLoading: boolean } = useSWRImmutable(
     clientNumber && initialDate && finalDate
       ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
           initialDate.toISOString().split('T')[0]
@@ -110,7 +110,7 @@ export default function CollapsibleReferences() {
             className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
           >
             <CollapsibleTrigger>
-              <p className="font-bold">Referencias - {filteredItems?.length || 0} referencias</p>
+              <p className="font-bold">{filteredItems?.length || 0} referencias</p>
               <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
@@ -134,10 +134,10 @@ export default function CollapsibleReferences() {
                         key={i}
                         className={
                           reference === NUM_REFE && FOLDER_EXISTS
-                            ? 'bg-green-300 cursor-pointer mb-1 p-2'
+                            ? 'bg-green-300 cursor-pointer mb-1 px-1'
                             : !FOLDER_EXISTS
-                            ? 'bg-red-400 cursor-not-allowed opacity-60 mb-1 p-2'
-                            : 'cursor-pointer mb-1 even:bg-gray-200 p-2'
+                            ? 'bg-red-400 cursor-not-allowed opacity-60 mb-1 px-1'
+                            : 'cursor-pointer mb-1 even:bg-gray-200 px-1'
                         }
                         onClick={() => {
                           if (!FOLDER_EXISTS) return;
@@ -148,15 +148,15 @@ export default function CollapsibleReferences() {
                           setReference(NUM_REFE);
                         }}
                       >
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                           <div>
-                            <p>{NUM_REFE}</p>
+                            <p className="text-[13px]">{NUM_REFE}</p>
                           </div>
                           <div className="flex">
                             {FOLDER_EXISTS &&
                               (!isDownloading ? (
                                 <DownloadIcon
-                                  size={20}
+                                  size={14}
                                   className={reference === NUM_REFE && FOLDER_EXISTS ? `mr-2` : ''}
                                   onClick={(e) => {
                                     e.stopPropagation(); // prevent triggering parent onClick
@@ -170,7 +170,7 @@ export default function CollapsibleReferences() {
                               ))}
                             {reference === NUM_REFE && FOLDER_EXISTS && (
                               <RefreshCwIcon
-                                size={20}
+                                size={14}
                                 onClick={() => mutate(getFilesByReferenceKey)}
                               />
                             )}

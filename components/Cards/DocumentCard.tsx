@@ -25,6 +25,7 @@ const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
 const deaDeleteFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DELETE_FILE')?.eventName || '';
+const iconSize = 14;
 
 export default function DocumentCard({
   title,
@@ -34,6 +35,7 @@ export default function DocumentCard({
   onFileSelect,
   activeFile,
   folder,
+  className = '',
   filterFn = () => true,
 }: {
   title: string;
@@ -42,15 +44,22 @@ export default function DocumentCard({
   onDownload: () => void;
   onFileSelect: (item: string) => void;
   activeFile: string;
-  filterFn?: (item: string) => void;
+  className?: string;
+  filterFn?: (item: string) => boolean;
   folder: string;
 }) {
   const { reference, clientNumber: client, getFilesByReferenceKey } = useDEAStore((state) => state);
 
-  const cardClassName = 'h-[240px] py-0 rounded-md';
-  const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
+  // ✅ Key layout fixes:
+  // - Card gets min-h-0 + overflow-hidden to contain internals
+  // - Wrapper remains flex-col + min-h-0
+  // - List becomes flex-1 so it takes remaining space and scrolls internally
+  const cardClassName = 'py-0 rounded-md h-full min-h-0 overflow-hidden';
+  const wrapperClassName = 'h-full flex flex-col min-h-0';
   const stickyClassName =
-    'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
+    'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center z-10';
+  const listClassName =
+    'flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-2 text-[10px]';
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
   const [openDeleteFileDialog, setOpenDeleteFileDialog] = React.useState(false);
@@ -62,20 +71,16 @@ export default function DocumentCard({
         null,
         { responseType: 'blob' }
       );
-
       if (res.status !== 200) {
         toast.error(`Error al descargar el archivo (${res.status})`);
         return;
       }
-
       let downloadName = file;
       const disposition = res.headers['content-disposition'];
-
       if (disposition) {
         const match = disposition.match(/filename="?(.+)"?/);
         if (match?.[1]) downloadName = match[1];
       }
-
       const url = window.URL.createObjectURL(res.data);
       const link = document.createElement('a');
       link.href = url;
@@ -94,12 +99,10 @@ export default function DocumentCard({
       const res = await GPClient.post(
         `/dea/deleteFile/${client}/${reference}/${folder}/${activeFile}`
       );
-
       if (res.status !== 200) {
         toast.error(`Error al eliminar el archivo (${res.status})`);
         return;
       }
-
       toast.success(res.data.message);
       mutate(getFilesByReferenceKey);
     } catch {
@@ -107,40 +110,39 @@ export default function DocumentCard({
     }
   }
 
+  const visibleFiles = (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true));
+
   return (
-    <Card className={cardClassName}>
-      <div className={cardHeaderClassName}>
+    <Card className={`${cardClassName} ${className}`}>
+      <div className={wrapperClassName}>
         <div className={stickyClassName}>
-          <p className="font-bold">
-            {`${title} - ${
-              (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true)).length
-            } archivos`}
-          </p>
+          <p className="font-bold">{`${title} - ${visibleFiles.length} archivos`}</p>
           <div>
             {isLoading ? (
               <TailwindSpinner className="w-6 h-6" />
             ) : (files?.length ?? 0) > 0 ? (
               <div className="flex">
                 <IconUpload
-                  size={20}
+                  size={iconSize}
                   color="white"
                   className="cursor-pointer mr-2"
                   onClick={() => setOpenUploadDialog(true)}
                 />
-                <DownloadIcon size={20} className="cursor-pointer" onClick={onDownload} />
+                <DownloadIcon size={iconSize} className="cursor-pointer" onClick={onDownload} />
               </div>
             ) : null}
           </div>
         </div>
-        <div className="p-2">
-          {files.filter(filterFn).map((item) => (
+
+        {/* ✅ This area now expands and scrolls instead of overflowing */}
+        <div className={listClassName}>
+          {visibleFiles.map((item) => (
             <div
               key={item}
-              className={`flex justify-between p-1 items-center cursor-pointer mb-1 even:bg-gray-200 ${
+              className={`flex justify-between p-1 items-center cursor-pointer mb-1 even:bg-gray-100 ${
                 item === activeFile ? 'bg-green-300' : ''
               }`}
               onClick={() => onFileSelect(item)}
-              style={{ maxWidth: '100%' }}
             >
               <div className="max-w-[70%]">
                 <p className="break-words">{item}</p>
@@ -149,8 +151,9 @@ export default function DocumentCard({
                 <PermissionGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
                   <DownloadIcon
                     className="mr-2"
-                    size={20}
-                    onClick={() => {
+                    size={iconSize}
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleDownloadFile(item);
                       posthog.capture(deaDownloadFileEvent);
                     }}
@@ -158,8 +161,9 @@ export default function DocumentCard({
                 </PermissionGuard>
                 <PermissionGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
                   <Trash2Icon
-                    size={20}
-                    onClick={() => {
+                    size={iconSize}
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setOpenDeleteFileDialog(true);
                     }}
                   />
@@ -188,6 +192,7 @@ export default function DocumentCard({
               onClick={() => {
                 handleDeleteFile();
                 posthog.capture(deaDeleteFileEvent);
+                setOpenDeleteFileDialog(false);
               }}
             >
               Eliminar
@@ -195,6 +200,7 @@ export default function DocumentCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <UploadFileDialog
         open={openUploadDialog}
         onOpenChange={setOpenUploadDialog}

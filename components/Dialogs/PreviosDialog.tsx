@@ -12,7 +12,7 @@ import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
 
 import React from 'react';
 import { Folder, Image } from 'lucide-react';
-import useSWR from 'swr';
+import useSWRImmutable from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import TailwindSpinner from '../ui/TailwindSpinner';
@@ -69,10 +69,8 @@ export default function PreviosDialog() {
     reference &&
     `/dea/centralizada/${getcurrentFolder(reference)}/${custom}/Previos/${reference}`;
 
-  const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } = useSWR<PartidasPrevios>(
-    partidasPreviosKey,
-    axiosFetcher
-  );
+  const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } =
+    useSWRImmutable<PartidasPrevios>(partidasPreviosKey, axiosFetcher);
 
   React.useEffect(() => {
     if (!partidasPrevios) return;
@@ -104,7 +102,7 @@ export default function PreviosDialog() {
 
   if (!partidasPrevios)
     return (
-      <Button disabled className="bg-blue-500 hover:bg-blue-600 font-bold">
+      <Button disabled className="h-7 bg-blue-500 hover:bg-blue-600 font-bold">
         No existen previos
       </Button>
     );
@@ -113,7 +111,7 @@ export default function PreviosDialog() {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="bg-blue-500 hover:bg-blue-600 font-bold">
+          <Button className="h-7 bg-blue-500 hover:bg-blue-600 font-bold">
             <IconEye />
             Ver Previos
           </Button>

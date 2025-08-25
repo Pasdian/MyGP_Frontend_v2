@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
+import { useSWRImmutableConfig } from 'swr';
 import { z } from 'zod/v4';
 
 import { Row } from '@tanstack/react-table';
@@ -33,7 +33,7 @@ export default function ModifyRoleForm({
   row: Row<getAllRoles>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
+  const { mutate } = useSWRImmutableConfig();
 
   const form = useForm<z.infer<typeof roleSchema>>({
     resolver: zodResolver(roleSchema),

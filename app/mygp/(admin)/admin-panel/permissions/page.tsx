@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import useSWR, { mutate } from 'swr';
+import useSWRImmutable, { mutate } from 'swr';
 import axios from 'axios';
 import { GPClient, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 
@@ -43,7 +43,7 @@ export default function Permissions() {
     data: serverData,
     isLoading: isServerDataLoading,
     isValidating: isServerDataValidating,
-  } = useSWR<getRoleModulesAndPermissions>(roleModulesPermissionsKey, axiosFetcher);
+  } = useSWRImmutable<getRoleModulesAndPermissions>(roleModulesPermissionsKey, axiosFetcher);
 
   // Local modifiable state
   const [rolesData, setRolesData] = React.useState<getRoleModulesAndPermissions>(serverData || []);
@@ -246,7 +246,7 @@ export default function Permissions() {
 }
 
 function AddPermissionDialog() {
-  const { data: allRoles, isLoading: isAllRolesLoading } = useSWR<getAllRoles[]>(
+  const { data: allRoles, isLoading: isAllRolesLoading } = useSWRImmutable<getAllRoles[]>(
     '/api/roles',
     axiosFetcher
   );

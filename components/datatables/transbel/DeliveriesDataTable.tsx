@@ -16,14 +16,14 @@ import {
 import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
-import useSWR from 'swr/immutable';
+import useSWRImmutable from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 
 export default function DeliveriesDataTable() {
-  const { data, isValidating } = useSWR<getDeliveries[]>(
+  const { data, isValidating } = useSWRImmutable<getDeliveries[]>(
     '/api/transbel/getDeliveries',
     axiosFetcher
   );
