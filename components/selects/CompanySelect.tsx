@@ -11,6 +11,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
@@ -55,7 +56,6 @@ export default function CompanySelect({
     const top = el?.scrollTop ?? 0;
     if (!isControlled) setInternal(next);
     onValuesChange?.(next);
-    // restore scroll next frame to avoid jump
     requestAnimationFrame(() => {
       if (el) el.scrollTop = top;
     });
@@ -74,17 +74,26 @@ export default function CompanySelect({
 
   const isChecked = (id?: string | null) => !!id && selected.includes(id);
 
-  // sort: checked first, then name (stable)
-  const sortedCompanies = React.useMemo(() => {
-    if (!companies) return [];
-    return [...companies].sort((a, b) => {
-      const aId = a.uuid ?? '';
-      const bId = b.uuid ?? '';
-      const aSel = selected.includes(aId);
-      const bSel = selected.includes(bId);
-      if (aSel !== bSel) return aSel ? -1 : 1;
-      return (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' });
-    });
+  // split companies into selected and unselected buckets (each sorted by name)
+  const { selectedCompanies, unselectedCompanies } = React.useMemo(() => {
+    const result = {
+      selectedCompanies: [] as getAllCompanies[],
+      unselectedCompanies: [] as getAllCompanies[],
+    };
+    if (!companies) return result;
+
+    for (const c of companies) {
+      const id = c.uuid ?? '';
+      if (id && selected.includes(id)) result.selectedCompanies.push(c);
+      else result.unselectedCompanies.push(c);
+    }
+
+    const byName = (a: getAllCompanies, b: getAllCompanies) =>
+      (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' });
+
+    result.selectedCompanies.sort(byName);
+    result.unselectedCompanies.sort(byName);
+    return result;
   }, [companies, selected]);
 
   // button summary
@@ -97,6 +106,46 @@ export default function CompanySelect({
     const rest = names.length - 1;
     return rest > 0 ? `${first} +${rest} más` : first;
   }, [companies, selected, placeholder]);
+
+  // row renderer to keep markup DRY
+  const renderRow = (c: getAllCompanies) => {
+    const uuid = c.uuid ?? '';
+    const name = c.name ?? '';
+    const filterValue = `${name} ${uuid}`.trim();
+    const checked = isChecked(uuid);
+
+    return (
+      <CommandItem
+        key={uuid}
+        value={filterValue}
+        className={[checked ? 'bg-primary/5' : ''].join(' ')}
+        // Toggle when the row is selected (click or keyboard)
+        onSelect={() => {
+          onCheckChange(uuid)(!checked);
+        }}
+      >
+        <div className="flex items-center w-full gap-3">
+          <div className="flex min-w-0 flex-col">
+            <span className="font-medium truncate max-w-[250px]">{name}</span>
+            <span className="text-xs text-muted-foreground truncate max-w-[250px]">
+              UUID: {uuid}
+            </span>
+          </div>
+
+          <Checkbox
+            checked={checked}
+            onCheckedChange={onCheckChange(uuid)}
+            className="ml-auto [&_svg]:hidden data-[state=checked]:bg-blue-500"
+            // Prevent row's onSelect from also firing when clicking the checkbox
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            onKeyDownCapture={(e) => e.stopPropagation()}
+            disabled={!uuid}
+            aria-label={`Seleccionar ${name}`}
+          />
+        </div>
+      </CommandItem>
+    );
+  };
 
   // ----- loading / empty -----
   if (isLoading)
@@ -123,10 +172,15 @@ export default function CompanySelect({
     );
 
   return (
-    <div className="flex items-center gap-2">
-      <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-        <Search className="mr-2 h-4 w-4" />
-        {summary}
+    <div className="flex items-center w-full gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setOpen(true)}
+        className="max-w-[350px] truncate"
+      >
+        <Search className="mr-2 h-4 w-4 shrink-0" />
+        <span className="truncate">{summary}</span>
       </Button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
@@ -136,42 +190,19 @@ export default function CompanySelect({
         <CommandList ref={listRef} className="[overflow-anchor:none]">
           <CommandEmpty>No se encontró la compañía.</CommandEmpty>
 
-          <CommandGroup heading="Compañías">
-            {sortedCompanies.map((c) => {
-              const uuid = c.uuid ?? '';
-              const name = c.name ?? '';
-              const filterValue = `${name} ${uuid}`.trim();
+          {/* Selected group */}
+          {selectedCompanies.length > 0 && (
+            <>
+              <CommandGroup heading={`Seleccionadas (${selectedCompanies.length})`}>
+                {selectedCompanies.map(renderRow)}
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
 
-              return (
-                <CommandItem
-                  key={uuid}
-                  value={filterValue}
-                  className={[isChecked(uuid) ? 'bg-primary/5' : ''].join(' ')}
-                >
-                  <div
-                    className="flex items-center w-full gap-3"
-                    // prevent cmdk selection on inner interactions
-                    onPointerDownCapture={(e) => e.stopPropagation()}
-                    onKeyDownCapture={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex min-w-0 flex-col">
-                      <span className="font-medium truncate">{name}</span>
-                      <span className="text-xs text-muted-foreground truncate">UUID: {uuid}</span>
-                    </div>
-
-                    {/* Checkbox: only toggle source */}
-                    <Checkbox
-                      checked={isChecked(uuid)}
-                      onCheckedChange={onCheckChange(uuid)}
-                      className="ml-auto"
-                      onPointerDownCapture={(e) => e.stopPropagation()}
-                      onKeyDownCapture={(e) => e.stopPropagation()}
-                      disabled={!uuid}
-                    />
-                  </div>
-                </CommandItem>
-              );
-            })}
+          {/* Unselected group */}
+          <CommandGroup heading={`No seleccionadas (${unselectedCompanies.length})`}>
+            {unselectedCompanies.map(renderRow)}
           </CommandGroup>
         </CommandList>
 

@@ -55,7 +55,6 @@ export default function DEAClientsCombo({
     '/api/companies/getAllCompanies',
     axiosFetcher
   );
-
   const allOptions: Option[] = React.useMemo(
     () =>
       (allCompanies ?? []).filter(isOption).map((c) => ({
@@ -65,7 +64,6 @@ export default function DEAClientsCombo({
       })),
     [allCompanies]
   );
-
   const visibleOptions = React.useMemo(() => {
     if (isAAP) return allOptions;
     const allowed = new Set(
@@ -73,6 +71,13 @@ export default function DEAClientsCombo({
     );
     return allOptions.filter((o) => allowed.has(o.uuid));
   }, [isAAP, allOptions, allowedCompanies]);
+
+  React.useEffect(() => {
+    if (!clientName && visibleOptions.length > 0) {
+      const first = visibleOptions[0];
+      onSelect(first.casaId || null, first.label);
+    }
+  }, [clientName, visibleOptions, onSelect]);
 
   // Search by name or casa_id
   const [open, setOpen] = React.useState(false);
