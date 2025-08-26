@@ -50,6 +50,7 @@ export default function DEAClientsCombo({
     [user?.complete_user?.user?.companies]
   );
   const isAAP = !!allowedCompanies?.some((c) => c?.uuid === AAP_UUID);
+  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
 
   const { data: allCompanies, isLoading } = useSWRImmutable<getAllCompanies[]>(
     '/api/companies/getAllCompanies',
@@ -65,12 +66,12 @@ export default function DEAClientsCombo({
     [allCompanies]
   );
   const visibleOptions = React.useMemo(() => {
-    if (isAAP) return allOptions;
+    if (isAdmin || isAAP) return allOptions;
     const allowed = new Set(
       allowedCompanies.map((c) => c?.uuid).filter((id): id is string => !!id)
     );
     return allOptions.filter((o) => allowed.has(o.uuid));
-  }, [isAAP, allOptions, allowedCompanies]);
+  }, [isAdmin, isAAP, allOptions, allowedCompanies]);
 
   React.useEffect(() => {
     if (!clientName && visibleOptions.length > 0) {
@@ -131,7 +132,15 @@ export default function DEAClientsCombo({
             />
             <CommandList>
               <CommandEmpty>{emptyState}</CommandEmpty>
-              <CommandGroup heading={isAAP ? 'Todas las compañías' : 'Tus compañías'}>
+              <CommandGroup
+                heading={
+                  isAdmin
+                    ? 'Todas las compañías (Admin)'
+                    : isAAP
+                    ? 'Todas las compañías'
+                    : 'Tus compañías'
+                }
+              >
                 {filtered.map((c) => (
                   <CommandItem
                     key={c.uuid}
