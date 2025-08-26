@@ -43,7 +43,10 @@ export default function CompanySelect({
   // controlled vs uncontrolled
   const isControlled = Array.isArray(values);
   const [internal, setInternal] = React.useState<string[]>(defaultValues);
-  const selected = (isControlled ? (values as string[]) : internal) ?? [];
+  const selected = React.useMemo<string[]>(
+    () => (isControlled ? values ?? [] : internal),
+    [isControlled, values, internal]
+  );
 
   // ----- scroll-preserving update -----
   const listRef = React.useRef<HTMLDivElement | null>(null);
