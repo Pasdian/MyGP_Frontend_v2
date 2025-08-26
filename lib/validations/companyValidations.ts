@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 
+export const COMPANY_UUID_VALIDATION = z.string().uuid().nullable();
+
 export const COMPANY_NAME_VALIDATION = z
   .string({
     error: "Ingresa el nombre de una compañia",

@@ -14,29 +14,22 @@ import posthog from 'posthog-js';
 import { deaModuleEvents } from '@/lib/posthog/events';
 import { LoaderCircle, RocketIcon } from 'lucide-react';
 import useSWRImmutableMutation from 'swr/mutation';
-import { useAuth } from '@/hooks/useAuth';
 import DEAInitialDatePicker from '../datepickers/DEAInitialDatePicker';
 import DEAFinalDatePicker from '../datepickers/DEAFinalDatePicker';
 import DEAClientsCombo from '../comboboxes/DEAClientsCombo';
-import { AAP_UUID } from '@/lib/companiesUUIDs/companiesUUIDs';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
 export function SiteHeader() {
-  const { setSubfolder } = useDEAStore((state) => state);
-
-  const { user } = useAuth();
-
-  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
-  const isAAP = user?.complete_user.user.company_uuid === AAP_UUID;
+  const { setSubfolder, setClientNumber, setClientName, setReference } = useDEAStore(
+    (state) => state
+  );
 
   const pathname = usePathname();
   const {
     clientNumber: client,
     clientName,
     reference,
-    setClientNumber,
-    setClientName,
     initialDate,
     finalDate,
     setInitialDate,
@@ -96,21 +89,20 @@ export function SiteHeader() {
             />
           </div>
           <div className="mr-2">
-            {(isAdmin || isAAP) && (
-              <div className="flex items-center">
-                <p className="font-bold text-xs mr-1">Cliente:</p>
-                <DEAClientsCombo
-                  clientName={clientName}
-                  setClientName={setClientName}
-                  setClientNumber={setClientNumber}
-                  onSelect={() => {
-                    setFile('');
-                    setSubfolder('');
-                    setPdfUrl('');
-                  }}
-                />
-              </div>
-            )}
+            <div className="flex items-center">
+              <p className="font-bold text-xs mr-1">Cliente:</p>
+              <DEAClientsCombo
+                clientName={clientName}
+                onSelect={(casaId, label) => {
+                  setFile('');
+                  setSubfolder('');
+                  setPdfUrl('');
+                  setClientNumber(casaId ?? '');
+                  setClientName(label ?? '');
+                  setReference('');
+                }}
+              />
+            </div>
           </div>
           <PermissionGuard allowedPermissions={['DEA_PREVIOS']}>
             {filesByReference && reference && (

@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import useSWRImmutable from 'swr';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -13,73 +13,84 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { clientsData } from '@/lib/clients/clientsData';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useAuth } from '@/hooks/useAuth';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { cn } from '@/lib/utils';
+import { AAP_UUID } from '@/lib/companiesUUIDs/companiesUUIDs';
+import type { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 
-type ClientOption = { value: string; label: string };
+type Option = { uuid: string; label: string; casaId: string };
 
-function normalize(str: string) {
-  return str
+const normalize = (s: string) =>
+  (s || '')
     .toLowerCase()
     .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, ''); // remove accents
-}
+    .replace(/\p{Diacritic}/gu, '');
+
+const isOption = (o: {
+  uuid?: string | null;
+  name?: string | null;
+  casa_id?: string | null;
+}): o is { uuid: string; name: string; casa_id?: string | null } =>
+  typeof o.uuid === 'string' &&
+  o.uuid.length > 0 &&
+  typeof o.name === 'string' &&
+  o.name.length > 0;
 
 export default function DEAClientsCombo({
   clientName,
-  setClientName,
-  setClientNumber,
   onSelect,
 }: {
   clientName: string;
-  setClientName: (clientName: string) => void;
-  setClientNumber: React.Dispatch<React.SetStateAction<string>> | ((clientNumber: string) => void);
-  onSelect: (value: string) => void;
+  onSelect: (casaId: string | null, label: string | null) => void;
 }) {
-  const { setReference } = useDEAStore((state) => state);
+  const { user } = useAuth();
+  const allowedCompanies = user?.complete_user?.user?.companies ?? [];
+  const isAAP = !!allowedCompanies?.some((c) => c?.uuid === AAP_UUID);
 
-  const [open, setOpen] = React.useState(false);
-  const [search, setSearch] = React.useState('');
-
-  // 1) Derive options with memo (no state+effect)
-  const options: ClientOption[] = React.useMemo(
-    () =>
-      clientsData.map((item) => ({
-        value: String(item.CVE_IMP ?? ''),
-        label: String(item.NOM_IMP ?? ''),
-      })),
-    []
+  const { data: allCompanies, isLoading } = useSWRImmutable<getAllCompanies[]>(
+    '/api/companies/getAllCompanies',
+    axiosFetcher
   );
 
-  // 2) Create quick maps for O(1) lookups
-  const labelByValue = React.useMemo(() => {
-    const m = new Map<string, string>();
-    for (const o of options) m.set(o.value, o.label);
-    return m;
-  }, [options]);
+  const allOptions: Option[] = React.useMemo(
+    () =>
+      (allCompanies ?? []).filter(isOption).map((c) => ({
+        uuid: c.uuid!,
+        label: c.name!,
+        casaId: c.casa_id ?? '',
+      })),
+    [allCompanies]
+  );
 
-  const valueByLabel = React.useMemo(() => {
-    const m = new Map<string, string>();
-    for (const o of options) m.set(o.label, o.value);
-    return m;
-  }, [options]);
+  const visibleOptions: Option[] = React.useMemo(() => {
+    if (isAAP) return allOptions;
+    const allowed = new Set(
+      (allowedCompanies ?? []).map((c) => c?.uuid).filter((id): id is string => !!id)
+    );
+    return allOptions.filter((o) => allowed.has(o.uuid));
+  }, [isAAP, allOptions, allowedCompanies]);
 
-  // 3) Filter with normalized search (accent/case insensitive)
+  // Search by name or casa_id
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
   const filtered = React.useMemo(() => {
     const q = normalize(search);
-    if (!q) return options;
-    return options.filter((o) => normalize(o.label).includes(q) || normalize(o.value).includes(q));
-  }, [options, search]);
+    if (!q) return visibleOptions;
+    return visibleOptions.filter(
+      (o) => normalize(o.label).includes(q) || normalize(o.casaId).includes(q)
+    );
+  }, [visibleOptions, search]);
 
-  // 4) Compute selected label efficiently
-  const selectedValue = valueByLabel.get(clientName) ?? '';
-  const selectedLabel = clientName || (selectedValue ? labelByValue.get(selectedValue) ?? '' : '');
+  const selectedLabel = clientName || '';
+  const emptyState = isLoading
+    ? 'Cargando compañías…'
+    : visibleOptions.length === 0
+    ? 'No tienes compañías asignadas'
+    : 'No se encontró el cliente.';
 
-  const pick = (opt: ClientOption) => {
-    // prefer ID as source of truth, but keep name in state for your UI
-    setClientName(opt.label);
-    setClientNumber(opt.value);
-    onSelect(opt.value);
+  const pick = (opt: Option) => {
+    onSelect(opt.casaId || null, opt.label);
     setOpen(false);
     setSearch('');
   };
@@ -89,50 +100,55 @@ export default function DEAClientsCombo({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            aria-labelledby="client-label"
             className="w-[300px] h-6 justify-between font-normal text-[12px]"
           >
             <span className="truncate max-w-[250px]">
-              {selectedLabel || 'Selecciona un cliente...'}
+              {selectedLabel || 'Selecciona una compañia...'}
             </span>
-            <ChevronsUpDown className="opacity-50 ml-2" />
+            <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent id="clientsCombo" className="w-[280px] p-0">
+
+        <PopoverContent className="w-[360px] p-0" align="start">
           <Command>
             <CommandInput
-              placeholder="Buscar por cliente o ID…"
+              placeholder="Buscar por nombre o CASA ID…"
               className="h-9"
               value={search}
               onValueChange={setSearch}
             />
             <CommandList>
-              <CommandEmpty>No se encontró el cliente.</CommandEmpty>
-              <CommandGroup>
-                {filtered.map((client) => {
-                  const isSelected = selectedValue
-                    ? client.value === selectedValue
-                    : client.label === clientName; // fallback for legacy name-based selection
-                  return (
-                    <CommandItem
-                      key={client.value}
-                      value={`${client.label} ${client.value}`}
-                      onSelect={() => {
-                        pick(client);
-                        setReference('');
-                      }}
-                    >
-                      <div className="flex justify-between w-full">
-                        <span className="text-xs truncate max-w-[200px]">{client.label}</span>
-                        <span className="text-xs text-muted-foreground">({client.value})</span>
-                      </div>
-                      <Check className={cn('ml-auto', isSelected ? 'opacity-100' : 'opacity-0')} />
-                    </CommandItem>
-                  );
-                })}
+              <CommandEmpty>{emptyState}</CommandEmpty>
+              <CommandGroup heading={isAAP ? 'Todas las compañías' : 'Tus compañías'}>
+                {filtered.map((c) => (
+                  <CommandItem
+                    key={c.uuid}
+                    value={`${c.label} ${c.casaId}`} // built-in search also matches CASA ID
+                    onSelect={() => pick(c)}
+                    className="aria-selected:bg-muted/40"
+                  >
+                    <div className="flex w-full items-center gap-3">
+                      {/* CASA ID on the left */}
+                      <span className="w-16 shrink-0 text-[10px] font-mono text-muted-foreground truncate">
+                        {c.casaId || '—'}
+                      </span>
+                      {/* Company name */}
+                      <span className="min-w-0 truncate text-xs font-medium">{c.label}</span>
+
+                      {/* Checkmark if current label matches */}
+                      <Check
+                        className={cn(
+                          'ml-auto h-4 w-4',
+                          selectedLabel && selectedLabel === c.label ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                    </div>
+                  </CommandItem>
+                ))}
               </CommandGroup>
             </CommandList>
           </Command>

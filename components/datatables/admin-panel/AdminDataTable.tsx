@@ -7,7 +7,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ColumnDef, flexRender } from '@tanstack/react-table';
-import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import TablePagination from '../pagination/TablePagination';
 import {
   getCoreRowModel,
@@ -18,7 +17,6 @@ import {
 import useSWRImmutable from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
-import TailwindSpinner from '../../ui/TailwindSpinner';
 import AdminDataTableFilter from '../filters/AdminDataTableFilter';
 
 type AdminDataTableProps<T> = {
@@ -27,7 +25,7 @@ type AdminDataTableProps<T> = {
 };
 
 export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTableProps<T>) {
-  const { data, isValidating } = useSWRImmutable<T[]>(dataTableUrl, axiosFetcher);
+  const { data } = useSWRImmutable<T[]>(dataTableUrl, axiosFetcher);
 
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
@@ -43,39 +41,50 @@ export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTa
     },
   });
 
-  if (isValidating) return <TailwindSpinner />;
-
   return (
     <div>
       <Table>
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id} colSpan={header.colSpan}>
-                    {header.isPlaceholder ? null : (
-                      <div>
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getCanFilter() ? (
-                          <div>
-                            <AdminDataTableFilter<T> column={header.column} />
-                          </div>
-                        ) : null}
-                      </div>
-                    )}
-                  </TableHead>
-                );
-              })}
+          {table.getHeaderGroups().map((hg) => (
+            <TableRow key={hg.id}>
+              {hg.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  className={
+                    header.column.columnDef.meta?.headerClassName ??
+                    header.column.columnDef.meta?.className
+                  }
+                >
+                  {header.isPlaceholder ? null : (
+                    <div>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.column.getCanFilter() ? (
+                        <div>
+                          <AdminDataTableFilter<any> column={header.column} />
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
         </TableHeader>
+
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={
+                      cell.column.columnDef.meta?.cellClassName ??
+                      cell.column.columnDef.meta?.className
+                    }
+                    title={String(flexRender(cell.column.columnDef.cell, cell.getContext()))}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -83,7 +92,10 @@ export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTa
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={deliveriesColumns.length} className="h-24 text-center">
+              <TableCell
+                colSpan={table.getVisibleLeafColumns().length}
+                className="h-24 text-center"
+              >
                 Sin resultados.
               </TableCell>
             </TableRow>

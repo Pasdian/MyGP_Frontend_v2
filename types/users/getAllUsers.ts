@@ -1,23 +1,26 @@
 export type getAllUsers = {
-  id: number;
-  user_uuid: string;
-  name: string;
-  email: string;
-  mobile: string;
-  has_casa_user: boolean;
-  casa_user_name: string | null;
-  status: string;
-  role_uuid: number;
-  created_at: string;
-  updated_at: string;
+  id: number | null;
+  user_uuid: string | null;
+  name: string | null;
+  email: string | null;
+  mobile: string | null;
+  has_casa_user: boolean | null;
+  casa_user_name: string | null | null;
+  status: string | null;
+  role_uuid: number | null;
+  created_at: string | null;
+  updated_at: string | null;
   role: {
-    id: number;
-    name: string;
-    description: string;
-    uuid: string;
+    id: number | null;
+    name: string | null;
+    description: string | null;
+    uuid: string | null;
   };
-  company: {
-    uuid: string;
-    name: string;
-  } | null;
+  companies:
+    | {
+        uuid: string | null;
+        name: string | null;
+        casa_id: string | null;
+      }[]
+    | null;
 };

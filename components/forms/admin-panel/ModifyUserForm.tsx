@@ -46,7 +46,9 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
       role_uuid: row.original.role_uuid ? row.original.role_uuid.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
       status: row.original.status == 'active' ? true : false,
-      company_uuid: row.original.company?.uuid || '',
+      companies_uuids: (row.original.companies ?? [])
+        .map((c) => c.uuid)
+        .filter((id): id is string => id !== null),
     },
   });
 
@@ -59,7 +61,7 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
       role_uuid: data.role_uuid,
       casa_user_name: data.casa_user_name,
       status: data.status == true ? 'active' : 'inactive',
-      company_uuid: data.company_uuid,
+      companies_uuids: data.companies_uuids,
     })
       .then((res) => {
         toast.success(res.data.message);
@@ -70,6 +72,8 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
         toast.error(error.response.data.message);
       });
   }
+
+  console.log(form.watch('companies_uuids'));
 
   return (
     <Form {...form}>
@@ -167,12 +171,16 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
 
           <FormField
             control={form.control}
-            name="company_uuid"
+            name="companies_uuids"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Compañia del Usuario</FormLabel>
                 <FormControl>
-                  <CompanySelect onValueChange={field.onChange} defaultValue={field.value} />
+                  <CompanySelect
+                    values={field.value}
+                    onValuesChange={field.onChange}
+                    placeholder="Seleccionar compañías"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

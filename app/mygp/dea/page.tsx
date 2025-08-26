@@ -29,7 +29,8 @@ const viewerHeaderClass =
 export default function DEA() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
-  const isAAP = user?.complete_user.user.company_uuid === AAP_UUID;
+  const isAAP = !!user?.complete_user?.user?.companies?.some((c) => c.uuid === AAP_UUID);
+
   const {
     clientNumber: client,
     reference,
@@ -95,11 +96,6 @@ export default function DEA() {
   React.useEffect(() => {
     if (isAuthLoading || !user || initDoneRef.current) return;
 
-    const clientNum = isAdmin || isAAP ? '000041' : user.complete_user?.user?.company_casa_id ?? '';
-    if (!client) {
-      setClientNumber(clientNum);
-      setClientName(clientsData.find(({ CVE_IMP }) => CVE_IMP == clientNum)?.NOM_IMP || '');
-    }
     initDoneRef.current = true;
   }, [isAuthLoading, user, isAdmin, client, setClientNumber, setClientName, isAAP]);
 
