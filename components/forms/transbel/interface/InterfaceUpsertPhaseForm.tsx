@@ -302,10 +302,10 @@ export default function InterfaceUpsertPhaseForm({
               </FormItem>
             )}
           />
-          {phase == '073' ? <FormItemsRevalidacion form={form} row={row} /> : ''}
-          {phase == '114' ? <FormItemsUltimoDocumento form={form} row={row} /> : ''}
-          {phase == '130' ? <FormItemsMSA form={form} row={row} /> : ''}
-          {phase == '138' ? <FormItemsEntregaTransporte form={form} row={row} /> : ''}
+          {phase == '073' && <FormItemsRevalidacion form={form} row={row} />}
+          {phase == '114' && <FormItemsUltimoDocumento form={form} row={row} />}
+          {phase == '130' && <FormItemsMSA form={form} row={row} />}
+          {phase == '138' && <FormItemsEntregaTransporte form={form} row={row} />}
 
           <FormField
             control={form.control}

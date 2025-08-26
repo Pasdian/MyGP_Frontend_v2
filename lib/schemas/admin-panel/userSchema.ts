@@ -23,6 +23,7 @@ export const addUserSchema = z
     has_casa_user: USER_HAS_CASA_USER_VALIDATION,
     casa_user_name: USER_CASA_USERNAME_VALIDATION,
     role_uuid: USER_ROLE_UUID_VALIDATION,
+    companies_uuids: USER_COMPANIES_VALIDATION,
   })
   .refine((data) => data.password === data.confirm_password, {
     error: "Las contraseñas no coinciden",

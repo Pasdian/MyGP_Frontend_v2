@@ -13,22 +13,21 @@ export default function FormItemsUltimoDocumento({
     {
       ref: string;
       phase: string;
-      exceptionCode: string | undefined;
       date: string;
       time: string;
-      user: string | undefined;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
     },
     unknown,
     {
       ref: string;
       phase: string;
-      exceptionCode: string | undefined;
       date: string;
       time: string;
-      user: string | undefined;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
     }
   >;
-
   row: Row<getRefsPendingCE>;
 }) {
   return (

@@ -1,6 +1,5 @@
 import Module from 'module';
 import { User } from '../permissions/user';
-import { Role } from '../permissions/role';
 
 export interface LoginResponse {
   message: string;
@@ -13,3 +12,17 @@ interface CompleteUser {
   role: Role;
   modules: Module[];
 }
+
+type Role = {
+  uuid: string | null;
+  name: string | null;
+  description: string | null;
+  permissions: Permission[] | null;
+};
+
+type Permission = {
+  uuid: string | null;
+  action: string | null;
+  description: string | null;
+  isChecked: boolean | null;
+};

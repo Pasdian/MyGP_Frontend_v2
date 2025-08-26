@@ -45,7 +45,10 @@ export default function DEAClientsCombo({
   onSelect: (casaId: string | null, label: string | null) => void;
 }) {
   const { user } = useAuth();
-  const allowedCompanies = user?.complete_user?.user?.companies ?? [];
+  const allowedCompanies = React.useMemo(
+    () => user?.complete_user?.user?.companies ?? [],
+    [user?.complete_user?.user?.companies]
+  );
   const isAAP = !!allowedCompanies?.some((c) => c?.uuid === AAP_UUID);
 
   const { data: allCompanies, isLoading } = useSWRImmutable<getAllCompanies[]>(
@@ -63,10 +66,10 @@ export default function DEAClientsCombo({
     [allCompanies]
   );
 
-  const visibleOptions: Option[] = React.useMemo(() => {
+  const visibleOptions = React.useMemo(() => {
     if (isAAP) return allOptions;
     const allowed = new Set(
-      (allowedCompanies ?? []).map((c) => c?.uuid).filter((id): id is string => !!id)
+      allowedCompanies.map((c) => c?.uuid).filter((id): id is string => !!id)
     );
     return allOptions.filter((o) => allowed.has(o.uuid));
   }, [isAAP, allOptions, allowedCompanies]);

@@ -4,7 +4,6 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Card } from '@/components/ui/card';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { clientsData } from '@/lib/clients/clientsData';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
 import { toast } from 'sonner';

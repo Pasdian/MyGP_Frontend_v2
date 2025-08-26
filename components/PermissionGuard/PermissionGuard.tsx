@@ -29,7 +29,7 @@ export default function PermissionGuard({
     (!isAdmin &&
       allowedPermissions &&
       !allowedPermissions.some((allowedPermission) =>
-        user.complete_user.role.permissions.some(
+        user?.complete_user?.role?.permissions?.some(
           (userPermission) => userPermission.action === allowedPermission
         )
       ))

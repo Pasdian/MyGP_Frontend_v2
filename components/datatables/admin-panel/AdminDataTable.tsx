@@ -61,7 +61,7 @@ export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTa
                       {flexRender(header.column.columnDef.header, header.getContext())}
                       {header.column.getCanFilter() ? (
                         <div>
-                          <AdminDataTableFilter<any> column={header.column} />
+                          <AdminDataTableFilter<T> column={header.column} />
                         </div>
                       ) : null}
                     </div>

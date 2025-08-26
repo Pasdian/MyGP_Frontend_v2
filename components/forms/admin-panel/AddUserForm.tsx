@@ -46,7 +46,7 @@ export default function AddUserForm({
       has_casa_user: true,
       casa_user_name: '',
       role_uuid: '',
-      company_uuid: '',
+      companies_uuids: [],
     },
   });
 
@@ -59,7 +59,7 @@ export default function AddUserForm({
       mobile: data.mobile,
       has_casa_user: data.has_casa_user,
       casa_user_name: data.casa_user_name,
-      company_uuid: data.company_uuid,
+      companies_uuids: data.companies_uuids,
     })
       .then((res) => {
         toast.success(res.data.message);
@@ -188,12 +188,16 @@ export default function AddUserForm({
 
           <FormField
             control={form.control}
-            name="company_uuid"
+            name="companies_uuids"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Compañia del Usuario</FormLabel>
                 <FormControl>
-                  <CompanySelect onValueChange={field.onChange} defaultValue={field.value} />
+                  <CompanySelect
+                    values={field.value}
+                    onValuesChange={field.onChange}
+                    placeholder="Seleccionar compañías"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

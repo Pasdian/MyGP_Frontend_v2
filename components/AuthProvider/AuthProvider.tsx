@@ -22,9 +22,7 @@ const defaultUser: LoginResponse = {
       email: '',
       mobile: '',
       status: '',
-      company_name: '',
-      company_uuid: '',
-      company_casa_id: '',
+      companies: [],
     },
     role: { uuid: '', name: '', description: '', permissions: [] },
     modules: [],
@@ -125,12 +123,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         setUser(res.data);
         setIsAuthenticated(true);
         const person = res.data.complete_user.user;
-        posthog.identify(person.email, {
+        posthog.identify(person.email ?? '', {
           uuid: person.uuid,
-          company_id: person.company_uuid,
-        });
-        posthog.group('company', person.company_uuid || '', {
-          name: person.company_name,
         });
         router.replace('/mygp/dashboard');
       })

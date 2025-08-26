@@ -1,5 +1,4 @@
 import { Module } from './module';
-import { Permission } from './permission';
 import { User } from './user';
 
 export type Role = {
@@ -9,3 +8,10 @@ export type Role = {
   modules: Module[] | null;
   permissions: Permission[] | null;
 };
+
+interface Permission {
+  uuid: string | null;
+  action: string | null;
+  description: string | null;
+  isChecked: boolean;
+}
