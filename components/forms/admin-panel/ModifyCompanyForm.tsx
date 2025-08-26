@@ -15,12 +15,12 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
-import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import { Row } from '@tanstack/react-table';
 import { companyModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import { useSWRConfig } from 'swr';
+import { CompanySchema } from '@/lib/schemas/admin-panel/companySchema';
 
 const posthogEvent =
   companyModuleEvents.find((e) => e.alias === 'COMPANY_MODIFY_COMPANY')?.eventName || '';
@@ -34,8 +34,8 @@ export default function ModifyCompanyForm({
 }) {
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof companySchema>>({
-    resolver: zodResolver(companySchema),
+  const form = useForm<z.infer<typeof CompanySchema>>({
+    resolver: zodResolver(CompanySchema),
     mode: 'onChange',
     defaultValues: {
       name: row.original.name || '',
@@ -43,7 +43,7 @@ export default function ModifyCompanyForm({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof companySchema>) {
+  async function onSubmit(data: z.infer<typeof CompanySchema>) {
     await GPClient.put(`/api/companies/updateCompany/${row.original.uuid}`, {
       name: data.name,
       casa_id: data.casa_id,

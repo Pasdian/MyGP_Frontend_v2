@@ -15,10 +15,10 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
-import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
 import { companyModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import { useSWRConfig } from 'swr';
+import { CompanySchema } from '@/lib/schemas/admin-panel/companySchema';
 
 const posthogEvent =
   companyModuleEvents.find((e) => e.alias === 'COMPANY_ADD_COMPANY')?.eventName || '';
@@ -30,8 +30,8 @@ export default function AddCompanyForm({
 }) {
   const { mutate } = useSWRConfig();
 
-  const form = useForm<z.infer<typeof companySchema>>({
-    resolver: zodResolver(companySchema),
+  const form = useForm<z.infer<typeof CompanySchema>>({
+    resolver: zodResolver(CompanySchema),
     mode: 'onChange',
     defaultValues: {
       name: '',
@@ -39,7 +39,7 @@ export default function AddCompanyForm({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof companySchema>) {
+  async function onSubmit(data: z.infer<typeof CompanySchema>) {
     await GPClient.post(`/api/companies/createCompany`, {
       name: data.name,
       casa_id: data.casa_id,
