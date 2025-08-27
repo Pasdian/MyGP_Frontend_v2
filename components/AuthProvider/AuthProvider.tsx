@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { LoginResponse } from '@/types/auth/login';
 import { jwtDecode } from 'jwt-decode';
 import posthog from 'posthog-js';
+import { User } from '@/types/user/user';
 
 type JwtClaims = { exp?: number };
 
@@ -29,20 +30,13 @@ const defaultUser: LoginResponse = {
   },
 };
 
-function safeIdentify(person: any) {
+function safeIdentify(person: User) {
   const email = person?.email;
   if (!email) return; // don't identify anonymous/partial users
 
   posthog.identify(email, {
     uuid: person?.uuid,
   });
-
-  const companyId = person?.company_uuid;
-  if (companyId) {
-    posthog.group('company', companyId, {
-      name: person?.company_name,
-    });
-  }
 }
 
 function msUntilRefresh(token: string | null | undefined): number {
@@ -71,12 +65,16 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const refresh = React.useCallback(async () => {
     // inside refresh()
     try {
-      const res = await GPClient.post('/api/auth/refreshToken', {}, { withCredentials: true });
+      const res = await GPClient.post<LoginResponse>(
+        '/api/auth/refreshToken',
+        {},
+        { withCredentials: true }
+      );
       setAccessToken(res.data.accessToken);
       setUser(res.data);
       setIsAuthenticated(true);
 
-      const person = res.data.complete_user?.user;
+      const person = res?.data?.complete_user?.user;
       safeIdentify(person); // identify only after confirmed refresh success
       return true;
     } catch (error) {
