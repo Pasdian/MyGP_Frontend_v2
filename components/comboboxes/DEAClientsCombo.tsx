@@ -58,13 +58,18 @@ export default function DEAClientsCombo({
   );
   const allOptions: Option[] = React.useMemo(
     () =>
-      (allCompanies ?? []).filter(isOption).map((c) => ({
-        uuid: c.uuid!,
-        label: c.name!,
-        casaId: c.casa_id ?? '',
-      })),
+      (allCompanies ?? [])
+        .filter(isOption)
+        // only keep if casa_id is truthy
+        .filter((c) => !!c.casa_id)
+        .map((c) => ({
+          uuid: c.uuid!,
+          label: c.name!,
+          casaId: c.casa_id!, // safe because we filtered
+        })),
     [allCompanies]
   );
+
   const visibleOptions = React.useMemo(() => {
     if (isAdmin || isAAP) return allOptions;
     const allowed = new Set(
