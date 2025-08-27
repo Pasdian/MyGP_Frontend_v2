@@ -29,6 +29,22 @@ const defaultUser: LoginResponse = {
   },
 };
 
+function safeIdentify(person: any) {
+  const email = person?.email;
+  if (!email) return; // don't identify anonymous/partial users
+
+  posthog.identify(email, {
+    uuid: person?.uuid,
+  });
+
+  const companyId = person?.company_uuid;
+  if (companyId) {
+    posthog.group('company', companyId, {
+      name: person?.company_name,
+    });
+  }
+}
+
 function msUntilRefresh(token: string | null | undefined): number {
   try {
     if (!token) return 0;
@@ -53,24 +69,19 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   // Try to refresh using HttpOnly cookie
   const refresh = React.useCallback(async () => {
+    // inside refresh()
     try {
-      // withCredentials is already true in GPClient, but keeping it explicit is fine:
       const res = await GPClient.post('/api/auth/refreshToken', {}, { withCredentials: true });
       setAccessToken(res.data.accessToken);
       setUser(res.data);
       setIsAuthenticated(true);
 
-      const person = res.data.complete_user.user;
-      posthog.identify(person.email, {
-        uuid: person.uuid,
-        company_id: person.company_uuid,
-      });
-      posthog.group('company', person.company_uuid || '', {
-        name: person.company_name,
-      });
+      const person = res.data.complete_user?.user;
+      safeIdentify(person); // identify only after confirmed refresh success
       return true;
     } catch (error) {
       console.error('Error refreshing token', error);
+      posthog.reset(); // ensure no stale identity when not authenticated
       return false;
     }
   }, []);
@@ -129,10 +140,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         setAccessToken(res.data.accessToken);
         setUser(res.data);
         setIsAuthenticated(true);
-        const person = res.data.complete_user.user;
-        posthog.identify(person.email ?? '', {
-          uuid: person.uuid,
-        });
+
+        const person = res.data.complete_user?.user;
+        safeIdentify(person); // identify only after successful login
+
         router.replace('/mygp/dashboard');
       })
       .catch((error) => {
@@ -147,6 +158,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         setAccessToken(null);
         setUser(defaultUser);
         setIsAuthenticated(false);
+
+        posthog.reset(); // drop identity, revert to anonymous
+
         router.replace('/login');
       })
       .catch((error) => {
