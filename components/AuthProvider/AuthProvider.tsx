@@ -75,28 +75,35 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  // On mount / route change
   React.useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      // If user visits /login, still attempt refresh (HttpOnly cookie)
-      if (pathname === '/login') {
-        const ok = await refresh();
-        if (!cancelled && ok) {
-          router.replace('/mygp/dashboard'); // avoid back nav to /login
+      const ok = await refresh();
+
+      if (cancelled) return;
+
+      const isPublic = pathname === '/' || pathname === '/login';
+      const isDashboard = pathname.startsWith('/mygp');
+
+      if (ok) {
+        // If logged in and on a public page, go to dashboard
+        if (isPublic && !isDashboard) {
+          router.replace('/mygp/dashboard');
           return;
         }
-        if (!cancelled) setIsLoading(false);
+        // already authenticated and on a protected page; continue
+        setIsLoading(false);
         return;
       }
 
-      // Any other route needs a valid session
-      const ok = await refresh();
-      if (!cancelled && !ok) {
+      // Not authenticated: send to login unless we’re already there
+      if (pathname !== '/login') {
         router.replace('/login');
+        return;
       }
-      if (!cancelled) setIsLoading(false);
+
+      setIsLoading(false);
     })();
 
     return () => {
