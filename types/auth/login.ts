@@ -1,4 +1,3 @@
-import Module from 'module';
 import { User } from '../permissions/user';
 
 export interface LoginResponse {
@@ -26,3 +25,8 @@ type Permission = {
   description: string | null;
   isChecked: boolean | null;
 };
+
+interface Module {
+  name: string | null;
+  description: string | null;
+}

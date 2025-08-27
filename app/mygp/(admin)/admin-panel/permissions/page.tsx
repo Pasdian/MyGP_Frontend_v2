@@ -31,6 +31,7 @@ import { Label } from '@/components/ui/label';
 
 import { Role } from '@/types/permissions/role';
 import { getAllRoles } from '@/types/roles/getAllRoles';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 type getRoleModulesAndPermissions = Role[] | null;
 const roleModulesPermissionsKey = '/api/role-modules/getRoleModulesAndPermissions';
@@ -39,11 +40,8 @@ type ItemCheckLoose = { uuid: string | null; isChecked?: boolean | null } | null
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 export default function Permissions() {
-  const {
-    data: serverData,
-    isLoading: isServerDataLoading,
-    isValidating: isServerDataValidating,
-  } = useSWRImmutable<getRoleModulesAndPermissions>(roleModulesPermissionsKey, axiosFetcher);
+  const { data: serverData, isLoading: isServerDataLoading } =
+    useSWRImmutable<getRoleModulesAndPermissions>(roleModulesPermissionsKey, axiosFetcher);
 
   // Local modifiable state
   const [rolesData, setRolesData] = React.useState<getRoleModulesAndPermissions>(serverData || []);
@@ -179,69 +177,71 @@ export default function Permissions() {
     }
   };
 
-  if (isServerDataLoading || isServerDataValidating) return <TailwindSpinner />;
+  if (isServerDataLoading) return <TailwindSpinner />;
   if (!rolesData) return <p>No hay datos</p>;
 
   return (
-    <div className="overflow-y-auto max-h-full">
-      <div className="mb-4">
-        <AddPermissionDialog />
-      </div>
-
-      {rolesData.map((role, roleIdx) => (
-        <div key={role.uuid} className="mb-12 border p-4 rounded shadow-sm">
-          <h3 className="font-bold mb-3 text-lg">El rol: {role.name}</h3>
-
-          <h2 className="font-bold mb-3 text-lg">Tiene acceso a los siguientes módulos:</h2>
-          {role.modules?.map((mod, moduleIdx) => (
-            <div key={mod.uuid} className="mb-2">
-              <div className="flex items-center">
-                <Checkbox
-                  className="mr-2"
-                  checked={!!mod.isChecked}
-                  onCheckedChange={() => handleModuleChange(roleIdx, moduleIdx)}
-                />
-                <p>{mod.name}</p>
-              </div>
-            </div>
-          ))}
-
-          <h2 className="font-bold mb-3 text-lg">Y tiene los siguientes permisos:</h2>
-          {role.permissions?.map((perm, permIdx) => (
-            <div key={perm.uuid}>
-              <div className="flex items-center">
-                <Checkbox
-                  className="mr-2"
-                  checked={!!perm.isChecked}
-                  onCheckedChange={() => handlePermissionChange(roleIdx, permIdx)}
-                />
-                {perm.action} - {perm.description}
-              </div>
-            </div>
-          ))}
-
-          {Array.isArray(role.users) && role.users.length > 0 && (
-            <div className="mt-4">
-              <p className="font-semibold">Usuarios con este rol:</p>
-              <ul className="list-disc ml-6">
-                {role.users.map((user) => (
-                  <li key={user.email}>
-                    {user.name} ({user.email})
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+    <AccessGuard allowedModules={['All Modules']} allowedRoles={['ADMIN']}>
+      <div className="overflow-y-auto max-h-full">
+        <div className="mb-4">
+          <AddPermissionDialog />
         </div>
-      ))}
 
-      <Button
-        onClick={handleSave}
-        className="fixed text-md bg-blue-600 hover:bg-blue-700 cursor-pointer bottom-5 right-13"
-      >
-        Guardar cambios
-      </Button>
-    </div>
+        {rolesData.map((role, roleIdx) => (
+          <div key={role.uuid} className="mb-12 border p-4 rounded shadow-sm">
+            <h3 className="font-bold mb-3 text-lg">El rol: {role.name}</h3>
+
+            <h2 className="font-bold mb-3 text-lg">Tiene acceso a los siguientes módulos:</h2>
+            {role.modules?.map((mod, moduleIdx) => (
+              <div key={mod.uuid} className="mb-2">
+                <div className="flex items-center">
+                  <Checkbox
+                    className="mr-2"
+                    checked={!!mod.isChecked}
+                    onCheckedChange={() => handleModuleChange(roleIdx, moduleIdx)}
+                  />
+                  <p>{mod.name}</p>
+                </div>
+              </div>
+            ))}
+
+            <h2 className="font-bold mb-3 text-lg">Y tiene los siguientes permisos:</h2>
+            {role.permissions?.map((perm, permIdx) => (
+              <div key={perm.uuid}>
+                <div className="flex items-center">
+                  <Checkbox
+                    className="mr-2"
+                    checked={!!perm.isChecked}
+                    onCheckedChange={() => handlePermissionChange(roleIdx, permIdx)}
+                  />
+                  {perm.action} - {perm.description}
+                </div>
+              </div>
+            ))}
+
+            {Array.isArray(role.users) && role.users.length > 0 && (
+              <div className="mt-4">
+                <p className="font-semibold">Usuarios con este rol:</p>
+                <ul className="list-disc ml-6">
+                  {role.users.map((user) => (
+                    <li key={user.email}>
+                      {user.name} ({user.email})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+
+        <Button
+          onClick={handleSave}
+          className="fixed text-md bg-blue-600 hover:bg-blue-700 cursor-pointer bottom-5 right-13"
+        >
+          Guardar cambios
+        </Button>
+      </div>
+    </AccessGuard>
   );
 }
 

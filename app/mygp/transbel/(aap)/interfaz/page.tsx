@@ -7,7 +7,7 @@ import React from 'react';
 import { toast } from 'sonner';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 export default function Page() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
@@ -45,7 +45,10 @@ export default function Page() {
   }, [initialDate, finalDate]);
 
   return (
-    <RoleGuard allowedRoles={['ADMIN', 'AAP']}>
+    <AccessGuard
+      allowedModules={['All Modules', 'Transbel Interfaz']}
+      allowedRoles={['ADMIN', 'AAP']}
+    >
       <div className="flex flex-col justify-center overflow-y-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
@@ -74,6 +77,6 @@ export default function Page() {
           <InterfaceDataTable />
         </InterfaceContext.Provider>
       </div>
-    </RoleGuard>
+    </AccessGuard>
   );
 }

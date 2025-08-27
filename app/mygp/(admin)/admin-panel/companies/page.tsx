@@ -3,7 +3,6 @@
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import AddCompanyButton from '@/components/buttons/admin-panel/companies/AddCompanyButton';
 import ModifyCompanyButton from '@/components/buttons/admin-panel/companies/ModifyCompanyButton';
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { getAllCompaniesColumns } from '@/lib/columns/getAllCompaniesColumns';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import React from 'react';
@@ -18,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { Row } from '@tanstack/react-table';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 function CompanyActions({ row }: { row: Row<getAllCompanies> }) {
   return (
@@ -42,13 +42,13 @@ const columns = getAllCompaniesColumns(CompanyActions);
 
 export default function Companies() {
   return (
-    <RoleGuard allowedRoles={['ADMIN']}>
+    <AccessGuard allowedModules={['All Modules']} allowedRoles={['ADMIN']}>
       <AdminCrud<getAllCompanies>
         addButton={<AddCompanyButton />}
         dataTableUrl="/api/companies/getAllCompanies"
         title="Compañias"
         columns={columns}
       />
-    </RoleGuard>
+    </AccessGuard>
   );
 }

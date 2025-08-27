@@ -20,13 +20,13 @@ const userItems = {
         {
           title: 'Entregas a Cliente',
           url: '/mygp/transbel/entregas',
-          role: ['ADMIN', 'STARS', 'AAP'],
+          module: ['Transbel Entregas', 'All Modules'],
           icon: IconListDetails,
         },
         {
           title: 'Interfaz - Cod. Exc.',
           url: '/mygp/transbel/interfaz',
-          role: ['ADMIN', 'AAP'],
+          module: ['Transbel Interfaz', 'All Modules'],
           icon: IconListDetails,
         },
       ],
@@ -37,35 +37,31 @@ const userItems = {
         {
           title: 'Usuarios',
           url: '/mygp/admin-panel/users',
-          role: ['ADMIN'],
+          module: ['All Modules'],
           icon: IconUser,
         },
         {
           title: 'Roles',
-
           url: '/mygp/admin-panel/roles',
-          role: ['ADMIN'],
+          module: ['All Modules'],
           icon: IconShield,
         },
         {
           title: 'Compañias',
-
           url: '/mygp/admin-panel/companies',
-          role: ['ADMIN'],
+          module: ['All Modules'],
           icon: IconBuilding,
         },
         {
           title: 'Módulos',
-
           url: '/mygp/admin-panel/modules',
-          role: ['ADMIN'],
+          module: ['All Modules'],
           icon: IconLayoutGrid,
         },
         {
           title: 'Permisos',
-
           url: '/mygp/admin-panel/permissions',
-          role: ['ADMIN'],
+          module: ['All Modules'],
           icon: IconKey,
         },
       ],
@@ -79,10 +75,21 @@ export default function NavCollapsible() {
 
   const filteredNav = userItems.navCollapsible
     .map((group) => {
-      const filteredItems = group.items.filter((item) =>
-        item.role.includes(user.complete_user?.role?.name || '')
-      );
-      return filteredItems.length > 0 ? { ...group, items: filteredItems } : null;
+      const userModules = (user.complete_user?.modules ?? [])
+        .map((m) => m.name)
+        .filter((n): n is string => Boolean(n)); // only valid strings
+
+      const filteredItems = group.items.filter((item) => {
+        if (!item.module?.length) return false;
+
+        // if user has "All Modules", show everything
+        if (userModules.includes('All Modules')) return true;
+
+        // otherwise check for overlap
+        return item.module.some((m) => userModules.includes(m));
+      });
+
+      return filteredItems.length ? { ...group, items: filteredItems } : null;
     })
     .filter(Boolean);
 

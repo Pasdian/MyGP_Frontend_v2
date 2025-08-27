@@ -1,7 +1,6 @@
 'use client';
 
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Card } from '@/components/ui/card';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
@@ -21,6 +20,7 @@ import { WindowManagerProvider } from '@/app/providers/WIndowManagerProvider';
 import WindowsDock from '@/components/Windows/WindowsDock';
 import WindowsLayer from '@/components/Windows/WindowsLayer';
 import { AAP_UUID } from '@/lib/companiesUUIDs/companiesUUIDs';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 const viewerHeaderClass =
   'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center z-10';
@@ -204,7 +204,7 @@ export default function DEA() {
 
   return (
     <WindowManagerProvider>
-      <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
+      <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
         <div className="h-full min-h-0">
           {reference && client && (
             <div className="h-full min-h-0">
@@ -400,7 +400,7 @@ export default function DEA() {
               </div>
             ))}
         </div>
-      </RoleGuard>
+      </AccessGuard>
     </WindowManagerProvider>
   );
 }

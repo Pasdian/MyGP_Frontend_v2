@@ -1,7 +1,6 @@
 'use client';
 
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +17,7 @@ import { getAllModulesColumns } from '@/lib/columns/getAllModulesColumns';
 import { getAllModules } from '@/types/getAllModules/getAllModules';
 import AddModuleButton from '@/components/buttons/admin-panel/modules/AddModuleButton';
 import ModifyModuleButton from '@/components/buttons/admin-panel/modules/ModifyModuleButton';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 function ModulesActions({ row }: { row: Row<getAllModules> }) {
   return (
@@ -42,13 +42,13 @@ const columns = getAllModulesColumns(ModulesActions);
 
 export default function Modules() {
   return (
-    <RoleGuard allowedRoles={['ADMIN']}>
+    <AccessGuard allowedModules={['All Modules']} allowedRoles={['ADMIN']}>
       <AdminCrud<getAllModules>
         addButton={<AddModuleButton />}
         dataTableUrl="/api/modules"
         title="Módulos"
         columns={columns}
       />
-    </RoleGuard>
+    </AccessGuard>
   );
 }

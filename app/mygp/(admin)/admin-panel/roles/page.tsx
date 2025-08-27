@@ -3,7 +3,6 @@
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import AddRoleButton from '@/components/buttons/admin-panel/roles/AddRoleButton';
 import ModifyRoleButton from '@/components/buttons/admin-panel/roles/ModifyRoleButton';
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { getAllRolesColumns } from '@/lib/columns/getAllRolesColumns';
 import { getAllRoles } from '@/types/roles/getAllRoles';
 import React from 'react';
@@ -18,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { Row } from '@tanstack/react-table';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 function RolesActions({ row }: { row: Row<getAllRoles> }) {
   return (
@@ -43,13 +43,13 @@ const columns = getAllRolesColumns(RolesActions);
 
 export default function Roles() {
   return (
-    <RoleGuard allowedRoles={['ADMIN']}>
+    <AccessGuard allowedModules={['All Modules']} allowedRoles={['ADMIN']}>
       <AdminCrud<getAllRoles>
         addButton={<AddRoleButton />}
         dataTableUrl="/api/roles"
         title="Roles"
         columns={columns}
       />
-    </RoleGuard>
+    </AccessGuard>
   );
 }

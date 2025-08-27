@@ -12,13 +12,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import DeleteUserButton from '@/components/buttons/admin-panel/users/DeleteUserButton';
 import ModifyUserButton from '@/components/buttons/admin-panel/users/ModifyUserButton';
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { getAllUsersColumns } from '@/lib/columns/getAllUsersColumns';
 import { getAllUsers } from '@/types/users/getAllUsers';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import AddUserButton from '@/components/buttons/admin-panel/users/AddUserButton';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 function UserActionsDropdown({ row }: { row: Row<getAllUsers> }) {
   const [isModifyUserDialogOpen, setIsModifyUserDialogOpen] = React.useState(false);
@@ -63,13 +63,13 @@ const columns = getAllUsersColumns(UserActionsDropdown);
 
 export default function Users() {
   return (
-    <RoleGuard allowedRoles={['ADMIN']}>
+    <AccessGuard allowedModules={['All Modules']} allowedRoles={['ADMIN']}>
       <AdminCrud<getAllUsers>
         addButton={<AddUserButton />}
         dataTableUrl="/api/users/getAllUsers"
         title="Usuarios"
         columns={columns}
       />
-    </RoleGuard>
+    </AccessGuard>
   );
 }

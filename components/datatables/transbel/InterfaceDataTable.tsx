@@ -31,7 +31,7 @@ import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
-  const { data, isValidating } = useSWRImmutable<getRefsPendingCE[]>(
+  const { data, isLoading } = useSWRImmutable<getRefsPendingCE[]>(
     initialDate && finalDate
       ? `/api/transbel/getRefsPendingCE?initialDate=${
           initialDate.toISOString().split('T')[0]
@@ -71,7 +71,7 @@ export function InterfaceDataTable() {
     });
   }, [data]);
 
-  if (isValidating) return <TailwindSpinner />;
+  if (isLoading) return <TailwindSpinner />;
 
   return (
     <div>

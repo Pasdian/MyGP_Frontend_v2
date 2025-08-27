@@ -12,7 +12,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
-import RoleGuard from '../RoleGuard/RoleGuard';
+import AccessGuard from '../AccessGuard/AccessGuard';
 
 const activeItemClass =
   'bg-blue-200 active:bg-blue-200 hover:bg-blue-300 rounded-md font-bold cursor-pointer';
@@ -50,7 +50,7 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           )}
-          <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
+          <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
             <Link href="/mygp/dea">
               <SidebarMenuItem className="flex items-center gap-2">
                 <SidebarMenuButton
@@ -62,7 +62,7 @@ export function NavMain() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </Link>
-          </RoleGuard>
+          </AccessGuard>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

@@ -1,4 +1,3 @@
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import {
@@ -16,6 +15,7 @@ import TailwindSpinner from '../TailwindSpinner';
 import useSWRImmutable, { mutate } from 'swr';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 export default function CollapsibleReferences() {
   const {
@@ -103,7 +103,7 @@ export default function CollapsibleReferences() {
     );
 
   return (
-    <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
+    <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup>
           <SidebarGroupLabel
@@ -185,6 +185,6 @@ export default function CollapsibleReferences() {
           </CollapsibleContent>
         </SidebarGroup>
       </Collapsible>
-    </RoleGuard>
+    </AccessGuard>
   );
 }

@@ -23,7 +23,7 @@ import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 
 export default function DeliveriesDataTable() {
-  const { data, isValidating } = useSWRImmutable<getDeliveries[]>(
+  const { data, isLoading } = useSWRImmutable<getDeliveries[]>(
     '/api/transbel/getDeliveries',
     axiosFetcher
   );
@@ -51,7 +51,7 @@ export default function DeliveriesDataTable() {
     });
   }, [data]);
 
-  if (isValidating) return <TailwindSpinner />;
+  if (isLoading) return <TailwindSpinner />;
 
   return (
     <div>

@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { mutate } from 'swr';
-import PermissionGuard from '../PermissionGuard/PermissionGuard';
 import PreviosDialog from '../Dialogs/PreviosDialog';
 import { Button } from './button';
 import { toast } from 'sonner';
@@ -17,6 +16,7 @@ import useSWRImmutableMutation from 'swr/mutation';
 import DEAInitialDatePicker from '../datepickers/DEAInitialDatePicker';
 import DEAFinalDatePicker from '../datepickers/DEAFinalDatePicker';
 import DEAClientsCombo from '../comboboxes/DEAClientsCombo';
+import AccessGuard from '../AccessGuard/AccessGuard';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -104,14 +104,14 @@ export function SiteHeader() {
               />
             </div>
           </div>
-          <PermissionGuard allowedPermissions={['DEA_PREVIOS']}>
+          <AccessGuard allowedPermissions={['DEA_PREVIOS']}>
             {filesByReference && reference && (
               <div className="sm:col-span-1 mr-2">
                 <PreviosDialog key={reference} />
               </div>
             )}
-          </PermissionGuard>
-          <PermissionGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
+          </AccessGuard>
+          <AccessGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
             {filesByReference && reference && client && (
               <div>
                 <Button
@@ -149,7 +149,7 @@ export function SiteHeader() {
                 </Button>
               </div>
             )}
-          </PermissionGuard>
+          </AccessGuard>
         </div>
       )}
     </header>

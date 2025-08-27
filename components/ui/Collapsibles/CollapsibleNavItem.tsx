@@ -9,7 +9,6 @@ import {
   SidebarMenuItem,
 } from '../sidebar';
 import { ChevronRight } from 'lucide-react';
-import { ForwardRefExoticComponent, RefAttributes } from 'react';
 import { Icon, IconProps } from '@tabler/icons-react';
 import Link from 'next/link';
 
@@ -21,8 +20,8 @@ export default function CollapsibleNavItem({
     items: {
       title: string;
       url: string;
-      role: string[];
-      icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>;
+      module: string[];
+      icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<Icon>>;
     }[];
     title: string;
   } | null;

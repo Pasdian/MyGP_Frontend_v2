@@ -8,7 +8,6 @@ import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
-import PermissionGuard from '../PermissionGuard/PermissionGuard';
 import { deaModuleEvents } from '@/lib/posthog/events';
 import {
   Dialog,
@@ -20,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import posthog from 'posthog-js';
 import { Button } from '../ui/button';
+import AccessGuard from '../AccessGuard/AccessGuard';
 
 const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
@@ -153,7 +153,7 @@ export default function DocumentCard({
                   <p className="break-words">{item}</p>
                 </div>
                 <div className="flex">
-                  <PermissionGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
+                  <AccessGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
                     <DownloadIcon
                       className="mr-2"
                       size={iconSize}
@@ -163,8 +163,8 @@ export default function DocumentCard({
                         posthog.capture(deaDownloadFileEvent);
                       }}
                     />
-                  </PermissionGuard>
-                  <PermissionGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
+                  </AccessGuard>
+                  <AccessGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
                     <Trash2Icon
                       size={iconSize}
                       onClick={(e) => {
@@ -173,7 +173,7 @@ export default function DocumentCard({
                         setOpenDeleteFileDialog(true);
                       }}
                     />
-                  </PermissionGuard>
+                  </AccessGuard>
                 </div>
               </div>
             );
