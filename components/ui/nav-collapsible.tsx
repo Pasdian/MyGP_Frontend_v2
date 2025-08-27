@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import React from 'react';
+import { NavItem } from '@/types/nav/navItem';
 
 const userItems = {
   navCollapsible: [
@@ -21,12 +22,14 @@ const userItems = {
           title: 'Entregas a Cliente',
           url: '/mygp/transbel/entregas',
           module: ['Transbel Entregas', 'All Modules'],
+          role: ['ADMIN', 'STARS', 'AAP'],
           icon: IconListDetails,
         },
         {
           title: 'Interfaz - Cod. Exc.',
           url: '/mygp/transbel/interfaz',
           module: ['Transbel Interfaz', 'All Modules'],
+          role: ['ADMIN', 'AAP'],
           icon: IconListDetails,
         },
       ],
@@ -38,30 +41,35 @@ const userItems = {
           title: 'Usuarios',
           url: '/mygp/admin-panel/users',
           module: ['All Modules'],
+          role: ['ADMIN'],
           icon: IconUser,
         },
         {
           title: 'Roles',
           url: '/mygp/admin-panel/roles',
           module: ['All Modules'],
+          role: ['ADMIN'],
           icon: IconShield,
         },
         {
           title: 'Compañias',
           url: '/mygp/admin-panel/companies',
           module: ['All Modules'],
+          role: ['ADMIN'],
           icon: IconBuilding,
         },
         {
           title: 'Módulos',
           url: '/mygp/admin-panel/modules',
           module: ['All Modules'],
+          role: ['ADMIN'],
           icon: IconLayoutGrid,
         },
         {
           title: 'Permisos',
           url: '/mygp/admin-panel/permissions',
           module: ['All Modules'],
+          role: ['ADMIN'],
           icon: IconKey,
         },
       ],
@@ -74,24 +82,39 @@ export default function NavCollapsible() {
   const pathname = usePathname();
 
   const filteredNav = userItems.navCollapsible
-    .map((group) => {
-      const userModules = (user.complete_user?.modules ?? [])
-        .map((m) => m.name)
-        .filter((n): n is string => Boolean(n)); // only valid strings
+    .map((group: { title: string; items: NavItem[] }) => {
+      const cu = user?.complete_user;
+
+      const userModules =
+        (cu?.modules ?? [])
+          .map((m) => m?.name)
+          .filter((n): n is string => typeof n === 'string' && n.length > 0) ?? [];
+
+      const hasAllModules = userModules.includes('All Modules');
+
+      const userRoleName =
+        typeof cu?.role?.name === 'string' && cu.role.name.length > 0 ? cu.role.name : null;
 
       const filteredItems = group.items.filter((item) => {
-        if (!item.module?.length) return false;
+        const itemModules = item.module ?? [];
+        const itemRoles = item.role ?? [];
 
-        // if user has "All Modules", show everything
-        if (userModules.includes('All Modules')) return true;
+        // Module-based access (preserves "All Modules")
+        const hasModuleAccess =
+          (itemModules.length > 0 && hasAllModules) ||
+          itemModules.some((m) => userModules.includes(m));
 
-        // otherwise check for overlap
-        return item.module.some((m) => userModules.includes(m));
+        // Role-based access (single role on the user)
+        const hasRoleAccess =
+          !!userRoleName && itemRoles.length > 0 && itemRoles.includes(userRoleName);
+
+        // Visible if either matches
+        return hasModuleAccess || hasRoleAccess;
       });
 
       return filteredItems.length ? { ...group, items: filteredItems } : null;
     })
-    .filter(Boolean);
+    .filter((g): g is NonNullable<typeof g> => Boolean(g));
 
   return (
     <>

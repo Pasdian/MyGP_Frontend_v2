@@ -11,20 +11,16 @@ import {
 import { ChevronRight } from 'lucide-react';
 import { Icon, IconProps } from '@tabler/icons-react';
 import Link from 'next/link';
+import { NavItem } from '@/types/nav/navItem';
 
 export default function CollapsibleNavItem({
   item,
   pathname,
 }: {
   item: {
-    items: {
-      title: string;
-      url: string;
-      module: string[];
-      icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<Icon>>;
-    }[];
+    items: NavItem[];
     title: string;
-  } | null;
+  };
   pathname: string;
 }) {
   if (!item) return null;
