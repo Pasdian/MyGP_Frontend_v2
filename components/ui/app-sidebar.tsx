@@ -1,8 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { IconInnerShadowTop } from '@tabler/icons-react';
-
 import { NavMain } from '@/components/ui/nav-main';
 import { NavUser } from '@/components/ui/nav-user';
 import {
