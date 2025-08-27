@@ -9,7 +9,6 @@ import {
   SidebarMenuItem,
 } from '../sidebar';
 import { ChevronRight } from 'lucide-react';
-import { Icon, IconProps } from '@tabler/icons-react';
 import Link from 'next/link';
 import { NavItem } from '@/types/nav/navItem';
 
