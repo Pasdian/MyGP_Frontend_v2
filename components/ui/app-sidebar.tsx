@@ -15,6 +15,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import NavCollapsible from './nav-collapsible';
+import Image from 'next/image';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -22,10 +23,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">MyGP.</span>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-0 overflow-visible"
+            >
+              <a href="/mygp/dashboard" className="block">
+                <Image
+                  src="/logo.avif"
+                  alt="Company logo"
+                  width={900}
+                  height={100}
+                  className="w-full h-auto"
+                  priority
+                />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
