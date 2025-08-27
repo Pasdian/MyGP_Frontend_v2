@@ -40,8 +40,6 @@ function hasAccess(opts: {
     requireAllPermissions,
   } = opts;
 
-  console.log(userModuleNames);
-  console.log(allowedModules);
   const norm = (s?: string | null) => (s ?? '').trim().toLowerCase();
 
   if (isAdmin) return true;

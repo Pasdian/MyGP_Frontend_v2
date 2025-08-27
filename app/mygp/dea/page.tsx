@@ -349,7 +349,6 @@ export default function DEA() {
                           size={16}
                           className="cursor-pointer"
                           onClick={() => {
-                            console.log('click');
                             handleFileClick(pdfUrl, fileContent, isFileBlobLoading);
                           }}
                         />

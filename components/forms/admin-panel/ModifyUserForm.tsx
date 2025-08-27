@@ -73,8 +73,6 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
       });
   }
 
-  console.log(form.watch('companies_uuids'));
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
