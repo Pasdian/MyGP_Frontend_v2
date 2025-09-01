@@ -7,12 +7,12 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '../sidebar';
-import { ChevronRight, DownloadIcon, RefreshCwIcon } from 'lucide-react';
+import { ChevronRight, DownloadIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import TailwindSpinner from '../TailwindSpinner';
-import useSWRImmutable, { mutate } from 'swr';
+import useSWRImmutable from 'swr';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
@@ -25,7 +25,6 @@ export default function CollapsibleReferences() {
     setPdfUrl,
     setFile,
     setCustom,
-    getFilesByReferenceKey,
     initialDate,
     finalDate,
   } = useDEAStore((state) => state);
@@ -111,7 +110,7 @@ export default function CollapsibleReferences() {
             className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
           >
             <CollapsibleTrigger>
-              <p className="font-bold">{filteredItems?.length || 0} referencias</p>
+              <p className="font-bold text-xs">{filteredItems?.length || 0} referencias</p>
               <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
@@ -151,14 +150,13 @@ export default function CollapsibleReferences() {
                       >
                         <div className="flex justify-between items-center">
                           <div>
-                            <p className="text-sm">{NUM_REFE}</p>
+                            <p className="max-w-[70px] text-xs truncate">{NUM_REFE}</p>
                           </div>
                           <div className="flex">
                             {FOLDER_EXISTS &&
                               (!isDownloading ? (
                                 <DownloadIcon
                                   size={14}
-                                  className={reference === NUM_REFE && FOLDER_EXISTS ? `mr-2` : ''}
                                   onClick={(e) => {
                                     e.stopPropagation(); // prevent triggering parent onClick
                                     setReference(NUM_REFE);
@@ -169,12 +167,6 @@ export default function CollapsibleReferences() {
                               ) : (
                                 <TailwindSpinner className="w-6 h-6" />
                               ))}
-                            {reference === NUM_REFE && FOLDER_EXISTS && (
-                              <RefreshCwIcon
-                                size={14}
-                                onClick={() => mutate(getFilesByReferenceKey)}
-                              />
-                            )}
                           </div>
                         </div>
                       </SidebarMenuItem>

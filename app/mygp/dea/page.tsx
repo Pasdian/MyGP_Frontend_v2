@@ -94,7 +94,6 @@ export default function DEA() {
   // Effect for sync DEA with user company
   React.useEffect(() => {
     if (isAuthLoading || !user || initDoneRef.current) return;
-
     initDoneRef.current = true;
   }, [isAuthLoading, user, isAdmin, client, setClientNumber, setClientName, isAAP]);
 
@@ -209,7 +208,8 @@ export default function DEA() {
           {reference && client && (
             <div className="h-full min-h-0">
               <div className="flex h-full min-h-0 gap-4 overflow-hidden">
-                <div className="flex flex-col min-h-0 gap-4 overflow-hidden">
+                {/* LEFT column as a vertical flex container */}
+                <div className="flex flex-col min-h-0 gap-4 overflow-hidden basis-[168px] shrink-0">
                   {/* Cuenta de Gastos */}
                   <div className="flex-1 min-h-0 overflow-hidden">
                     <DocumentCard
@@ -253,7 +253,7 @@ export default function DEA() {
                   </div>
 
                   {/* Comprobantes Fiscales */}
-                  <div className="min-h-0 overflow-hidden max-h-[clamp(200px,30vh,480px)]">
+                  <div className="flex-1 min-h-0 overflow-hidden">
                     <DocumentCard
                       className="h-full min-h-0"
                       title="Comprobantes Fiscales"
@@ -274,7 +274,8 @@ export default function DEA() {
                   </div>
                 </div>
 
-                <div className="flex flex-col min-h-0 gap-4 overflow-hidden">
+                {/* RIGHT column as a vertical flex container */}
+                <div className="flex flex-col min-h-0 gap-4 overflow-hidden basis-[168px] shrink-0">
                   <div className="flex-1 min-h-0 overflow-hidden">
                     <DocumentCard
                       className="h-full min-h-0"
@@ -338,7 +339,8 @@ export default function DEA() {
                   </div>
                 </div>
 
-                <Card className="min-h-0 flex-[1.5] p-0 overflow-hidden rounded-none">
+                {/* VIEWER */}
+                <Card className="flex-[5] min-h-0 p-0 overflow-hidden rounded-none">
                   <div className="h-full flex flex-col min-h-0 text-xs">
                     <div className={viewerHeaderClass}>
                       <p className="font-bold truncate">

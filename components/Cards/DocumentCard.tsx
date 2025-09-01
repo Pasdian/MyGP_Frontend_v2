@@ -118,7 +118,7 @@ export default function DocumentCard({
           <div>
             {isLoading ? (
               <TailwindSpinner className="w-4 h-4" />
-            ) : (files?.length ?? 0) > 0 ? (
+            ) : (
               <div className="flex">
                 <IconUpload
                   size={iconSize}
@@ -126,9 +126,11 @@ export default function DocumentCard({
                   className="cursor-pointer mr-2"
                   onClick={() => setOpenUploadDialog(true)}
                 />
-                <DownloadIcon size={iconSize} className="cursor-pointer" onClick={onDownload} />
+                {(files?.length ?? 0) > 0 && (
+                  <DownloadIcon size={iconSize} className="cursor-pointer" onClick={onDownload} />
+                )}
               </div>
-            ) : null}
+            )}
           </div>
         </div>
 
@@ -149,8 +151,8 @@ export default function DocumentCard({
                 }`}
                 onClick={() => onFileSelect(item)}
               >
-                <div className="max-w-[70%]">
-                  <p className="break-words">{item}</p>
+                <div className="max-w-[80%] truncate">
+                  <p className="truncate">{item}</p>
                 </div>
                 <div className="flex">
                   <AccessGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>

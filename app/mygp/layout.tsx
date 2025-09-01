@@ -9,7 +9,7 @@ export default function MyGPLayout({ children }: { children: React.ReactNode }) 
       className="h-dvh min-h-0 overflow-hidden"
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 52)',
+          '--sidebar-width': 'calc(var(--spacing) * 40)',
           '--header-height': 'calc(var(--spacing) * 12)',
         } as React.CSSProperties
       }
