@@ -124,12 +124,12 @@ export default function PieChartLabelList() {
   }, [chartData]);
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <div className="flex mb-5">
         <div className="mr-5">
           <InitialDatePicker date={initialDate} setDate={setInitialDate} onSelect={() => {}} />
         </div>
-        <div className=" mr-5">
+        <div className="mr-5">
           <FinalDatePicker date={finalDate} setDate={setFinalDate} onSelect={() => {}} />
         </div>
         <div>
@@ -141,7 +141,7 @@ export default function PieChartLabelList() {
           />
         </div>
       </div>
-      <Card className="flex flex-col">
+      <Card className="flex flex-col flex-1">
         <CardHeader className="items-center pb-0">
           <CardTitle>
             {initialDate && finalDate && clientName
@@ -156,10 +156,10 @@ export default function PieChartLabelList() {
               : ''}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex-1 pb-0">
+        <CardContent className="flex flex-1 pb-0 items-center justify-center">
           <ChartContainer
             config={chartConfig}
-            className="[&_.recharts-text]:fill-background mx-auto aspect-square  max-h-[550px]"
+            className="[&_.recharts-text]:fill-background mx-auto md:h-[420px]"
           >
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent nameKey="OPERATIONS" hideLabel />} />
@@ -169,7 +169,7 @@ export default function PieChartLabelList() {
                   offset={12}
                   className="font-semibold text-lg tracking-wide"
                   style={{
-                    paintOrder: 'stroke fill', // outline text for contrast
+                    paintOrder: 'stroke fill',
                     stroke: 'rgba(11,16,38,.35)',
                     strokeWidth: 3,
                   }}
@@ -195,6 +195,6 @@ export default function PieChartLabelList() {
           </CardFooter>
         )}
       </Card>
-    </>
+    </div>
   );
 }
