@@ -270,22 +270,28 @@ export default function InterfaceUpsertPhaseForm({
                 <FormLabel>Etapa a Modificar</FormLabel>
                 <FormControl>
                   <Select
+                    value={field.value} // <-- controlled
                     onValueChange={(val) => {
-                      form.reset();
-                      field.onChange(val);
-                      if (val == '073' && row.original.REVALIDACION_073) {
+                      // update phase explicitly
+                      form.setValue('phase', val, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: true,
+                      });
+
+                      // set date depending on phase & row values
+                      if (val === '073' && row.original.REVALIDACION_073) {
                         form.setValue('date', row.original.REVALIDACION_073);
-                      } else if (val == '114' && row.original.ULTIMO_DOCUMENTO_114) {
+                      } else if (val === '114' && row.original.ULTIMO_DOCUMENTO_114) {
                         form.setValue('date', row.original.ULTIMO_DOCUMENTO_114);
-                      } else if (val == '130' && row.original.MSA_130) {
+                      } else if (val === '130' && row.original.MSA_130) {
                         form.setValue('date', row.original.MSA_130);
-                      } else if (val == '138' && row.original.ENTREGA_TRANSPORTE_138) {
+                      } else if (val === '138' && row.original.ENTREGA_TRANSPORTE_138) {
                         form.setValue('date', row.original.ENTREGA_TRANSPORTE_138);
                       } else {
                         form.setValue('date', '');
                       }
                     }}
-                    defaultValue={field.value}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona una etapa..." />
