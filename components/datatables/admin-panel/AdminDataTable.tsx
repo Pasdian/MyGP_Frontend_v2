@@ -27,7 +27,7 @@ type AdminDataTableProps<T> = {
 export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTableProps<T>) {
   const { data } = useSWRImmutable<T[]>(dataTableUrl, axiosFetcher);
 
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
 
   const table = useReactTable({
     data: data || [],
