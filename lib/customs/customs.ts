@@ -1,5 +1,5 @@
 export const customs = [
-  { name: "Mazanillo", key: "160", code: "M" },
+  { name: "Manzanillo", key: "160", code: "M" },
   { name: "Nuevo Laredo", key: "240", code: "L" },
   { name: "Veracruz", key: "430", code: "V" },
   { name: "AICM", key: "470", code: "A" },
