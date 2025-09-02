@@ -27,7 +27,7 @@ export default function DeliveriesDataTable() {
     '/api/transbel/getDeliveries',
     axiosFetcher
   );
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
 
   const table = useReactTable({
     data: data ? data : [],

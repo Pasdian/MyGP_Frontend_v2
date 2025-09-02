@@ -60,11 +60,13 @@ export default function Page() {
               : null}
           </p>
         </div>
-        <div className="mb-5">
-          <InitialDatePicker date={initialDate} setDate={setInitialDate} onSelect={() => {}} />
-        </div>
-        <div className="mb-5">
-          <FinalDatePicker date={finalDate} setDate={setFinalDate} onSelect={() => {}} />
+        <div className="flex mb-5">
+          <div className="mr-5">
+            <InitialDatePicker date={initialDate} setDate={setInitialDate} onSelect={() => {}} />
+          </div>
+          <div>
+            <FinalDatePicker date={finalDate} setDate={setFinalDate} onSelect={() => {}} />
+          </div>
         </div>
       </div>
       <div>
