@@ -9,7 +9,6 @@ export type DEAState = {
   initialDate: Date | undefined;
   finalDate: Date | undefined;
   fileName: string;
-  getFilesByReferenceKey: string;
   subfolder: string;
   clientName: string;
   filesByReference: GetFilesByReference;
@@ -23,7 +22,6 @@ export type DEAActions = {
   setFinalDate: (finalDate: Date | undefined) => void;
   setPdfUrl: (pdfUrl: string) => void;
   setFile: (file: string) => void;
-  setGetFilesByReferenceKey: (key: string) => void;
   setSubfolder: (subfolder: string) => void;
   setClientName: (clientName: string) => void;
   setFilesByReference: (filesByReference: GetFilesByReference) => void;
@@ -31,9 +29,6 @@ export type DEAActions = {
 };
 
 export type DEAStore = DEAState & DEAActions;
-
-const buildFilesByReferenceKey = (reference: string, client: string) =>
-  `/dea/getFilesByReference?reference=${reference}&client=${client}`;
 
 const emptyFilesByReference = (): GetFilesByReference => ({
   files: {
@@ -61,7 +56,6 @@ export const defaultInitState: () => DEAState = () => {
     subfolder: '',
     clientName: '',
     filesByReference: emptyFilesByReference(),
-    getFilesByReferenceKey: buildFilesByReferenceKey(reference, clientNumber),
   };
 };
 
@@ -70,19 +64,14 @@ export const initDEAStore = (): DEAState => defaultInitState();
 export const createDEAStore = (initState: DEAState = defaultInitState()) => {
   return createStore<DEAStore>()((set) => ({
     ...initState,
-
     setClientNumber: (clientNumber) =>
-      set((state) => ({
+      set(() => ({
         clientNumber,
-        getFilesByReferenceKey: buildFilesByReferenceKey(state.reference, clientNumber),
       })),
-
     setReference: (reference) =>
-      set((state) => ({
+      set(() => ({
         reference,
-        getFilesByReferenceKey: buildFilesByReferenceKey(reference, state.clientNumber),
       })),
-
     setInitialDate: (initialDate) => set(() => ({ initialDate })),
     setFinalDate: (finalDate) => set(() => ({ finalDate })),
     setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),
@@ -92,8 +81,6 @@ export const createDEAStore = (initState: DEAState = defaultInitState()) => {
     setClientName: (clientName) => set(() => ({ clientName })),
 
     setFilesByReference: (filesByReference) => set(() => ({ filesByReference })),
-
-    setGetFilesByReferenceKey: (getFilesByReferenceKey) => set(() => ({ getFilesByReferenceKey })),
 
     resetDEAState: () => set(() => defaultInitState()),
   }));

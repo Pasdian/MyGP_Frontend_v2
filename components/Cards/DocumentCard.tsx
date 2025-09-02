@@ -48,7 +48,7 @@ export default function DocumentCard({
   filterFn?: (item: string) => boolean;
   folder: string;
 }) {
-  const { reference, clientNumber: client, getFilesByReferenceKey } = useDEAStore((state) => state);
+  const { reference, clientNumber: client } = useDEAStore((state) => state);
 
   const cardClassName = 'py-0 rounded-none h-full min-h-0 overflow-hidden';
   const wrapperClassName = 'h-full flex flex-col min-h-0';
@@ -60,6 +60,11 @@ export default function DocumentCard({
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
   const [openDeleteFileDialog, setOpenDeleteFileDialog] = React.useState(false);
   const [fileToDelete, setFileToDelete] = React.useState('');
+
+  const filesByReferenceKey = React.useMemo(() => {
+    if (!reference || !client) return null;
+    return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
+  }, [reference, client]);
 
   async function handleDownloadFile(file: string) {
     try {
@@ -101,7 +106,7 @@ export default function DocumentCard({
         return;
       }
       toast.success(res.data.message);
-      mutate(getFilesByReferenceKey);
+      mutate(filesByReferenceKey);
       setOpenDeleteFileDialog(false);
     } catch {
       toast.error('Error al descargar el archivo');

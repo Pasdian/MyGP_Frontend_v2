@@ -31,46 +31,76 @@ export default function CollapsibleReferences() {
 
   const [filterValue, setFilterValue] = React.useState('');
   const [url, setUrl] = React.useState('');
-  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
   const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
+
+  // Stable SWR key (fetch once per (client, dates))
+  const refsKey = React.useMemo(() => {
+    if (!clientNumber) return null; // null disables SWR
+    const makeDate = (d: Date) => d.toISOString().split('T')[0];
+
+    if (initialDate && finalDate) {
+      const i = makeDate(initialDate);
+      const f = makeDate(finalDate);
+      return `/dea/getRefsByClient?client=${clientNumber}&initialDate=${i}&finalDate=${f}`;
+    }
+    return `/dea/getRefsByClient?client=${clientNumber}`;
+  }, [clientNumber, initialDate, finalDate]);
 
   const {
     data: allReferences,
     isLoading: isAllReferencesLoading,
-  }: { data: getRefsByClient[]; isLoading: boolean } = useSWRImmutable(
-    clientNumber && initialDate && finalDate
-      ? `/dea/getRefsByClient?client=${clientNumber}&initialDate=${
-          initialDate.toISOString().split('T')[0]
-        }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : `/dea/getRefsByClient?client=${clientNumber}`,
-    axiosFetcher
+  }: { data: getRefsByClient[] | undefined; isLoading: boolean } = useSWRImmutable(
+    refsKey,
+    axiosFetcher,
+    {
+      // Make it truly “immutable” unless key changes:
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      refreshInterval: 0,
+      // The initial fetch still happens once per unique key when the cache is empty:
+      revalidateOnMount: true,
+      // Prevent accidental near-duplicate refetches within this window:
+      dedupingInterval: 60 * 60 * 1000,
+      shouldRetryOnError: false,
+    }
   );
 
-  // Zip downloading effect
+  // ZIP downloading effect
+  const { data: zipBlob } = useSWRImmutable(url || null, axiosBlobFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    refreshInterval: 0,
+    shouldRetryOnError: false,
+  });
+
   React.useEffect(() => {
     if (!zipBlob) return;
-    const downloadUrl = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = `${clientNumber}-${reference}.zip`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
 
-    setUrl('');
-    setLoadingReference('');
-    URL.revokeObjectURL(downloadUrl);
-
-    // Reset URL to allow re-download on next click
-    setUrl('');
+    try {
+      const downloadUrl = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `${clientNumber ?? 'client'}-${reference ?? 'refs'}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+    } finally {
+      // Reset state so subsequent clicks trigger a fresh fetch
+      setUrl('');
+      setLoadingReference(null);
+    }
   }, [zipBlob, clientNumber, reference]);
 
+  // Fuzzy filter
   function fuzzyFilterObjects(
     query: string,
-    list: getRefsByClient[],
+    list: getRefsByClient[] | undefined,
     keys: (keyof getRefsByClient)[]
   ) {
-    if (!list) return;
+    if (!list || !query) return list ?? [];
     const lowerQuery = query.toLowerCase();
 
     return list.filter((item) =>
@@ -82,11 +112,8 @@ export default function CollapsibleReferences() {
         let qIndex = 0;
 
         for (let i = 0; i < lowerValue.length && qIndex < lowerQuery.length; i++) {
-          if (lowerValue[i] === lowerQuery[qIndex]) {
-            qIndex++;
-          }
+          if (lowerValue[i] === lowerQuery[qIndex]) qIndex++;
         }
-
         return qIndex === lowerQuery.length;
       })
     );
@@ -94,12 +121,13 @@ export default function CollapsibleReferences() {
 
   const filteredItems = fuzzyFilterObjects(filterValue, allReferences, ['NUM_REFE']);
 
-  if (isAllReferencesLoading)
+  if (isAllReferencesLoading) {
     return (
       <div className="flex justify-center items-center">
         <TailwindSpinner className="h-8 w-8" />
       </div>
     );
+  }
 
   return (
     <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
@@ -114,6 +142,7 @@ export default function CollapsibleReferences() {
               <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
+
           <CollapsibleContent>
             <SidebarGroupContent className="pl-4">
               <SidebarMenu>
@@ -124,21 +153,22 @@ export default function CollapsibleReferences() {
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
                 />
+
                 {clientNumber &&
-                  filteredItems &&
-                  filteredItems.map(({ NUM_REFE, FOLDER_EXISTS }: getRefsByClient, i) => {
+                  filteredItems?.map(({ NUM_REFE, FOLDER_EXISTS }: getRefsByClient, i) => {
+                    const isActive = reference === NUM_REFE;
                     const isDownloading = loadingReference === NUM_REFE;
+                    const base =
+                      'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
+                    const active = FOLDER_EXISTS
+                      ? 'bg-green-300'
+                      : 'bg-red-400 cursor-not-allowed opacity-60';
+                    const normal = FOLDER_EXISTS ? 'even:bg-gray-200' : active;
 
                     return (
                       <SidebarMenuItem
-                        key={i}
-                        className={
-                          reference === NUM_REFE && FOLDER_EXISTS
-                            ? 'bg-green-300 cursor-pointer mb-1 px-1'
-                            : !FOLDER_EXISTS
-                            ? 'bg-red-400 cursor-not-allowed opacity-60 mb-1 px-1'
-                            : 'cursor-pointer mb-1 even:bg-gray-200 px-1'
-                        }
+                        key={`${NUM_REFE}-${i}`}
+                        className={`${base} ${isActive ? active : normal}`}
                         onClick={() => {
                           if (!FOLDER_EXISTS) return;
                           const custom = getCustomKeyByRef(NUM_REFE);
@@ -149,16 +179,16 @@ export default function CollapsibleReferences() {
                         }}
                       >
                         <div className="flex justify-between items-center">
-                          <div>
-                            <p className="max-w-[70px] text-xs truncate">{NUM_REFE}</p>
-                          </div>
-                          <div className="flex">
+                          <p className="max-w-[70px] text-xs truncate">{NUM_REFE}</p>
+
+                          <div className="flex items-center">
                             {FOLDER_EXISTS &&
                               (!isDownloading ? (
                                 <DownloadIcon
                                   size={14}
+                                  className="shrink-0"
                                   onClick={(e) => {
-                                    e.stopPropagation(); // prevent triggering parent onClick
+                                    e.stopPropagation(); // don’t trigger parent onClick
                                     setReference(NUM_REFE);
                                     setLoadingReference(NUM_REFE);
                                     setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);

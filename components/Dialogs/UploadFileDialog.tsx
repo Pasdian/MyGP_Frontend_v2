@@ -21,7 +21,12 @@ export default function UploadFileDialog({
   title: string;
   folder: string;
 }) {
-  const { clientNumber: client, reference, getFilesByReferenceKey } = useDEAStore((state) => state);
+  const { clientNumber: client, reference } = useDEAStore((state) => state);
+  const filesByReferenceKey = React.useMemo(() => {
+    if (!reference || !client) return null;
+    return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
+  }, [reference, client]);
+
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <Carousel>
@@ -34,7 +39,7 @@ export default function UploadFileDialog({
             <UploadMultipartToServer
               apiEndpointPath={`/dea/uploadFiles/${client}/${reference}/${folder}`}
               placeholder="Arrastra o da click aquí para subir archivos"
-              mutationKey={getFilesByReferenceKey}
+              mutationKey={filesByReferenceKey ?? ''}
               open={open}
               setOpen={setOpen}
             />

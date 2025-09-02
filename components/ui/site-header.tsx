@@ -36,9 +36,11 @@ export function SiteHeader() {
     setFinalDate,
     setPdfUrl,
     setFile,
-    getFilesByReferenceKey,
     filesByReference,
   } = useDEAStore((state) => state);
+
+  const filesByReferenceKey =
+    reference && client && `/dea/getFilesByReference?reference=${reference}&client=${client}`;
 
   // Memoize files
   const files = React.useMemo(
@@ -71,6 +73,7 @@ export function SiteHeader() {
                 setFile('');
                 setSubfolder('');
                 setPdfUrl('');
+                if (filesByReferenceKey) mutate(filesByReferenceKey);
               }}
             />
           </div>
@@ -85,6 +88,7 @@ export function SiteHeader() {
                 setFile('');
                 setSubfolder('');
                 setPdfUrl('');
+                if (filesByReferenceKey) mutate(filesByReferenceKey);
               }}
             />
           </div>
@@ -105,21 +109,21 @@ export function SiteHeader() {
             </div>
           </div>
           <AccessGuard allowedPermissions={['DEA_PREVIOS']}>
-            {filesByReference && reference && (
+            {reference && (
               <div className="sm:col-span-1 mr-2">
                 <PreviosDialog key={reference} />
               </div>
             )}
           </AccessGuard>
           <AccessGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
-            {filesByReference && reference && client && (
+            {reference && client && (
               <div>
                 <Button
                   className="w-full h-7 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
                   onClick={async () => {
                     try {
                       await triggerDigitalRecordGeneration();
-                      mutate(getFilesByReferenceKey);
+                      mutate(`/dea/getFilesByReference?reference=${reference}&client=${client}`);
                       toast.success('Expediente digital generado exitosamente');
                       posthog.capture(posthogEvent);
                     } catch (err) {

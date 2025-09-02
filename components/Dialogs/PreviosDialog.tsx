@@ -20,77 +20,67 @@ import ImageDialog from './ImageDialog';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { IconEye } from '@tabler/icons-react';
 
-function getcurrentFolder(custom: string) {
-  const char = custom.charAt(1);
-
-  if (['A', 'L', 'T'].includes(char)) {
-    return '3901';
-  }
-
-  if (['M', 'F'].includes(char)) {
-    return '3072';
-  }
-
+/** Map reference -> centralizada folder code */
+function getCurrentFolderFromReference(reference?: string) {
+  if (!reference || reference.length < 2) return '640';
+  const char = reference.charAt(1);
+  if (['A', 'L', 'T'].includes(char)) return '3901';
+  if (['M', 'F'].includes(char)) return '3072';
   return '640';
 }
 
 export default function PreviosDialog() {
   const { custom, reference } = useDEAStore((state) => state);
-
-  const [currentFolder, setCurrentFolder] = React.useState<'PARTIDAS' | 'PREVIO' | ''>('');
+  const [open, setOpen] = React.useState(false);
+  const [currentFolder, setCurrentFolder] = React.useState('');
   const [openImageDialog, setOpenImageDialog] = React.useState(false);
-  const [TreeData, setTreeData] = React.useState<TreeDataItem[]>([]);
-  const [currentItem, setCurrentItem] = React.useState<string | undefined>('');
+  const [treeData, setTreeData] = React.useState<TreeDataItem[]>([]);
+  const [currentItem, setCurrentItem] = React.useState<string>('');
 
-  const getImageKey = ({
-    custom,
-    reference,
-    currentFolder,
-    imageName,
-  }: {
-    custom?: string;
-    reference?: string;
-    currentFolder?: string;
-    imageName?: string;
-  }) => {
-    return (
-      custom &&
-      reference &&
-      currentFolder &&
-      imageName &&
-      `/dea/centralizada/${getcurrentFolder(
-        reference
-      )}/${custom}/Previos/${reference}/${currentFolder}/${imageName}`
-    );
-  };
+  // Stable SWR key
+  const baseFolder = React.useMemo(
+    () => (custom && reference ? getCurrentFolderFromReference(reference) : null),
+    [custom, reference]
+  );
 
-  const partidasPreviosKey =
-    custom &&
-    reference &&
-    `/dea/centralizada/${getcurrentFolder(reference)}/${custom}/Previos/${reference}`;
+  const partidasPreviosKey = React.useMemo(() => {
+    if (!custom || !reference || !baseFolder) return null;
+    return `/dea/centralizada/${baseFolder}/${custom}/Previos/${reference}`;
+  }, [custom, reference, baseFolder]);
 
-  const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } =
-    useSWRImmutable<PartidasPrevios>(partidasPreviosKey, axiosFetcher);
+  const {
+    data: partidasPrevios,
+    error: partidasPreviosError,
+    isLoading: isPartidasPreviosLoading,
+  } = useSWRImmutable<PartidasPrevios>(partidasPreviosKey, axiosFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    refreshInterval: 0,
+    shouldRetryOnError: false,
+  });
 
+  // Build Tree data
   React.useEffect(() => {
-    if (!partidasPrevios) return;
+    if (!partidasPrevios) {
+      setTreeData([]);
+      return;
+    }
 
-    const entries = Object.entries(partidasPrevios) as [keyof PartidasPrevios, string[]][];
-
-    const result = entries
-      .filter(([, items]) => items.length > 0)
-      .map(([currentFolderKey, items]) => ({
-        id: currentFolderKey,
-        name: `${currentFolderKey} - ${partidasPrevios[currentFolderKey].length || 0} archivos`,
-        onClick: () => {
-          setCurrentFolder(currentFolderKey);
-        },
+    const entries = Object.entries(partidasPrevios) as [string, string[]][];
+    const result: TreeDataItem[] = entries
+      .filter(([, items]) => items && items.length > 0)
+      .map(([folderKey, items]) => ({
+        id: folderKey,
+        name: `${folderKey} - ${items.length} archivos`,
+        onClick: () => setCurrentFolder(folderKey),
         children: items.map((item) => ({
-          id: item,
+          id: `${folderKey}/${item}`,
           name: item,
           onClick: () => {
-            setOpenImageDialog(true);
+            setCurrentFolder(folderKey);
             setCurrentItem(item);
+            setOpenImageDialog(true);
           },
         })),
       }));
@@ -98,59 +88,115 @@ export default function PreviosDialog() {
     setTreeData(result);
   }, [partidasPrevios]);
 
-  if (isPartidosPreviosLoading) return;
+  // Reset state when dialog closes or deps change
+  React.useEffect(() => {
+    if (!open) {
+      setCurrentFolder('');
+      setCurrentItem('');
+      setOpenImageDialog(false);
+    }
+  }, [open]);
 
-  if (!partidasPrevios)
+  React.useEffect(() => {
+    // if user changes reference/custom while dialog is open, reset selections
+    setCurrentFolder('');
+    setCurrentItem('');
+    setOpenImageDialog(false);
+  }, [reference, custom]);
+
+  // Helpers
+  const getImageKey = React.useCallback(
+    ({
+      custom: c,
+      reference: r,
+      currentFolder: cf,
+      imageName,
+    }: {
+      custom?: string;
+      reference?: string;
+      currentFolder?: string;
+      imageName?: string;
+    }) => {
+      if (!c || !r || !cf || !imageName) return null; // <— return null, not undefined
+      const folder = getCurrentFolderFromReference(r);
+      return `/dea/centralizada/${folder}/${c}/Previos/${r}/${cf}/${imageName}`;
+    },
+    []
+  );
+
+  const disabled = !custom || !reference;
+  const hasAnyData = !!treeData.length;
+  const showNoPreviosInDialog =
+    !isPartidasPreviosLoading && !partidasPreviosError && partidasPrevios && !hasAnyData;
+
+  if (!hasAnyData)
     return (
-      <Button disabled className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs">
+      <Button
+        disabled
+        className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs cursor-pointer disabled:opacity-60"
+      >
         No existen previos
       </Button>
     );
 
   return (
     <>
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs cursor-pointer">
+          <Button
+            className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs cursor-pointer disabled:opacity-60"
+            disabled={disabled}
+            title={disabled ? 'Selecciona aduana y referencia' : 'Ver previos'}
+          >
             <IconEye />
             Ver Previos
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-h-[800px] overflow-y-auto">
+
+        <DialogContent className="max-h-[600px] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Previos - {reference}</DialogTitle>
+            <DialogTitle>Previos {reference ? `- ${reference}` : ''}</DialogTitle>
             <DialogDescription>
-              Aquí se listan los previos y las partidas de la referencia {reference}
+              Aquí se listan los previos y las partidas de la referencia {reference ?? '—'}
             </DialogDescription>
           </DialogHeader>
+
           <div>
-            {isPartidosPreviosLoading && <TailwindSpinner className="w-10 h-10" />}
-            {TreeData.length == 0 && !isPartidosPreviosLoading && (
-              <p className="text-sm ml-3">No se encontraron datos.</p>
+            {isPartidasPreviosLoading && <TailwindSpinner className="w-10 h-10" />}
+
+            {partidasPreviosError && (
+              <p className="text-sm ml-3 text-red-600">No se pudieron cargar los previos.</p>
             )}
-            {custom && !isPartidosPreviosLoading && (
-              <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={TreeData} />
+
+            {!isPartidasPreviosLoading && !partidasPreviosError && !partidasPrevios && (
+              <p className="text-sm ml-3">No existen previos.</p>
+            )}
+
+            {showNoPreviosInDialog && <p className="text-sm ml-3">No se encontraron datos.</p>}
+
+            {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && custom && (
+              <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={treeData} />
             )}
           </div>
         </DialogContent>
       </Dialog>
-      {currentFolder && custom && reference && currentFolder && currentItem && (
-        <ImageDialog
-          onOpenChange={(val) => {
-            setOpenImageDialog(val);
-          }}
-          key={currentItem}
-          partidasPrevios={partidasPrevios}
-          open={openImageDialog}
-          getImageKey={getImageKey}
-          previoInfo={{
-            custom,
-            reference,
-            currentFolder,
-            imageName: currentItem,
-          }}
-        />
-      )}
+
+      {/* Image dialog */}
+      {openImageDialog &&
+        currentFolder &&
+        custom &&
+        reference &&
+        currentItem &&
+        partidasPrevios && (
+          <ImageDialog
+            key={`${currentFolder}/${currentItem}`}
+            open={openImageDialog}
+            onOpenChange={setOpenImageDialog}
+            partidasPrevios={partidasPrevios}
+            getImageKey={getImageKey}
+            previoInfo={{ custom, reference, currentFolder, imageName: currentItem }}
+          />
+        )}
     </>
   );
 }

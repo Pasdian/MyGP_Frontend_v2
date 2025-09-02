@@ -6,7 +6,6 @@ import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance'
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
 import { toast } from 'sonner';
-import { mutate } from 'swr';
 import useSWRImmutable from 'swr';
 import DocumentCard from '@/components/Cards/DocumentCard';
 import { ExternalLink } from 'lucide-react';
@@ -44,60 +43,104 @@ export default function DEA() {
     setPdfUrl,
     fileName,
     setFile,
-    getFilesByReferenceKey,
   } = useDEAStore((state) => state);
 
-  const [url, setUrl] = React.useState('');
+  // Local state
+  const [url, setUrl] = React.useState(''); // zip download endpoint
   const [fileContent, setFileContent] = React.useState('');
   const [subfolderLoading, setSubfolderLoading] = React.useState('');
   const [windows, setWindows] = React.useState<DEAWindowData[]>([]);
   const [nextId, setNextId] = React.useState(1);
   const [logoUrl, setLogoUrl] = React.useState<string | null | undefined>(undefined);
+  const initDoneRef = React.useRef(false);
 
-  const { data: zipBlob } = useSWRImmutable(url, axiosBlobFetcher);
+  // Stable SWR keys
+  const filesByReferenceKey = React.useMemo(() => {
+    if (!reference || !client) return null;
+    return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
+  }, [reference, client]);
 
-  const { data: filesByReference }: { data: getFilesByReference } = useSWRImmutable(
-    getFilesByReferenceKey,
-    axiosFetcher
+  const fileBlobKey = React.useMemo(() => {
+    if (!client || !reference || !subfolder || !fileName) return null;
+    return `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${fileName}`;
+  }, [client, reference, subfolder, fileName]);
+
+  const logoKey = React.useMemo(() => {
+    if (!client) return null;
+    return `/dea/getClientLogo/${client}`;
+  }, [client]);
+
+  // Zip endpoint key: only fetch when we have a non-empty URL
+  const zipKey = url || null;
+
+  // SWR: Files for Reference
+  const { data: filesByReference }: { data: getFilesByReference | undefined } = useSWRImmutable(
+    filesByReferenceKey,
+    axiosFetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      refreshInterval: 0,
+      revalidateOnMount: true,
+      dedupingInterval: 60 * 60 * 1000,
+      shouldRetryOnError: false,
+    }
   );
 
   const files = React.useMemo(
     () => filesByReference?.files ?? ({} as Record<string, string[]>),
     [filesByReference]
   );
-
   const filesCTA = React.useMemo(() => files['01-CTA-GASTOS'] ?? [], [files]);
   const filesVUCEM = React.useMemo(() => files['04-VUCEM'] ?? [], [files]);
   const filesExpAduanal = React.useMemo(() => files['02-EXPEDIENTE-ADUANAL'] ?? [], [files]);
   const filesFiscales = React.useMemo(() => files['03-FISCALES'] ?? [], [files]);
   const filesExpDigital = React.useMemo(() => files['05-EXP-DIGITAL'] ?? [], [files]);
 
-  const initDoneRef = React.useRef(false);
-
+  // SWR: File content (PDF or text)
   const { data: fileBlob, isLoading: isFileBlobLoading } = useSWRImmutable(
-    client &&
-      reference &&
-      subfolder &&
-      fileName &&
-      `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${fileName}`,
-    axiosBlobFetcher
+    fileBlobKey,
+    axiosBlobFetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      refreshInterval: 0,
+      shouldRetryOnError: false,
+    }
   );
 
+  // SWR: Client logo
   const {
     data: logoBlob,
     error: logoError,
     isLoading: isLogoBlobLoading,
-  } = useSWRImmutable(client ? `/dea/getClientLogo/${client}` : null, axiosBlobFetcher, {
+  } = useSWRImmutable(logoKey, axiosBlobFetcher, {
     revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    refreshInterval: 0,
+    shouldRetryOnError: false,
   });
 
-  // Effect for sync DEA with user company
+  // SWR: Zip download
+  const { data: zipBlob } = useSWRImmutable(zipKey, axiosBlobFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    refreshInterval: 0,
+    shouldRetryOnError: false,
+  });
+
+  // One-time init (if you later need to sync DEA with user’s company)
   React.useEffect(() => {
     if (isAuthLoading || !user || initDoneRef.current) return;
     initDoneRef.current = true;
+    // setClientNumber(...); setClientName(...); // left as-is per your original code
   }, [isAuthLoading, user, isAdmin, client, setClientNumber, setClientName, isAAP]);
 
-  // View logo effect
+  // Logo effect (with cleanup)
   React.useEffect(() => {
     if (logoError) {
       setLogoUrl(null);
@@ -105,85 +148,95 @@ export default function DEA() {
     }
     if (!logoBlob) return;
 
+    let tempUrl: string | null = null;
     if (logoBlob.type === 'image/png') {
-      const url = URL.createObjectURL(logoBlob);
-      setLogoUrl(url);
-      return () => URL.revokeObjectURL(url);
+      tempUrl = URL.createObjectURL(logoBlob);
+      setLogoUrl(tempUrl);
     } else {
       setLogoUrl(null);
     }
+
+    return () => {
+      if (tempUrl) URL.revokeObjectURL(tempUrl);
+    };
   }, [logoBlob, logoError]);
 
-  // Pdf viewer effect
+  // File viewer effect (PDF vs text)
   React.useEffect(() => {
-    async function parseBlob() {
-      if (!fileBlob) return;
+    if (!fileBlob) return;
 
-      if (fileBlob.type == 'application/pdf') {
+    let tempUrl: string | null = null;
+
+    (async () => {
+      if (fileBlob.type === 'application/pdf') {
         setFileContent('');
-        const url = URL.createObjectURL(fileBlob);
-        setPdfUrl(url);
-        return () => URL.revokeObjectURL(url);
+        tempUrl = URL.createObjectURL(fileBlob);
+        setPdfUrl(tempUrl);
       } else {
         setPdfUrl('');
         const text = await fileBlob.text();
         setFileContent(text);
       }
-    }
-    parseBlob();
+    })();
+
+    return () => {
+      if (tempUrl) URL.revokeObjectURL(tempUrl);
+    };
   }, [fileBlob, setPdfUrl]);
 
-  // Zip downloading effect
+  // Zip downloading effect (single reset, safe cleanup)
   React.useEffect(() => {
     if (!zipBlob) return;
+
     const downloadUrl = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = `${client}-${reference}-${subfolder}.zip`;
+    a.download = `${client ?? 'client'}-${reference ?? 'ref'}-${subfolder ?? 'folder'}.zip`;
     document.body.appendChild(a);
     a.click();
-    a.remove();
+    document.body.removeChild(a);
 
-    setUrl('');
     URL.revokeObjectURL(downloadUrl);
-    setUrl('');
+    setUrl(''); // single reset is enough
     setSubfolderLoading('');
   }, [zipBlob, client, reference, subfolder]);
 
-  // State for the site header to track the number of Expediente Digital files
+  // Provide files count upstream (keep as-is)
   React.useEffect(() => {
+    if (!filesByReference) return;
     setFilesByReference(filesByReference);
-  }, [files, filesByReference, setFilesByReference]);
+  }, [filesByReference, setFilesByReference]);
 
-  // Validate dates effect
+  // Date validation
   React.useEffect(() => {
-    function validateDates() {
-      if (!initialDate || !user || isAuthLoading || !client) return;
-      if (!finalDate) {
-        toast.error('Selecciona una fecha de término');
-        return;
-      }
-      const today = new Date();
-      const start = new Date(initialDate);
-      const end = new Date(finalDate);
-
-      if (start > today)
-        return toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
-      if (end > today)
-        return toast.error('La fecha de término no puede ser mayor a la fecha actual');
-      if (start >= end)
-        return toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
-
-      mutate(getFilesByReferenceKey);
+    if (!initialDate || !user || isAuthLoading || !client) return;
+    if (!finalDate) {
+      toast.error('Selecciona una fecha de término');
+      return;
     }
-    validateDates();
-  }, [initialDate, finalDate, client, reference, getFilesByReferenceKey, isAuthLoading, user]);
+    const today = new Date();
+    const start = new Date(initialDate);
+    const end = new Date(finalDate);
+
+    if (start > today) {
+      toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
+      return;
+    }
+    if (end > today) {
+      toast.error('La fecha de término no puede ser mayor a la fecha actual');
+      return;
+    }
+    if (start >= end) {
+      toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
+      return;
+    }
+  }, [initialDate, finalDate, client, isAuthLoading, user]);
 
   const handleFileClick = (pdfUrl: string, fileContent: string, isLoading: boolean) => {
     const width = 760;
     const height = 800;
 
-    const data = {
+    const data: DEAWindowData = {
       id: nextId,
       title: fileName,
       pdfUrl,
@@ -196,8 +249,9 @@ export default function DEA() {
       visible: true,
       collapse: false,
     };
+    data.prevData = { ...data };
 
-    setWindows((prev) => [...prev, { ...data, prev: data }]);
+    setWindows((prev) => [...prev, data]);
     setNextId((id) => id + 1);
   };
 
@@ -208,7 +262,7 @@ export default function DEA() {
           {reference && client && (
             <div className="h-full min-h-0">
               <div className="flex h-full min-h-0 gap-4 overflow-hidden">
-                {/* LEFT column as a vertical flex container */}
+                {/* LEFT column */}
                 <div className="flex flex-col min-h-0 gap-4 overflow-hidden basis-[168px] shrink-0">
                   {/* Cuenta de Gastos */}
                   <div className="flex-1 min-h-0 overflow-hidden">
@@ -274,8 +328,9 @@ export default function DEA() {
                   </div>
                 </div>
 
-                {/* RIGHT column as a vertical flex container */}
+                {/* RIGHT column */}
                 <div className="flex flex-col min-h-0 gap-4 overflow-hidden basis-[168px] shrink-0">
+                  {/* COVES */}
                   <div className="flex-1 min-h-0 overflow-hidden">
                     <DocumentCard
                       className="h-full min-h-0"
@@ -296,6 +351,7 @@ export default function DEA() {
                       filterFn={(item) => item.includes('COVE') || item.includes('PSIM')}
                     />
                   </div>
+
                   {/* EDocs */}
                   <div className="flex-1 min-h-0 overflow-hidden">
                     <DocumentCard
@@ -317,6 +373,7 @@ export default function DEA() {
                       filterFn={(item) => !item.includes('COVE') && !item.includes('PSIM')}
                     />
                   </div>
+
                   {/* Expediente Digital */}
                   <div className="flex-1 min-h-0 overflow-hidden">
                     <DocumentCard
