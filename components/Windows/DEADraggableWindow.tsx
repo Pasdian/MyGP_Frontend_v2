@@ -5,8 +5,9 @@ import { Minus, X, Minimize2Icon, SquareIcon } from 'lucide-react';
 import DEAFileVisualizer from '../DEAVisualizer/DEAVisualizer';
 import { DEAWindowData as WindowData } from '@/types/dea/deaFileVisualizerData';
 import { useWindowManager } from '@/app/providers/WIndowManagerProvider';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+
 const HEADER_HEIGHT = 32;
+
 export default function DEADraggableWindow({
   draggableWindow,
   setWindows,
@@ -15,20 +16,29 @@ export default function DEADraggableWindow({
   setWindows: React.Dispatch<React.SetStateAction<WindowData[]>>;
 }) {
   const { activeWindowId, setActiveWindowId } = useWindowManager();
-  const { setPdfUrl } = useDEAStore((state) => state);
   const [interacting, setInteracting] = React.useState(false);
   const [maximized, setMaximized] = React.useState(false);
   const prevState = React.useRef<{ x: number; y: number; width: number; height: number } | null>(
     null
   );
+
   const wrapperRef = React.useRef<HTMLDivElement>(null);
 
+  // Effect for setting active window id
   React.useEffect(() => {
     if (!draggableWindow.visible && activeWindowId === draggableWindow.id) {
       setActiveWindowId(null);
     }
   }, [draggableWindow.visible, activeWindowId, draggableWindow.id, setActiveWindowId]);
 
+  // Effect for focusing recently open window
+  React.useEffect(() => {
+    if (draggableWindow.visible) {
+      setActiveWindowId(draggableWindow.id);
+    }
+  }, [draggableWindow.visible, draggableWindow.id, draggableWindow.pdfUrl, setActiveWindowId]);
+
+  // Effect for allowing the user to click outside the window manager
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -95,6 +105,7 @@ export default function DEADraggableWindow({
     }
     setActiveWindowId(id);
   };
+
   const isActive = activeWindowId === draggableWindow.id;
 
   return (
@@ -193,25 +204,21 @@ export default function DEADraggableWindow({
         onDragStart={() => {
           setInteracting(true);
           setActiveWindowId(draggableWindow.id);
-          setPdfUrl(draggableWindow.pdfUrl);
         }}
         onResizeStart={() => {
           setInteracting(true);
           setActiveWindowId(draggableWindow.id);
-          setPdfUrl(draggableWindow.pdfUrl);
         }}
         onDragStop={(_, d) => {
           setInteracting(false);
           updateWindowPosition(draggableWindow.id, d.x, d.y);
           setActiveWindowId(draggableWindow.id);
-          setPdfUrl(draggableWindow.pdfUrl);
         }}
         onResizeStop={(_, __, ref, ___, position) => {
           setInteracting(false);
           updateWindowSize(draggableWindow.id, ref.offsetWidth, ref.offsetHeight);
           updateWindowPosition(draggableWindow.id, position.x, position.y);
           setActiveWindowId(draggableWindow.id);
-          setPdfUrl(draggableWindow.pdfUrl);
         }}
         style={{
           border: '3px solid black',

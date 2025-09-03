@@ -8,7 +8,7 @@ import React from 'react';
 import { toast } from 'sonner';
 import useSWRImmutable from 'swr';
 import DocumentCard from '@/components/Cards/DocumentCard';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, HelpCircle } from 'lucide-react';
 import DEADraggableWindow from '@/components/Windows/DEADraggableWindow';
 import DEAFileVisualizer from '@/components/DEAVisualizer/DEAVisualizer';
 import { DEAWindowData } from '@/types/dea/deaFileVisualizerData';
@@ -20,9 +20,63 @@ import WindowsDock from '@/components/Windows/WindowsDock';
 import WindowsLayer from '@/components/Windows/WindowsLayer';
 import { AAP_UUID } from '@/lib/companiesUUIDs/companiesUUIDs';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { driver } from 'driver.js';
 
 const viewerHeaderClass =
   'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center z-10';
+
+// Reusable helper: build the tour for the External Link icon
+function buildExternalLinkTour() {
+  return driver({
+    allowClose: true,
+    showProgress: false,
+    popoverClass: 'text-xs',
+    showButtons: ['next', 'close'],
+    nextBtnText: 'Siguiente',
+    doneBtnText: 'Cerrar',
+
+    steps: [
+      {
+        element: '#dea-external-link',
+        popover: {
+          title: 'Abrir en ventana flotante',
+          description:
+            'Haz clic aquí para abrir el archivo seleccionado en una ventana flotante e independiente. Puedes moverla, redimensionarla y mantener varias abiertas.',
+          side: 'left',
+          align: 'start',
+        },
+      },
+    ],
+  });
+}
+
+function useRunTourOnce({
+  enabled,
+  userId,
+  storageKey = 'dea-external-link-tour-v1',
+}: {
+  enabled: boolean;
+  userId?: string | number;
+  storageKey?: string;
+}) {
+  React.useEffect(() => {
+    if (!enabled) return;
+    if (typeof window === 'undefined') return;
+
+    const KEY = `${storageKey}:${userId ?? 'anon'}`;
+    if (localStorage.getItem(KEY)) return; // already shown
+
+    const el = document.querySelector('#dea-external-link');
+    if (!el) return; // wait until the icon exists
+
+    const d = buildExternalLinkTour();
+
+    // Mark as seen as soon as we start (simplest & robust)
+    localStorage.setItem(KEY, '1');
+
+    d.drive();
+  }, [enabled, userId, storageKey]);
+}
 
 export default function DEA() {
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -45,6 +99,12 @@ export default function DEA() {
     setFile,
   } = useDEAStore((state) => state);
 
+  useRunTourOnce({
+    enabled: Boolean(fileName), // will become true after onFileSelect
+    userId: user?.complete_user?.user?.uuid ?? 'anon',
+    // storageKey is optional; defaults to 'dea-external-link-tour-v1'
+  });
+
   // Local state
   const [url, setUrl] = React.useState(''); // zip download endpoint
   const [fileContent, setFileContent] = React.useState('');
@@ -54,12 +114,13 @@ export default function DEA() {
   const [logoUrl, setLogoUrl] = React.useState<string | null | undefined>(undefined);
   const initDoneRef = React.useRef(false);
 
-  // Stable SWR keys
+  const isPdf = Boolean(pdfUrl);
   const filesByReferenceKey = React.useMemo(() => {
     if (!reference || !client) return null;
     return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
   }, [reference, client]);
 
+  // Stable SWR keys
   const fileBlobKey = React.useMemo(() => {
     if (!client || !reference || !subfolder || !fileName) return null;
     return `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${fileName}`;
@@ -137,7 +198,7 @@ export default function DEA() {
   React.useEffect(() => {
     if (isAuthLoading || !user || initDoneRef.current) return;
     initDoneRef.current = true;
-    // setClientNumber(...); setClientName(...); // left as-is per your original code
+    // setClientNumber(...); setClientName(...);
   }, [isAuthLoading, user, isAdmin, client, setClientNumber, setClientName, isAAP]);
 
   // Logo effect (with cleanup)
@@ -278,6 +339,29 @@ export default function DEA() {
     setWindows((prev) => [...prev, data]);
     setNextId((id) => id + 1);
   };
+
+  // 🔔 Auto-run the one-time tour the first time a file is selected
+  React.useEffect(() => {
+    if (!fileName) return; // only after user has a file context
+    if (typeof window === 'undefined') return;
+
+    const TOUR_KEY = 'dea-external-link-tour-v1';
+    if (localStorage.getItem(TOUR_KEY)) return; // already shown
+
+    // Ensure the icon exists in DOM before starting tour
+    const el = document.querySelector('#dea-external-link');
+    if (!el) return;
+
+    const d = buildExternalLinkTour();
+    d.drive();
+    localStorage.setItem(TOUR_KEY, '1');
+  }, [fileName]);
+
+  // Manual trigger handler (help icon)
+  const startTour = React.useCallback(() => {
+    const d = buildExternalLinkTour();
+    d.drive();
+  }, []);
 
   return (
     <WindowManagerProvider>
@@ -427,20 +511,36 @@ export default function DEA() {
                       <p className="font-bold truncate">
                         Visor de Archivos{fileName ? ` - ${fileName}` : ''}
                       </p>
-                      {fileName && (
-                        <ExternalLink
-                          size={16}
-                          className="cursor-pointer"
-                          onClick={handleFileClick}
-                        />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {/* Help trigger to replay the tour */}
+                        <button
+                          type="button"
+                          aria-label="¿Cómo funciona?"
+                          className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
+                          onClick={startTour}
+                        >
+                          <HelpCircle size={16} />
+                        </button>
+                        {fileName && (
+                          <button
+                            id="dea-external-link"
+                            type="button"
+                            aria-label="Abrir en ventana separada"
+                            className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
+                            onClick={handleFileClick}
+                          >
+                            <ExternalLink size={16} className="cursor-pointer" />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex-1 min-h-0 overflow-auto">
                       <DEAFileVisualizer
-                        content={fileContent}
+                        key={`main-${isPdf ? pdfUrl : fileName || 'none'}`}
+                        content={isPdf ? '' : fileContent}
                         isLoading={isFileBlobLoading}
-                        pdfUrl={pdfUrl}
+                        pdfUrl={isPdf ? pdfUrl : undefined}
                       />
                     </div>
                   </div>

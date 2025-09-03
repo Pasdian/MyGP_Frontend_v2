@@ -2,6 +2,7 @@
 
 import { useWindowManager } from '@/app/providers/WIndowManagerProvider';
 import TailwindSpinner from '../ui/TailwindSpinner';
+import React from 'react';
 
 export default function DEAFileVisualizer({
   content,
@@ -12,39 +13,48 @@ export default function DEAFileVisualizer({
 }: {
   content: string;
   isLoading: boolean;
-  pdfUrl?: string; // ✅ new prop
+  pdfUrl?: string;
   windowId?: number;
   interacting?: boolean;
 }) {
   const { activeWindowId } = useWindowManager();
 
+  // Derive exactly one mode
   const text = content;
-  const hasText = !!text && !isLoading;
-  const hasPdf = !!pdfUrl && !isLoading;
+  const hasText = Boolean(text);
+  const hasPdf = Boolean(pdfUrl);
 
-  const allowPointerEvents =
-    windowId != null ? activeWindowId === windowId && !interacting : activeWindowId == null;
+  const mode: 'loading' | 'pdf' | 'text' | 'empty' = React.useMemo(() => {
+    if (isLoading) return 'loading';
+    if (hasPdf) return 'pdf';
+    if (hasText) return 'text';
+    return 'empty';
+  }, [isLoading, hasPdf, hasText]);
+
+  // Pointer lock: only the active floating window should interact; main viewer always can
+  const allowPointerEvents = windowId == null ? true : activeWindowId === windowId && !interacting;
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      {isLoading && (
+      {mode === 'loading' && (
         <div className="flex-1 min-h-0 w-full flex items-center justify-center">
           <TailwindSpinner />
         </div>
       )}
 
-      {hasText && (
+      {mode === 'text' && (
         <div className="flex-1 min-h-0 w-full overflow-auto">
           <pre
             className="p-4 m-0"
             style={{ whiteSpace: 'pre-wrap', background: '#f6f8fa', wordBreak: 'break-word' }}
+            role="document"
           >
             {text}
           </pre>
         </div>
       )}
 
-      {hasPdf && (
+      {mode === 'pdf' && (
         <div className="flex-1 min-h-0 w-full relative">
           <iframe
             src={pdfUrl}
@@ -56,7 +66,7 @@ export default function DEAFileVisualizer({
         </div>
       )}
 
-      {!isLoading && !hasText && !hasPdf && (
+      {mode === 'empty' && (
         <div className="flex-1 min-h-0 w-full flex items-center justify-center text-sm text-muted-foreground">
           Sin archivo seleccionado.
         </div>
