@@ -73,20 +73,16 @@ export default function DocumentCard({
         null,
         { responseType: 'blob' }
       );
+
       if (res.status !== 200) {
         toast.error(`Error al descargar el archivo (${res.status})`);
         return;
       }
-      let downloadName = file;
-      const disposition = res.headers['content-disposition'];
-      if (disposition) {
-        const match = disposition.match(/filename="?(.+)"?/);
-        if (match?.[1]) downloadName = match[1];
-      }
+
       const url = window.URL.createObjectURL(res.data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = downloadName;
+      link.download = file;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
