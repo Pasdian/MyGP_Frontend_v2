@@ -1,35 +1,27 @@
 'use client';
 
-import { useDEAStore } from '@/app/providers/dea-store-provider';
-import TailwindSpinner from '../ui/TailwindSpinner';
 import { useWindowManager } from '@/app/providers/WIndowManagerProvider';
+import TailwindSpinner from '../ui/TailwindSpinner';
 
 export default function DEAFileVisualizer({
   content,
   isLoading,
-  windowId, // when inside a draggable window
-  interacting = false, // window is being dragged/resized
-  pdfSrcOverride, // prefer window's PDF
-  contentOverride, // prefer window's text
+  pdfUrl,
+  windowId,
+  interacting = false,
 }: {
-  content: string; // fallback for the main viewer
+  content: string;
   isLoading: boolean;
+  pdfUrl?: string; // ✅ new prop
   windowId?: number;
   interacting?: boolean;
-  pdfSrcOverride?: string;
-  contentOverride?: string;
 }) {
-  const storePdfUrl = useDEAStore((s) => s.pdfUrl);
   const { activeWindowId } = useWindowManager();
 
-  const pdfUrl = pdfSrcOverride ?? storePdfUrl;
-  const text = contentOverride ?? content;
-
+  const text = content;
   const hasText = !!text && !isLoading;
   const hasPdf = !!pdfUrl && !isLoading;
 
-  // main viewer: interactive when NO pop-out is active
-  // window viewer: interactive only when this window is active and not interacting
   const allowPointerEvents =
     windowId != null ? activeWindowId === windowId && !interacting : activeWindowId == null;
 

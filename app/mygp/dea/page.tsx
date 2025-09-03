@@ -232,18 +232,42 @@ export default function DEA() {
     }
   }, [initialDate, finalDate, client, isAuthLoading, user]);
 
-  const handleFileClick = (pdfUrl: string, fileContent: string, isLoading: boolean) => {
+  const handleFileClick = async () => {
+    // Spawn at the center of the browser
     const width = 760;
     const height = 800;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const x = (viewportWidth - width) / 2;
+    const y = (viewportHeight - height) / 2;
+
+    // Build per-window state
+    let windowPdfUrl = '';
+    let windowText = '';
+
+    if (fileBlob) {
+      if (fileBlob.type === 'application/pdf') {
+        // 👇 New, independent URL for THIS window
+        windowPdfUrl = URL.createObjectURL(fileBlob);
+      } else {
+        windowText = await fileBlob.text();
+      }
+    } else {
+      // fallback to whatever you already had (optional)
+      windowPdfUrl = pdfUrl || '';
+      windowText = fileContent || '';
+    }
 
     const data: DEAWindowData = {
       id: nextId,
       title: fileName,
-      pdfUrl,
-      content: fileContent,
-      isLoading,
-      x: 0,
-      y: 0,
+      pdfUrl: windowPdfUrl, // <- unique per window
+      content: windowText,
+      isLoading: false,
+      x,
+      y,
       width,
       height,
       visible: true,
@@ -407,15 +431,17 @@ export default function DEA() {
                         <ExternalLink
                           size={16}
                           className="cursor-pointer"
-                          onClick={() => {
-                            handleFileClick(pdfUrl, fileContent, isFileBlobLoading);
-                          }}
+                          onClick={handleFileClick}
                         />
                       )}
                     </div>
 
                     <div className="flex-1 min-h-0 overflow-auto">
-                      <DEAFileVisualizer content={fileContent} isLoading={isFileBlobLoading} />
+                      <DEAFileVisualizer
+                        content={fileContent}
+                        isLoading={isFileBlobLoading}
+                        pdfUrl={pdfUrl}
+                      />
                     </div>
                   </div>
                 </Card>
