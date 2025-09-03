@@ -60,6 +60,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [accessToken, setAccessToken] = React.useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoginLoading, setIsLoginLoading] = React.useState(false);
 
   // Try to refresh using HttpOnly cookie
   const refresh = React.useCallback(async () => {
@@ -132,6 +133,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, [pathname, accessToken, refresh, router]);
 
   async function login(data: { email: string; password: string }) {
+    setIsLoginLoading(true);
     return GPClient.post('/api/auth/login', data, { withCredentials: true })
       .then((res: { data: LoginResponse }) => {
         toast.success(res.data.message);
@@ -143,9 +145,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         safeIdentify(person); // identify only after successful login
 
         router.replace('/mygp/dashboard');
+        setIsLoginLoading(false);
       })
       .catch((error) => {
         toast.error(error.response?.data?.message || 'Login failed');
+        setIsLoginLoading(false);
       });
   }
 
@@ -159,7 +163,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
         posthog.reset(); // drop identity, revert to anonymous
 
-        router.replace('/login');
+        window.location.replace('/login');
       })
       .catch((error) => {
         toast.error(error.response?.data?.message || 'Logout failed');
@@ -170,7 +174,17 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, isLoading, isAuthenticated, logout, login, accessToken, refresh }}
+      value={{
+        user,
+        setUser,
+        isLoading,
+        isAuthenticated,
+        logout,
+        login,
+        accessToken,
+        refresh,
+        isLoginLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>

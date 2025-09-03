@@ -12,12 +12,12 @@ import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2Icon } from 'lucide-react';
 import { loginSchema } from '@/lib/schemas/login/loginSchema';
 import { useAuth } from '@/hooks/useAuth';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
-  const { login } = useAuth();
+  const { login, isLoginLoading } = useAuth();
   const [shouldView, setShouldView] = React.useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -100,9 +100,15 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                   />
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
-                    Iniciar sesión
-                  </Button>
+                  {isLoginLoading ? (
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600" disabled>
+                      Cargando <Loader2Icon className="animate-spin" />
+                    </Button>
+                  ) : (
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
+                      Iniciar sesión
+                    </Button>
+                  )}
                 </div>
               </div>
             </form>

@@ -3,6 +3,7 @@ import React from 'react';
 
 export const AuthContext = React.createContext<
   | {
+      isLoginLoading: boolean;
       user: LoginResponse;
       setUser: React.Dispatch<React.SetStateAction<LoginResponse>>;
       isLoading: boolean;
