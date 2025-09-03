@@ -162,6 +162,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         setIsAuthenticated(false);
 
         posthog.reset(); // drop identity, revert to anonymous
+        localStorage.removeItem('dea-external-link-tour');
 
         window.location.replace('/login');
       })
