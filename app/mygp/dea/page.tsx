@@ -513,14 +513,16 @@ export default function DEA() {
                       </p>
                       <div className="flex items-center gap-2">
                         {/* Help trigger to replay the tour */}
-                        <button
-                          type="button"
-                          aria-label="¿Cómo funciona?"
-                          className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
-                          onClick={startTour}
-                        >
-                          <HelpCircle size={16} />
-                        </button>
+                        {fileName && (
+                          <button
+                            type="button"
+                            aria-label="¿Cómo funciona?"
+                            className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
+                            onClick={startTour}
+                          >
+                            <HelpCircle size={16} />
+                          </button>
+                        )}
                         {fileName && (
                           <button
                             id="dea-external-link"
