@@ -43,8 +43,23 @@ export function InterfaceDataTable() {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
+  const transformedData = React.useMemo(() => {
+    if (!data) return undefined;
+    return data.map((item) => ({
+      ...item,
+      REVALIDACION_073: item.REVALIDACION_073 ? item.REVALIDACION_073.split(' ')[0] : '',
+      ULTIMO_DOCUMENTO_114: item.ULTIMO_DOCUMENTO_114
+        ? item.ULTIMO_DOCUMENTO_114.split(' ')[0]
+        : '',
+      MSA_130: item.MSA_130 ? item.MSA_130.split(' ')[0] : '',
+      ENTREGA_TRANSPORTE_138: item.ENTREGA_TRANSPORTE_138
+        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
+        : '',
+    }));
+  }, [data]);
+
   const table = useReactTable({
-    data: data ? data : [],
+    data: transformedData ?? [],
     columns: interfaceColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(), // Pagination
@@ -56,20 +71,6 @@ export function InterfaceDataTable() {
       pagination, // Pagination
     },
   });
-
-  React.useEffect(() => {
-    if (!data) return;
-    data.map((item) => {
-      item.REVALIDACION_073 = item.REVALIDACION_073 ? item.REVALIDACION_073.split(' ')[0] : '';
-      item.ULTIMO_DOCUMENTO_114 = item.ULTIMO_DOCUMENTO_114
-        ? item.ULTIMO_DOCUMENTO_114.split(' ')[0]
-        : '';
-      item.MSA_130 = item.MSA_130 ? item.MSA_130.split(' ')[0] : '';
-      item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138
-        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
-        : '';
-    });
-  }, [data]);
 
   if (isLoading) return <TailwindSpinner />;
 

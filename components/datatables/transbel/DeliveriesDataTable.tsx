@@ -29,8 +29,19 @@ export default function DeliveriesDataTable() {
   );
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
 
+  const transformedData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      ...item,
+      ENTREGA_TRANSPORTE_138: item.ENTREGA_TRANSPORTE_138
+        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
+        : '',
+      ENTREGA_CDP_140: item.ENTREGA_CDP_140 ? item.ENTREGA_CDP_140.split(' ')[0] : '',
+    }));
+  }, [data]);
+
   const table = useReactTable({
-    data: data ? data : [],
+    data: transformedData ?? [],
     columns: deliveriesColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
