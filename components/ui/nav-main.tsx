@@ -1,6 +1,6 @@
 'use client';
 
-import { IconArrowLeft, IconDashboard } from '@tabler/icons-react';
+import { IconAddressBook, IconArrowLeft, IconDashboard } from '@tabler/icons-react';
 
 import {
   SidebarGroup,
@@ -57,7 +57,7 @@ export function NavMain() {
                   tooltip="Quick Create"
                   className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
                 >
-                  <IconDashboard />
+                  <IconAddressBook />
                   <span>DEA</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>

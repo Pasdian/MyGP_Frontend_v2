@@ -1,10 +1,12 @@
 import { useAuth } from '@/hooks/useAuth';
 import {
+  IconAdjustments,
   IconBuilding,
   IconKey,
   IconLayoutGrid,
-  IconListDetails,
+  IconPackage,
   IconShield,
+  IconTruck,
   IconUser,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
@@ -23,14 +25,21 @@ const userItems = {
           url: '/mygp/transbel/entregas',
           module: ['Transbel Entregas', 'All Modules'],
           role: ['ADMIN', 'STARS', 'AAP'],
-          icon: IconListDetails,
+          icon: IconPackage,
         },
         {
           title: 'Interfaz - Cod. Exc.',
           url: '/mygp/transbel/interfaz',
           module: ['Transbel Interfaz', 'All Modules'],
           role: ['ADMIN', 'AAP'],
-          icon: IconListDetails,
+          icon: IconAdjustments,
+        },
+        {
+          title: 'Cargues',
+          url: '/mygp/transbel/cargues',
+          module: ['Transbel Cargues', 'All Modules'],
+          role: ['ADMIN', 'AAP'],
+          icon: IconTruck,
         },
       ],
     },
