@@ -21,6 +21,8 @@ import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function DeliveriesDataTable() {
   const { data, isLoading } = useSWRImmutable<getDeliveries[]>(
@@ -28,20 +30,17 @@ export default function DeliveriesDataTable() {
     axiosFetcher
   );
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
+  const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
 
-  const transformedData = React.useMemo(() => {
-    if (!data) return [];
-    return data.map((item) => ({
-      ...item,
-      ENTREGA_TRANSPORTE_138: item.ENTREGA_TRANSPORTE_138
-        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
-        : '',
-      ENTREGA_CDP_140: item.ENTREGA_CDP_140 ? item.ENTREGA_CDP_140.split(' ')[0] : '',
-    }));
-  }, [data]);
+  const rowsForTable = React.useMemo(() => {
+    if (!Array.isArray(data)) return [];
+    return shouldFilterErrors
+      ? data.filter((r) => r?.has_error === true) // solo errores
+      : data; // todo
+  }, [data, shouldFilterErrors]);
 
   const table = useReactTable({
-    data: transformedData ?? [],
+    data: rowsForTable ?? [],
     columns: deliveriesColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
@@ -52,20 +51,23 @@ export default function DeliveriesDataTable() {
     },
   });
 
-  React.useEffect(() => {
-    if (!data) return;
-    data.map((item) => {
-      item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138
-        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
-        : '';
-      item.ENTREGA_CDP_140 = item.ENTREGA_CDP_140 ? item.ENTREGA_CDP_140.split(' ')[0] : '';
-    });
-  }, [data]);
-
   if (isLoading) return <TailwindSpinner />;
 
   return (
     <div>
+      <div className="flex items-center space-x-2 mb-4">
+        <Switch
+          id="only-errors"
+          checked={shouldFilterErrors}
+          onCheckedChange={() => setShouldFilterErrors((prev) => !prev)}
+          className="
+            data-[state=checked]:bg-emerald-600
+            data-[state=unchecked]:bg-slate-300
+            focus-visible:ring-emerald-600
+          "
+        />
+        <Label htmlFor="only-errors">Mostrar solo errores</Label>
+      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

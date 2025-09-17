@@ -1,9 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
-import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
-import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
@@ -76,47 +74,23 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
+      if (
+        row.original.has_error &&
+        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG
+      ) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage="El año de la fecha de entrega de transporte no es del año en curso"
+            errorMessage={row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG}
           />
         );
       }
 
-      if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ENTREGA_CDP_140 &&
-        row.original.ENTREGA_TRANSPORTE_138 > row.original.ENTREGA_CDP_140
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage="La fecha de entrega de transporte es mayor que la fecha de entrega CDP"
-          />
-        );
-      } else if (
-        !row.original.CE_140 &&
-        row.original.ENTREGA_CDP_140 &&
-        businessDaysDiffWithHolidays(
-          new Date(row.original.ENTREGA_TRANSPORTE_138),
-          new Date(row.original.ENTREGA_CDP_140)
-        ) > 1
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage=" La diferencia de entrega de transporte y la entrega a CDP es mayor a un dia"
-          />
-        );
-      } else {
-        return (
-          <p className="text-center">
-            {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-          </p>
-        );
-      }
+      return (
+        <p className="text-center">
+          {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+        </p>
+      );
     },
   },
   {
@@ -133,11 +107,11 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_CDP_140)) {
+      if (row.original.has_error && row.original.ENTREGA_CDP_140_ERROR_MSG) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_CDP_140)}
-            errorMessage="El año de la fecha de entrega a CDP no es del año en curso"
+            errorMessage={row.original.ENTREGA_CDP_140_ERROR_MSG}
           />
         );
       }

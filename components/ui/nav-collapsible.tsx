@@ -6,7 +6,6 @@ import {
   IconLayoutGrid,
   IconPackage,
   IconShield,
-  IconTruck,
   IconUser,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
@@ -34,13 +33,13 @@ const userItems = {
           role: ['ADMIN', 'AAP'],
           icon: IconAdjustments,
         },
-        {
-          title: 'Cargues',
-          url: '/mygp/transbel/cargues',
-          module: ['Transbel Cargues', 'All Modules'],
-          role: ['ADMIN', 'AAP'],
-          icon: IconTruck,
-        },
+        // {
+        //   title: 'Cargues',
+        //   url: '/mygp/transbel/cargues',
+        //   module: ['Transbel Cargues', 'All Modules'],
+        //   role: ['ADMIN', 'AAP'],
+        //   icon: IconTruck,
+        // },
       ],
     },
     {

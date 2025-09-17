@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import {
+  ColumnDef,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -20,62 +21,201 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable from 'swr';
+import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
+import useSWRImmutable from 'swr/immutable';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import { interfaceColumns } from '@/lib/columns/interfaceColumns';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { IconSettings } from '@tabler/icons-react';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { mutate } from 'swr';
+import axios from 'axios';
 
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
-  const { data, isLoading } = useSWRImmutable<getRefsPendingCE[]>(
+  const pendingRefsKey =
     initialDate && finalDate
       ? `/api/transbel/getRefsPendingCE?initialDate=${
           initialDate.toISOString().split('T')[0]
         }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : '/api/transbel/getRefsPendingCE',
-    axiosFetcher
-  );
+      : '/api/transbel/getRefsPendingCE';
 
+  const { data, isLoading } = useSWRImmutable<getRefsPendingCE[]>(pendingRefsKey, axiosFetcher);
+
+  // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
+  const [shouldFilterWorkatoStatus, setShouldFilterWorkatoStatus] = React.useState(false);
+  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
+  const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
 
-  const transformedData = React.useMemo(() => {
-    if (!data) return undefined;
-    return data.map((item) => ({
-      ...item,
-      REVALIDACION_073: item.REVALIDACION_073 ? item.REVALIDACION_073.split(' ')[0] : '',
-      ULTIMO_DOCUMENTO_114: item.ULTIMO_DOCUMENTO_114
-        ? item.ULTIMO_DOCUMENTO_114.split(' ')[0]
-        : '',
-      MSA_130: item.MSA_130 ? item.MSA_130.split(' ')[0] : '',
-      ENTREGA_TRANSPORTE_138: item.ENTREGA_TRANSPORTE_138
-        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
-        : '',
-    }));
+  // Filtered rows based on switches
+  const rowsForTable = React.useMemo(() => {
+    if (!Array.isArray(data)) return [];
+
+    return data.filter((r) => {
+      if (!r) return false;
+
+      // 1) If Errors ON, must be an error
+      if (shouldFilterErrors && !r.has_error) return false;
+
+      // 2) If Workato ON, must be sent
+      if (shouldFilterWorkatoStatus) {
+        if (!r.was_send_to_workato) return false;
+      } else if (shouldFilterErrors) {
+        // 3) If Workato OFF but Errors ON, exclude sent
+        if (r.was_send_to_workato) return false;
+      }
+
+      return true;
+    });
+  }, [data, shouldFilterErrors, shouldFilterWorkatoStatus]);
+
+  // Selection column (TanStack selection state, not the data field)
+  const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCE>>(
+    () => ({
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsSomePageRowsSelected() ? 'indeterminate' : table.getIsAllPageRowsSelected()
+          }
+          onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => {
+        const sent = row.original.was_send_to_workato;
+        return (
+          <Checkbox
+            checked={sent ? true : row.getIsSelected()}
+            disabled={sent ? true : !row.getCanSelect()}
+            onCheckedChange={(v) => !sent && row.toggleSelected(!!v)}
+            aria-label="Select row"
+          />
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+      size: 36,
+    }),
+    []
+  );
+
+  // Merge selection column with your domain columns
+  const columns = React.useMemo<ColumnDef<getRefsPendingCE>[]>(() => {
+    return [selectionWorkatoColumn, ...interfaceColumns];
+  }, [selectionWorkatoColumn]);
+
+  // Table instance
+  const table = useReactTable({
+    data: rowsForTable ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
+    enableRowSelection: (row) => !row.original.was_send_to_workato,
+    onRowSelectionChange: setRowSelection,
+    getRowId: (row) => String(row.REFERENCIA),
+    state: { columnFilters, pagination, rowSelection },
+  });
+
+  // Preselect only when data changes (don’t wipe user clicks on every toggle)
+  React.useEffect(() => {
+    if (!Array.isArray(data)) return;
+    const initial: Record<string, boolean> = {};
+    data.forEach((r) => {
+      if (r?.was_send_to_workato) initial[String(r.REFERENCIA)] = true;
+    });
+    setRowSelection(initial);
   }, [data]);
 
-  const table = useReactTable({
-    data: transformedData ?? [],
-    columns: interfaceColumns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(), // Pagination
-    getFilteredRowModel: getFilteredRowModel(), // Filtering
-    onColumnFiltersChange: setColumnFilters, // Filtering
-    onPaginationChange: setPagination, // Pagination
-    state: {
-      columnFilters, // Filtering
-      pagination, // Pagination
-    },
-  });
+  const selectedWorkatoRows = table
+    .getSelectedRowModel()
+    .rows.filter((r) => r.getCanSelect())
+    .map((r) => r.original);
+
+  async function sendToWorkato() {
+    setIsSendingToWorkato(true);
+    try {
+      const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
+        payload: selectedWorkatoRows,
+      });
+
+      toast.success(res.data.message || 'Enviado a Workato correctamente');
+      setIsSendingToWorkato(false);
+      mutate(pendingRefsKey);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const message = err.response?.data?.message || err.message || 'Ocurrió un error';
+        toast.error(message);
+      } else {
+        toast.error('Ocurrió un error inesperado');
+      }
+      setIsSendingToWorkato(false);
+    }
+  }
 
   if (isLoading) return <TailwindSpinner />;
 
   return (
     <div>
+      <div className="flex items-center space-x-2 mb-4">
+        <div className="flex items-center">
+          <Switch
+            id="only-errors"
+            checked={shouldFilterErrors}
+            onCheckedChange={() => setShouldFilterErrors((prev) => !prev)}
+            className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300 focus-visible:ring-emerald-600 mr-2"
+          />
+          <Label htmlFor="only-errors">Mostrar solo errores</Label>
+        </div>
+
+        <div className="flex items-center">
+          <Switch
+            id="workato-status"
+            checked={shouldFilterWorkatoStatus}
+            onCheckedChange={() => setShouldFilterWorkatoStatus((prev) => !prev)}
+            className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300 focus-visible:ring-emerald-600 mr-2"
+          />
+          <Label htmlFor="workato-status">Workato Estatus</Label>
+        </div>
+        {selectedWorkatoRows.length > 0 && (
+          <div>
+            <Button
+              size="sm"
+              className="bg-blue-500 hover:bg-blue-600"
+              onClick={sendToWorkato}
+              disabled={isSendingToWorkato} // optional: disable while loading
+            >
+              <div className="flex items-center">
+                {isSendingToWorkato ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2" />
+                    <p>Enviando</p>
+                  </>
+                ) : (
+                  <>
+                    <IconSettings className="mr-2 h-4 w-4" />
+                    <p>Enviar {selectedWorkatoRows.length} referencias a Workato</p>
+                  </>
+                )}
+              </div>
+            </Button>
+          </div>
+        )}
+      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -114,7 +254,7 @@ export function InterfaceDataTable() {
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={interfaceColumns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length} className="h-24 text-center">
                 <div className="flex justify-center">
                   <p>Sin resultados...</p>
                 </div>

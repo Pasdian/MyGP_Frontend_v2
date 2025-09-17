@@ -3,10 +3,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
 import React from "react";
-import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
-import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
 const fuzzyFilter = createFuzzyFilter<getRefsPendingCE>();
@@ -33,25 +31,11 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      const trafficType = row.original.REFERENCIA.charAt(1);
-
-      if (
-        row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        (trafficType == "A" ||
-          trafficType == "F" ||
-          trafficType == "T" ||
-          trafficType == "M" ||
-          trafficType == "V") &&
-        businessDaysDiffWithHolidays(
-          new Date(row.original.ULTIMO_DOCUMENTO_114),
-          new Date(row.original.ENTREGA_TRANSPORTE_138)
-        ) > 7
-      ) {
+      if (row.original.has_error && row.original.BUSINESS_DAYS_ERROR_MSG) {
         return (
           <ErrorTooltip
             value={row.original.REFERENCIA}
-            errorMessage="La diferencia entre la fecha de último documento y la entrega a transporte es mayor a 7 días para tráfico aéreo"
+            errorMessage={row.original.BUSINESS_DAYS_ERROR_MSG}
           />
         );
       }
@@ -84,46 +68,15 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.REVALIDACION_073)) {
+      if (row.original.has_error && row.original.REVALIDACION_073_ERROR_MSG) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="El año de la fecha de revalidación no es del año en curso"
+            errorMessage={row.original.REVALIDACION_073_ERROR_MSG}
           />
         );
       }
 
-      if (
-        row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.REVALIDACION_073 > row.original.ULTIMO_DOCUMENTO_114
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="La fecha de revalidación es mayor que la fecha de último documento"
-          />
-        );
-      } else if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.REVALIDACION_073 > row.original.ENTREGA_TRANSPORTE_138
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="La fecha de revalidación es mayor que la fecha de transporte"
-          />
-        );
-      } else if (
-        row.original.MSA_130 &&
-        row.original.REVALIDACION_073 > row.original.MSA_130
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="La fecha de revalidación es mayor que la fecha de transporte"
-          />
-        );
-      }
       return (
         <p className="text-center">
           {getFormattedDate(row.original.REVALIDACION_073)}
@@ -145,36 +98,18 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ULTIMO_DOCUMENTO_114)) {
+      if (
+        row.original.has_error &&
+        row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG
+      ) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
-            errorMessage="El año de la fecha de último documento no es del año en curso"
+            errorMessage={row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG}
           />
         );
       }
 
-      if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ULTIMO_DOCUMENTO_114 > row.original.ENTREGA_TRANSPORTE_138
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
-            errorMessage="La fecha del último documento es mayor que la fecha de entrega de transporte"
-          />
-        );
-      } else if (
-        row.original.MSA_130 &&
-        row.original.ULTIMO_DOCUMENTO_114 > row.original.MSA_130
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
-            errorMessage="La fecha de último documento es mayor que MSA"
-          />
-        );
-      }
       return (
         <p className="text-center">
           {getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
@@ -193,36 +128,15 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.MSA_130)) {
+      if (row.original.has_error && row.original.MSA_130_ERROR_MSG) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.MSA_130)}
-            errorMessage="El año de la fecha de MSA no es del año en curso"
+            errorMessage={row.original.MSA_130_ERROR_MSG}
           />
         );
       }
 
-      if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.MSA_130 !== row.original.ENTREGA_TRANSPORTE_138
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.MSA_130)}
-            errorMessage="MSA no es igual a la fecha de entrega de transporte"
-          />
-        );
-      } else if (
-        row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130 > row.original.ENTREGA_CDP_140
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.MSA_130)}
-            errorMessage="MSA es mayor que la fecha de entrega CDP"
-          />
-        );
-      }
       return (
         <p className="text-center">{getFormattedDate(row.original.MSA_130)}</p>
       );
@@ -242,27 +156,18 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage="El año de la fecha de último documento no es del año en curso"
-          />
-        );
-      }
-
       if (
-        row.original.MSA_130 &&
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ENTREGA_TRANSPORTE_138 !== row.original.MSA_130
+        row.original.has_error &&
+        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG
       ) {
         return (
           <ErrorTooltip
             value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage="La fecha de entrega de transporte no es igual a MSA"
+            errorMessage={row.original.ENTREGA_TRANSPORTE_138}
           />
         );
       }
+
       return (
         <p className="text-center">
           {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
