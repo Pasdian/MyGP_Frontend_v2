@@ -24,6 +24,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
+ENV TZ=America/Mexico_City
 
 EXPOSE 3001
 CMD ["npm", "start"]
