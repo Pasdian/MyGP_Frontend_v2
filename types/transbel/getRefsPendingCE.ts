@@ -16,4 +16,5 @@ export type getRefsPendingCE = {
   MSA_130_ERROR_MSG?: string;
   ENTREGA_TRANSPORTE_138_ERROR_MSG?: string;
   was_send_to_workato: boolean;
+  workato_last_modified: string | null;
 };

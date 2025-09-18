@@ -150,7 +150,7 @@ export default function PieChartLabelList() {
           </CardTitle>
           <CardDescription>
             {initialDate && finalDate && clientName
-              ? `${getFormattedDate(initialDate.toISOString().split('T')[0])} - ${getFormattedDate(
+              ? `${getFormattedDate(initialDate.toISOString())} - ${getFormattedDate(
                   finalDate.toISOString().split('T')[0]
                 )}`
               : ''}
@@ -188,8 +188,8 @@ export default function PieChartLabelList() {
             </div>
             <div className="text-muted-foreground leading-none">
               Período{' '}
-              {`${getFormattedDate(initialDate.toISOString().split('T')[0])} - ${getFormattedDate(
-                finalDate.toISOString().split('T')[0]
+              {`${getFormattedDate(initialDate.toISOString())} - ${getFormattedDate(
+                finalDate.toISOString()
               )}`}
             </div>
           </CardFooter>

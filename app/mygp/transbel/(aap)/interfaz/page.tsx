@@ -54,9 +54,9 @@ export default function Page() {
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
           <p className="text-2xl font-light tracking-tight mb-5">
             {initialDate && finalDate
-              ? `De ${getFormattedDate(
-                  initialDate.toISOString().split('T')[0]
-                )} hasta ${getFormattedDate(finalDate.toISOString().split('T')[0])}`
+              ? `De ${getFormattedDate(initialDate.toISOString())} hasta ${getFormattedDate(
+                  finalDate.toISOString()
+                )}`
               : null}
           </p>
         </div>

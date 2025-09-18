@@ -1,6 +1,6 @@
 // This function only receives dates with ISO Format
 export const getFormattedDate = (d: string): string => {
-  const date = d.split(" ")[0];
+  const date = d.split("T")[0];
   const splittedDate = date.split("-");
 
   const day = splittedDate[2];

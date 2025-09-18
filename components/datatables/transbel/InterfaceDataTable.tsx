@@ -160,8 +160,10 @@ export function InterfaceDataTable() {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message || err.message || 'Ocurrió un error';
         toast.error(message);
+        setIsSendingToWorkato(false);
       } else {
         toast.error('Ocurrió un error inesperado');
+        setIsSendingToWorkato(false);
       }
       setIsSendingToWorkato(false);
     }

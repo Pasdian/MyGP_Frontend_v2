@@ -1,11 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
 import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
+import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 
 const fuzzyFilter = createFuzzyFilter<getRefsPendingCE>();
 
@@ -176,8 +176,54 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     },
   },
   {
-    accessorKey: "CE_138",
-    header: "Código de Excepción 138",
+    accessorKey: "ENTREGA_CDP_140",
+    header: "Entrega a CDP",
     filterFn: fuzzyFilter,
+    cell: ({ row }) => {
+      return (
+        <p className="text-center">
+          {row.original.ENTREGA_CDP_140
+            ? getFormattedDate(row.original.ENTREGA_CDP_140)
+            : "--"}
+        </p>
+      );
+    },
+  },
+  {
+    accessorKey: "CE_138",
+    header: "CE 138",
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => {
+      return (
+        <p className="text-center">
+          {row.original.CE_138 ? row.original.CE_138 : "--"}
+        </p>
+      );
+    },
+  },
+  {
+    accessorKey: "CE_140",
+    header: "CE 140",
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => {
+      return (
+        <p className="text-center">
+          {row.original.CE_140 ? row.original.CE_140 : "--"}
+        </p>
+      );
+    },
+  },
+  {
+    accessorKey: "workato_last_modified",
+    header: "Fecha Último Envio",
+    cell: ({ row }) => {
+      return (
+        <p className="text-center">
+          {row.original.workato_last_modified
+            ? getFormattedDate(String(row.original.workato_last_modified))
+            : "--"}
+        </p>
+      );
+    },
   },
 ];
