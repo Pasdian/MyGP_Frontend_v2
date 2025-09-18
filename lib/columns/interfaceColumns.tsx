@@ -180,6 +180,15 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     header: "Entrega a CDP",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (!row.original.ENTREGA_CDP_140) {
+        return (
+          <ErrorTooltip
+            value="--"
+            errorMessage="No existe una fecha de entrega de transporte"
+          />
+        );
+      }
+
       return (
         <p className="text-center">
           {row.original.ENTREGA_CDP_140

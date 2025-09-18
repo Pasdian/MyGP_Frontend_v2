@@ -39,6 +39,20 @@ import { toast } from 'sonner';
 import { mutate } from 'swr';
 import axios from 'axios';
 
+const isEmptyDate = (d: string | null | undefined): boolean => d == null || d === '';
+
+function emptyDatesFirst<T>(
+  arr: readonly T[],
+  getDate: (item: T) => string | null | undefined
+): T[] {
+  const empty: T[] = [];
+  const filled: T[] = [];
+  for (const item of arr) {
+    (isEmptyDate(getDate(item)) ? empty : filled).push(item);
+  }
+  return empty.concat(filled);
+}
+
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const pendingRefsKey =
@@ -59,26 +73,24 @@ export function InterfaceDataTable() {
   const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
 
   // Filtered rows based on switches
-  const rowsForTable = React.useMemo(() => {
+  const filtered = React.useMemo(() => {
     if (!Array.isArray(data)) return [];
-
+    if (!shouldFilterErrors && !shouldFilterWorkatoStatus) {
+      return data.filter(Boolean);
+    }
     return data.filter((r) => {
       if (!r) return false;
-
-      // 1) If Errors ON, must be an error
       if (shouldFilterErrors && !r.has_error) return false;
-
-      // 2) If Workato ON, must be sent
-      if (shouldFilterWorkatoStatus) {
-        if (!r.was_send_to_workato) return false;
-      } else if (shouldFilterErrors) {
-        // 3) If Workato OFF but Errors ON, exclude sent
-        if (r.was_send_to_workato) return false;
-      }
-
+      if (shouldFilterWorkatoStatus && !r.was_send_to_workato) return false;
+      if (shouldFilterErrors && !shouldFilterWorkatoStatus && r.was_send_to_workato) return false;
       return true;
     });
   }, [data, shouldFilterErrors, shouldFilterWorkatoStatus]);
+
+  const rowsForTable = React.useMemo(
+    () => emptyDatesFirst(filtered, (r) => r.workato_last_modified ?? null),
+    [filtered]
+  );
 
   // Selection column (TanStack selection state, not the data field)
   const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCE>>(
@@ -191,7 +203,7 @@ export function InterfaceDataTable() {
             onCheckedChange={() => setShouldFilterWorkatoStatus((prev) => !prev)}
             className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300 focus-visible:ring-emerald-600 mr-2"
           />
-          <Label htmlFor="workato-status">Workato Estatus</Label>
+          <Label htmlFor="workato-status">Estatus del Envío</Label>
         </div>
         {selectedWorkatoRows.length > 0 && (
           <div>
