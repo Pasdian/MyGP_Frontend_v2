@@ -28,8 +28,8 @@ import TablePagination from '../pagination/TablePagination';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { IconSettings } from '@tabler/icons-react';
-import { Loader2 } from 'lucide-react';
+// import { IconSettings } from '@tabler/icons-react';
+// import { Loader2 } from 'lucide-react';
 import { getCargues } from '@/types/transbel/getCargues';
 import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -45,7 +45,7 @@ export function CarguesDataTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [shouldFilterValidated, setShouldFilterValidated] = React.useState(true);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
-  const [isSendingToDB, setIsSendingToDB] = React.useState(false);
+  // const [isSendingToDB, setIsSendingToDB] = React.useState(false);
 
   // Filtered rows based on switches
   const rowsForTable = React.useMemo(() => {
@@ -127,7 +127,7 @@ export function CarguesDataTable() {
     .rows.filter((r) => r.getCanSelect())
     .map((r) => r.original);
 
-  const sendToDB = () => {};
+  // const sendToDB = () => {};
 
   if (isLoading) return <TailwindSpinner />;
 
@@ -149,22 +149,24 @@ export function CarguesDataTable() {
             <Button
               size="sm"
               className="bg-blue-500 hover:bg-blue-600"
-              onClick={sendToDB}
-              disabled={isSendingToDB} // optional: disable while loading
+              // onClick={sendToDB}
+              // disabled={isSendingToDB} // optional: disable while loading
             >
+              {/* 
               <div className="flex items-center">
-                {isSendingToDB ? (
-                  <>
-                    <Loader2 className="animate-spin mr-2" />
-                    <p>Enviando</p>
-                  </>
-                ) : (
-                  <>
-                    <IconSettings className="mr-2 h-4 w-4" />
-                    <p>Validar {selectedRows.length} pedimentos</p>
-                  </>
-                )}
-              </div>
+                 {isSendingToDB ? (
+                   <>
+                     <Loader2 className="animate-spin mr-2" />
+                     <p>Enviando</p>
+                   </>
+                 ) : (
+                   <>
+                     <IconSettings className="mr-2 h-4 w-4" />
+                     <p>Validar {selectedRows.length} pedimentos</p>
+                   </>
+                 )}
+               </div> 
+               */}
             </Button>
           </div>
         )}
