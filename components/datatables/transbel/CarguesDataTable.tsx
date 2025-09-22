@@ -21,19 +21,22 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import TablePagination from '../pagination/TablePagination';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-// import { IconSettings } from '@tabler/icons-react';
-// import { Loader2 } from 'lucide-react';
 import { getCargues } from '@/types/transbel/getCargues';
 import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
 import { Checkbox } from '@/components/ui/checkbox';
 import { carguesColumns } from '@/lib/columns/carguesColumns';
+import { IconSettings } from '@tabler/icons-react';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { mutate } from 'swr';
+import axios from 'axios';
 
 export function CarguesDataTable() {
   const carguesKey = '/api/transbel/getCargues';
@@ -43,9 +46,9 @@ export function CarguesDataTable() {
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [shouldFilterValidated, setShouldFilterValidated] = React.useState(true);
+  const [shouldFilterValidated, setShouldFilterValidated] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
-  // const [isSendingToDB, setIsSendingToDB] = React.useState(false);
+  const [isSendingToDB, setIsSendingToDB] = React.useState(false);
 
   // Filtered rows based on switches
   const rowsForTable = React.useMemo(() => {
@@ -58,7 +61,7 @@ export function CarguesDataTable() {
       if (!shouldFilterValidated) return true;
 
       // If the switch is ON, only keep validated ones
-      return r.VALIDADO;
+      return r.IS_MISSING;
     });
   }, [data, shouldFilterValidated]);
 
@@ -75,7 +78,7 @@ export function CarguesDataTable() {
         />
       ),
       cell: ({ row }) => {
-        const sent = row.original.VALIDADO;
+        const sent = row.original.IS_MISSING;
         return (
           <Checkbox
             checked={sent ? true : row.getIsSelected()}
@@ -106,7 +109,7 @@ export function CarguesDataTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
-    enableRowSelection: (row) => !row.original.VALIDADO,
+    enableRowSelection: (row) => !row.original.IS_MISSING,
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => String(row.REFERENCIA),
     state: { columnFilters, pagination, rowSelection },
@@ -117,7 +120,7 @@ export function CarguesDataTable() {
     if (!Array.isArray(data)) return;
     const initial: Record<string, boolean> = {};
     data.forEach((r) => {
-      if (r?.VALIDADO) initial[String(r.REFERENCIA)] = true;
+      if (r?.IS_MISSING) initial[String(r.REFERENCIA)] = true;
     });
     setRowSelection(initial);
   }, [data]);
@@ -127,12 +130,34 @@ export function CarguesDataTable() {
     .rows.filter((r) => r.getCanSelect())
     .map((r) => r.original);
 
-  // const sendToDB = () => {};
+  async function sendToDB() {
+    setIsSendingToDB(true);
+    try {
+      const res = await GPClient.post('/api/transbel/missingCargue', {
+        payload: selectedRows,
+      });
+
+      toast.success(res.data.message || 'Se actualizó el estado de los pedimentos');
+      setIsSendingToDB(false);
+      mutate(carguesKey);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const message = err.response?.data?.message || err.message || 'Ocurrió un error';
+        toast.error(message);
+        setIsSendingToDB(false);
+      } else {
+        toast.error('Ocurrió un error inesperado');
+        setIsSendingToDB(false);
+      }
+      setIsSendingToDB(false);
+    }
+  }
 
   if (isLoading) return <TailwindSpinner />;
 
   return (
     <div>
+      <h1 className="mb-4 text-2xl font-bold tracking-tight">Cargues de Transbel</h1>
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
           <Switch
@@ -141,32 +166,30 @@ export function CarguesDataTable() {
             onCheckedChange={() => setShouldFilterValidated((prev) => !prev)}
             className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300 focus-visible:ring-emerald-600 mr-2"
           />
-          <Label htmlFor="only-errors">Mostrar solo pedimentos validados</Label>
+          <Label htmlFor="only-errors">Mostrar faltantes</Label>
         </div>
 
         {selectedRows.length > 0 && (
           <div>
             <Button
               size="sm"
-              className="bg-blue-500 hover:bg-blue-600"
-              // onClick={sendToDB}
-              // disabled={isSendingToDB} // optional: disable while loading
+              className="bg-yellow-500 hover:bg-yellow-600 cursor-pointer"
+              onClick={sendToDB}
+              disabled={isSendingToDB} // optional: disable while loading
             >
-              {/* 
               <div className="flex items-center">
-                 {isSendingToDB ? (
-                   <>
-                     <Loader2 className="animate-spin mr-2" />
-                     <p>Enviando</p>
-                   </>
-                 ) : (
-                   <>
-                     <IconSettings className="mr-2 h-4 w-4" />
-                     <p>Validar {selectedRows.length} pedimentos</p>
-                   </>
-                 )}
-               </div> 
-               */}
+                {isSendingToDB ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2" />
+                    <p>Enviando</p>
+                  </>
+                ) : (
+                  <>
+                    <IconSettings className="mr-2 h-4 w-4" />
+                    <p>Seleccionar {selectedRows.length} pedimentos como faltantes</p>
+                  </>
+                )}
+              </div>
             </Button>
           </div>
         )}

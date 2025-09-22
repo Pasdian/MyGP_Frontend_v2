@@ -4,5 +4,5 @@ export type getCargues = {
   NUM_TRAFICO: string | null;
   FEC_PAGO: string | null;
   FEC_ENVIO: string | null;
-  VALIDADO: boolean;
+  IS_MISSING: boolean;
 };
