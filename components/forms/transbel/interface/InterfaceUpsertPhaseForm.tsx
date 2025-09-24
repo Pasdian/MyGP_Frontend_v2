@@ -33,7 +33,6 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
-import { doesDateKPIBreak } from '@/lib/utilityFunctions/doesDateKPIBreak';
 import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
 import FormItemsRevalidacion from './FormItems/FormItemsRevalidacion';
 import FormItemsUltimoDocumento from './FormItems/FormItemsUltimoDocumento';
@@ -168,32 +167,16 @@ export default function InterfaceUpsertPhaseForm({
     )
     .refine(
       (data) => {
-        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
-        return !doesDateKPIBreak({
+        return !shouldPutExceptionCode({
           exceptionCode: data.exceptionCode,
-          initialDate: data.date,
-          finalDate: row.original.ENTREGA_TRANSPORTE_138,
+          initialDate: row.original.ULTIMO_DOCUMENTO_114,
+          finalDate: data.date,
           numDays: 7,
         });
       },
       {
         message:
-          'Coloca un código de excepción, la diferencia entre la fecha de entrega de último documento y transporte es mayor a 7 dias',
-        path: ['date'],
-      }
-    )
-    .refine(
-      (data) => {
-        // Refinement functions should never throw. Instead they should return a falsy value to signal failure.
-        return !shouldPutExceptionCode({
-          exceptionCode: data.exceptionCode,
-          initialDate: data.date,
-          finalDate: row.original.ENTREGA_TRANSPORTE_138,
-          numDays: 7,
-        });
-      },
-      {
-        message: 'No es necesario colocar un código de excepción',
+          'Coloca un código de excepción, la diferencia entre la fecha de último documento y transporte es mayor a 7 dias',
         path: ['date'],
       }
     );

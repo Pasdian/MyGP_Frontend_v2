@@ -11,15 +11,21 @@ export function shouldPutExceptionCode({
   finalDate: string | undefined | null;
   numDays: number;
 }) {
-  if (exceptionCode && initialDate && finalDate) {
-    const start = new Date(initialDate);
-    const end = new Date(finalDate);
+  // 1) Si ya hay código, nunca exigirlo
+  if (exceptionCode) return false;
 
-    if (end < start) return false;
+  // 2) Validar fechas
+  if (!initialDate || !finalDate) return false;
 
-    const diff = businessDaysDiffWithHolidays(start, end);
+  const start = new Date(initialDate);
+  const end = new Date(finalDate);
 
-    return diff <= numDays;
-  }
-  return false;
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+  if (end < start) return false;
+
+  // 3) Calcular diferencia en días hábiles
+  const diff = businessDaysDiffWithHolidays(start, end);
+
+  // 4) Exigir código solo si la diferencia excede el umbral
+  return diff > numDays; // true => debe poner exceptionCode
 }
