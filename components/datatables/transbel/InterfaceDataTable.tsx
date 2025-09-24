@@ -88,7 +88,7 @@ export function InterfaceDataTable() {
   }, [data, shouldFilterErrors, shouldFilterWorkatoStatus]);
 
   const rowsForTable = React.useMemo(
-    () => emptyDatesFirst(filtered, (r) => r.workato_last_modified ?? null),
+    () => emptyDatesFirst(filtered, (r) => r.workato_created_at ?? null),
     [filtered]
   );
 
