@@ -228,8 +228,8 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     cell: ({ row }) => {
       return (
         <p className="text-center">
-          {row.original.workato_last_modified
-            ? getFormattedDate(String(row.original.workato_last_modified))
+          {row.original.workato_created_at
+            ? getFormattedDate(String(row.original.workato_created_at))
             : "--"}
         </p>
       );
