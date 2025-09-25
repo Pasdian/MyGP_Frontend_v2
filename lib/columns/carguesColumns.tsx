@@ -3,18 +3,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import { getCargues } from "@/types/transbel/getCargues";
-import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
+import { getCarguesFormat } from "@/types/transbel/getCargues";
 
-const fuzzyFilter = createFuzzyFilter<getCargues>();
+const fuzzyFilter = createFuzzyFilter<getCarguesFormat>();
 
-export const carguesColumns: ColumnDef<getCargues>[] = [
+export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
   {
     accessorKey: "REFERENCIA",
     header: "Referencia",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.REFERENCIA) {
+      if (!row.original.NUM_REFE) {
         return (
           <ErrorTooltip
             value="--"
@@ -23,7 +22,7 @@ export const carguesColumns: ColumnDef<getCargues>[] = [
         );
       }
 
-      return <p className="text-center">{row.original.REFERENCIA}</p>;
+      return <p className="text-center">{row.original.NUM_REFE}</p>;
     },
   },
   {
@@ -31,7 +30,7 @@ export const carguesColumns: ColumnDef<getCargues>[] = [
     header: "Número de Pedimento",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.NUM_PEDIMENTO) {
+      if (!row.original.NUM_PEDI) {
         return (
           <ErrorTooltip
             value="--"
@@ -40,7 +39,7 @@ export const carguesColumns: ColumnDef<getCargues>[] = [
         );
       }
 
-      return <p className="text-center">{row.original.NUM_PEDIMENTO}</p>;
+      return <p className="text-center">{row.original.NUM_PEDI}</p>;
     },
   },
   {
@@ -48,7 +47,9 @@ export const carguesColumns: ColumnDef<getCargues>[] = [
     header: "Número de Tráfico",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.NUM_TRAFICO) {
+      const NUM_TRAFICO =
+        row.original.EE || row.original.GE || row.original.CECO;
+      if (!NUM_TRAFICO) {
         return (
           <ErrorTooltip
             value="--"
@@ -57,27 +58,11 @@ export const carguesColumns: ColumnDef<getCargues>[] = [
         );
       }
 
-      return <p className="text-center">{row.original.NUM_TRAFICO}</p>;
+      return <p className="text-center">{NUM_TRAFICO}</p>;
     },
   },
   {
-    accessorKey: "FEC_PAGO",
-    header: "Fecha de Pago",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.FEC_PAGO) {
-        return (
-          <ErrorTooltip value="--" errorMessage="No existe una fecha de pago" />
-        );
-      }
-
-      return (
-        <p className="text-center">{getFormattedDate(row.original.FEC_PAGO)}</p>
-      );
-    },
-  },
-  {
-    accessorKey: "FEC_ENVIO",
+    accessorKey: "FEC_ENVIO_FORMATTED",
     header: "Fecha de Envío",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
@@ -90,11 +75,21 @@ export const carguesColumns: ColumnDef<getCargues>[] = [
         );
       }
 
-      return (
-        <p className="text-center">
-          {getFormattedDate(row.original.FEC_ENVIO)}
-        </p>
-      );
+      return <p className="text-center">{row.original.FEC_ENVIO_FORMATTED}</p>;
+    },
+  },
+  {
+    accessorKey: "FEC_PAGO_FORMATTED",
+    header: "Fecha de Pago",
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => {
+      if (!row.original.FEC_PAGO) {
+        return (
+          <ErrorTooltip value="--" errorMessage="No existe una fecha de pago" />
+        );
+      }
+
+      return <p className="text-center">{row.original.FEC_PAGO_FORMATTED}</p>;
     },
   },
 ];

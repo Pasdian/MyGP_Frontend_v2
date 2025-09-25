@@ -13,12 +13,12 @@ import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 
-import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import InterfaceUpsertPhaseForm from '@/components/forms/transbel/interface/InterfaceUpsertPhaseForm';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { IconBallpenFilled } from '@tabler/icons-react';
 
-export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPendingCE> }) {
+export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPendingCEFormat> }) {
   const [openDialog, setOpenDialog] = React.useState(false);
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>

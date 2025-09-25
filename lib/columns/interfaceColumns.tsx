@@ -3,13 +3,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
 import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
-import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
+import { getRefsPendingCEFormat } from "@/types/transbel/getRefsPendingCE";
 
-const fuzzyFilter = createFuzzyFilter<getRefsPendingCE>();
+const fuzzyFilter = createFuzzyFilter<getRefsPendingCEFormat>();
 
-export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
+export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
   {
     accessorKey: "ACCIONES",
     header: "Acciones",
@@ -55,7 +54,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
   },
 
   {
-    accessorKey: "REVALIDACION_073",
+    accessorKey: "REVALIDACION_073_FORMATTED",
     header: "Revalidación",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
@@ -68,24 +67,26 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
         );
       }
 
-      if (row.original.has_error && row.original.REVALIDACION_073_ERROR_MSG) {
+      if (
+        row.original.has_error &&
+        row.original.REVALIDACION_073_ERROR_MSG &&
+        row.original.REVALIDACION_073_FORMATTED
+      ) {
         return (
           <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
+            value={row.original.REVALIDACION_073_FORMATTED}
             errorMessage={row.original.REVALIDACION_073_ERROR_MSG}
           />
         );
       }
 
       return (
-        <p className="text-center">
-          {getFormattedDate(row.original.REVALIDACION_073)}
-        </p>
+        <p className="text-center">{row.original.REVALIDACION_073_FORMATTED}</p>
       );
     },
   },
   {
-    accessorKey: "ULTIMO_DOCUMENTO_114",
+    accessorKey: "ULTIMO_DOCUMENTO_114_FORMATTED",
     header: "Último Documento",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
@@ -100,11 +101,12 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.has_error &&
-        row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG
+        row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG &&
+        row.original.ULTIMO_DOCUMENTO_114_FORMATTED
       ) {
         return (
           <ErrorTooltip
-            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
+            value={row.original.ULTIMO_DOCUMENTO_114_FORMATTED}
             errorMessage={row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG}
           />
         );
@@ -112,17 +114,17 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       return (
         <p className="text-center">
-          {getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
+          {row.original.ULTIMO_DOCUMENTO_114_FORMATTED}
         </p>
       );
     },
   },
   {
-    accessorKey: "MSA_130",
+    accessorKey: "MSA_130_FORMATTED",
     header: "MSA",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.MSA_130) {
+      if (!row.original.MSA_130_FORMATTED) {
         return (
           <ErrorTooltip value="--" errorMessage="No existe una fecha de MSA" />
         );
@@ -131,23 +133,21 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
       if (row.original.has_error && row.original.MSA_130_ERROR_MSG) {
         return (
           <ErrorTooltip
-            value={getFormattedDate(row.original.MSA_130)}
+            value={row.original.MSA_130_FORMATTED}
             errorMessage={row.original.MSA_130_ERROR_MSG}
           />
         );
       }
 
-      return (
-        <p className="text-center">{getFormattedDate(row.original.MSA_130)}</p>
-      );
+      return <p className="text-center">{row.original.MSA_130_FORMATTED}</p>;
     },
   },
   {
-    accessorKey: "ENTREGA_TRANSPORTE_138",
+    accessorKey: "ENTREGA_TRANSPORTE_138_FORMATTED",
     header: "Entrega Transporte",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.ENTREGA_TRANSPORTE_138) {
+      if (!row.original.ENTREGA_TRANSPORTE_138_FORMATTED) {
         return (
           <ErrorTooltip
             value="--"
@@ -158,29 +158,30 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       if (
         row.original.has_error &&
-        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG
+        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG &&
+        row.original.ENTREGA_TRANSPORTE_138_FORMATTED
       ) {
         return (
           <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage={row.original.ENTREGA_TRANSPORTE_138}
+            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
+            errorMessage={row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
           />
         );
       }
 
       return (
         <p className="text-center">
-          {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
         </p>
       );
     },
   },
   {
-    accessorKey: "ENTREGA_CDP_140",
+    accessorKey: "ENTREGA_CDP_140_FORMATTED",
     header: "Entrega a CDP",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.ENTREGA_CDP_140) {
+      if (!row.original.ENTREGA_CDP_140_FORMATTED) {
         return (
           <ErrorTooltip
             value="--"
@@ -191,8 +192,8 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
 
       return (
         <p className="text-center">
-          {row.original.ENTREGA_CDP_140
-            ? getFormattedDate(row.original.ENTREGA_CDP_140)
+          {row.original.ENTREGA_CDP_140_FORMATTED
+            ? row.original.ENTREGA_CDP_140_FORMATTED
             : "--"}
         </p>
       );
@@ -223,13 +224,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
     },
   },
   {
-    accessorKey: "workato_last_modified",
+    accessorKey: "workato_last_modified_FORMATTED",
     header: "Fecha Último Envio",
     cell: ({ row }) => {
       return (
         <p className="text-center">
-          {row.original.workato_created_at
-            ? getFormattedDate(String(row.original.workato_created_at))
+          {row.original.workato_created_at_FORMATTED
+            ? row.original.workato_created_at_FORMATTED
             : "--"}
         </p>
       );

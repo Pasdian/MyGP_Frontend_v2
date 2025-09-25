@@ -6,7 +6,7 @@ import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
-import { getDeliveries } from '@/types/transbel/getDeliveries';
+import { getDeliveriesFormat } from '@/types/transbel/getDeliveries';
 import { toast } from 'sonner';
 import {
   Form,
@@ -31,7 +31,7 @@ import { useSWRConfig } from 'swr';
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_DELIVERY')?.eventName || '';
 
-export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
+export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveriesFormat> }) {
   const { user } = useAuth();
   const { mutate } = useSWRConfig();
 

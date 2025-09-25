@@ -19,3 +19,12 @@ export type getRefsPendingCE = {
   workato_created_at: string | null;
   ENTREGA_CDP_140_ERROR_MSG: string | null;
 };
+
+export type getRefsPendingCEFormat = getRefsPendingCE & {
+  REVALIDACION_073_FORMATTED: string | null;
+  ULTIMO_DOCUMENTO_114_FORMATTED: string | null;
+  ENTREGA_TRANSPORTE_138_FORMATTED: string | null;
+  MSA_130_FORMATTED: string | null;
+  ENTREGA_CDP_140_FORMATTED: string | null;
+  workato_created_at_FORMATTED: string | null;
+};

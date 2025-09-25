@@ -1,8 +1,14 @@
 export type getCargues = {
-  REFERENCIA: string | null;
-  NUM_PEDIMENTO: string | null;
-  NUM_TRAFICO: string | null;
+  NUM_REFE: string | null;
+  NUM_PEDI: string | null;
+  EE: string | null;
+  GE: string | null;
+  CECO: string | null;
   FEC_PAGO: string | null;
   FEC_ENVIO: string | null;
-  IS_MISSING: boolean;
+};
+
+export type getCarguesFormat = getCargues & {
+  FEC_PAGO_FORMATTED: string | null;
+  FEC_ENVIO_FORMATTED: string | null;
 };

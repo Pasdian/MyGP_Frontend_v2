@@ -26,7 +26,7 @@ import {
 } from '@/lib/validations/phaseValidations';
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
-import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,7 @@ export default function InterfaceUpsertPhaseForm({
   row,
   setOpenDialog,
 }: {
-  row: Row<getRefsPendingCE>;
+  row: Row<getRefsPendingCEFormat>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);

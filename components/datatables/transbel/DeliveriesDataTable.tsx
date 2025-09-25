@@ -13,7 +13,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { getDeliveries } from '@/types/transbel/getDeliveries';
+import { getDeliveriesFormat } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
 import useSWRImmutable from 'swr/immutable';
@@ -21,23 +21,34 @@ import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DeliveriesDataTable() {
-  const { data, isLoading } = useSWRImmutable<getDeliveries[]>(
+  const { data, isLoading } = useSWRImmutable<getDeliveriesFormat[]>(
     '/api/transbel/getDeliveries',
     axiosFetcher
   );
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
 
+  const modifiedData = React.useMemo(() => {
+    if (!Array.isArray(data)) return [] as getDeliveriesFormat[];
+    return data.map((item) => ({
+      ...item,
+      ENTREGA_TRANSPORTE_138_FORMATTED:
+        item.ENTREGA_TRANSPORTE_138 && getFormattedDate(item.ENTREGA_TRANSPORTE_138),
+      ENTREGA_CDP_140_FORMATTED: item.ENTREGA_CDP_140 && getFormattedDate(item.ENTREGA_CDP_140),
+    }));
+  }, [data]);
+
   const rowsForTable = React.useMemo(() => {
-    if (!Array.isArray(data)) return [];
-    return shouldFilterErrors
-      ? data.filter((r) => r?.has_error === true) // solo errores
-      : data; // todo
-  }, [data, shouldFilterErrors]);
+    if (!Array.isArray(modifiedData)) return [];
+
+    return modifiedData.filter((r) =>
+      shouldFilterErrors ? r?.has_error === true : r?.has_error === false
+    );
+  }, [modifiedData, shouldFilterErrors]);
 
   const table = useReactTable({
     data: rowsForTable ?? [],
@@ -56,17 +67,17 @@ export default function DeliveriesDataTable() {
   return (
     <div>
       <div className="flex items-center space-x-2 mb-4">
-        <Switch
-          id="only-errors"
-          checked={shouldFilterErrors}
-          onCheckedChange={() => setShouldFilterErrors((prev) => !prev)}
-          className="
-            data-[state=checked]:bg-emerald-600
-            data-[state=unchecked]:bg-slate-300
-            focus-visible:ring-emerald-600
-          "
-        />
-        <Label htmlFor="only-errors">Mostrar solo errores</Label>
+        <div className="flex items-center">
+          <Tabs
+            value={shouldFilterErrors ? 'errors' : 'not_errors'}
+            onValueChange={(value) => setShouldFilterErrors(value === 'errors')}
+          >
+            <TabsList>
+              <TabsTrigger value="errors">Referencias con Error</TabsTrigger>
+              <TabsTrigger value="not_errors">Referencias sin Error</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
       <Table>
         <TableHeader>

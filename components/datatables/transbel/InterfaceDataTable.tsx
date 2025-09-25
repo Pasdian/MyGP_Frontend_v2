@@ -23,14 +23,11 @@ import {
 import React from 'react';
 import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr/immutable';
-import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import { interfaceColumns } from '@/lib/columns/interfaceColumns';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { IconSettings } from '@tabler/icons-react';
@@ -38,6 +35,9 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import axios from 'axios';
+import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
+import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const isEmptyDate = (d: string | null | undefined): boolean => d == null || d === '';
 
@@ -55,15 +55,6 @@ function emptyDatesFirst<T>(
 
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
-  const pendingRefsKey =
-    initialDate && finalDate
-      ? `/api/transbel/getRefsPendingCE?initialDate=${
-          initialDate.toISOString().split('T')[0]
-        }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : '/api/transbel/getRefsPendingCE';
-
-  const { data, isLoading } = useSWRImmutable<getRefsPendingCE[]>(pendingRefsKey, axiosFetcher);
-
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -72,20 +63,50 @@ export function InterfaceDataTable() {
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
 
+  const pendingRefsKey =
+    initialDate && finalDate
+      ? `/api/transbel/getRefsPendingCE?initialDate=${
+          initialDate.toISOString().split('T')[0]
+        }&finalDate=${finalDate.toISOString().split('T')[0]}`
+      : '/api/transbel/getRefsPendingCE';
+
+  const { data, isLoading } = useSWRImmutable<getRefsPendingCEFormat[]>(
+    pendingRefsKey,
+    axiosFetcher
+  );
+
+  const modifiedData = React.useMemo(() => {
+    if (!Array.isArray(data)) return [] as getRefsPendingCEFormat[];
+    return data.map((item) => ({
+      ...item,
+      REVALIDACION_073_FORMATTED: item.REVALIDACION_073 && getFormattedDate(item.REVALIDACION_073),
+      ULTIMO_DOCUMENTO_114_FORMATTED:
+        item.ULTIMO_DOCUMENTO_114 && getFormattedDate(item.ULTIMO_DOCUMENTO_114),
+      ENTREGA_TRANSPORTE_138_FORMATTED:
+        item.ENTREGA_TRANSPORTE_138 && getFormattedDate(item.ENTREGA_TRANSPORTE_138),
+      MSA_130_FORMATTED: item.MSA_130 && getFormattedDate(item.MSA_130),
+      ENTREGA_CDP_140_FORMATTED: item.ENTREGA_CDP_140 && getFormattedDate(item.ENTREGA_CDP_140),
+      workato_created_at_FORMATTED:
+        item.workato_created_at && getFormattedDate(item.workato_created_at),
+    }));
+  }, [data]);
+
   // Filtered rows based on switches
   const filtered = React.useMemo(() => {
-    if (!Array.isArray(data)) return [];
-    if (!shouldFilterErrors && !shouldFilterWorkatoStatus) {
-      return data.filter(Boolean);
-    }
-    return data.filter((r) => {
+    if (!Array.isArray(modifiedData)) return [];
+
+    return modifiedData.filter((r) => {
       if (!r) return false;
-      if (shouldFilterErrors && !r.has_error) return false;
-      if (shouldFilterWorkatoStatus && !r.was_send_to_workato) return false;
-      if (shouldFilterErrors && !shouldFilterWorkatoStatus && r.was_send_to_workato) return false;
-      return true;
+
+      const matchesError = shouldFilterErrors ? !!r.has_error : !r.has_error;
+
+      const matchesStatus = shouldFilterWorkatoStatus
+        ? !!r.was_send_to_workato
+        : !r.was_send_to_workato;
+
+      return matchesError && matchesStatus;
     });
-  }, [data, shouldFilterErrors, shouldFilterWorkatoStatus]);
+  }, [modifiedData, shouldFilterErrors, shouldFilterWorkatoStatus]);
 
   const rowsForTable = React.useMemo(
     () => emptyDatesFirst(filtered, (r) => r.workato_created_at ?? null),
@@ -93,7 +114,7 @@ export function InterfaceDataTable() {
   );
 
   // Selection column (TanStack selection state, not the data field)
-  const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCE>>(
+  const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCEFormat>>(
     () => ({
       id: 'select',
       header: ({ table }) => (
@@ -107,11 +128,16 @@ export function InterfaceDataTable() {
       ),
       cell: ({ row }) => {
         const sent = row.original.was_send_to_workato;
+
         return (
           <Checkbox
-            checked={sent ? true : row.getIsSelected()}
-            disabled={sent ? true : !row.getCanSelect()}
-            onCheckedChange={(v) => !sent && row.toggleSelected(!!v)}
+            checked={sent || row.getIsSelected()}
+            disabled={sent || !row.getCanSelect()}
+            onCheckedChange={(v) => {
+              if (!sent) {
+                row.toggleSelected(!!v);
+              }
+            }}
             aria-label="Select row"
           />
         );
@@ -124,7 +150,7 @@ export function InterfaceDataTable() {
   );
 
   // Merge selection column with your domain columns
-  const columns = React.useMemo<ColumnDef<getRefsPendingCE>[]>(() => {
+  const columns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
     return [selectionWorkatoColumn, ...interfaceColumns];
   }, [selectionWorkatoColumn]);
 
@@ -145,13 +171,13 @@ export function InterfaceDataTable() {
 
   // Preselect only when data changes (don’t wipe user clicks on every toggle)
   React.useEffect(() => {
-    if (!Array.isArray(data)) return;
+    if (!Array.isArray(modifiedData)) return;
     const initial: Record<string, boolean> = {};
-    data.forEach((r) => {
+    modifiedData.forEach((r) => {
       if (r?.was_send_to_workato) initial[String(r.REFERENCIA)] = true;
     });
     setRowSelection(initial);
-  }, [data]);
+  }, [modifiedData]);
 
   const selectedWorkatoRows = table
     .getSelectedRowModel()
@@ -187,24 +213,28 @@ export function InterfaceDataTable() {
     <div>
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
-          <Switch
-            id="only-errors"
-            checked={shouldFilterErrors}
-            onCheckedChange={() => setShouldFilterErrors((prev) => !prev)}
-            className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300 focus-visible:ring-emerald-600 mr-2"
-          />
-          <Label htmlFor="only-errors">Mostrar solo errores</Label>
+          <Tabs
+            value={shouldFilterErrors ? 'errors' : 'not_errors'}
+            onValueChange={(value) => setShouldFilterErrors(value === 'errors')}
+          >
+            <TabsList>
+              <TabsTrigger value="errors">Referencias con Error</TabsTrigger>
+              <TabsTrigger value="not_errors">Referencias sin Error</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        <div className="flex items-center">
+          <Tabs
+            value={shouldFilterWorkatoStatus ? 'sent' : 'not_sent'}
+            onValueChange={(value) => setShouldFilterWorkatoStatus(value === 'sent')}
+          >
+            <TabsList>
+              <TabsTrigger value="sent">Enviados</TabsTrigger>
+              <TabsTrigger value="not_sent">No enviados</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        <div className="flex items-center">
-          <Switch
-            id="workato-status"
-            checked={shouldFilterWorkatoStatus}
-            onCheckedChange={() => setShouldFilterWorkatoStatus((prev) => !prev)}
-            className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300 focus-visible:ring-emerald-600 mr-2"
-          />
-          <Label htmlFor="workato-status">Estatus del Envío</Label>
-        </div>
         {selectedWorkatoRows.length > 0 && (
           <div>
             <Button
@@ -222,7 +252,7 @@ export function InterfaceDataTable() {
                 ) : (
                   <>
                     <IconSettings className="mr-2 h-4 w-4" />
-                    <p>Enviar {selectedWorkatoRows.length} referencias a Workato</p>
+                    <p>Enviar {selectedWorkatoRows.length} referencias</p>
                   </>
                 )}
               </div>

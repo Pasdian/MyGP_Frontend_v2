@@ -1,13 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { getDeliveries } from "@/types/transbel/getDeliveries";
+import { getDeliveriesFormat } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
-import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
-const fuzzyFilter = createFuzzyFilter<getDeliveries>();
+const fuzzyFilter = createFuzzyFilter<getDeliveriesFormat>();
 
-export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
+export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
   {
     accessorKey: "ACCIONES",
     header: "Acciones",
@@ -61,11 +60,11 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
     },
   },
   {
-    accessorKey: "ENTREGA_TRANSPORTE_138",
+    accessorKey: "ENTREGA_TRANSPORTE_138_FORMATTED",
     header: "Entrega a Transporte",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.ENTREGA_TRANSPORTE_138) {
+      if (!row.original.ENTREGA_TRANSPORTE_138_FORMATTED) {
         return (
           <ErrorTooltip
             value="--"
@@ -76,11 +75,12 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
 
       if (
         row.original.has_error &&
-        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG
+        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG &&
+        row.original.ENTREGA_TRANSPORTE_138_FORMATTED
       ) {
         return (
           <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
             errorMessage={row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG}
           />
         );
@@ -88,17 +88,17 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
 
       return (
         <p className="text-center">
-          {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
+          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
         </p>
       );
     },
   },
   {
-    accessorKey: "ENTREGA_CDP_140",
+    accessorKey: "ENTREGA_CDP_140_FORMATTED",
     header: "Entrega a CDP",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.ENTREGA_CDP_140) {
+      if (!row.original.ENTREGA_CDP_140_FORMATTED) {
         return (
           <ErrorTooltip
             value="--"
@@ -110,16 +110,14 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
       if (row.original.has_error && row.original.ENTREGA_CDP_140_ERROR_MSG) {
         return (
           <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_CDP_140)}
+            value={row.original.ENTREGA_CDP_140_FORMATTED}
             errorMessage={row.original.ENTREGA_CDP_140_ERROR_MSG}
           />
         );
       }
 
       return (
-        <p className="text-center">
-          {getFormattedDate(row.original.ENTREGA_CDP_140)}
-        </p>
+        <p className="text-center">{row.original.ENTREGA_CDP_140_FORMATTED}</p>
       );
     },
   },

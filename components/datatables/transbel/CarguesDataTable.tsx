@@ -25,10 +25,7 @@ import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import TablePagination from '../pagination/TablePagination';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { getCargues } from '@/types/transbel/getCargues';
 import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
 import { Checkbox } from '@/components/ui/checkbox';
 import { carguesColumns } from '@/lib/columns/carguesColumns';
@@ -37,11 +34,15 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { getCarguesFormat } from '@/types/transbel/getCargues';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function CarguesDataTable() {
   const carguesKey = '/api/transbel/getCargues';
 
-  const { data, isLoading } = useSWRImmutable<getCargues[]>(carguesKey, axiosFetcher);
+  const { data, isLoading } = useSWRImmutable<getCarguesFormat[]>(carguesKey, axiosFetcher);
 
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
@@ -50,40 +51,35 @@ export function CarguesDataTable() {
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToDB, setIsSendingToDB] = React.useState(false);
 
-  // Filtered rows based on switches
-  const rowsForTable = React.useMemo(() => {
-    if (!Array.isArray(data)) return [];
+  // Ensure each row has a stable id and USE it in the table
+  const modifiedData = React.useMemo(() => {
+    if (!Array.isArray(data)) return [] as (getCarguesFormat & { id: string })[];
+    return data.map((item) => ({
+      ...item,
+      id: uuidv4(),
+      FEC_PAGO_FORMATTED: item.FEC_PAGO && getFormattedDate(item.FEC_PAGO),
+      FEC_ENVIO_FORMATTED: item.FEC_ENVIO && getFormattedDate(item.FEC_ENVIO),
+    }));
+  }, [data]);
 
-    return data.filter((r) => {
-      if (!r) return false;
-
-      // If the switch is OFF, return all rows
-      if (!shouldFilterValidated) return true;
-
-      // If the switch is ON, only keep validated ones
-      return r.IS_MISSING;
-    });
-  }, [data, shouldFilterValidated]);
-
-  const validadoColumn = React.useMemo<ColumnDef<getCargues>>(
+  const validadoColumn = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>>(
     () => ({
       id: 'select',
       header: ({ table }) => (
         <Checkbox
           checked={
-            table.getIsSomePageRowsSelected() ? 'indeterminate' : table.getIsAllPageRowsSelected()
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => {
-        const sent = row.original.IS_MISSING;
         return (
           <Checkbox
-            checked={sent ? true : row.getIsSelected()}
-            disabled={sent ? true : !row.getCanSelect()}
-            onCheckedChange={(v) => !sent && row.toggleSelected(!!v)}
+            checked={row.getIsSelected()}
+            onCheckedChange={(v) => row.toggleSelected(!!v)}
             aria-label="Select row"
           />
         );
@@ -95,35 +91,31 @@ export function CarguesDataTable() {
     []
   );
 
+  const rowsForTable = React.useMemo(() => {
+    if (!Array.isArray(modifiedData)) return [];
+
+    return modifiedData.filter((r) => (shouldFilterValidated ? !!r?.FEC_ENVIO : !r?.FEC_ENVIO));
+  }, [modifiedData, shouldFilterValidated]);
+
   // Merge selection column with your domain columns
-  const columns = React.useMemo<ColumnDef<getCargues>[]>(() => {
-    return [validadoColumn, ...carguesColumns];
+  const columns = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>[]>(() => {
+    return [validadoColumn, ...(carguesColumns as ColumnDef<getCarguesFormat & { id: string }>[])];
   }, [validadoColumn]);
 
   // Table instance
   const table = useReactTable({
-    data: rowsForTable ?? [],
+    data: rowsForTable,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
-    enableRowSelection: (row) => !row.original.IS_MISSING,
     onRowSelectionChange: setRowSelection,
-    getRowId: (row) => String(row.REFERENCIA),
     state: { columnFilters, pagination, rowSelection },
+    enableRowSelection: true,
+    getRowId: (row) => row.id,
   });
-
-  // Preselect only when data changes (don’t wipe user clicks on every toggle)
-  React.useEffect(() => {
-    if (!Array.isArray(data)) return;
-    const initial: Record<string, boolean> = {};
-    data.forEach((r) => {
-      if (r?.IS_MISSING) initial[String(r.REFERENCIA)] = true;
-    });
-    setRowSelection(initial);
-  }, [data]);
 
   const selectedRows = table
     .getSelectedRowModel()
@@ -160,13 +152,15 @@ export function CarguesDataTable() {
       <h1 className="mb-4 text-2xl font-bold tracking-tight">Cargues de Transbel</h1>
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
-          <Switch
-            id="only-errors"
-            checked={shouldFilterValidated}
-            onCheckedChange={() => setShouldFilterValidated((prev) => !prev)}
-            className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300 focus-visible:ring-emerald-600 mr-2"
-          />
-          <Label htmlFor="only-errors">Mostrar faltantes</Label>
+          <Tabs
+            value={shouldFilterValidated ? 'validated' : 'not_validated'}
+            onValueChange={(value) => setShouldFilterValidated(value === 'validated')}
+          >
+            <TabsList>
+              <TabsTrigger value="validated">Referencias con Validación</TabsTrigger>
+              <TabsTrigger value="not_validated">Referencias sin Validación</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {selectedRows.length > 0 && (
@@ -175,7 +169,7 @@ export function CarguesDataTable() {
               size="sm"
               className="bg-yellow-500 hover:bg-yellow-600 cursor-pointer"
               onClick={sendToDB}
-              disabled={isSendingToDB} // optional: disable while loading
+              disabled={isSendingToDB}
             >
               <div className="flex items-center">
                 {isSendingToDB ? (
