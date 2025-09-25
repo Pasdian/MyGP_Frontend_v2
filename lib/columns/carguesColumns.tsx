@@ -62,6 +62,20 @@ export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
     },
   },
   {
+    accessorKey: "FEC_PAGO_FORMATTED",
+    header: "Fecha de Pago",
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => {
+      if (!row.original.FEC_PAGO) {
+        return (
+          <ErrorTooltip value="--" errorMessage="No existe una fecha de pago" />
+        );
+      }
+
+      return <p className="text-center">{row.original.FEC_PAGO_FORMATTED}</p>;
+    },
+  },
+  {
     accessorKey: "FEC_ENVIO_FORMATTED",
     header: "Fecha de Envío",
     filterFn: fuzzyFilter,
@@ -76,20 +90,6 @@ export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
       }
 
       return <p className="text-center">{row.original.FEC_ENVIO_FORMATTED}</p>;
-    },
-  },
-  {
-    accessorKey: "FEC_PAGO_FORMATTED",
-    header: "Fecha de Pago",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.FEC_PAGO) {
-        return (
-          <ErrorTooltip value="--" errorMessage="No existe una fecha de pago" />
-        );
-      }
-
-      return <p className="text-center">{row.original.FEC_PAGO_FORMATTED}</p>;
     },
   },
 ];

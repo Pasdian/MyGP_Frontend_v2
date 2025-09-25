@@ -5,12 +5,7 @@ import { Column } from '@tanstack/react-table';
 export default function CarguesDataTableFilter({
   column,
 }: {
-  column: Column<
-    getCarguesFormat & {
-      id: string;
-    },
-    unknown
-  >;
+  column: Column<getCarguesFormat, unknown>;
 }) {
   const columnFilterValue = column.getFilterValue();
 

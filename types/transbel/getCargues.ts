@@ -6,6 +6,8 @@ export type getCargues = {
   CECO: string | null;
   FEC_PAGO: string | null;
   FEC_ENVIO: string | null;
+  has_error: boolean;
+  FEC_PAGO_ERROR_MSG: string | null;
 };
 
 export type getCarguesFormat = getCargues & {

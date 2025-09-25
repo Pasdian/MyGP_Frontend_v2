@@ -47,7 +47,7 @@ export function CarguesDataTable() {
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [shouldFilterValidated, setShouldFilterValidated] = React.useState(false);
+  const [shouldFilterFecEnvio, setShouldFilterFecEnvio] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToDB, setIsSendingToDB] = React.useState(false);
 
@@ -62,50 +62,56 @@ export function CarguesDataTable() {
     }));
   }, [data]);
 
-  const validadoColumn = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>>(
-    () => ({
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => {
-        return (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(v) => row.toggleSelected(!!v)}
-            aria-label="Select row"
-          />
-        );
-      },
-      enableSorting: false,
-      enableHiding: false,
-      size: 36,
-    }),
-    []
-  );
+  // const validadoColumn = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>>(
+  //   () => ({
+  //     id: 'select',
+  //     header: ({ table }) => (
+  //       <Checkbox
+  //         checked={
+  //           table.getIsAllPageRowsSelected() ||
+  //           (table.getIsSomePageRowsSelected() && 'indeterminate')
+  //         }
+  //         onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+  //         aria-label="Select all"
+  //       />
+  //     ),
+  //     cell: ({ row }) => {
+  //       return (
+  //         <Checkbox
+  //           checked={row.getIsSelected()}
+  //           onCheckedChange={(v) => row.toggleSelected(!!v)}
+  //           aria-label="Select row"
+  //         />
+  //       );
+  //     },
+  //     enableSorting: false,
+  //     enableHiding: false,
+  //     size: 36,
+  //   }),
+  //   []
+  // );
 
   const rowsForTable = React.useMemo(() => {
     if (!Array.isArray(modifiedData)) return [];
 
-    return modifiedData.filter((r) => (shouldFilterValidated ? !!r?.FEC_ENVIO : !r?.FEC_ENVIO));
-  }, [modifiedData, shouldFilterValidated]);
+    return modifiedData.filter((r) => {
+      if (shouldFilterFecEnvio) {
+        return !r?.FEC_ENVIO;
+      } else {
+        return !!r?.FEC_ENVIO;
+      }
+    });
+  }, [modifiedData, shouldFilterFecEnvio]);
 
   // Merge selection column with your domain columns
-  const columns = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>[]>(() => {
-    return [validadoColumn, ...(carguesColumns as ColumnDef<getCarguesFormat & { id: string }>[])];
-  }, [validadoColumn]);
+  // const columns = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>[]>(() => {
+  //   return [validadoColumn, ...(carguesColumns as ColumnDef<getCarguesFormat & { id: string }>[])];
+  // }, [validadoColumn]);
 
   // Table instance
   const table = useReactTable({
     data: rowsForTable,
-    columns,
+    columns: carguesColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -114,7 +120,7 @@ export function CarguesDataTable() {
     onRowSelectionChange: setRowSelection,
     state: { columnFilters, pagination, rowSelection },
     enableRowSelection: true,
-    getRowId: (row) => row.id,
+    // getRowId: (row) => row.id,
   });
 
   const selectedRows = table
@@ -153,12 +159,18 @@ export function CarguesDataTable() {
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
           <Tabs
-            value={shouldFilterValidated ? 'validated' : 'not_validated'}
-            onValueChange={(value) => setShouldFilterValidated(value === 'validated')}
+            onValueChange={(value) => {
+              if (value === 'not_sent_and_not_fec_envio') {
+                setShouldFilterFecEnvio(true);
+              } else {
+                setShouldFilterFecEnvio(false);
+              }
+            }}
           >
             <TabsList>
-              <TabsTrigger value="validated">Referencias con Validación</TabsTrigger>
-              <TabsTrigger value="not_validated">Referencias sin Validación</TabsTrigger>
+              <TabsTrigger value="validated">Pedimentos Pagados</TabsTrigger>
+              <TabsTrigger value="not_sent_and_not_fec_envio">Pendientes por Enviar</TabsTrigger>
+              <TabsTrigger value="sent_and_not_errors">Enviados</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -180,7 +192,7 @@ export function CarguesDataTable() {
                 ) : (
                   <>
                     <IconSettings className="mr-2 h-4 w-4" />
-                    <p>Seleccionar {selectedRows.length} pedimentos como faltantes</p>
+                    <p>Enviar {selectedRows.length} pedimentos</p>
                   </>
                 )}
               </div>

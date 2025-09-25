@@ -214,23 +214,29 @@ export function InterfaceDataTable() {
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
           <Tabs
-            value={shouldFilterErrors ? 'errors' : 'not_errors'}
-            onValueChange={(value) => setShouldFilterErrors(value === 'errors')}
+            value={
+              shouldFilterWorkatoStatus
+                ? 'sent_and_not_errors'
+                : shouldFilterErrors
+                ? 'errors'
+                : 'not_errors_and_not_sent'
+            }
+            onValueChange={(value) => {
+              if (value === 'errors') {
+                setShouldFilterErrors(true); // Filter references that have errors
+                setShouldFilterWorkatoStatus(false); // and haven't been sent to workato
+              } else if (value === 'not_errors_and_not_sent') {
+                setShouldFilterErrors(false); // Filter references that do not have errors
+                setShouldFilterWorkatoStatus(false); // and haven't been sent to workato
+              } else if (value === 'sent_and_not_errors') {
+                setShouldFilterWorkatoStatus(true); // Filter references that have been sent to workato
+              }
+            }}
           >
             <TabsList>
-              <TabsTrigger value="errors">Referencias con Error</TabsTrigger>
-              <TabsTrigger value="not_errors">Referencias sin Error</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        <div className="flex items-center">
-          <Tabs
-            value={shouldFilterWorkatoStatus ? 'sent' : 'not_sent'}
-            onValueChange={(value) => setShouldFilterWorkatoStatus(value === 'sent')}
-          >
-            <TabsList>
-              <TabsTrigger value="sent">Enviados</TabsTrigger>
-              <TabsTrigger value="not_sent">No enviados</TabsTrigger>
+              <TabsTrigger value="errors">Con Error</TabsTrigger>
+              <TabsTrigger value="not_errors_and_not_sent">Pendientes de Envio</TabsTrigger>
+              <TabsTrigger value="sent_and_not_errors">Enviados</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
