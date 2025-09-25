@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -27,7 +26,6 @@ import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
 import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
-import { Checkbox } from '@/components/ui/checkbox';
 import { carguesColumns } from '@/lib/columns/carguesColumns';
 import { IconSettings } from '@tabler/icons-react';
 import { Loader2 } from 'lucide-react';
