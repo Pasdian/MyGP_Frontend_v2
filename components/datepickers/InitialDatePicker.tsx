@@ -12,18 +12,20 @@ export default function InitialDatePicker({
   date,
   setDate,
   onSelect,
+  label = 'Selecciona una fecha de inicio',
 }: {
   date: Date | undefined;
   setDate:
     | React.Dispatch<React.SetStateAction<Date | undefined>>
     | ((finalDate: Date | undefined) => void);
   onSelect: (value: Date | undefined) => void;
+  label?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor="date" className="px-1">
-        Selecciona una fecha de inicio
+        {label}
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

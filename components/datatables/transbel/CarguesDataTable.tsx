@@ -57,6 +57,7 @@ export function CarguesDataTable() {
       id: uuidv4(),
       FEC_PAGO_FORMATTED: item.FEC_PAGO && getFormattedDate(item.FEC_PAGO),
       FEC_ENVIO_FORMATTED: item.FEC_ENVIO && getFormattedDate(item.FEC_ENVIO),
+      NUM_TRAFICO: item.EE || item.GE || item.CECO,
     }));
   }, [data]);
 

@@ -13,4 +13,5 @@ export type getCargues = {
 export type getCarguesFormat = getCargues & {
   FEC_PAGO_FORMATTED: string | null;
   FEC_ENVIO_FORMATTED: string | null;
+  NUM_TRAFICO: string | null;
 };

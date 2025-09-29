@@ -21,6 +21,10 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Referencia",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.CE_138) {
+        // If CE_138 skip the following validations
+        return <p className="text-center">{row.original.REFERENCIA ?? ""}</p>;
+      }
       if (!row.original.REFERENCIA) {
         return (
           <ErrorTooltip
@@ -46,6 +50,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "EE/GE",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.CE_138) {
+        return <p className="text-center">{row.original.EE__GE ?? "--"}</p>;
+      }
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
       }
@@ -58,6 +65,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Revalidación",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.CE_138) {
+        return (
+          <p className="text-center">
+            {row.original.REVALIDACION_073_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (!row.original.REVALIDACION_073) {
         return (
           <ErrorTooltip
@@ -90,6 +104,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Último Documento",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.CE_138) {
+        return (
+          <p className="text-center">
+            {row.original.ULTIMO_DOCUMENTO_114_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (!row.original.ULTIMO_DOCUMENTO_114) {
         return (
           <ErrorTooltip
@@ -124,6 +145,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "MSA",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.CE_138) {
+        return (
+          <p className="text-center">
+            {row.original.MSA_130_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (!row.original.MSA_130_FORMATTED) {
         return (
           <ErrorTooltip value="--" errorMessage="No existe una fecha de MSA" />
@@ -147,6 +175,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Entrega Transporte",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.CE_138) {
+        return (
+          <p className="text-center">
+            {row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (!row.original.ENTREGA_TRANSPORTE_138_FORMATTED) {
         return (
           <ErrorTooltip
@@ -181,6 +216,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Entrega a CDP",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.CE_138) {
+        return (
+          <p className="text-center">
+            {row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (!row.original.ENTREGA_CDP_140_FORMATTED) {
         return (
           <ErrorTooltip
@@ -192,9 +234,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
 
       return (
         <p className="text-center">
-          {row.original.ENTREGA_CDP_140_FORMATTED
-            ? row.original.ENTREGA_CDP_140_FORMATTED
-            : "--"}
+          {row.original.ENTREGA_CDP_140_FORMATTED || "--"}
         </p>
       );
     },
@@ -204,11 +244,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "CE 138",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      return (
-        <p className="text-center">
-          {row.original.CE_138 ? row.original.CE_138 : "--"}
-        </p>
-      );
+      return <p className="text-center">{row.original.CE_138 || "--"}</p>;
     },
   },
   {
@@ -216,11 +252,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "CE 140",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      return (
-        <p className="text-center">
-          {row.original.CE_140 ? row.original.CE_140 : "--"}
-        </p>
-      );
+      return <p className="text-center">{row.original.CE_140 || "--"}</p>;
     },
   },
   {
@@ -229,9 +261,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     cell: ({ row }) => {
       return (
         <p className="text-center">
-          {row.original.workato_created_at_FORMATTED
-            ? row.original.workato_created_at_FORMATTED
-            : "--"}
+          {row.original.workato_created_at_FORMATTED || "--"}
         </p>
       );
     },

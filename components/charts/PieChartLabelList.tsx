@@ -14,8 +14,8 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr';
-import InitialDatePicker from '../datepickers/ChartInitialDatePicker';
-import FinalDatePicker from '../datepickers/ChartFinalDatePicker';
+import InitialDatePicker from '../datepickers/InitialDatePicker';
+import FinalDatePicker from '../datepickers/FinalDatePicker';
 import React from 'react';
 import { toast } from 'sonner';
 import ClientsCombo from '../comboboxes/ClientsCombo';

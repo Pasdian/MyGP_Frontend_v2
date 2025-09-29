@@ -8,6 +8,7 @@ import {
   IconShield,
   IconUser,
   IconTruck,
+  IconManualGearbox,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
@@ -40,6 +41,13 @@ const userItems = {
           module: ['Transbel Cargues', 'All Modules'],
           role: ['ADMIN', 'AAP'],
           icon: IconTruck,
+        },
+        {
+          title: 'Cargue Manual',
+          url: '/mygp/transbel/cargue_manual',
+          module: ['Transbel Cargues', 'All Modules'],
+          role: ['ADMIN', 'AAP'],
+          icon: IconManualGearbox,
         },
       ],
     },

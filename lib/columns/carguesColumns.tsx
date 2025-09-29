@@ -9,7 +9,7 @@ const fuzzyFilter = createFuzzyFilter<getCarguesFormat>();
 
 export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
   {
-    accessorKey: "REFERENCIA",
+    accessorKey: "NUM_REFE",
     header: "Referencia",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
@@ -26,7 +26,7 @@ export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
     },
   },
   {
-    accessorKey: "NUM_PEDIMENTO",
+    accessorKey: "NUM_PEDI",
     header: "Número de Pedimento",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
@@ -44,12 +44,10 @@ export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
   },
   {
     accessorKey: "NUM_TRAFICO",
-    header: "Número de Tráfico",
+    header: "Folio",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      const NUM_TRAFICO =
-        row.original.EE || row.original.GE || row.original.CECO;
-      if (!NUM_TRAFICO) {
+      if (!row.original.NUM_TRAFICO) {
         return (
           <ErrorTooltip
             value="--"
@@ -58,7 +56,7 @@ export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
         );
       }
 
-      return <p className="text-center">{NUM_TRAFICO}</p>;
+      return <p className="text-center">{row.original.NUM_TRAFICO}</p>;
     },
   },
   {

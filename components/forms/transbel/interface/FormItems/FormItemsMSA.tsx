@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
 
@@ -29,7 +29,7 @@ export default function FormItemsMSA({
     }
   >;
 
-  row: Row<getRefsPendingCE>;
+  row: Row<getRefsPendingCEFormat>;
 }) {
   return (
     <>

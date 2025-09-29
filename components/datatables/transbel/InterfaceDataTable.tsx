@@ -30,14 +30,22 @@ import TablePagination from '../pagination/TablePagination';
 import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { IconSettings } from '@tabler/icons-react';
-import { Loader2 } from 'lucide-react';
+import { IconSettings, IconSquareFilled } from '@tabler/icons-react';
+import { CheckIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import axios from 'axios';
 import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const TAB_VALUES = ['errors', 'not_errors_and_not_sent', 'sent_and_not_errors'] as const;
+type TabValue = (typeof TAB_VALUES)[number];
+
+// 2) Type guard to narrow string -> TabValue
+function isTabValue(v: string): v is TabValue {
+  return (TAB_VALUES as readonly string[]).includes(v);
+}
 
 const isEmptyDate = (d: string | null | undefined): boolean => d == null || d === '';
 
@@ -62,6 +70,9 @@ export function InterfaceDataTable() {
   const [shouldFilterWorkatoStatus, setShouldFilterWorkatoStatus] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
+  const [tabValue, setTabValue] = React.useState<
+    'errors' | 'not_errors_and_not_sent' | 'sent_and_not_errors'
+  >('errors');
 
   const pendingRefsKey =
     initialDate && finalDate
@@ -91,18 +102,17 @@ export function InterfaceDataTable() {
     }));
   }, [data]);
 
-  // Filtered rows based on switches
+  // Filtered rows based on tabs
   const filtered = React.useMemo(() => {
     if (!Array.isArray(modifiedData)) return [];
-
     return modifiedData.filter((r) => {
       if (!r) return false;
 
-      const matchesError = shouldFilterErrors ? !!r.has_error : !r.has_error;
+      const hasErr = r.has_error === true;
+      const sentToWorkato = r.was_send_to_workato === true;
 
-      const matchesStatus = shouldFilterWorkatoStatus
-        ? !!r.was_send_to_workato
-        : !r.was_send_to_workato;
+      const matchesError = shouldFilterErrors ? hasErr : !hasErr;
+      const matchesStatus = shouldFilterWorkatoStatus ? sentToWorkato : !sentToWorkato;
 
       return matchesError && matchesStatus;
     });
@@ -113,7 +123,6 @@ export function InterfaceDataTable() {
     [filtered]
   );
 
-  // Selection column (TanStack selection state, not the data field)
   const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCEFormat>>(
     () => ({
       id: 'select',
@@ -149,10 +158,17 @@ export function InterfaceDataTable() {
     []
   );
 
-  // Merge selection column with your domain columns
+  const baseColumns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
+    return [...interfaceColumns];
+  }, []);
+
+  // Conditionally add the selection column
   const columns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
-    return [selectionWorkatoColumn, ...interfaceColumns];
-  }, [selectionWorkatoColumn]);
+    if (tabValue === 'not_errors_and_not_sent') {
+      return [selectionWorkatoColumn, ...baseColumns];
+    }
+    return baseColumns;
+  }, [tabValue, baseColumns, selectionWorkatoColumn]);
 
   // Table instance
   const table = useReactTable({
@@ -186,6 +202,18 @@ export function InterfaceDataTable() {
 
   async function sendToWorkato() {
     setIsSendingToWorkato(true);
+
+    const ee__ge_array = selectedWorkatoRows.map((row) => row.EE__GE);
+
+    const duplicates = ee__ge_array.filter((val, idx, arr) => arr.indexOf(val) !== idx);
+
+    const uniqueDuplicates = [...new Set(duplicates)];
+
+    if (uniqueDuplicates.length > 0) {
+      toast.error(`EE/GE Duplicados encontrados: ${uniqueDuplicates.join(', ')}`);
+      return;
+    }
+
     try {
       const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
         payload: selectedWorkatoRows,
@@ -214,6 +242,7 @@ export function InterfaceDataTable() {
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
           <Tabs
+            className="mr-2"
             value={
               shouldFilterWorkatoStatus
                 ? 'sent_and_not_errors'
@@ -222,14 +251,17 @@ export function InterfaceDataTable() {
                 : 'not_errors_and_not_sent'
             }
             onValueChange={(value) => {
+              if (isTabValue(value)) setTabValue(value);
+
               if (value === 'errors') {
-                setShouldFilterErrors(true); // Filter references that have errors
-                setShouldFilterWorkatoStatus(false); // and haven't been sent to workato
+                setShouldFilterErrors(true);
+                setShouldFilterWorkatoStatus(false);
               } else if (value === 'not_errors_and_not_sent') {
-                setShouldFilterErrors(false); // Filter references that do not have errors
-                setShouldFilterWorkatoStatus(false); // and haven't been sent to workato
+                setShouldFilterErrors(false);
+                setShouldFilterWorkatoStatus(false);
               } else if (value === 'sent_and_not_errors') {
-                setShouldFilterWorkatoStatus(true); // Filter references that have been sent to workato
+                setShouldFilterErrors(false); // <-- missing before
+                setShouldFilterWorkatoStatus(true);
               }
             }}
           >
@@ -239,6 +271,26 @@ export function InterfaceDataTable() {
               <TabsTrigger value="sent_and_not_errors">Enviados</TabsTrigger>
             </TabsList>
           </Tabs>
+          {tabValue == 'not_errors_and_not_sent' && (
+            <Button
+              size="sm"
+              className="bg-blue-500 hover:bg-blue-600 cursor-pointer mr-2"
+              onClick={() => table.toggleAllRowsSelected(true)}
+            >
+              <CheckIcon />
+              Seleccionar todo
+            </Button>
+          )}
+          {tabValue == 'not_errors_and_not_sent' && (
+            <Button
+              size="sm"
+              className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
+              onClick={() => table.toggleAllRowsSelected(false)}
+            >
+              <IconSquareFilled />
+              Deseleccionar todo
+            </Button>
+          )}
         </div>
 
         {selectedWorkatoRows.length > 0 && (
