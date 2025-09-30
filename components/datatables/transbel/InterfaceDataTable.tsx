@@ -118,10 +118,18 @@ export function InterfaceDataTable() {
     });
   }, [modifiedData, shouldFilterErrors, shouldFilterWorkatoStatus]);
 
-  const rowsForTable = React.useMemo(
-    () => emptyDatesFirst(filtered, (r) => r.workato_created_at ?? null),
-    [filtered]
-  );
+  const rowsForTable = React.useMemo(() => {
+    if (!Array.isArray(filtered)) return [];
+
+    // Sort by most recent workato_created_at first
+    const sorted = [...filtered].sort((a, b) => {
+      const ta = new Date(a?.workato_created_at ?? 0).getTime();
+      const tb = new Date(b?.workato_created_at ?? 0).getTime();
+      return tb - ta; // descending
+    });
+
+    return sorted;
+  }, [filtered]);
 
   const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCEFormat>>(
     () => ({
@@ -356,7 +364,7 @@ export function InterfaceDataTable() {
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length} className="h-24 ">
                 <div className="flex justify-center">
                   <p>Sin resultados...</p>
                 </div>

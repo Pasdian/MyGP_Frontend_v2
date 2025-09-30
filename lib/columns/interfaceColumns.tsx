@@ -56,7 +56,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
       }
-      return row.original.EE__GE;
+      return <p className="text-center">{row.original.EE__GE ?? "--"}</p>;
     },
   },
 
