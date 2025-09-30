@@ -21,19 +21,35 @@ function buildPreviewSrc(relPath: string) {
   return `/gip/download?filepath=${encodeURIComponent(relPath)}`;
 }
 
+/** Simple Tailwind spinner */
+function TailwindSpinner({ label = 'Cargando…' }: { label?: string }) {
+  return (
+    <div className="flex items-center justify-center gap-3" role="status" aria-live="polite">
+      <div className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
+      <span className="text-sm text-gray-600">{label}</span>
+    </div>
+  );
+}
+
 export default function GipBrowser() {
   const [folder, setFolder] = React.useState<string>(''); // current directory
   const [selectedFile, setSelectedFile] = React.useState<string>(''); // file to preview
+  const [isPreviewLoading, setIsPreviewLoading] = React.useState<boolean>(false);
+  const [previewError, setPreviewError] = React.useState<string>('');
 
   const key = `/gip/search${folder ? `?filepath=${encodeURIComponent(folder)}` : ''}`;
   const { data, isLoading, error } = useSWRImmutable(key, axiosFetcher);
 
   const goInto = (name: string) => {
     setSelectedFile(''); // clear viewer when changing folder
+    setPreviewError('');
+    setIsPreviewLoading(false);
     setFolder(joinPath(folder, name));
   };
   const goUp = () => {
     setSelectedFile('');
+    setPreviewError('');
+    setIsPreviewLoading(false);
     setFolder(dirname(folder));
   };
   const atRoot = folder === '' || folder === '/';
@@ -41,6 +57,8 @@ export default function GipBrowser() {
   const openFile = (name: string) => {
     const rel = joinPath(folder, name);
     setSelectedFile(rel);
+    setPreviewError('');
+    setIsPreviewLoading(true); // start spinner as soon as we select a file
   };
 
   return (
@@ -52,6 +70,8 @@ export default function GipBrowser() {
           onClick={() => {
             setFolder('');
             setSelectedFile('');
+            setPreviewError('');
+            setIsPreviewLoading(false);
           }}
           disabled={atRoot}
         >
@@ -70,6 +90,8 @@ export default function GipBrowser() {
                   onClick={() => {
                     setFolder(pathUpTo);
                     setSelectedFile('');
+                    setPreviewError('');
+                    setIsPreviewLoading(false);
                   }}
                 >
                   {seg}
@@ -89,7 +111,11 @@ export default function GipBrowser() {
           {selectedFile && (
             <button
               className="px-2 py-1 rounded border hover:bg-gray-50"
-              onClick={() => setSelectedFile('')}
+              onClick={() => {
+                setSelectedFile('');
+                setPreviewError('');
+                setIsPreviewLoading(false);
+              }}
               title="Close viewer"
             >
               Cerrar visor
@@ -100,7 +126,7 @@ export default function GipBrowser() {
 
       {/* Two-pane layout: left = list, right = viewer */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left: listing (unchanged) */}
+        {/* Left: listing */}
         <div className="border rounded-md overflow-y-auto max-h-[800px]">
           {isLoading && <div className="p-3 text-gray-500">Loading…</div>}
           {error && <div className="p-3 text-red-600">Failed to load.</div>}
@@ -110,7 +136,7 @@ export default function GipBrowser() {
           )}
 
           {Array.isArray(data) &&
-            data.map((item, index) => {
+            data.map((item: any, index: number) => {
               const fullRel = joinPath(folder, item.name);
               const isSelected = !item.is_dir && selectedFile === fullRel;
 
@@ -141,7 +167,8 @@ export default function GipBrowser() {
             })}
         </div>
 
-        <div className="border rounded-md min-h-[300px] h-[80vh] overflow-hidden flex flex-col">
+        {/* Right: viewer */}
+        <div className="relative border rounded-md min-h-[300px] h-[80vh] overflow-hidden flex flex-col">
           {!selectedFile ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">
               Select a file to preview
@@ -157,7 +184,26 @@ export default function GipBrowser() {
               </div>
 
               {/* Viewer body */}
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 overflow-auto relative">
+                {/* Spinner overlay while the iframe loads */}
+                {isPreviewLoading && (
+                  <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-sm flex items-center justify-center">
+                    <TailwindSpinner label="Cargando vista previa…" />
+                  </div>
+                )}
+
+                {/* Error state (if iframe fails) */}
+                {previewError && !isPreviewLoading && (
+                  <div className="absolute inset-0 z-10 bg-white/90 flex items-center justify-center p-6 text-center">
+                    <div>
+                      <p className="text-red-600 font-medium mb-2">
+                        No se pudo cargar la vista previa.
+                      </p>
+                      <p className="text-sm text-gray-600">{previewError}</p>
+                    </div>
+                  </div>
+                )}
+
                 {selectedFile && (
                   <iframe
                     key={selectedFile} // force refresh if same file reselected
@@ -166,6 +212,11 @@ export default function GipBrowser() {
                     title={`Preview ${selectedFile.split('/').pop()}`}
                     frameBorder={0}
                     allow="fullscreen"
+                    onLoad={() => setIsPreviewLoading(false)}
+                    onError={() => {
+                      setIsPreviewLoading(false);
+                      setPreviewError('Verifica que el archivo exista y que tengas permisos.');
+                    }}
                   />
                 )}
               </div>
