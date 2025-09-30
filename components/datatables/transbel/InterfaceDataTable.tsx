@@ -49,18 +49,6 @@ function isTabValue(v: string): v is TabValue {
 
 const isEmptyDate = (d: string | null | undefined): boolean => d == null || d === '';
 
-function emptyDatesFirst<T>(
-  arr: readonly T[],
-  getDate: (item: T) => string | null | undefined
-): T[] {
-  const empty: T[] = [];
-  const filled: T[] = [];
-  for (const item of arr) {
-    (isEmptyDate(getDate(item)) ? empty : filled).push(item);
-  }
-  return empty.concat(filled);
-}
-
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   // UI state
