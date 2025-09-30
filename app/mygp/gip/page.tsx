@@ -136,7 +136,7 @@ export default function GipBrowser() {
           )}
 
           {Array.isArray(data) &&
-            data.map((item: any, index: number) => {
+            data.map((item: { name: string; is_dir: boolean }, index: number) => {
               const fullRel = joinPath(folder, item.name);
               const isSelected = !item.is_dir && selectedFile === fullRel;
 
