@@ -222,18 +222,32 @@ export function InterfaceDataTable() {
   async function sendToWorkato() {
     setIsSendingToWorkato(true);
 
-    const ee__ge_array = filtered.map((row) => row.EE__GE);
+    // Get EE__GE values for the full filtered dataset
+    const allEEGE = filtered.map((row) => row.EE__GE).filter(Boolean);
 
-    const duplicates = ee__ge_array.filter((val, idx, arr) => arr.indexOf(val) !== idx);
+    // Count occurrences
+    const counts = new Map<string, number>();
+    allEEGE.forEach((val) => {
+      counts.set(val!, (counts.get(val!) || 0) + 1);
+    });
 
-    const uniqueDuplicates = [...new Set(duplicates)];
+    // Now check if any selected row has duplicates in the filtered dataset
+    const duplicatesInSelection = selectedWorkatoRows
+      .map((row) => row.EE__GE)
+      .filter((val) => val && counts.get(val)! > 1);
+
+    const uniqueDuplicates = [...new Set(duplicatesInSelection)];
 
     if (uniqueDuplicates.length > 0) {
-      toast.error(`EE/GE Duplicados encontrados: ${uniqueDuplicates.join(', ')}`);
+      toast.error(
+        `Encuentra los duplicados y no los selecciones, EE/GE Duplicados encontrados: ${uniqueDuplicates.join(
+          ', '
+        )}`
+      );
+      setIsSendingToWorkato(false);
       return;
     }
 
-    return;
     try {
       const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
         payload: selectedWorkatoRows,
@@ -306,14 +320,16 @@ export function InterfaceDataTable() {
                 <CheckIcon />
                 Seleccionar todo
               </Button>
-              <Button
-                size="sm"
-                className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
-                onClick={() => table.toggleAllRowsSelected(false)}
-              >
-                <IconSquareFilled />
-                Deseleccionar todo
-              </Button>
+              {table.getIsAllRowsSelected() && (
+                <Button
+                  size="sm"
+                  className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                  onClick={() => table.toggleAllRowsSelected(false)}
+                >
+                  <IconSquareFilled />
+                  Deseleccionar todo
+                </Button>
+              )}
             </div>
           )}
         </div>
