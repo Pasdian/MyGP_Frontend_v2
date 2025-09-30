@@ -155,22 +155,22 @@ export default function CollapsibleReferences() {
                 />
 
                 {clientNumber &&
-                  filteredItems?.map(({ NUM_REFE, FOLDER_EXISTS }: getRefsByClient, i) => {
+                  filteredItems?.map(({ NUM_REFE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
                     const isActive = reference === NUM_REFE;
                     const isDownloading = loadingReference === NUM_REFE;
                     const base =
                       'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
-                    const active = FOLDER_EXISTS
+                    const active = FOLDER_HAS_CONTENT
                       ? 'bg-green-300'
                       : 'bg-red-400 cursor-not-allowed opacity-60';
-                    const normal = FOLDER_EXISTS ? 'even:bg-gray-200' : active;
+                    const normal = FOLDER_HAS_CONTENT ? 'even:bg-gray-200' : active;
 
                     return (
                       <SidebarMenuItem
                         key={`${NUM_REFE}-${i}`}
                         className={`${base} ${isActive ? active : normal}`}
                         onClick={() => {
-                          if (!FOLDER_EXISTS) return;
+                          if (!FOLDER_HAS_CONTENT) return;
                           const custom = getCustomKeyByRef(NUM_REFE);
                           setCustom(custom || '');
                           setPdfUrl('');
@@ -182,7 +182,7 @@ export default function CollapsibleReferences() {
                           <p className="max-w-[70px] text-xs truncate">{NUM_REFE}</p>
 
                           <div className="flex items-center">
-                            {FOLDER_EXISTS &&
+                            {FOLDER_HAS_CONTENT &&
                               (!isDownloading ? (
                                 <DownloadIcon
                                   size={14}
