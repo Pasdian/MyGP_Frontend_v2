@@ -50,6 +50,11 @@ const userItems = {
           role: ['ADMIN', 'AAP'],
           icon: IconManualGearbox,
         },
+      ],
+    },
+    {
+      title: 'Sistema GIP',
+      items: [
         {
           title: 'GIP',
           url: '/mygp/gip',
