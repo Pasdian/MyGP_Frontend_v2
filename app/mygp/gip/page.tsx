@@ -2,11 +2,7 @@
 import * as React from 'react';
 import useSWRImmutable from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import * as XLSX from 'xlsx';
-import * as mammoth from 'mammoth';
-import axios from 'axios';
-
-type Props = { filepath: string }; // relative inside the SMB share (e.g. "dir1/file.xlsx")
+import { Button } from '@/components/ui/button';
 
 function joinPath(base: string, seg: string) {
   if (!base) return seg;
@@ -20,91 +16,9 @@ function dirname(p: string) {
   return parts.join('/');
 }
 
-function DocumentViewer({ filepath }: Props) {
-  const ext = filepath.split('.').pop()?.toLowerCase();
-
-  if (ext === 'xlsx' || ext === 'xls') return <ExcelViewer filepath={filepath} />;
-  if (ext === 'docx') return <DocxViewer filepath={filepath} />;
-  if (ext === 'doc') {
-    // Fallback to Office/Google viewer via your own URL (must be reachable by them to work)
-    const fileUrl = `${window.location.origin}/gip/download?filepath=${encodeURIComponent(
-      filepath
-    )}`;
-    return (
-      <iframe
-        className="w-full h-[80vh]"
-        src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`}
-      />
-    );
-  }
-  return <div>Unsupported file type.</div>;
-}
-
-function ExcelViewer({ filepath }: { filepath: string }) {
-  const [sheets, setSheets] = React.useState<{ name: string; rows: unknown[][] }[]>([]);
-  React.useEffect(() => {
-    (async () => {
-      const url = `/gip/download?filepath=${encodeURIComponent(filepath)}`;
-      const res = await axios.get(url, { responseType: 'arraybuffer' });
-      const wb = XLSX.read(new Uint8Array(res.data), { type: 'array' });
-      const all = wb.SheetNames.map((name) => ({
-        name,
-        rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1 }) as unknown[][],
-      }));
-      setSheets(all);
-    })();
-  }, [filepath]);
-
-  return (
-    <div className="space-y-4 overflow-y-auto max-h-[80vh]">
-      {sheets.map((sheet) => (
-        <div key={sheet.name}>
-          <div className="font-semibold mb-2">{sheet.name}</div>
-          <div className="overflow-x-auto border rounded">
-            <table className="min-w-full text-sm">
-              <tbody>
-                {sheet.rows.map((row, i) => (
-                  <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                    {row.map((cell, j) => (
-                      <td key={j} className="px-3 py-2 border-r whitespace-pre">
-                        {cell !== null && cell !== undefined ? String(cell) : ''}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DocxViewer({ filepath }: { filepath: string }) {
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-
-  React.useEffect(() => {
-    (async () => {
-      const url = `/gip/download?filepath=${encodeURIComponent(filepath)}`;
-      const res = await fetch(url, {
-        headers: {
-          'X-API-KEY': '5ac57fd5-caf1-4768-98a1-e97bfb803a70',
-        },
-      });
-      // credentials: "include", // if you also rely on cooki
-      const buf = await res.arrayBuffer();
-
-      // Approach 1: mammoth -> HTML (cleaner text, loses complex formatting)
-      const { value: html } = await mammoth.convertToHtml({ arrayBuffer: buf });
-      if (containerRef.current) containerRef.current.innerHTML = html;
-
-      // Approach 2 (alternative): docx-preview renders closer to Word layout
-      // await renderDocx(new Blob([buf]), containerRef.current!, null, { inWrapper: false });
-    })();
-  }, [filepath]);
-
-  return <div ref={containerRef} className="prose max-w-none overflow-y-auto max-h-[80vh]" />;
+function buildPreviewSrc(relPath: string) {
+  // same-origin API
+  return `/gip/download?filepath=${encodeURIComponent(relPath)}`;
 }
 
 export default function GipBrowser() {
@@ -165,9 +79,12 @@ export default function GipBrowser() {
           })}
         <div className="ml-auto flex items-center gap-2">
           {!atRoot && (
-            <button className="px-2 py-1 rounded border hover:bg-gray-50" onClick={goUp}>
-              Up one level
-            </button>
+            <Button
+              className="bg-blue-500 hover:bg-blue-600 cursor-pointer px-2 py-1 rounded border hover:bg-gray-50"
+              onClick={goUp}
+            >
+              Atrás
+            </Button>
           )}
           {selectedFile && (
             <button
@@ -175,7 +92,7 @@ export default function GipBrowser() {
               onClick={() => setSelectedFile('')}
               title="Close viewer"
             >
-              Close viewer
+              Cerrar visor
             </button>
           )}
         </div>
@@ -219,9 +136,6 @@ export default function GipBrowser() {
                     <span>{item.is_dir ? '📁' : '📄'}</span>
                     <span className="truncate">{item.name}</span>
                   </div>
-                  {!item.is_dir && (
-                    <span className="text-sm text-blue-600 hover:underline shrink-0">Preview</span>
-                  )}
                 </div>
               );
             })}
@@ -240,26 +154,20 @@ export default function GipBrowser() {
                 <span className="font-medium truncate" title={selectedFile}>
                   {selectedFile.split('/').pop()}
                 </span>
-                <a
-                  className="ml-auto text-blue-600 hover:underline text-sm"
-                  href={`/gip/download?filepath=${encodeURIComponent(selectedFile)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Download
-                </a>
-                <button
-                  className="px-2 py-1 rounded border hover:bg-white text-sm"
-                  onClick={() => setSelectedFile('')}
-                  title="Close viewer"
-                >
-                  Close
-                </button>
               </div>
 
               {/* Viewer body */}
               <div className="flex-1 overflow-auto">
-                <DocumentViewer filepath={selectedFile} />
+                {selectedFile && (
+                  <iframe
+                    key={selectedFile} // force refresh if same file reselected
+                    src={buildPreviewSrc(selectedFile)} // <-- use the /download endpoint
+                    className="w-full h-full"
+                    title={`Preview ${selectedFile.split('/').pop()}`}
+                    frameBorder={0}
+                    allow="fullscreen"
+                  />
+                )}
               </div>
             </>
           )}
