@@ -47,8 +47,6 @@ function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
 }
 
-const isEmptyDate = (d: string | null | undefined): boolean => d == null || d === '';
-
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   // UI state
