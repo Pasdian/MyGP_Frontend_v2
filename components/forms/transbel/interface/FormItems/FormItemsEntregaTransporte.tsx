@@ -75,19 +75,20 @@ export default function FormItemsEntregaTransporte({
         )}
       />
 
-      {shouldPutExceptionCode({
-        exceptionCode: EXCEPTION_CODE,
-        initialDate: row.original.ULTIMO_DOCUMENTO_114,
-        finalDate: ENTREGA_TRANSPORTE_138_DATE,
-        numDays: 7,
-      }) && (
-        <FormField
-          control={form.control}
-          name="exceptionCode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Código de Excepción</FormLabel>
-              <FormControl>
+      <FormField
+        control={form.control}
+        name="exceptionCode"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Código de Excepción</FormLabel>
+            <FormControl>
+              {(shouldPutExceptionCode({
+                exceptionCode: EXCEPTION_CODE,
+                initialDate: row.original.ULTIMO_DOCUMENTO_114,
+                finalDate: ENTREGA_TRANSPORTE_138_DATE,
+                numDays: 7,
+              }) ||
+                !!field.value) && (
                 <div className="flex">
                   <div className="mr-2">
                     <ExceptionCodeCombo
@@ -110,12 +111,12 @@ export default function FormItemsEntregaTransporte({
                     <IconTrashFilled />
                   </Button>
                 </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
+              )}
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </>
   );
 }
