@@ -8,10 +8,12 @@ import { toast } from 'sonner';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import ExceptionCodeCombo from "@/components/comboboxes/ExceptionCodeCombo"
 
 export default function Page() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
+  const [currentVal, setCurrentVal] = React.useState("Selecciona un Código de Excepción")
 
   React.useEffect(() => {
     function validateDates() {
