@@ -8,6 +8,91 @@ import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { IconTrashFilled } from '@tabler/icons-react';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
+
+const ExceptionCodeField = ({
+  form,
+  row,
+}: {
+  form: UseFormReturn<
+    {
+      ref: string;
+      phase: string;
+      date: string;
+      time: string;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
+    },
+    unknown,
+    {
+      ref: string;
+      phase: string;
+      date: string;
+      time: string;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
+    }
+  >;
+  row: Row<getRefsPendingCEFormat>;
+}) => {
+  const EXCEPTION_CODE = useWatch({
+    control: form.control,
+    name: 'exceptionCode',
+  });
+
+  const ENTREGA_TRANSPORTE_138_DATE = useWatch({
+    control: form.control,
+    name: 'date',
+  });
+
+  const showExceptionCode = shouldPutExceptionCode({
+    exceptionCode: EXCEPTION_CODE,
+    initialDate: row.original.ULTIMO_DOCUMENTO_114,
+    finalDate: ENTREGA_TRANSPORTE_138_DATE,
+    numDays: 7,
+  });
+
+  const shouldShow = showExceptionCode || !!EXCEPTION_CODE;
+
+  if (!shouldShow) return null; // <- fine here (component return), not inside render prop
+
+  return (
+    <FormField
+      control={form.control}
+      name="exceptionCode"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Código de Excepción</FormLabel>
+          <FormControl>
+            <div className="flex">
+              <div className="mr-2">
+                <ExceptionCodeCombo
+                  onSelect={(value) => {
+                    field.onChange(value);
+                    form.trigger();
+                  }}
+                  currentValue={field.value}
+                />
+              </div>
+              <Button
+                size="sm"
+                className="cursor-pointer bg-red-400 hover:bg-red-500"
+                type="button"
+                onClick={() => {
+                  form.setValue('exceptionCode', '');
+                  form.trigger();
+                }}
+              >
+                <IconTrashFilled />
+              </Button>
+            </div>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+};
 
 export default function FormItemsEntregaTransporte({
   form,
@@ -34,8 +119,6 @@ export default function FormItemsEntregaTransporte({
   >;
   row: Row<getRefsPendingCEFormat>;
 }) {
-  const ENTREGA_TRANSPORTE_138_DATE = form.watch('date');
-  const EXCEPTION_CODE = form.watch('exceptionCode');
   return (
     <>
       <div>
@@ -75,48 +158,7 @@ export default function FormItemsEntregaTransporte({
         )}
       />
 
-      <FormField
-        control={form.control}
-        name="exceptionCode"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Código de Excepción</FormLabel>
-            <FormControl>
-              {(shouldPutExceptionCode({
-                exceptionCode: EXCEPTION_CODE,
-                initialDate: row.original.ULTIMO_DOCUMENTO_114,
-                finalDate: ENTREGA_TRANSPORTE_138_DATE,
-                numDays: 7,
-              }) ||
-                !!field.value) && (
-                <div className="flex">
-                  <div className="mr-2">
-                    <ExceptionCodeCombo
-                      onSelect={(value) => {
-                        field.onChange(value);
-                        form.trigger();
-                      }}
-                      currentValue={field.value}
-                    />
-                  </div>
-                  <Button
-                    size="sm"
-                    className="cursor-pointer bg-red-400 hover:bg-red-500"
-                    type="button"
-                    onClick={() => {
-                      form.setValue('exceptionCode', '');
-                      form.trigger();
-                    }}
-                  >
-                    <IconTrashFilled />
-                  </Button>
-                </div>
-              )}
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <ExceptionCodeField form={form} row={row} />
     </>
   );
 }
