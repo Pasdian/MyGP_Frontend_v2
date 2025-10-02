@@ -21,6 +21,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Referencia",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.ce_138_bypass) {
+        return <p className="text-center">{row.original.REFERENCIA ?? "--"}</p>;
+      }
       if (row.original.has_business_days_error) {
         return (
           <ErrorTooltip
@@ -39,6 +42,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "EE/GE",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.ce_138_bypass) {
+        return <p className="text-center">{row.original.EE__GE ?? "--"}</p>;
+      }
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
       }
@@ -51,6 +57,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Revalidación",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.ce_138_bypass) {
+        return (
+          <p className="text-center">
+            {row.original.REVALIDACION_073_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (row.original.has_revalidacion_error) {
         return (
           <ErrorTooltip
@@ -74,6 +87,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Último Documento",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.ce_138_bypass) {
+        return (
+          <p className="text-center">
+            {row.original.ULTIMO_DOCUMENTO_114_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (row.original.has_ultimo_documento_error) {
         return (
           <ErrorTooltip
@@ -97,6 +117,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "MSA",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.ce_138_bypass) {
+        return (
+          <p className="text-center">
+            {row.original.MSA_130_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (row.original.has_msa_error) {
         return (
           <ErrorTooltip
@@ -116,6 +143,13 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Entrega Transporte",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.ce_138_bypass) {
+        return (
+          <p className="text-center">
+            {row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
+          </p>
+        );
+      }
       if (row.original.has_entrega_transporte_error) {
         return (
           <ErrorTooltip
@@ -140,6 +174,23 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Entrega a CDP",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (row.original.ce_138_bypass) {
+        return (
+          <p className="text-center">
+            {row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
+          </p>
+        );
+      }
+      if (row.original.has_entrega_cdp_error) {
+        return (
+          <ErrorTooltip
+            value={row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
+            errorMessage={
+              row.original.ENTREGA_CDP_140_ERROR_MSG ?? "Error desconocido"
+            }
+          />
+        );
+      }
       return (
         <p className="text-center">
           {row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
