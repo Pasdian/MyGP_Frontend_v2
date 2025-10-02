@@ -98,17 +98,23 @@ export function InterfaceDataTable() {
   const filtered = React.useMemo(() => {
     if (!Array.isArray(modifiedData)) return [];
 
-    // First filter based on error and workato status
     let result = modifiedData.filter((r) => {
       if (!r) return false;
 
-      const hasErr =
+      // optional: also treat raw CE_138 as a bypass
+      const bypass = r.ce_138_bypass === true || r.CE_138;
+
+      const baseHasErr =
         r.has_business_days_error === true ||
         r.has_entrega_cdp_error === true ||
         r.has_entrega_transporte_error === true ||
         r.has_msa_error === true ||
         r.has_revalidacion_error === true ||
         r.has_ultimo_documento_error === true;
+
+      // 🔒 if CE-138 bypass, force no error
+      const hasErr = bypass ? false : baseHasErr;
+
       const sentToWorkato = r.was_send_to_workato === true;
 
       const matchesError = shouldFilterErrors ? hasErr : !hasErr;
@@ -129,7 +135,7 @@ export function InterfaceDataTable() {
 
     // --- only narrow down to duplicates if toggle is ON ---
     if (shouldFilterEEGEDuplicates) {
-      result = result.filter((r) => r?.EE__GE && counts.get(r.EE__GE)! > 1);
+      result = result.filter((r) => r?.EE__GE && (counts.get(r.EE__GE) || 0) > 1);
     }
 
     return result;
