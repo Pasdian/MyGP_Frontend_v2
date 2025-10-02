@@ -21,28 +21,17 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Referencia",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (row.original.CE_138) {
-        // If CE_138 skip the following validations
-        return <p className="text-center">{row.original.REFERENCIA ?? ""}</p>;
-      }
-      if (!row.original.REFERENCIA) {
+      if (row.original.has_business_days_error) {
         return (
           <ErrorTooltip
-            value="--"
-            errorMessage="No existe un número de referencia"
+            value={row.original.REFERENCIA ?? "--"}
+            errorMessage={
+              row.original.BUSINESS_DAYS_ERROR_MSG ?? "Error desconocido"
+            }
           />
         );
       }
-
-      if (row.original.has_error && row.original.BUSINESS_DAYS_ERROR_MSG) {
-        return (
-          <ErrorTooltip
-            value={row.original.REFERENCIA}
-            errorMessage={row.original.BUSINESS_DAYS_ERROR_MSG}
-          />
-        );
-      }
-      return <p className="text-center">{row.original.REFERENCIA}</p>;
+      return <p className="text-center">{row.original.REFERENCIA ?? "--"}</p>;
     },
   },
   {
@@ -50,13 +39,10 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "EE/GE",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (row.original.CE_138) {
-        return <p className="text-center">{row.original.EE__GE ?? "--"}</p>;
-      }
       if (!row.original.EE__GE) {
         return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
       }
-      return <p className="text-center">{row.original.EE__GE ?? "--"}</p>;
+      return <p className="text-center">{row.original.EE__GE}</p>;
     },
   },
 
@@ -65,37 +51,21 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Revalidación",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (row.original.CE_138) {
-        return (
-          <p className="text-center">
-            {row.original.REVALIDACION_073_FORMATTED ?? "--"}
-          </p>
-        );
-      }
-      if (!row.original.REVALIDACION_073) {
+      if (row.original.has_revalidacion_error) {
         return (
           <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de revalidación"
-          />
-        );
-      }
-
-      if (
-        row.original.has_error &&
-        row.original.REVALIDACION_073_ERROR_MSG &&
-        row.original.REVALIDACION_073_FORMATTED
-      ) {
-        return (
-          <ErrorTooltip
-            value={row.original.REVALIDACION_073_FORMATTED}
-            errorMessage={row.original.REVALIDACION_073_ERROR_MSG}
+            value={row.original.REVALIDACION_073_FORMATTED ?? "--"}
+            errorMessage={
+              row.original.REVALIDACION_073_ERROR_MSG ?? "Error desconocido"
+            }
           />
         );
       }
 
       return (
-        <p className="text-center">{row.original.REVALIDACION_073_FORMATTED}</p>
+        <p className="text-center">
+          {row.original.REVALIDACION_073_FORMATTED ?? "--"}
+        </p>
       );
     },
   },
@@ -104,38 +74,20 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Último Documento",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (row.original.CE_138) {
-        return (
-          <p className="text-center">
-            {row.original.ULTIMO_DOCUMENTO_114_FORMATTED ?? "--"}
-          </p>
-        );
-      }
-      if (!row.original.ULTIMO_DOCUMENTO_114) {
+      if (row.original.has_ultimo_documento_error) {
         return (
           <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de último documento"
-          />
-        );
-      }
-
-      if (
-        row.original.has_error &&
-        row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG &&
-        row.original.ULTIMO_DOCUMENTO_114_FORMATTED
-      ) {
-        return (
-          <ErrorTooltip
-            value={row.original.ULTIMO_DOCUMENTO_114_FORMATTED}
-            errorMessage={row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG}
+            value={row.original.ULTIMO_DOCUMENTO_114_FORMATTED ?? "--"}
+            errorMessage={
+              row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG ?? "Error desconocido"
+            }
           />
         );
       }
 
       return (
         <p className="text-center">
-          {row.original.ULTIMO_DOCUMENTO_114_FORMATTED}
+          {row.original.ULTIMO_DOCUMENTO_114_FORMATTED ?? "--"}
         </p>
       );
     },
@@ -145,29 +97,18 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "MSA",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (row.original.CE_138) {
-        return (
-          <p className="text-center">
-            {row.original.MSA_130_FORMATTED ?? "--"}
-          </p>
-        );
-      }
-      if (!row.original.MSA_130_FORMATTED) {
-        return (
-          <ErrorTooltip value="--" errorMessage="No existe una fecha de MSA" />
-        );
-      }
-
-      if (row.original.has_error && row.original.MSA_130_ERROR_MSG) {
+      if (row.original.has_msa_error) {
         return (
           <ErrorTooltip
-            value={row.original.MSA_130_FORMATTED}
-            errorMessage={row.original.MSA_130_ERROR_MSG}
+            value={row.original.MSA_130_FORMATTED ?? "--"}
+            errorMessage={row.original.MSA_130_ERROR_MSG ?? "Error desconocido"}
           />
         );
       }
 
-      return <p className="text-center">{row.original.MSA_130_FORMATTED}</p>;
+      return (
+        <p className="text-center">{row.original.MSA_130_FORMATTED ?? "--"}</p>
+      );
     },
   },
   {
@@ -175,38 +116,21 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Entrega Transporte",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (row.original.CE_138) {
-        return (
-          <p className="text-center">
-            {row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
-          </p>
-        );
-      }
-      if (!row.original.ENTREGA_TRANSPORTE_138_FORMATTED) {
+      if (row.original.has_entrega_transporte_error) {
         return (
           <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de entrega de transporte"
-          />
-        );
-      }
-
-      if (
-        row.original.has_error &&
-        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG &&
-        row.original.ENTREGA_TRANSPORTE_138_FORMATTED
-      ) {
-        return (
-          <ErrorTooltip
-            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
-            errorMessage={row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
+            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
+            errorMessage={
+              row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG ??
+              "Error desconocido"
+            }
           />
         );
       }
 
       return (
         <p className="text-center">
-          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
+          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
         </p>
       );
     },
@@ -216,25 +140,9 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "Entrega a CDP",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (row.original.CE_138) {
-        return (
-          <p className="text-center">
-            {row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
-          </p>
-        );
-      }
-      if (!row.original.ENTREGA_CDP_140_FORMATTED) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de entrega de transporte"
-          />
-        );
-      }
-
       return (
         <p className="text-center">
-          {row.original.ENTREGA_CDP_140_FORMATTED || "--"}
+          {row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
         </p>
       );
     },
@@ -244,7 +152,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "CE 138",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      return <p className="text-center">{row.original.CE_138 || "--"}</p>;
+      return <p className="text-center">{row.original.CE_138 ?? "--"}</p>;
     },
   },
   {
@@ -252,7 +160,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     header: "CE 140",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      return <p className="text-center">{row.original.CE_140 || "--"}</p>;
+      return <p className="text-center">{row.original.CE_140 ?? "--"}</p>;
     },
   },
   {
@@ -261,7 +169,7 @@ export const interfaceColumns: ColumnDef<getRefsPendingCEFormat>[] = [
     cell: ({ row }) => {
       return (
         <p className="text-center">
-          {row.original.workato_created_at_FORMATTED || "--"}
+          {row.original.workato_created_at_FORMATTED ?? "--"}
         </p>
       );
     },

@@ -28,7 +28,7 @@ export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
         );
       }
 
-      return <p className="text-center">{row.original.REFERENCIA}</p>;
+      return <p className="text-center">{row.original.REFERENCIA ?? "--"}</p>;
     },
   },
   {
@@ -46,16 +46,6 @@ export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
     accessorKey: "GUIA_HOUSE",
     header: "Guía House",
     cell: ({ row }) => {
-      const trafficTypeChar = row.original.REFERENCIA?.charAt(1);
-
-      if (
-        !row.original.GUIA_HOUSE &&
-        trafficTypeChar !== "M" &&
-        trafficTypeChar !== "V"
-      ) {
-        return <ErrorTooltip value="--" errorMessage="No existe guía house" />;
-      }
-
       return <p className="text-center">{row.original.GUIA_HOUSE || "--"}</p>;
     },
   },
@@ -64,31 +54,21 @@ export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
     header: "Entrega a Transporte",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.ENTREGA_TRANSPORTE_138_FORMATTED) {
+      if (row.original.has_entrega_transporte_error) {
         return (
           <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de entrega de transporte"
-          />
-        );
-      }
-
-      if (
-        row.original.has_error &&
-        row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG &&
-        row.original.ENTREGA_TRANSPORTE_138_FORMATTED
-      ) {
-        return (
-          <ErrorTooltip
-            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
-            errorMessage={row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG}
+            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
+            errorMessage={
+              row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG ??
+              "Error desconocido"
+            }
           />
         );
       }
 
       return (
         <p className="text-center">
-          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED}
+          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
         </p>
       );
     },
@@ -98,26 +78,21 @@ export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
     header: "Entrega a CDP",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.ENTREGA_CDP_140_FORMATTED) {
+      if (row.original.has_entrega_cdp_error) {
         return (
           <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de entrega CDP"
-          />
-        );
-      }
-
-      if (row.original.has_error && row.original.ENTREGA_CDP_140_ERROR_MSG) {
-        return (
-          <ErrorTooltip
-            value={row.original.ENTREGA_CDP_140_FORMATTED}
-            errorMessage={row.original.ENTREGA_CDP_140_ERROR_MSG}
+            value={row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
+            errorMessage={
+              row.original.ENTREGA_CDP_140_ERROR_MSG ?? "Error desconocido"
+            }
           />
         );
       }
 
       return (
-        <p className="text-center">{row.original.ENTREGA_CDP_140_FORMATTED}</p>
+        <p className="text-center">
+          {row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
+        </p>
       );
     },
   },
@@ -125,5 +100,8 @@ export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
     accessorKey: "CE_140",
     header: "Código de Excepción",
     filterFn: fuzzyFilter,
+    cell: ({ row }) => {
+      return <p className="text-center">{row.original.CE_140 ?? "--"}</p>;
+    },
   },
 ];

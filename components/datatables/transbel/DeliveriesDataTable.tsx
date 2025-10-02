@@ -45,9 +45,14 @@ export default function DeliveriesDataTable() {
   const rowsForTable = React.useMemo(() => {
     if (!Array.isArray(modifiedData)) return [];
 
-    return modifiedData.filter((r) =>
-      shouldFilterErrors ? r?.has_error === true : r?.has_error === false
-    );
+    return modifiedData.filter((r) => {
+      const hasError =
+        r?.has_entrega_cdp_error === true ||
+        r?.has_guia_house_error === true ||
+        r?.has_entrega_transporte_error === true;
+
+      return shouldFilterErrors ? hasError : !hasError;
+    });
   }, [modifiedData, shouldFilterErrors]);
 
   const table = useReactTable({

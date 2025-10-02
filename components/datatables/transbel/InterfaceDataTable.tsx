@@ -102,7 +102,13 @@ export function InterfaceDataTable() {
     let result = modifiedData.filter((r) => {
       if (!r) return false;
 
-      const hasErr = r.has_error === true;
+      const hasErr =
+        r.has_business_days_error === true ||
+        r.has_entrega_cdp_error === true ||
+        r.has_entrega_transporte_error === true ||
+        r.has_msa_error === true ||
+        r.has_revalidacion_error === true ||
+        r.has_ultimo_documento_error === true;
       const sentToWorkato = r.was_send_to_workato === true;
 
       const matchesError = shouldFilterErrors ? hasErr : !hasErr;

@@ -6,7 +6,9 @@ export type getDeliveries = {
   CE_138: string | null;
   ENTREGA_CDP_140: string | null;
   CE_140: string | null;
-  has_error: boolean;
+  has_guia_house_error: boolean;
+  has_entrega_cdp_error: boolean;
+  has_entrega_transporte_error: boolean;
   BUSINESS_DAYS_ERROR_MSG?: string;
   MSA_130_ERROR_MSG?: string;
   ENTREGA_TRANSPORTE_138_ERROR_MSG?: string;

@@ -9,7 +9,13 @@ export type getRefsPendingCE = {
   MSA_130: string | null;
   ENTREGA_CDP_140: string | null;
   CE_140: string | null;
-  has_error: boolean;
+  has_business_days_error: boolean;
+  has_revalidacion_error: boolean;
+  has_ultimo_documento_error: boolean;
+  has_msa_error: boolean;
+  has_entrega_cdp_error: boolean;
+  has_entrega_transporte_error: boolean;
+  ce_138_bypass: boolean;
   BUSINESS_DAYS_ERROR_MSG?: string;
   REVALIDACION_073_ERROR_MSG?: string;
   ULTIMO_DOCUMENTO_114_ERROR_MSG?: string;
