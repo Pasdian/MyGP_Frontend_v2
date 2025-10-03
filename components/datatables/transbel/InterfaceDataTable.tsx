@@ -98,37 +98,44 @@ export function InterfaceDataTable() {
   const filtered = React.useMemo(() => {
     if (!Array.isArray(modifiedData)) return [];
 
+    // build local YYYY-MM for “current month”
+    const now = new Date();
+    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
     let result = modifiedData.filter((r) => {
       if (!r) return false;
 
       // optional: also treat raw CE_138 as a bypass
-      const bypass = r.ce_138_bypass === true || r.CE_138;
+      const bypass = r?.ce_138_bypass === true || r?.CE_138;
 
       const baseHasErr =
-        r.has_business_days_error === true ||
-        r.has_entrega_cdp_error === true ||
-        r.has_entrega_transporte_error === true ||
-        r.has_msa_error === true ||
-        r.has_revalidacion_error === true ||
-        r.has_ultimo_documento_error === true;
+        r?.has_business_days_error === true ||
+        r?.has_entrega_cdp_error === true ||
+        r?.has_entrega_transporte_error === true ||
+        r?.has_msa_error === true ||
+        r?.has_revalidacion_error === true ||
+        r?.has_ultimo_documento_error === true;
 
-      // 🔒 if CE-138 bypass, force no error
+      // if CE-138 bypass, force no error
       const hasErr = bypass ? false : baseHasErr;
 
-      const sentToWorkato = r.was_send_to_workato === true;
+      const sentToWorkato = r?.was_send_to_workato === true;
 
       const matchesError = shouldFilterErrors ? hasErr : !hasErr;
       const matchesStatus = shouldFilterWorkatoStatus ? sentToWorkato : !sentToWorkato;
 
-      return matchesError && matchesStatus;
+      // keep rows whose ENTREGA_TRANSPORTE_138 is in the current month OR empty/null
+      const v = r?.ENTREGA_TRANSPORTE_138;
+      const matchesCurrentMonthOrEmpty =
+        v == null || v === '' ? true : String(v).slice(0, 7) === currentYM;
+
+      return matchesError && matchesStatus && matchesCurrentMonthOrEmpty;
     });
 
     // --- compute hasDuplicates regardless of toggle ---
     const counts = new Map<string, number>();
     result.forEach((r) => {
-      if (r?.EE__GE) {
-        counts.set(r.EE__GE, (counts.get(r.EE__GE) || 0) + 1);
-      }
+      if (r?.EE__GE) counts.set(r.EE__GE, (counts.get(r.EE__GE) || 0) + 1);
     });
     const hasDup = Array.from(counts.values()).some((c) => c > 1);
     setHasDuplicates(hasDup);
