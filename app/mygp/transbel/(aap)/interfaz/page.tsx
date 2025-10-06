@@ -10,8 +10,18 @@ import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 export default function Page() {
-  const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
-  const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
+  const [initialDate, setInitialDate] = React.useState<Date | undefined>(() => {
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    firstOfMonth.setHours(0, 0, 0, 0);
+    return firstOfMonth;
+  });
+
+  const [finalDate, setFinalDate] = React.useState<Date | undefined>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
 
   React.useEffect(() => {
     function validateDates() {

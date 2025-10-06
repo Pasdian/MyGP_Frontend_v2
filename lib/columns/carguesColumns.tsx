@@ -44,7 +44,7 @@ export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
   },
   {
     accessorKey: "NUM_TRAFICO",
-    header: "Folio",
+    header: "Folio EE/GE",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.NUM_TRAFICO) {

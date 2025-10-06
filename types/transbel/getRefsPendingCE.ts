@@ -15,7 +15,6 @@ export type getRefsPendingCE = {
   has_msa_error: boolean;
   has_entrega_cdp_error: boolean;
   has_entrega_transporte_error: boolean;
-  ce_138_bypass: boolean;
   BUSINESS_DAYS_ERROR_MSG?: string;
   REVALIDACION_073_ERROR_MSG?: string;
   ULTIMO_DOCUMENTO_114_ERROR_MSG?: string;
@@ -24,6 +23,12 @@ export type getRefsPendingCE = {
   was_send_to_workato: boolean;
   workato_created_at: string | null;
   ENTREGA_CDP_140_ERROR_MSG: string | null;
+  sent_and_not_errors: boolean | null;
+  not_errors_and_not_set: boolean | null;
+  pending: boolean;
+  sent: boolean;
+  has_eege_duplicate_error: boolean;
+  has_errors: boolean;
 };
 
 export type getRefsPendingCEFormat = getRefsPendingCE & {

@@ -36,7 +36,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { getCarguesFormat } from '@/types/transbel/getCargues';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+const TAB_VALUES = ['pending', 'paid'] as const;
+type TabValue = (typeof TAB_VALUES)[number];
+// 2) Type guard to narrow string -> TabValue
 
+function isTabValue(v: string): v is TabValue {
+  return (TAB_VALUES as readonly string[]).includes(v);
+}
 export function CarguesDataTable() {
   const carguesKey = '/api/transbel/getCargues';
 
@@ -45,10 +51,9 @@ export function CarguesDataTable() {
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [shouldFilterFecEnvio, setShouldFilterFecEnvio] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToDB, setIsSendingToDB] = React.useState(false);
-
+  const [tabValue, setTabValue] = React.useState<'paid' | 'pending'>('paid');
   // Ensure each row has a stable id and USE it in the table
   const modifiedData = React.useMemo(() => {
     if (!Array.isArray(data)) return [] as (getCarguesFormat & { id: string })[];
@@ -61,55 +66,25 @@ export function CarguesDataTable() {
     }));
   }, [data]);
 
-  // const validadoColumn = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>>(
-  //   () => ({
-  //     id: 'select',
-  //     header: ({ table }) => (
-  //       <Checkbox
-  //         checked={
-  //           table.getIsAllPageRowsSelected() ||
-  //           (table.getIsSomePageRowsSelected() && 'indeterminate')
-  //         }
-  //         onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
-  //         aria-label="Select all"
-  //       />
-  //     ),
-  //     cell: ({ row }) => {
-  //       return (
-  //         <Checkbox
-  //           checked={row.getIsSelected()}
-  //           onCheckedChange={(v) => row.toggleSelected(!!v)}
-  //           aria-label="Select row"
-  //         />
-  //       );
-  //     },
-  //     enableSorting: false,
-  //     enableHiding: false,
-  //     size: 36,
-  //   }),
-  //   []
-  // );
+  const filtered = React.useMemo(() => {
+    const rows = Array.isArray(modifiedData) ? modifiedData : [];
 
-  const rowsForTable = React.useMemo(() => {
-    if (!Array.isArray(modifiedData)) return [];
+    switch (tabValue) {
+      case 'paid':
+        // either flag (errors or has_errors) qualifies
+        return rows.filter((r) => r?.paid === true);
 
-    return modifiedData.filter((r) => {
-      if (shouldFilterFecEnvio) {
-        return !r?.FEC_ENVIO;
-      } else {
-        return !!r?.FEC_ENVIO;
-      }
-    });
-  }, [modifiedData, shouldFilterFecEnvio]);
+      case 'pending':
+        return rows.filter((r) => r?.pending === true);
 
-  // Merge selection column with your domain columns
-  // const columns = React.useMemo<ColumnDef<getCarguesFormat & { id: string }>[]>(() => {
-  //   return [validadoColumn, ...(carguesColumns as ColumnDef<getCarguesFormat & { id: string }>[])];
-  // }, [validadoColumn]);
+      default:
+        return rows;
+    }
+  }, [modifiedData, tabValue]);
 
   // Table instance
   const table = useReactTable({
-    data: rowsForTable,
+    data: filtered,
     columns: carguesColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -158,18 +133,14 @@ export function CarguesDataTable() {
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
           <Tabs
-            onValueChange={(value) => {
-              if (value === 'not_sent_and_not_fec_envio') {
-                setShouldFilterFecEnvio(true);
-              } else {
-                setShouldFilterFecEnvio(false);
-              }
-            }}
+            value={tabValue}
+            onValueChange={(v) => isTabValue(v) && setTabValue(v)}
+            className="mr-2"
           >
             <TabsList>
-              <TabsTrigger value="validated">Pedimentos Pagados</TabsTrigger>
-              <TabsTrigger value="not_sent_and_not_fec_envio">Pendientes por Enviar</TabsTrigger>
-              <TabsTrigger value="sent_and_not_errors">Enviados</TabsTrigger>
+              <TabsTrigger value="paid">Pedimentos Pagados</TabsTrigger>
+              <TabsTrigger value="pending">Pendientes por Enviar</TabsTrigger>
+              <TabsTrigger value="paid">Enviados</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

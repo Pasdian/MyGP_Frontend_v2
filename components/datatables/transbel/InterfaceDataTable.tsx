@@ -39,14 +39,8 @@ import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const TAB_VALUES = [
-  'errors',
-  'not_errors_and_not_sent',
-  'sent_and_not_errors',
-  'duplicates',
-] as const;
+const TAB_VALUES = ['errors', 'pending', 'sent', 'duplicates'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
-// 2) Type guard to narrow string -> TabValue
 
 function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
@@ -56,15 +50,11 @@ export function InterfaceDataTable() {
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
-  const [shouldFilterWorkatoStatus, setShouldFilterWorkatoStatus] = React.useState(false);
-  const [shouldFilterEEGEDuplicates, setShouldFilterEEGEDuplicates] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
-  const [hasDuplicates, setHasDuplicates] = React.useState(false);
-  const [tabValue, setTabValue] = React.useState<
-    'errors' | 'not_errors_and_not_sent' | 'sent_and_not_errors' | 'duplicates'
-  >('errors');
+  const [tabValue, setTabValue] = React.useState<'errors' | 'pending' | 'sent' | 'duplicates'>(
+    'errors'
+  );
 
   const pendingRefsKey =
     initialDate && finalDate
@@ -94,72 +84,47 @@ export function InterfaceDataTable() {
     }));
   }, [data]);
 
-  // Filtered rows based on tabs
+  // Filtered rows based on tabs and delete EE__GE duplicates
   const filtered = React.useMemo(() => {
-    if (!Array.isArray(modifiedData)) return [];
+    const rows = Array.isArray(modifiedData) ? modifiedData : [];
 
-    // build local YYYY-MM for “current month”
-    const now = new Date();
-    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-    let result = modifiedData.filter((r) => {
-      if (!r) return false;
-
-      // optional: also treat raw CE_138 as a bypass
-      const bypass = r?.ce_138_bypass === true || r?.CE_138;
-
-      const baseHasErr =
-        r?.has_business_days_error === true ||
-        r?.has_entrega_cdp_error === true ||
-        r?.has_entrega_transporte_error === true ||
-        r?.has_msa_error === true ||
-        r?.has_revalidacion_error === true ||
-        r?.has_ultimo_documento_error === true;
-
-      // if CE-138 bypass, force no error
-      const hasErr = bypass ? false : baseHasErr;
-
-      const sentToWorkato = r?.was_send_to_workato === true;
-
-      const matchesError = shouldFilterErrors ? hasErr : !hasErr;
-      const matchesStatus = shouldFilterWorkatoStatus ? sentToWorkato : !sentToWorkato;
-
-      // keep rows whose ENTREGA_TRANSPORTE_138 is in the current month OR empty/null
-      const v = r?.ENTREGA_TRANSPORTE_138;
-      const matchesCurrentMonthOrEmpty =
-        v == null || v === '' ? true : String(v).slice(0, 7) === currentYM;
-
-      return matchesError && matchesStatus && matchesCurrentMonthOrEmpty;
-    });
-
-    // --- compute hasDuplicates regardless of toggle ---
-    const counts = new Map<string, number>();
-    result.forEach((r) => {
-      if (r?.EE__GE) counts.set(r.EE__GE, (counts.get(r.EE__GE) || 0) + 1);
-    });
-    const hasDup = Array.from(counts.values()).some((c) => c > 1);
-    setHasDuplicates(hasDup);
-
-    // --- only narrow down to duplicates if toggle is ON ---
-    if (shouldFilterEEGEDuplicates) {
-      result = result.filter((r) => r?.EE__GE && (counts.get(r.EE__GE) || 0) > 1);
+    let subset: typeof rows;
+    switch (tabValue) {
+      case 'errors':
+        subset = rows.filter((r) => r?.has_errors === true);
+        break;
+      case 'pending':
+        subset = rows.filter((r) => r?.pending === true);
+        break;
+      case 'sent':
+        subset = rows.filter((r) => r?.sent === true);
+        break;
+      case 'duplicates':
+        subset = rows.filter((r) => r?.has_eege_duplicate_error === true);
+        break;
+      default:
+        subset = rows;
     }
 
-    return result;
-  }, [modifiedData, shouldFilterErrors, shouldFilterWorkatoStatus, shouldFilterEEGEDuplicates]);
+    // Only show unique objects on EE__GE (keep first occurrence)
+    const seen = new Set<string>();
+    return subset.filter((r) => {
+      const raw = r?.EE__GE;
+      // if EE__GE is missing/empty, keep the row (not deduped by key)
+      if (raw === null || raw === undefined) return true;
 
-  const rowsForTable = React.useMemo(() => {
-    if (!Array.isArray(filtered)) return [];
+      const key =
+        typeof raw === 'string'
+          ? raw.trim()
+          : (raw as getRefsPendingCEFormat).toString?.() ?? String(raw);
 
-    // Sort by most recent workato_created_at first
-    const sorted = [...filtered].sort((a, b) => {
-      const ta = new Date(a?.workato_created_at ?? 0).getTime();
-      const tb = new Date(b?.workato_created_at ?? 0).getTime();
-      return tb - ta; // descending
+      if (key === '') return true; // keep empties as-is
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
-
-    return sorted;
-  }, [filtered]);
+  }, [modifiedData, tabValue]);
 
   const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCEFormat>>(
     () => ({
@@ -202,7 +167,7 @@ export function InterfaceDataTable() {
 
   // Conditionally add the selection column
   const columns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
-    if (tabValue === 'not_errors_and_not_sent') {
+    if (tabValue === 'pending') {
       return [selectionWorkatoColumn, ...baseColumns];
     }
     return baseColumns;
@@ -210,7 +175,7 @@ export function InterfaceDataTable() {
 
   // Table instance
   const table = useReactTable({
-    data: rowsForTable ?? [],
+    data: filtered ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -239,39 +204,10 @@ export function InterfaceDataTable() {
     .map((r) => r.original);
 
   async function sendToWorkato() {
-    setIsSendingToWorkato(true);
-
-    // Get EE__GE values for the full filtered dataset
-    const allEEGE = filtered.map((row) => row.EE__GE).filter(Boolean);
-
-    // Count occurrences
-    const counts = new Map<string, number>();
-    allEEGE.forEach((val) => {
-      counts.set(val!, (counts.get(val!) || 0) + 1);
-    });
-
-    // Now check if any selected row has duplicates in the filtered dataset
-    const duplicatesInSelection = selectedWorkatoRows
-      .map((row) => row.EE__GE)
-      .filter((val) => val && counts.get(val)! > 1);
-
-    const uniqueDuplicates = [...new Set(duplicatesInSelection)];
-
-    if (uniqueDuplicates.length > 0) {
-      toast.error(
-        `Encuentra los duplicados y no los selecciones, EE/GE Duplicados encontrados: ${uniqueDuplicates.join(
-          ', '
-        )}`
-      );
-      setIsSendingToWorkato(false);
-      return;
-    }
-
     try {
       const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
         payload: selectedWorkatoRows,
       });
-
       toast.success(res.data.message || 'Enviado a Workato correctamente');
       setIsSendingToWorkato(false);
       mutate(pendingRefsKey);
@@ -295,41 +231,17 @@ export function InterfaceDataTable() {
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
           <Tabs
+            value={tabValue}
+            onValueChange={(v) => isTabValue(v) && setTabValue(v)}
             className="mr-2"
-            value={
-              shouldFilterWorkatoStatus
-                ? 'sent_and_not_errors'
-                : shouldFilterErrors
-                ? 'errors'
-                : shouldFilterEEGEDuplicates
-                ? 'duplicates'
-                : 'not_errors_and_not_sent'
-            }
-            onValueChange={(value) => {
-              if (isTabValue(value)) setTabValue(value);
-
-              // reset all, then enable the selected one
-              setShouldFilterErrors(false);
-              setShouldFilterWorkatoStatus(false);
-              setShouldFilterEEGEDuplicates(false);
-
-              if (value === 'errors') {
-                setShouldFilterErrors(true);
-              } else if (value === 'sent_and_not_errors') {
-                setShouldFilterWorkatoStatus(true);
-              } else if (value === 'duplicates') {
-                setShouldFilterEEGEDuplicates(true);
-              }
-            }}
           >
             <TabsList>
               <TabsTrigger value="errors">Con Error</TabsTrigger>
-              <TabsTrigger value="not_errors_and_not_sent">Pendientes de Envio</TabsTrigger>
-              <TabsTrigger value="sent_and_not_errors">Enviados</TabsTrigger>
-              {hasDuplicates && <TabsTrigger value="duplicates">EE/GE Duplicados</TabsTrigger>}
+              <TabsTrigger value="pending">Pendientes de Envio</TabsTrigger>
+              <TabsTrigger value="sent">Enviados</TabsTrigger>
             </TabsList>
           </Tabs>
-          {tabValue == 'not_errors_and_not_sent' && (
+          {tabValue == 'pending' && (
             <div>
               <Button
                 size="sm"
