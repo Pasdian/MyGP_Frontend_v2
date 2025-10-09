@@ -95,12 +95,13 @@ export const dailyTrackingColumns: ColumnDef<DailyTrackingRowFormatted>[] = [
       }
       return (
         <Popover>
-          <PopoverTrigger>
-            <div className="flex items-start gap-1 max-w-[350px]">
-              <p className="text-xs flex-1 min-w-0 whitespace-normal break-words line-clamp-3 text-justify">
+          <PopoverTrigger className="w-full">
+            <div className="flex items-center gap-1 max-w-[350px]">
+              <p className="text-xs text-center flex items-center justify-center flex-1 min-w-0 whitespace-normal break-words line-clamp-3 text-justify">
                 {row.original.STATUS || "--"}
               </p>
-              <ChevronDown className="opacity-50 flex-shrink-0 mt-0.5" />
+
+              <ChevronDown className="opacity-50 w-4 flex-shrink-0 mt-0.5" />
             </div>
           </PopoverTrigger>
           <PopoverContent className="text-xs">

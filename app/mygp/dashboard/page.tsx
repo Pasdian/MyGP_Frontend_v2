@@ -14,6 +14,7 @@ import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
 import { customs } from '@/lib/customs/customs';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -194,10 +195,16 @@ export default function Dashboard() {
                 </TabsList>
               </Tabs>
             )}
-            <DailyTrackingDataTable
-              dailyTrackingData={dailyTrackingData}
-              filterValues={filterValues}
-            />
+            <DailyTrackingContext.Provider
+              value={{
+                dailyTrackingKey: dailyTrackingKey,
+              }}
+            >
+              <DailyTrackingDataTable
+                dailyTrackingData={dailyTrackingData}
+                filterValues={filterValues}
+              />
+            </DailyTrackingContext.Provider>
           </Card>
         </>
       )}

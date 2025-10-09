@@ -16,6 +16,7 @@ import posthog from 'posthog-js';
 import { dashboardModuleEvents } from '@/lib/posthog/events';
 import { mutate } from 'swr';
 import { Loader2 } from 'lucide-react';
+import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 
 const posthogEvent =
   dashboardModuleEvents.find((e) => e.alias === 'DASHBOARD_MODIFY_OP')?.eventName || '';
@@ -27,13 +28,15 @@ export default function ModifyDailyTrackingStatus({
   row: Row<DailyTrackingRowFormatted>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { dailyTrackingKey } = React.useContext(DailyTrackingContext);
+
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const modifyOperationKey = `/api/daily-tracking/modify-operation-status`;
   const historyKey = `/api/daily-tracking/operation-history?reference=${row.original.NUM_REFE}`;
 
   const schema = z.object({
-    status: z.string().min(1, 'Ingresa un estatus').toUpperCase(),
+    status: z.string().min(1, 'Ingresa un estatus').max(250, 'Máximo 250 carácteres').toUpperCase(),
     casaUserName: z.string().min(1, 'No puedes cambiar el estatus sin un nombre de usuario CASA'),
   });
 
@@ -59,6 +62,7 @@ export default function ModifyDailyTrackingStatus({
           posthog.capture(posthogEvent);
           setOpenDialog((opened) => !opened);
           mutate(historyKey);
+          mutate(dailyTrackingKey);
           setIsSubmitting(false);
         } else {
           toast.error('No se pudieron actualizar la operación');
