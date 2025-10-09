@@ -34,14 +34,14 @@ export function MyGPCombo({
 
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor="kams">{label}</Label>
+      <Label htmlFor={label}>{label}</Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            id="kams"
+            id={label}
             className=" justify-between"
           >
             <span className="truncate" title={options?.find((k) => k.value === value)?.label}>

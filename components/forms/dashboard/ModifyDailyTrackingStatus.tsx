@@ -8,7 +8,7 @@ import { Form } from '@/components/ui/form';
 import { Row } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
-import { DailyTrackingRow } from '@/types/dashboard/tracking/dailyTracking';
+import { DailyTrackingRowFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -24,7 +24,7 @@ export default function ModifyDailyTrackingStatus({
   row,
   setOpenDialog,
 }: {
-  row: Row<DailyTrackingRow>;
+  row: Row<DailyTrackingRowFormatted>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { user } = useAuth();

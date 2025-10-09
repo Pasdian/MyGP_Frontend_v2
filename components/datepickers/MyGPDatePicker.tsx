@@ -22,12 +22,12 @@ export default function MyGPDatePicker({
   const [open, setOpen] = React.useState(false);
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor="date" className="px-1">
+      <Label htmlFor={label} className="px-1">
         {label}
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" id="date" className="justify-between font-normal">
+          <Button variant="outline" id={label} className="justify-between font-normal">
             {date ? date.toLocaleDateString('es-MX') : 'Selecciona una fecha'}
             <ChevronDownIcon />
           </Button>

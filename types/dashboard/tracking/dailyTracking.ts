@@ -5,7 +5,7 @@ export type DailyTracking = {
     initialDate: string;
     finalDate: string;
   };
-  data: DailyTrackingRow[];
+  data: DailyTrackingRowFormatted[];
   clients: string[];
   customs: string[];
   phases: string[];
@@ -31,4 +31,6 @@ export type DailyTrackingRow = {
 export type DailyTrackingRowFormatted = DailyTrackingRow & {
   ENTRY_DATE_FORMATTED: string | null;
   MODIFIED_AT_FORMATTED: string | null;
+  CUSTOM_FORMATTED: string | null;
+  KAM_FORMATTED: string | null;
 };

@@ -25,11 +25,12 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
+import { DailyTracking, DailyTrackingRowFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import { dailyTrackingColumns } from '@/lib/columns/dailyTrackingColumns';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import DailyTrackingDataTableFilter from '../filters/DailyTrackingDataTableFilter';
 import { useAuth } from '@/hooks/useAuth';
+import { customs } from '@/lib/customs/customs';
 
 export function DailyTrackingDataTable({
   filterValues,
@@ -52,13 +53,22 @@ export function DailyTrackingDataTable({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
 
-  const mappedData = React.useMemo(() => {
+  const mappedData = React.useMemo<DailyTrackingRowFormatted[]>(() => {
     if (!Array.isArray(dailyTrackingData?.data)) return [];
-    return dailyTrackingData.data.map((item) => ({
-      ...item,
-      ENTRY_DATE_FORMATTED: item.ENTRY_DATE ? getFormattedDate(item.ENTRY_DATE) : null,
-      MODIFIED_AT_FORMATTED: item.MODIFIED_AT ? getFormattedDate(item.MODIFIED_AT) : null,
-    }));
+
+    return dailyTrackingData.data.map(
+      (item): DailyTrackingRowFormatted => ({
+        ...item,
+        ENTRY_DATE_FORMATTED: item.ENTRY_DATE ? getFormattedDate(item.ENTRY_DATE) : null,
+        MODIFIED_AT_FORMATTED: item.MODIFIED_AT ? getFormattedDate(item.MODIFIED_AT) : null,
+        CUSTOM_FORMATTED: item.CUSTOM
+          ? customs.find((c) => c.key === item.CUSTOM)?.name ?? null
+          : null,
+        KAM_FORMATTED: item.KAM
+          ? `${item.KAM.split(' ')[0]} ${item.KAM.split(' ')[1] ?? ''}`.trim()
+          : null,
+      })
+    );
   }, [dailyTrackingData]);
 
   const filteredData = React.useMemo(() => {
@@ -235,7 +245,7 @@ export function DailyTrackingDataTable({
             <TableRow>
               <TableCell colSpan={dailyTrackingColumns.length} className="h-24 text-center">
                 <div className="flex justify-center">
-                  <p>Sin resultados, verifica tu usuario CASA</p>
+                  <p>Cargando...</p>
                 </div>
               </TableCell>
             </TableRow>

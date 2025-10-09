@@ -12,6 +12,8 @@ import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
 import { customs } from '@/lib/customs/customs';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -126,7 +128,7 @@ export default function Dashboard() {
       tab: tabValue,
     });
   }, [kamValue, customValue, phaseValue, clientValue, tabValue]);
-  console.log(isTraffic);
+
   return (
     <div className="h-full overflow-y-scroll p-2">
       {(isTraffic || isAdmin) && (
@@ -164,6 +166,21 @@ export default function Dashboard() {
                   label="Etapa Actual"
                   options={phasesOptions}
                 />
+                <div className="flex items-end h-full w-full">
+                  <Button
+                    className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                    onClick={() => {
+                      setFilterValues({});
+                      setClientValue('');
+                      setCustomValue('');
+                      setPhaseValue('');
+                      setKamValue('');
+                    }}
+                  >
+                    <X />
+                    Borrar filtros
+                  </Button>
+                </div>
               </>
             )}
           </div>

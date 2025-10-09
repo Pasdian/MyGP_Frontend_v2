@@ -14,7 +14,7 @@ import { Row } from '@tanstack/react-table';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IconBallpenFilled } from '@tabler/icons-react';
-import { DailyTrackingRow } from '@/types/dashboard/tracking/dailyTracking';
+import { DailyTrackingRowFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import ModifyDailyTrackingStatus from '@/components/forms/dashboard/ModifyDailyTrackingStatus';
 import useSWRImmutable from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
@@ -29,7 +29,11 @@ function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
 }
 
-export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTrackingRow> }) {
+export default function DailyTrackingModifyStatusBtn({
+  row,
+}: {
+  row: Row<DailyTrackingRowFormatted>;
+}) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [tabValue, setTabValue] = React.useState('history');
   const historyKey =
