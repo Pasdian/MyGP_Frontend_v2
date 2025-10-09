@@ -45,6 +45,7 @@ type TabValue = (typeof TAB_VALUES)[number];
 function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
 }
+
 export function InterfaceDataTable() {
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
   // UI state
@@ -205,6 +206,7 @@ export function InterfaceDataTable() {
 
   async function sendToWorkato() {
     try {
+      table.toggleAllRowsSelected(false);
       const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
         payload: selectedWorkatoRows,
       });

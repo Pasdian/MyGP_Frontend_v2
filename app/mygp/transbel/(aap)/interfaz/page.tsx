@@ -1,13 +1,12 @@
 'use client';
 
 import { InterfaceContext } from '@/contexts/InterfaceContext';
-import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
-import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
 import React from 'react';
 import { toast } from 'sonner';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
 
 export default function Page() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(() => {
@@ -72,10 +71,10 @@ export default function Page() {
         </div>
         <div className="flex mb-5">
           <div className="mr-5">
-            <InitialDatePicker date={initialDate} setDate={setInitialDate} onSelect={() => {}} />
+            <MyGPDatePicker date={initialDate} setDate={setInitialDate} label="Fecha de Inicio" />
           </div>
           <div>
-            <FinalDatePicker date={finalDate} setDate={setFinalDate} onSelect={() => {}} />
+            <MyGPDatePicker date={finalDate} setDate={setFinalDate} label="Fecha de Término" />
           </div>
         </div>
       </div>

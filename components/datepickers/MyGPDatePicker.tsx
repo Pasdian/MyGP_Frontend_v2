@@ -8,17 +8,15 @@ import { es } from 'date-fns/locale';
 import { ChevronDownIcon } from 'lucide-react';
 import React from 'react';
 
-export default function FinalDatePicker({
+export default function MyGPDatePicker({
   date,
   setDate,
-  onSelect,
   label = 'Selecciona una fecha de inicio',
 }: {
   date: Date | undefined;
   setDate:
     | React.Dispatch<React.SetStateAction<Date | undefined>>
-    | ((initialDate: Date | undefined) => void);
-  onSelect: (value: Date | undefined) => void;
+    | ((finalDate: Date | undefined) => void);
   label?: string;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -29,7 +27,7 @@ export default function FinalDatePicker({
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" id="date" className="w-48 justify-between font-normal">
+          <Button variant="outline" id="date" className="justify-between font-normal">
             {date ? date.toLocaleDateString('es-MX') : 'Selecciona una fecha'}
             <ChevronDownIcon />
           </Button>
@@ -43,7 +41,6 @@ export default function FinalDatePicker({
             onSelect={(date) => {
               setDate(date);
               setOpen(false);
-              onSelect(date);
             }}
           />
         </PopoverContent>

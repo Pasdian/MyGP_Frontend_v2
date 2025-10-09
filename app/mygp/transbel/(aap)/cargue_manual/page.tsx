@@ -1,5 +1,5 @@
 'use client';
-import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
+import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,7 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toYMD } from '@/lib/utilityFunctions/toYMD';
 
 function getPreviousBusinessDay(date = new Date()): Date {
   const d = new Date(date);
@@ -36,15 +37,9 @@ function getPreviousBusinessDay(date = new Date()): Date {
   return d;
 }
 
-function formatLocalYYYYMMDD(date: Date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}${m}${d}`;
-}
-
 export default function CargueManual() {
   const [isSendingToApi, setIsSendingToApi] = React.useState(false);
+  const [formattedDate, setFormattedDate] = React.useState('');
 
   const schema = z.object({
     date: z.date({
@@ -70,9 +65,6 @@ export default function CargueManual() {
     },
   });
 
-  const dateVal = form.watch('date');
-  const filename = `${dateVal ? formatLocalYYYYMMDD(dateVal) : ''}${form.watch('suffix')}`;
-
   const onSubmit = async (data: z.infer<typeof schema>) => {
     const lines = data.referenciasTextArea
       .split('\n')
@@ -82,11 +74,10 @@ export default function CargueManual() {
     try {
       setIsSendingToApi(true);
       const payload = {
-        date: data.date.toISOString().split('T')[0],
+        date: formattedDate,
         payload: lines,
         suffix: data.suffix,
       };
-      console.log(payload);
       const res = await GPClient.post('/transbel/uploadCargues', payload);
 
       toast.success(res.data.message || 'Enviado correctamente a la API');
@@ -104,6 +95,13 @@ export default function CargueManual() {
     }
   };
 
+  const dateYMD = toYMD(form.watch('date'));
+  const filename = `${dateYMD?.replace(/-/g, '') || ''}${form.watch('suffix')}`;
+
+  React.useEffect(() => {
+    setFormattedDate(dateYMD || '');
+  }, [dateYMD]);
+
   return (
     <div>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">
@@ -120,12 +118,7 @@ export default function CargueManual() {
                 <FormItem>
                   <FormLabel>Selecciona una fecha para el nombre del archivo</FormLabel>
                   <FormControl>
-                    <InitialDatePicker
-                      date={field.value}
-                      setDate={field.onChange}
-                      onSelect={field.onChange}
-                      label=""
-                    />
+                    <MyGPDatePicker date={field.value} setDate={field.onChange} label="" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

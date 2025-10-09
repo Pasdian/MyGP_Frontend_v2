@@ -14,14 +14,13 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWRImmutable from 'swr';
-import InitialDatePicker from '../datepickers/InitialDatePicker';
-import FinalDatePicker from '../datepickers/FinalDatePicker';
 import React from 'react';
 import { toast } from 'sonner';
 import ClientsCombo from '../comboboxes/ClientsCombo';
 import { getOperationsDistributionByCustomsDeepCopy } from '@/types/bi/getOperationsDistributionByCustoms';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { customs } from '@/lib/customs/customs';
+import MyGPDatePicker from '../datepickers/MyGPDatePicker';
 
 export const COLORS_6 = ['#0B2B66', '#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#8FB2FF'];
 
@@ -127,10 +126,10 @@ export default function PieChartLabelList() {
     <div className="flex flex-col h-full">
       <div className="flex mb-5">
         <div className="mr-5">
-          <InitialDatePicker date={initialDate} setDate={setInitialDate} onSelect={() => {}} />
+          <MyGPDatePicker date={initialDate} setDate={setInitialDate} label="Fecha de Inicio" />
         </div>
         <div className="mr-5">
-          <FinalDatePicker date={finalDate} setDate={setFinalDate} onSelect={() => {}} />
+          <MyGPDatePicker date={finalDate} setDate={setFinalDate} label="Fecha de Termino" />
         </div>
         <div>
           <ClientsCombo

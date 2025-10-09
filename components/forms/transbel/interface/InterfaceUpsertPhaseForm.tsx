@@ -185,9 +185,9 @@ export default function InterfaceUpsertPhaseForm({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      ref: row.original.REFERENCIA ? row.original.REFERENCIA : '',
+      ref: row.original.REFERENCIA || '',
       phase: '',
-      exceptionCode: row.original.CE_138 ? row.original.CE_138 : '',
+      exceptionCode: row.original.CE_138 || '',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
       user: user.complete_user.user.casa_user_name

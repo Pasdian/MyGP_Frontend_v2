@@ -42,13 +42,13 @@ export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
       return row.original.EE__GE;
     },
   },
-  {
-    accessorKey: "GUIA_HOUSE",
-    header: "Guía House",
-    cell: ({ row }) => {
-      return <p className="text-center">{row.original.GUIA_HOUSE || "--"}</p>;
-    },
-  },
+  // {
+  //   accessorKey: "GUIA_HOUSE",
+  //   header: "Guía House",
+  //   cell: ({ row }) => {
+  //     return <p className="text-center">{row.original.GUIA_HOUSE || "--"}</p>;
+  //   },
+  // },
   {
     accessorKey: "ENTREGA_TRANSPORTE_138_FORMATTED",
     header: "Entrega a Transporte",

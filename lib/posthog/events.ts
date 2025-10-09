@@ -22,6 +22,13 @@ interface UserEvent {
   description: string;
 }
 
+interface DashboardEvent {
+  id: number;
+  alias: "DASHBOARD_MODIFY_OP";
+  eventName: string;
+  description: string;
+}
+
 interface CompanyEvent {
   id: number;
   alias: "COMPANY_ADD_COMPANY" | "COMPANY_MODIFY_COMPANY";
@@ -152,5 +159,14 @@ export const deaModuleEvents: DEAEvent[] = [
     alias: "DEA_DOWNLOAD_FILE",
     eventName: "DEA_DOWNLOAD_FILE_EVENT",
     description: "Usuario descarga un archivo del DEA",
+  },
+];
+
+export const dashboardModuleEvents: DashboardEvent[] = [
+  {
+    id: 1,
+    alias: "DASHBOARD_MODIFY_OP",
+    eventName: "DASHBOARD_MODIFY_OP_EVENT",
+    description: "Ejecutivo de Tráfico modifica una operación",
   },
 ];
