@@ -5,6 +5,8 @@ export type getRefsPendingCE = {
   REVALIDACION_073: string | null;
   ULTIMO_DOCUMENTO_114: string | null;
   ENTREGA_TRANSPORTE_138: string | null;
+  DAT_EMB: string | null;
+  ETI_IMPR: 'EE' | 'GE' | 'CECO' | 'CUENTA';
   CE_138: string | null;
   MSA_130: string | null;
   ENTREGA_CDP_140: string | null;
@@ -38,4 +40,8 @@ export type getRefsPendingCEFormat = getRefsPendingCE & {
   MSA_130_FORMATTED: string | null;
   ENTREGA_CDP_140_FORMATTED: string | null;
   workato_created_at_FORMATTED: string | null;
+  EE: string | null;
+  GE: string | null;
+  CECO: string | null;
+  CUENTA: string | null;
 };

@@ -27,7 +27,6 @@ import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
-import { interfaceColumns } from '@/lib/columns/interfaceColumns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { IconSettings, IconSquareFilled } from '@tabler/icons-react';
@@ -38,8 +37,9 @@ import axios from 'axios';
 import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useInterfaceColumns } from '@/lib/columns/interfaceColumns';
 
-const TAB_VALUES = ['errors', 'pending', 'sent', 'duplicates'] as const;
+const TAB_VALUES = ['errors', 'pending', 'sent'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
 
 function isTabValue(v: string): v is TabValue {
@@ -47,15 +47,14 @@ function isTabValue(v: string): v is TabValue {
 }
 
 export function InterfaceDataTable() {
-  const { initialDate, finalDate } = React.useContext(InterfaceContext);
+  const { initialDate, finalDate, tabValue, setTabValue } = React.useContext(InterfaceContext);
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
-  const [tabValue, setTabValue] = React.useState<'errors' | 'pending' | 'sent' | 'duplicates'>(
-    'errors'
-  );
+  const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>({});
+  const interfaceColumns = useInterfaceColumns();
 
   const pendingRefsKey =
     initialDate && finalDate
@@ -80,6 +79,11 @@ export function InterfaceDataTable() {
         item.ENTREGA_TRANSPORTE_138 && getFormattedDate(item.ENTREGA_TRANSPORTE_138),
       MSA_130_FORMATTED: item.MSA_130 && getFormattedDate(item.MSA_130),
       ENTREGA_CDP_140_FORMATTED: item.ENTREGA_CDP_140 && getFormattedDate(item.ENTREGA_CDP_140),
+      EE: item.ETI_IMPR === 'EE' ? item.DAT_EMB : null,
+      GE: item.ETI_IMPR === 'GE' ? item.DAT_EMB : null,
+      CECO: item.ETI_IMPR === 'CECO' ? item.DAT_EMB : null,
+      CUENTA: item.ETI_IMPR === 'CUENTA' ? item.DAT_EMB : null,
+
       workato_created_at_FORMATTED:
         item.workato_created_at && getFormattedDate(item.workato_created_at),
     }));
@@ -99,9 +103,6 @@ export function InterfaceDataTable() {
         break;
       case 'sent':
         subset = rows.filter((r) => r?.sent === true);
-        break;
-      case 'duplicates':
-        subset = rows.filter((r) => r?.has_eege_duplicate_error === true);
         break;
       default:
         subset = rows;
@@ -177,7 +178,7 @@ export function InterfaceDataTable() {
   // Table instance
   const table = useReactTable({
     data: filtered ?? [],
-    columns,
+    columns, // ensure your "Acciones" column has id: "ACCIONES"
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -186,8 +187,14 @@ export function InterfaceDataTable() {
     enableRowSelection: (row) => !row.original.was_send_to_workato,
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => String(row.REFERENCIA),
-    state: { columnFilters, pagination, rowSelection },
+    // NEW: include visibility in state and handler
+    state: { columnFilters, pagination, rowSelection, columnVisibility },
+    onColumnVisibilityChange: setColumnVisibility,
   });
+  // toggle "ACCIONES" only on 'errors'
+  React.useEffect(() => {
+    setColumnVisibility((v) => ({ ...v, ACCIONES: tabValue === 'errors' }));
+  }, [tabValue]);
 
   // Preselect only when data changes (don’t wipe user clicks on every toggle)
   React.useEffect(() => {
@@ -234,7 +241,7 @@ export function InterfaceDataTable() {
         <div className="flex items-center">
           <Tabs
             value={tabValue}
-            onValueChange={(v) => isTabValue(v) && setTabValue(v)}
+            onValueChange={(v) => isTabValue(v) && setTabValue && setTabValue(v)}
             className="mr-2"
           >
             <TabsList>

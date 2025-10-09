@@ -22,6 +22,8 @@ export default function Page() {
     return today;
   });
 
+  const [tabValue, setTabValue] = React.useState<'errors' | 'pending' | 'sent'>('errors');
+
   React.useEffect(() => {
     function validateDates() {
       if (!initialDate) return;
@@ -83,6 +85,8 @@ export default function Page() {
           value={{
             initialDate: initialDate,
             finalDate: finalDate,
+            tabValue: tabValue,
+            setTabValue: setTabValue,
           }}
         >
           <InterfaceDataTable />
