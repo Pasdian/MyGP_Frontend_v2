@@ -35,7 +35,7 @@ export default function DailyTrackingModifyStatusBtn({
   row: Row<DailyTrackingRowFormatted>;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [tabValue, setTabValue] = React.useState('history');
+  const [tabValue, setTabValue] = React.useState('modify_status');
   const historyKey =
     isOpen && `/api/daily-tracking/operation-history?reference=${row.original.NUM_REFE}`; // Only fetch when my dialog isOpen
 
@@ -70,8 +70,8 @@ export default function DailyTrackingModifyStatusBtn({
           className="mr-2"
         >
           <TabsList>
-            <TabsTrigger value="history">Historial</TabsTrigger>
             <TabsTrigger value="modify_status">Modificar Estatus</TabsTrigger>
+            <TabsTrigger value="history">Historial</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="h-full overflow-y-scroll">
