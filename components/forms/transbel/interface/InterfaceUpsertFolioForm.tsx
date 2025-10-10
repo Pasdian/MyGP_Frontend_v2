@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
 import { FolioRow } from '@/types/transbel/folioData';
+import { InterfaceContext } from '@/contexts/InterfaceContext';
 
 const comboOptions = [
   {
@@ -41,6 +42,8 @@ export default function InterfaceUpsertFolioForm({
   folioRows: FolioRow[];
 }) {
   const [comboValue, setComboValue] = React.useState('');
+  const { initialDate, finalDate } = React.useContext(InterfaceContext);
+
   const foundEE = folioRows.find((folio) => folio.ETI_IMPR == 'EE')?.DAT_EMB;
   const foundGE = folioRows.find((folio) => folio.ETI_IMPR == 'GE')?.DAT_EMB;
   const foundCECO = folioRows.find((folio) => folio.ETI_IMPR == 'CECO')?.DAT_EMB;
@@ -88,7 +91,13 @@ export default function InterfaceUpsertFolioForm({
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
           setOpenDialog((opened) => !opened);
-          mutate('/api/transbel/getRefsPendingCE');
+          if (!initialDate || !finalDate) return mutate('/api/transbel/getRefsPendingCE');
+
+          mutate(
+            `/api/transbel/getRefsPendingCE?initialDate=${
+              initialDate.toISOString().split('T')[0]
+            }&finalDate=${finalDate.toISOString().split('T')[0]}`
+          );
         } else {
           toast.error('No se pudieron actualizar tus datos');
         }
