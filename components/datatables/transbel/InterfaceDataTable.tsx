@@ -165,7 +165,7 @@ export function InterfaceDataTable() {
 
   const baseColumns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
     return [...interfaceColumns];
-  }, []);
+  }, [interfaceColumns]);
 
   // Conditionally add the selection column
   const columns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
