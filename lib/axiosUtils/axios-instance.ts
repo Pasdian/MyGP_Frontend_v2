@@ -4,7 +4,7 @@ export const GPClient = axios.create({
   withCredentials: true,
   headers: {
     "Cache-Control": "no-cache", // Avoid static routes by default
-    "X-API-KEY": process.env.NEXT_PUBLIC_DEA_API_KEY || "undefined",
+    "X-API-KEY": process.env.NEXT_PUBLIC_PYTHON_API_KEY || "",
   },
 });
 

@@ -18,7 +18,9 @@ function dirname(p: string) {
 
 function buildPreviewSrc(relPath: string) {
   // same-origin API
-  return `/gip/download?filepath=${encodeURIComponent(relPath)}`;
+  return `/gip/download?filepath=${encodeURIComponent(relPath)}&api_key=${
+    process.env.NEXT_PUBLIC_PYTHON_API_KEY
+  }`;
 }
 
 /** Simple Tailwind spinner */
