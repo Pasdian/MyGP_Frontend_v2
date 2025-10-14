@@ -23,7 +23,7 @@ export function MyGPCombo({
   options,
 }: {
   value: string;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
+  setValue: (v: string) => void;
   label?: string;
   options: {
     value: string;

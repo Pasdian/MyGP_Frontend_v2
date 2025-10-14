@@ -50,18 +50,12 @@ export default function UpdateFolioForm({
     return {
       reference: row.original.REFERENCIA ?? '',
       EE: getVal('EE'),
-      GE: getVal('GE'),
-      CECO: getVal('CECO'),
-      CUENTA: getVal('CUENTA'),
     };
   }, [folioData, row.original.REFERENCIA]);
 
   const schema = z.object({
     reference: REF_VALIDATION,
     EE: FOLIO_VALIDATION,
-    GE: FOLIO_VALIDATION,
-    CECO: FOLIO_VALIDATION,
-    CUENTA: FOLIO_VALIDATION,
   });
 
   const form = useForm<z.infer<typeof schema>>({
@@ -78,16 +72,7 @@ export default function UpdateFolioForm({
   async function onSubmit(data: z.infer<typeof schema>) {
     await GPClient.post('/api/transbel/datosEmbarque', {
       NUM_REFE: data.reference,
-      CVE_DAT:
-        comboValue == 'IMPO'
-          ? 1
-          : comboValue == 'EXPO'
-          ? 2
-          : comboValue == 'CECO'
-          ? 3
-          : comboValue == 'CUENTA'
-          ? 4
-          : -1,
+      CVE_DAT: 1, // Impo
       EE_DATEMB: data.EE,
     })
       .then((res) => {

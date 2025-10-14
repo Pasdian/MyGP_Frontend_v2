@@ -6,7 +6,7 @@ import { mutate } from 'swr';
 import { toast } from 'sonner';
 import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FOLIO_VALIDATION, REF_VALIDATION } from '@/lib/validations/phaseValidations';
+import { REF_VALIDATION } from '@/lib/validations/phaseValidations';
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
 import { Row } from '@tanstack/react-table';
@@ -17,20 +17,14 @@ import { FolioData } from '@/types/transbel/folioData';
 import useSWRImmutable from 'swr/immutable';
 import { getCarguesFormat } from '@/types/transbel/getCargues';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
+import { IconSettings } from '@tabler/icons-react';
+import { Loader2 } from 'lucide-react';
+import axios from 'axios';
 
 const comboOptions = [
-  {
-    label: 'Importación',
-    value: 'IMPO',
-  },
-  {
-    label: 'Exportación',
-    value: 'EXPO',
-  },
-  {
-    label: 'Muestras',
-    value: 'CECO',
-  },
+  { label: 'Importación', value: 'IMPO' },
+  { label: 'Exportación', value: 'EXPO' },
+  { label: 'Muestras', value: 'CECO' },
 ];
 
 export default function CarguesUpdateFolioForm({
@@ -42,7 +36,7 @@ export default function CarguesUpdateFolioForm({
 }) {
   const [comboValue, setComboValue] = React.useState('');
   const carguesKey = '/api/transbel/getCargues';
-
+  const [isSending, setIsSending] = React.useState(false);
   const folioKey =
     row.original.NUM_REFE && `/api/transbel/datosEmbarque?reference=${row.original.NUM_REFE}`;
 
@@ -64,56 +58,72 @@ export default function CarguesUpdateFolioForm({
     };
   }, [folioData, row.original.NUM_REFE]);
 
-  const schema = z.object({
-    reference: REF_VALIDATION,
-    EE: FOLIO_VALIDATION,
-    GE: FOLIO_VALIDATION,
-    CECO: FOLIO_VALIDATION,
-    CUENTA: FOLIO_VALIDATION,
-  });
+  // Minimal change: make fields optional + superRefine based on comboValue
+  const schema = React.useMemo(
+    () =>
+      z.object({
+        reference: REF_VALIDATION,
+        EE: z.string().optional(),
+        GE: z.string().optional(),
+        CECO: z.string().optional(),
+        CUENTA: z.string().optional(),
+      }),
+    []
+  );
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: defaults,
-    shouldUnregister: true,
+    shouldUnregister: true, // important for conditional fields
   });
 
-  // Refill the form when folioData (or reference) changes
+  // keep your refill
   React.useEffect(() => {
     form.reset(defaults);
   }, [defaults, form]);
 
+  // (Optional) auto-pick section when data arrives so fields show with values
+  React.useEffect(() => {
+    if (!folioData) return;
+    if (defaults.EE) setComboValue('IMPO');
+    else if (defaults.GE) setComboValue('EXPO');
+    else if (defaults.CECO || defaults.CUENTA) setComboValue('CECO');
+  }, [folioData, defaults]);
+
   async function onSubmit(data: z.infer<typeof schema>) {
-    await GPClient.post('/api/transbel/datosEmbarque', {
-      NUM_REFE: data.reference,
-      CVE_DAT:
-        comboValue == 'IMPO'
-          ? 1
-          : comboValue == 'EXPO'
-          ? 2
-          : comboValue == 'CECO'
-          ? 3
-          : comboValue == 'CUENTA'
-          ? 4
-          : -1,
-      EE_DATEMB: data.EE,
-      GE_DATEMB: data.GE,
-      CECO_DATEMB: data.CECO,
-      CUENTA_DATEMB: data.CUENTA,
-    })
-      .then((res) => {
-        if (res.status == 200) {
-          toast.success('Datos modificados correctamente');
-          setOpenDialog((opened) => !opened);
-          mutate(carguesKey);
-        } else {
-          toast.error('No se pudieron actualizar tus datos');
-        }
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
+    setIsSending(true);
+    const CVE_DAT =
+      comboValue == 'IMPO' ? 1 : comboValue == 'EXPO' ? 2 : comboValue == 'CECO' ? 3 : -1;
+
+    try {
+      const res = await GPClient.post('/api/transbel/datosEmbarque', {
+        NUM_REFE: data.reference,
+        CVE_DAT,
+        EE_DATEMB: data.EE,
+        GE_DATEMB: data.GE,
+        CECO_DATEMB: data.CECO,
+        CUENTA_DATEMB: data.CUENTA,
       });
+
+      if (res.status == 200) {
+        toast.success('Datos modificados correctamente');
+        setOpenDialog((opened) => !opened);
+        mutate(carguesKey);
+        setIsSending(false);
+      } else {
+        toast.error('No se pudieron actualizar tus datos');
+        setIsSending(false);
+      }
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message ?? 'Error al actualizar');
+      } else {
+        toast.error('Error desconocido al actualizar');
+      }
+
+      setIsSending(false);
+    }
   }
 
   if (isFolioDataLoading)
@@ -122,6 +132,7 @@ export default function CarguesUpdateFolioForm({
         <TailwindSpinner />
       </div>
     );
+
   return (
     <div>
       <div className="mb-4">
@@ -150,12 +161,14 @@ export default function CarguesUpdateFolioForm({
                 </FormItem>
               )}
             />
+
             <MyGPCombo
               value={comboValue}
               setValue={setComboValue}
               options={comboOptions}
               label="Tipo de Operación"
             />
+
             {comboValue == 'IMPO' && (
               <FormField
                 control={form.control}
@@ -171,6 +184,7 @@ export default function CarguesUpdateFolioForm({
                 )}
               />
             )}
+
             {comboValue == 'EXPO' && (
               <FormField
                 control={form.control}
@@ -179,13 +193,14 @@ export default function CarguesUpdateFolioForm({
                   <FormItem>
                     <FormLabel>Folio Exportación (GE)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Folio Exportacón.." {...field} />
+                      <Input placeholder="Folio Exportación.." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             )}
+
             {comboValue == 'CECO' && (
               <>
                 <FormField
@@ -201,7 +216,6 @@ export default function CarguesUpdateFolioForm({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="CUENTA"
@@ -218,14 +232,29 @@ export default function CarguesUpdateFolioForm({
               </>
             )}
           </div>
+
           <DialogFooter className="mt-4">
             <DialogClose asChild>
               <Button variant="outline" className="cursor-pointer">
                 Cancelar
               </Button>
             </DialogClose>
-            <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
-              Guardar Cambios
+            <Button
+              disabled={isSending}
+              className="cursor-pointer bg-yellow-500 hover:bg-yellow-600"
+              type="submit"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" />
+                  <p>Enviando</p>
+                </>
+              ) : (
+                <>
+                  <IconSettings className="h-4 w-4" />
+                  <p>Guardar Cambios</p>
+                </>
+              )}{' '}
             </Button>
           </DialogFooter>
         </form>
