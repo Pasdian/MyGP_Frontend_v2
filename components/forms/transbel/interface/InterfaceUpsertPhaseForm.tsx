@@ -228,113 +228,127 @@ export default function InterfaceUpsertPhaseForm({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid gap-4">
-          <FormField
-            control={form.control}
-            name="ref"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Referencia</FormLabel>
-                <FormControl>
-                  <Input disabled placeholder="Referencia..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <div>
+      <div className="mb-4">
+        <p className="text-lg leading-none font-semibold mb-2">Editar Entrega</p>
+        <p className="text-muted-foreground text-sm">
+          Aquí podrás realizar la modificación de una entrega. Haz click en guardar cuando termines
+          de editar los campos.
+        </p>
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="grid gap-4">
+            <FormField
+              control={form.control}
+              name="ref"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Referencia</FormLabel>
+                  <FormControl>
+                    <Input disabled placeholder="Referencia..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="phase"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Etapa a Modificar</FormLabel>
-                <FormControl>
-                  <Select
-                    value={field.value} // <-- controlled
-                    onValueChange={(val) => {
-                      // update phase explicitly
-                      form.setValue('phase', val, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: true,
-                      });
+            <FormField
+              control={form.control}
+              name="phase"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Etapa a Modificar</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value} // <-- controlled
+                      onValueChange={(val) => {
+                        // update phase explicitly
+                        form.setValue('phase', val, {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        });
 
-                      // set date depending on phase & row values
-                      if (val === '073' && row.original.REVALIDACION_073) {
-                        form.setValue('date', row.original.REVALIDACION_073);
-                      } else if (val === '114' && row.original.ULTIMO_DOCUMENTO_114) {
-                        form.setValue('date', row.original.ULTIMO_DOCUMENTO_114);
-                      } else if (val === '130' && row.original.MSA_130) {
-                        form.setValue('date', row.original.MSA_130);
-                      } else if (val === '138' && row.original.ENTREGA_TRANSPORTE_138) {
-                        form.setValue('date', row.original.ENTREGA_TRANSPORTE_138);
-                      } else {
-                        form.setValue('date', '');
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una etapa..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="073">073 - Revalidación</SelectItem>
-                      <SelectItem value="114">114 - Último Documento</SelectItem>
-                      <SelectItem value="130">130 - MSA</SelectItem>
-                      <SelectItem value="138">138 - Entrega a Transporte</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {phase == '073' && <FormItemsRevalidacion form={form} row={row} />}
-          {phase == '114' && <FormItemsUltimoDocumento form={form} row={row} />}
-          {phase == '130' && <FormItemsMSA form={form} row={row} />}
-          {phase == '138' && <FormItemsEntregaTransporte form={form} row={row} />}
+                        // set date depending on phase & row values
+                        if (val === '073' && row.original.REVALIDACION_073) {
+                          form.setValue('date', row.original.REVALIDACION_073);
+                        } else if (val === '114' && row.original.ULTIMO_DOCUMENTO_114) {
+                          form.setValue('date', row.original.ULTIMO_DOCUMENTO_114);
+                        } else if (val === '130' && row.original.MSA_130) {
+                          form.setValue('date', row.original.MSA_130);
+                        } else if (val === '138' && row.original.ENTREGA_TRANSPORTE_138) {
+                          form.setValue('date', row.original.ENTREGA_TRANSPORTE_138);
+                        } else {
+                          form.setValue('date', '');
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona una etapa..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="073">073 - Revalidación</SelectItem>
+                        <SelectItem value="114">114 - Último Documento</SelectItem>
+                        <SelectItem value="130">130 - MSA</SelectItem>
+                        <SelectItem value="138">138 - Entrega a Transporte</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {phase == '073' && <FormItemsRevalidacion form={form} row={row} />}
+            {phase == '114' && <FormItemsUltimoDocumento form={form} row={row} />}
+            {phase == '130' && <FormItemsMSA form={form} row={row} />}
+            {phase == '138' && <FormItemsEntregaTransporte form={form} row={row} />}
 
-          <FormField
-            control={form.control}
-            name="time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hora</FormLabel>
-                <FormControl>
-                  <Input type="time" placeholder="Hora..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hora</FormLabel>
+                  <FormControl>
+                    <Input type="time" placeholder="Hora..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="user"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Usuario</FormLabel>
-                <FormControl>
-                  <Input disabled placeholder="Usuario..." className="mb-4 uppercase" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline" className="cursor-pointer">
-              Cancelar
+            <FormField
+              control={form.control}
+              name="user"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Usuario</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      placeholder="Usuario..."
+                      className="mb-4 uppercase"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="cursor-pointer">
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
+              Guardar Cambios
             </Button>
-          </DialogClose>
-          <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
-            Guardar Cambios
-          </Button>
-        </DialogFooter>
-      </form>
-    </Form>
+          </DialogFooter>
+        </form>
+      </Form>
+    </div>
   );
 }

@@ -4,7 +4,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { mutate } from 'swr';
 import { toast } from 'sonner';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FOLIO_VALIDATION, REF_VALIDATION } from '@/lib/validations/phaseValidations';
 import { z } from 'zod/v4';
@@ -14,40 +14,47 @@ import { Row } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
-import { FolioRow } from '@/types/transbel/folioData';
+import { FolioData } from '@/types/transbel/folioData';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
+import useSWRImmutable from 'swr/immutable';
+import TailwindSpinner from '@/components/ui/TailwindSpinner';
 
 const comboOptions = [
   {
     label: 'Importación',
     value: 'IMPO',
   },
-  {
-    label: 'Exportación',
-    value: 'EXPO',
-  },
-  {
-    label: 'Muestras',
-    value: 'CECO',
-  },
 ];
 
-export default function InterfaceUpsertFolioForm({
+export default function UpdateFolioForm({
   row,
   setOpenDialog,
-  folioRows,
 }: {
   row: Row<getRefsPendingCEFormat>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
-  folioRows: FolioRow[];
 }) {
   const [comboValue, setComboValue] = React.useState('');
+  const folioKey =
+    row.original.REFERENCIA && `/api/transbel/datosEmbarque?reference=${row.original.REFERENCIA}`;
+
+  const { data: folioData, isLoading: isFolioDataLoading } = useSWRImmutable<FolioData>(
+    folioKey,
+    axiosFetcher
+  );
   const { initialDate, finalDate } = React.useContext(InterfaceContext);
 
-  const foundEE = folioRows.find((folio) => folio.ETI_IMPR == 'EE')?.DAT_EMB;
-  const foundGE = folioRows.find((folio) => folio.ETI_IMPR == 'GE')?.DAT_EMB;
-  const foundCECO = folioRows.find((folio) => folio.ETI_IMPR == 'CECO')?.DAT_EMB;
-  const foundCUENTA = folioRows.find((folio) => folio.ETI_IMPR == 'CUENTA')?.DAT_EMB;
+  const defaults = React.useMemo(() => {
+    const getVal = (tag: string) =>
+      folioData?.data?.find((folio) => folio.ETI_IMPR === tag)?.DAT_EMB ?? '';
+
+    return {
+      reference: row.original.REFERENCIA ?? '',
+      EE: getVal('EE'),
+      GE: getVal('GE'),
+      CECO: getVal('CECO'),
+      CUENTA: getVal('CUENTA'),
+    };
+  }, [folioData, row.original.REFERENCIA]);
 
   const schema = z.object({
     reference: REF_VALIDATION,
@@ -60,14 +67,13 @@ export default function InterfaceUpsertFolioForm({
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: 'onChange',
-    defaultValues: {
-      reference: row.original.REFERENCIA || '',
-      EE: foundEE || '',
-      GE: foundGE || '',
-      CECO: foundCECO || '',
-      CUENTA: foundCUENTA || '',
-    },
+    defaultValues: defaults,
   });
+
+  // Refill the form when folioData (or reference) changes
+  React.useEffect(() => {
+    form.reset(defaults);
+  }, [defaults, form]);
 
   async function onSubmit(data: z.infer<typeof schema>) {
     await GPClient.post('/api/transbel/datosEmbarque', {
@@ -83,9 +89,6 @@ export default function InterfaceUpsertFolioForm({
           ? 4
           : -1,
       EE_DATEMB: data.EE,
-      GE_DATEMB: data.GE,
-      CECO_DATEMB: data.CECO,
-      CUENTA_DATEMB: data.CUENTA,
     })
       .then((res) => {
         if (res.status == 200) {
@@ -106,9 +109,23 @@ export default function InterfaceUpsertFolioForm({
         toast.error(error.response.data.message);
       });
   }
-
+  if (isFolioDataLoading)
+    return (
+      <div className="flex justify-center items-center">
+        <TailwindSpinner />
+      </div>
+    );
   return (
     <div>
+      <div className="mb-4">
+        <p className="text-lg leading-none font-semibold mb-2">
+          Editar Folio - {row.original.REFERENCIA}
+        </p>
+        <p className="text-muted-foreground text-sm">
+          Aquí podrás realizar la modificación del folio de una referencia. Haz click en guardar
+          cuando termines de editar los campos.
+        </p>
+      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
@@ -145,52 +162,6 @@ export default function InterfaceUpsertFolioForm({
                   </FormItem>
                 )}
               />
-            )}
-            {comboValue == 'EXPO' && (
-              <FormField
-                control={form.control}
-                name="GE"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Folio Exportación (GE)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Folio Exportacón.." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {comboValue == 'CECO' && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="CECO"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Folio CECO</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Folio CECO..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="CUENTA"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Folio CUENTA</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Folio CUENTA..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
             )}
           </div>
           <DialogFooter className="mt-4">

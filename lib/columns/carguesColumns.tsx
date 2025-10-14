@@ -4,90 +4,123 @@ import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 import { getCarguesFormat } from "@/types/transbel/getCargues";
+import { CargueContext } from "@/contexts/CargueContext";
+import CarguesUpdateFolioBtn from "@/components/buttons/cargues/CarguesUpdateFolioBtn";
 
 const fuzzyFilter = createFuzzyFilter<getCarguesFormat>();
+type TabValue = "errors" | "pending" | "sent";
 
-export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
-  {
-    accessorKey: "NUM_REFE",
-    header: "Referencia",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.NUM_REFE) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe un número de referencia"
-          />
-        );
-      }
+export const useCarguesColumns = (): ColumnDef<getCarguesFormat>[] => {
+  const { tabValue } = React.useContext(CargueContext) as {
+    tabValue: TabValue;
+  };
+  const baseCols = React.useMemo<ColumnDef<getCarguesFormat>[]>(
+    () => [
+      {
+        accessorKey: "NUM_REFE",
+        header: "Referencia",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => {
+          if (!row.original.NUM_REFE) {
+            return (
+              <ErrorTooltip
+                value="--"
+                errorMessage="No existe un número de referencia"
+              />
+            );
+          }
 
-      return <p className="text-center">{row.original.NUM_REFE}</p>;
-    },
-  },
-  {
-    accessorKey: "NUM_PEDI",
-    header: "Número de Pedimento",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.NUM_PEDI) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe un número de pedimento"
-          />
-        );
-      }
+          return <p className="text-center">{row.original.NUM_REFE}</p>;
+        },
+      },
+      {
+        accessorKey: "NUM_PEDI",
+        header: "Número de Pedimento",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => {
+          if (!row.original.NUM_PEDI) {
+            return (
+              <ErrorTooltip
+                value="--"
+                errorMessage="No existe un número de pedimento"
+              />
+            );
+          }
 
-      return <p className="text-center">{row.original.NUM_PEDI}</p>;
-    },
-  },
-  {
-    accessorKey: "NUM_TRAFICO",
-    header: "Folio EE/GE",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.NUM_TRAFICO) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe un número de tráfico"
-          />
-        );
-      }
+          return <p className="text-center">{row.original.NUM_PEDI}</p>;
+        },
+      },
+      {
+        accessorKey: "NUM_TRAFICO",
+        header: "Folio EE/GE",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => {
+          if (!row.original.NUM_TRAFICO) {
+            return (
+              <ErrorTooltip
+                value="--"
+                errorMessage="No existe un número de tráfico"
+              />
+            );
+          }
 
-      return <p className="text-center">{row.original.NUM_TRAFICO}</p>;
-    },
-  },
-  {
-    accessorKey: "FEC_PAGO_FORMATTED",
-    header: "Fecha de Pago",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.FEC_PAGO) {
-        return (
-          <ErrorTooltip value="--" errorMessage="No existe una fecha de pago" />
-        );
-      }
+          return <p className="text-center">{row.original.NUM_TRAFICO}</p>;
+        },
+      },
+      {
+        accessorKey: "FEC_PAGO_FORMATTED",
+        header: "Fecha de Pago",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => {
+          if (!row.original.FEC_PAGO) {
+            return (
+              <ErrorTooltip
+                value="--"
+                errorMessage="No existe una fecha de pago"
+              />
+            );
+          }
 
-      return <p className="text-center">{row.original.FEC_PAGO_FORMATTED}</p>;
-    },
-  },
-  {
-    accessorKey: "FEC_ENVIO_FORMATTED",
-    header: "Fecha de Envío",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.FEC_ENVIO) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de envío"
-          />
-        );
-      }
+          return (
+            <p className="text-center">{row.original.FEC_PAGO_FORMATTED}</p>
+          );
+        },
+      },
+      {
+        accessorKey: "FEC_ENVIO_FORMATTED",
+        header: "Fecha de Envío",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => {
+          if (!row.original.FEC_ENVIO) {
+            return (
+              <ErrorTooltip
+                value="--"
+                errorMessage="No existe una fecha de envío"
+              />
+            );
+          }
 
-      return <p className="text-center">{row.original.FEC_ENVIO_FORMATTED}</p>;
-    },
-  },
-];
+          return (
+            <p className="text-center">{row.original.FEC_ENVIO_FORMATTED}</p>
+          );
+        },
+      },
+    ],
+    []
+  );
+
+  const accionesCol: ColumnDef<getCarguesFormat> = React.useMemo(
+    () => ({
+      id: "ACCIONES",
+      header: "Acciones",
+      cell: ({ row }) => <CarguesUpdateFolioBtn row={row} />,
+    }),
+    []
+  );
+
+  // Show ACCIONES only on 'errors'
+  return React.useMemo(() => {
+    if (tabValue === "pending") return [accionesCol, ...baseCols];
+    return baseCols; // pending/sent → hidden
+  }, [tabValue, baseCols, accionesCol]);
+};

@@ -26,7 +26,6 @@ import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
 import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
-import { carguesColumns } from '@/lib/columns/carguesColumns';
 import { IconSettings } from '@tabler/icons-react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -35,16 +34,12 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { getCarguesFormat } from '@/types/transbel/getCargues';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-const TAB_VALUES = ['pending', 'paid'] as const;
-type TabValue = (typeof TAB_VALUES)[number];
-// 2) Type guard to narrow string -> TabValue
+import { useCarguesColumns } from '@/lib/columns/carguesColumns';
+import { CargueContext } from '@/contexts/CargueContext';
 
-function isTabValue(v: string): v is TabValue {
-  return (TAB_VALUES as readonly string[]).includes(v);
-}
 export function CarguesDataTable() {
   const carguesKey = '/api/transbel/getCargues';
+  const { tabValue } = React.useContext(CargueContext);
 
   const { data, isLoading } = useSWRImmutable<getCarguesFormat[]>(carguesKey, axiosFetcher);
 
@@ -53,7 +48,8 @@ export function CarguesDataTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToDB, setIsSendingToDB] = React.useState(false);
-  const [tabValue, setTabValue] = React.useState<'paid' | 'pending'>('paid');
+
+  const carguesColumns = useCarguesColumns();
   // Ensure each row has a stable id and USE it in the table
   const modifiedData = React.useMemo(() => {
     if (!Array.isArray(data)) return [] as (getCarguesFormat & { id: string })[];
@@ -94,7 +90,6 @@ export function CarguesDataTable() {
     onRowSelectionChange: setRowSelection,
     state: { columnFilters, pagination, rowSelection },
     enableRowSelection: true,
-    // getRowId: (row) => row.id,
   });
 
   const selectedRows = table
@@ -131,20 +126,6 @@ export function CarguesDataTable() {
     <div>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">Cargues de Transbel</h1>
       <div className="flex items-center space-x-2 mb-4">
-        <div className="flex items-center">
-          <Tabs
-            value={tabValue}
-            onValueChange={(v) => isTabValue(v) && setTabValue(v)}
-            className="mr-2"
-          >
-            <TabsList>
-              <TabsTrigger value="paid">Pedimentos Pagados</TabsTrigger>
-              <TabsTrigger value="pending">Pendientes por Enviar</TabsTrigger>
-              <TabsTrigger value="paid">Enviados</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-
         {selectedRows.length > 0 && (
           <div>
             <Button
