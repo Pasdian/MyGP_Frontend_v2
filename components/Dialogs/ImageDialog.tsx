@@ -40,13 +40,11 @@ export default function ImageDialog({
     imageName: string;
   };
 }) {
-  // Build list once from current folder
   const files = React.useMemo(
     () => partidasPrevios?.[previoInfo.currentFolder as keyof PartidasPrevios] ?? [],
     [partidasPrevios, previoInfo.currentFolder]
   );
 
-  // Index derived from the starting image name; clamp + reset when deps change.
   const [currentIndex, setCurrentIndex] = React.useState(() =>
     Math.max(0, files.indexOf(previoInfo.imageName))
   );
@@ -55,7 +53,6 @@ export default function ImageDialog({
     setCurrentIndex(Math.max(0, idx === -1 ? 0 : idx));
   }, [files, previoInfo.imageName]);
 
-  // Filename + SWR key
   const currentFilename = files[currentIndex];
   const currentImageKey = React.useMemo(() => {
     if (!currentFilename) return null;
@@ -67,7 +64,7 @@ export default function ImageDialog({
     );
   }, [getImageKey, previoInfo, currentFilename]);
 
-  // Blob URL cache; we revoke on replacement AND on unmount.
+  // cache only the current image
   const [imageBlobUrlMap, setImageBlobUrlMap] = React.useState<Map<string, string>>(new Map());
 
   const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWRImmutable(
@@ -82,7 +79,6 @@ export default function ImageDialog({
     }
   );
 
-  // Put current into map (revoking any previous for the same filename)
   React.useEffect(() => {
     if (!curImageUrl || !currentFilename) return;
     setImageBlobUrlMap((prev) => {
@@ -94,7 +90,6 @@ export default function ImageDialog({
     });
   }, [curImageUrl, currentFilename]);
 
-  // Navigation
   const lastIndex = Math.max(0, files.length - 1);
   const goNext = React.useCallback(() => {
     setCurrentIndex((i) => (i < lastIndex ? i + 1 : i));
@@ -103,7 +98,6 @@ export default function ImageDialog({
     setCurrentIndex((i) => (i > 0 ? i - 1 : i));
   }, []);
 
-  // Keyboard shortcuts
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -113,36 +107,6 @@ export default function ImageDialog({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, goNext, goPrev]);
-
-  // Opportunistic preload of next/prev
-  const nextFile = files[currentIndex + 1];
-  const prevFile = files[currentIndex - 1];
-  React.useEffect(() => {
-    const preload = async (name?: string) => {
-      if (!name) return;
-      if (imageBlobUrlMap.has(name)) return;
-      const key =
-        getImageKey({
-          ...previoInfo,
-          imageName: name,
-        }) ?? null;
-      if (!key) return;
-      // Use fetcher directly to warm cache (no need to store SWR state)
-      try {
-        const url = await axiosImageFetcher(key);
-        setImageBlobUrlMap((prev) => {
-          if (prev.has(name)) return prev;
-          const next = new Map(prev);
-          next.set(name, url);
-          return next;
-        });
-      } catch {
-        /* ignore */
-      }
-    };
-    preload(nextFile);
-    preload(prevFile);
-  }, [nextFile, prevFile, previoInfo, getImageKey, imageBlobUrlMap]);
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -279,13 +243,8 @@ function ImageWithPanningCursor({
                 alt={currentFilename}
                 fill
                 draggable={false}
-                style={{
-                  borderRadius: 8,
-                  userSelect: 'none',
-                  objectFit: 'contain',
-                }}
+                style={{ borderRadius: 8, userSelect: 'none', objectFit: 'contain' }}
                 sizes="(max-width: 1100px) 95vw, 1100px"
-                priority
               />
             </div>
           </TransformComponent>

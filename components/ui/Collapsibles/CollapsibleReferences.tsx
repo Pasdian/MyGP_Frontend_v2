@@ -9,90 +9,31 @@ import {
 } from '../sidebar';
 import { ChevronRight, DownloadIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
-import TailwindSpinner from '../TailwindSpinner';
-import useSWRImmutable from 'swr';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { useRefsByClient } from '@/hooks/useRefsByClient';
 
 export default function CollapsibleReferences() {
-  const {
-    reference,
-    setReference,
-    clientNumber,
-    setPdfUrl,
-    setFile,
-    setCustom,
-    initialDate,
-    finalDate,
-  } = useDEAStore((state) => state);
-
   const [filterValue, setFilterValue] = React.useState('');
-  const [url, setUrl] = React.useState('');
-  const [loadingReference, setLoadingReference] = React.useState<string | null>(null);
-
-  // Stable SWR key (fetch once per (client, dates))
-  const refsKey = React.useMemo(() => {
-    if (!clientNumber) return null; // null disables SWR
-    const makeDate = (d: Date) => d.toISOString().split('T')[0];
-
-    if (initialDate && finalDate) {
-      const i = makeDate(initialDate);
-      const f = makeDate(finalDate);
-      return `/dea/getRefsByClient?client=${clientNumber}&initialDate=${i}&finalDate=${f}`;
-    }
-    return `/dea/getRefsByClient?client=${clientNumber}`;
-  }, [clientNumber, initialDate, finalDate]);
-
-  const {
-    data: allReferences,
-    isLoading: isAllReferencesLoading,
-  }: { data: getRefsByClient[] | undefined; isLoading: boolean } = useSWRImmutable(
-    refsKey,
-    axiosFetcher,
-    {
-      // Make it truly “immutable” unless key changes:
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      revalidateIfStale: false,
-      refreshInterval: 0,
-      // The initial fetch still happens once per unique key when the cache is empty:
-      revalidateOnMount: true,
-      // Prevent accidental near-duplicate refetches within this window:
-      dedupingInterval: 60 * 60 * 1000,
-      shouldRetryOnError: false,
-    }
+  const { reference, setReference, clientNumber, setCustom, initialDate, finalDate } = useDEAStore(
+    (state) => state
   );
+  const { refs } = useRefsByClient(clientNumber, initialDate, finalDate);
 
-  // ZIP downloading effect
-  const { data: zipBlob } = useSWRImmutable(url || null, axiosBlobFetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    revalidateIfStale: false,
-    refreshInterval: 0,
-    shouldRetryOnError: false,
-  });
+  // Get zip stream
+  function handleDownloadZip(clientNumber: string, reference: string) {
+    const apiKey = process.env.NEXT_PUBLIC_PYTHON_API_KEY;
+    const url = `/dea/zip?source=/GESTION/${clientNumber}/${reference}&api_key=${apiKey}`;
 
-  React.useEffect(() => {
-    if (!zipBlob) return;
-
-    try {
-      const downloadUrl = URL.createObjectURL(zipBlob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `${clientNumber ?? 'client'}-${reference ?? 'refs'}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-    } finally {
-      // Reset state so subsequent clicks trigger a fresh fetch
-      setUrl('');
-      setLoadingReference(null);
-    }
-  }, [zipBlob, clientNumber, reference]);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${clientNumber}-${reference}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
 
   // Fuzzy filter
   function fuzzyFilterObjects(
@@ -119,15 +60,7 @@ export default function CollapsibleReferences() {
     );
   }
 
-  const filteredItems = fuzzyFilterObjects(filterValue, allReferences, ['NUM_REFE']);
-
-  if (isAllReferencesLoading) {
-    return (
-      <div className="flex justify-center items-center">
-        <TailwindSpinner className="h-8 w-8" />
-      </div>
-    );
-  }
+  const filteredItems = fuzzyFilterObjects(filterValue, refs, ['NUM_REFE']);
 
   return (
     <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
@@ -157,7 +90,6 @@ export default function CollapsibleReferences() {
                 {clientNumber &&
                   filteredItems?.map(({ NUM_REFE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
                     const isActive = reference === NUM_REFE;
-                    const isDownloading = loadingReference === NUM_REFE;
                     const base =
                       'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
                     const active = FOLDER_HAS_CONTENT
@@ -173,8 +105,6 @@ export default function CollapsibleReferences() {
                           if (!FOLDER_HAS_CONTENT) return;
                           const custom = getCustomKeyByRef(NUM_REFE);
                           setCustom(custom || '');
-                          setPdfUrl('');
-                          setFile('');
                           setReference(NUM_REFE);
                         }}
                       >
@@ -182,21 +112,16 @@ export default function CollapsibleReferences() {
                           <p className="max-w-[70px] text-xs truncate">{NUM_REFE}</p>
 
                           <div className="flex items-center">
-                            {FOLDER_HAS_CONTENT &&
-                              (!isDownloading ? (
-                                <DownloadIcon
-                                  size={14}
-                                  className="shrink-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // don’t trigger parent onClick
-                                    setReference(NUM_REFE);
-                                    setLoadingReference(NUM_REFE);
-                                    setUrl(`/dea/zip/${clientNumber}/${NUM_REFE}`);
-                                  }}
-                                />
-                              ) : (
-                                <TailwindSpinner className="w-6 h-6" />
-                              ))}
+                            {FOLDER_HAS_CONTENT && (
+                              <DownloadIcon
+                                size={14}
+                                className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownloadZip(clientNumber, NUM_REFE);
+                                }}
+                              />
+                            )}
                           </div>
                         </div>
                       </SidebarMenuItem>

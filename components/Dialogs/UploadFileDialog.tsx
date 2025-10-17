@@ -8,7 +8,7 @@ import {
 import { Carousel } from '../ui/carousel';
 import React from 'react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import UploadMultipartToServer from '../UploadMultipartToServer/UploadMultipartToServer';
+import UploadSingleFile from '../UploadSingleFile/UploadSingleFile';
 
 export default function UploadFileDialog({
   setOpen,
@@ -22,10 +22,6 @@ export default function UploadFileDialog({
   folder: string;
 }) {
   const { clientNumber: client, reference } = useDEAStore((state) => state);
-  const filesByReferenceKey = React.useMemo(() => {
-    if (!reference || !client) return null;
-    return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
-  }, [reference, client]);
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
@@ -36,12 +32,8 @@ export default function UploadFileDialog({
             <DialogDescription>Aquí podras subir un archivo a {title}</DialogDescription>
           </DialogHeader>
           <div className="overflow-hidden">
-            <UploadMultipartToServer
-              apiEndpointPath={`/dea/uploadFiles/${client}/${reference}/${folder}`}
-              placeholder="Arrastra o da click aquí para subir archivos"
-              mutationKey={filesByReferenceKey ?? ''}
-              open={open}
-              setOpen={setOpen}
+            <UploadSingleFile
+              url={`/dea/uploadFile?destination=/GESTION/${client}/${reference}/${folder}`}
             />
           </div>
         </DialogContent>

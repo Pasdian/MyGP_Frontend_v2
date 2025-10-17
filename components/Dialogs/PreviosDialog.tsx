@@ -45,7 +45,7 @@ export default function PreviosDialog() {
 
   const partidasPreviosKey = React.useMemo(() => {
     if (!custom || !reference || !baseFolder) return null;
-    return `/dea/centralizada/${baseFolder}/${custom}/Previos/${reference}`;
+    return `/dea/scan?source=/centralizada/${baseFolder}/${custom}/Previos/${reference}`;
   }, [custom, reference, baseFolder]);
 
   const {
@@ -119,7 +119,7 @@ export default function PreviosDialog() {
     }) => {
       if (!c || !r || !cf || !imageName) return null; // <— return null, not undefined
       const folder = getCurrentFolderFromReference(r);
-      return `/dea/centralizada/${folder}/${c}/Previos/${r}/${cf}/${imageName}`;
+      return `/dea/getFileContent?source=/centralizada/${folder}/${c}/Previos/${r}/${cf}/${imageName}`;
     },
     []
   );

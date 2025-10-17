@@ -14,7 +14,8 @@ import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
 import { customs } from '@/lib/customs/customs';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
+import { useDailyTracking } from '@/hooks/useDailyTracking';
+const toISODate = (d?: Date) => (d ? d.toISOString().slice(0, 10) : '');
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -38,39 +39,31 @@ export default function Dashboard() {
   const [clientValue, setClientValue] = React.useState('');
   const [phaseValue, setPhaseValue] = React.useState('');
   const [tabValue, setTabValue] = React.useState<'all' | 'open' | 'closed'>('all');
-  const [formattedDates, setFormattedDates] = React.useState<{
-    initialDate?: string;
-    finalDate?: string;
-  }>({});
 
-  const [filterValues, setFilterValues] = React.useState<{
-    kam?: string;
-    custom?: string;
-    phase?: string;
-    client?: string;
-    tab?: string;
-  }>({});
+  const { data: meta } = useSWRImmutable<
+    | {
+        kam: string[];
+        customs: string[];
+        phases: { code: string; name: string }[];
+        clients: string[];
+      }
+    | undefined
+  >('/api/daily-tracking/meta', axiosFetcher);
 
-  const dailyTrackingKey =
-    formattedDates.initialDate &&
-    formattedDates.finalDate &&
-    `/api/daily-tracking?initialDate=${formattedDates.initialDate}&finalDate=${formattedDates.finalDate}`;
-
-  const { data: dailyTrackingData, isLoading: isDailyTrackingDataLoading } =
-    useSWRImmutable<DailyTracking>(dailyTrackingKey, axiosFetcher);
+  const { records: dailyTrackingData } = useDailyTracking(initialDate, finalDate);
 
   const kamsOptions = React.useMemo(
     () =>
-      dailyTrackingData?.kams?.map((item) => ({
+      meta?.kam?.map((item) => ({
         value: item,
         label: item,
       })) || [],
-    [dailyTrackingData]
+    [meta]
   );
 
   const customsOptions = React.useMemo(() => {
     return (
-      dailyTrackingData?.customs?.map((item) => {
+      meta?.customs?.map((item) => {
         const custom = customs.find((c) => c.key === item);
         return {
           value: item, // link to custom.key
@@ -78,57 +71,36 @@ export default function Dashboard() {
         };
       }) || []
     );
-  }, [dailyTrackingData]);
+  }, [meta]);
 
   const clientOptions = React.useMemo(
     () =>
-      dailyTrackingData?.clients?.map((item) => ({
+      meta?.clients?.map((item) => ({
         value: item,
         label: item,
       })) || [],
-    [dailyTrackingData]
+    [meta]
   );
 
-  const phaseNameByCode = React.useMemo(() => {
-    const map = new Map<string, string>();
-    dailyTrackingData?.data?.forEach((row) => {
-      if (row.CURRENT_PHASE_CODE && row.CURRENT_PHASE) {
-        // keep the first seen name for a code
-        if (!map.has(row.CURRENT_PHASE_CODE)) {
-          map.set(row.CURRENT_PHASE_CODE, row.CURRENT_PHASE);
-        }
-      }
-    });
-    return map;
-  }, [dailyTrackingData?.data]);
-
-  const phasesOptions = React.useMemo(() => {
-    const phases = dailyTrackingData?.phases ?? [];
-    return phases.map((code) => {
-      const name = phaseNameByCode.get(code) ?? 'Sin nombre';
-      return {
-        value: code,
-        label: `${code} - ${name}`,
-      };
-    });
-  }, [dailyTrackingData?.phases, phaseNameByCode]);
-
-  React.useEffect(() => {
-    setFormattedDates({
-      initialDate: toYMD(initialDate),
-      finalDate: toYMD(finalDate),
-    });
-  }, [initialDate, finalDate]);
-
-  React.useEffect(() => {
-    setFilterValues({
-      kam: kamValue,
-      custom: customValue,
-      phase: phaseValue,
-      client: clientValue,
+  const phasesOptions = React.useMemo(
+    () =>
+      meta?.phases?.map((phase) => ({
+        value: phase.code,
+        label: `${phase.code}-${phase.name}`,
+      })) || [],
+    [meta]
+  );
+  // Filters
+  const filterValues = React.useMemo(
+    () => ({
+      kam: kamValue || undefined,
+      custom: customValue || undefined,
+      phase: phaseValue || undefined,
+      client: clientValue || undefined,
       tab: tabValue,
-    });
-  }, [kamValue, customValue, phaseValue, clientValue, tabValue]);
+    }),
+    [kamValue, customValue, phaseValue, clientValue, tabValue]
+  );
 
   return (
     <div className="h-full overflow-y-scroll p-2">
@@ -138,7 +110,7 @@ export default function Dashboard() {
             <MyGPDatePicker date={initialDate} setDate={setInitialDate} label="Fecha de Inicio" />
             <MyGPDatePicker date={finalDate} setDate={setFinalDate} label="Fecha de Termino" />
 
-            {!isAuthLoading && !isDailyTrackingDataLoading && (
+            {!isAuthLoading && (
               <>
                 {isAdmin && (
                   <MyGPCombo
@@ -171,7 +143,6 @@ export default function Dashboard() {
                   <Button
                     className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
                     onClick={() => {
-                      setFilterValues({});
                       setClientValue('');
                       setCustomValue('');
                       setPhaseValue('');
@@ -195,16 +166,10 @@ export default function Dashboard() {
                 </TabsList>
               </Tabs>
             )}
-            <DailyTrackingContext.Provider
-              value={{
-                dailyTrackingKey: dailyTrackingKey,
-              }}
-            >
-              <DailyTrackingDataTable
-                dailyTrackingData={dailyTrackingData}
-                filterValues={filterValues}
-              />
-            </DailyTrackingContext.Provider>
+            <DailyTrackingDataTable
+              dailyTrackingData={dailyTrackingData}
+              filterValues={filterValues}
+            />
           </Card>
         </>
       )}

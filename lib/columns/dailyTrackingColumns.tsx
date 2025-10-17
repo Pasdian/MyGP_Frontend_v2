@@ -2,7 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import React from "react";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import { DailyTrackingRowFormatted } from "@/types/dashboard/tracking/dailyTracking";
+import { DailyTrackingFormatted } from "@/types/dashboard/tracking/dailyTracking";
 import DailyTrackingModifyStatusBtn from "@/components/buttons/dashboard/DailyTrackingModifyStatusBtn";
 import {
   Popover,
@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
 
-const fuzzyFilter = createFuzzyFilter<DailyTrackingRowFormatted>();
+const fuzzyFilter = createFuzzyFilter<DailyTrackingFormatted>();
 
-export const dailyTrackingColumns: ColumnDef<DailyTrackingRowFormatted>[] = [
+export const dailyTrackingColumns: ColumnDef<DailyTrackingFormatted>[] = [
   {
     accessorKey: "ACCIONES",
     header: "Acciones",
@@ -47,6 +47,14 @@ export const dailyTrackingColumns: ColumnDef<DailyTrackingRowFormatted>[] = [
       <p className="text-center">{row.original.ENTRY_DATE_FORMATTED || "--"}</p>
     ),
     sortingFn: "alphanumeric",
+  },
+  {
+    accessorKey: "MSA_FORMATTED",
+    header: "MSA",
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => (
+      <p className="text-center">{row.original.MSA_FORMATTED || "--"}</p>
+    ),
   },
   {
     accessorKey: "CUSTOM_CLEARANCE_DAYS",

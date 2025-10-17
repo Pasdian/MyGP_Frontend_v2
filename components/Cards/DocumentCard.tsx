@@ -1,37 +1,21 @@
 import { Card } from '@/components/ui/card';
-import { DownloadIcon, Trash2Icon } from 'lucide-react';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
+import { DownloadIcon } from 'lucide-react';
 import React from 'react';
 import { IconUpload } from '@tabler/icons-react';
 import UploadFileDialog from '../Dialogs/UploadFileDialog';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { toast } from 'sonner';
-import { mutate } from 'swr';
 import { deaModuleEvents } from '@/lib/posthog/events';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import posthog from 'posthog-js';
-import { Button } from '../ui/button';
 import AccessGuard from '../AccessGuard/AccessGuard';
 
 const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
-const deaDeleteFileEvent =
-  deaModuleEvents.find((e) => e.alias === 'DEA_DELETE_FILE')?.eventName || '';
 const iconSize = 14;
 
 export default function DocumentCard({
   title,
   files = [],
-  isLoading,
-  onDownload,
   onFileSelect,
   activeFile,
   folder,
@@ -40,8 +24,6 @@ export default function DocumentCard({
 }: {
   title: string;
   files: string[];
-  isLoading: boolean;
-  onDownload: () => void;
   onFileSelect: (item: string) => void;
   activeFile: string;
   className?: string;
@@ -58,55 +40,43 @@ export default function DocumentCard({
     'flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-2 text-[10px]';
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
-  const [openDeleteFileDialog, setOpenDeleteFileDialog] = React.useState(false);
-  const [fileToDelete, setFileToDelete] = React.useState('');
 
-  const filesByReferenceKey = React.useMemo(() => {
-    if (!reference || !client) return null;
-    return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
-  }, [reference, client]);
+  async function handleDownloadFile(path: string, item: string) {
+    // Build a direct URL so the browser owns the download (native progress UI)
+    const url = new URL('/dea/downloadFile', window.location.origin);
+    url.searchParams.set('source', path);
+    url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
 
-  async function handleDownloadFile(file: string) {
-    try {
-      const res = await GPClient.post(
-        `/dea/downloadFile/${client}/${reference}/${folder}/${file}`,
-        null,
-        { responseType: 'blob' }
-      );
+    // Trigger native download
+    const a = document.createElement('a');
+    a.href = url.toString();
+    a.download = path; // browser may override with Content-Disposition filename
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-      if (res.status !== 200) {
-        toast.error(`Error al descargar el archivo (${res.status})`);
-        return;
-      }
-
-      const url = window.URL.createObjectURL(res.data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = file;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch {
-      toast.error('Error al descargar el archivo');
-    }
+    // Optional: toast to indicate start
+    toast.success(`Descargando: ${item}`);
   }
 
-  async function handleDeleteFile() {
-    try {
-      const res = await GPClient.post(
-        `/dea/deleteFile/${client}/${reference}/${folder}/${fileToDelete}`
-      );
-      if (res.status !== 200) {
-        toast.error(`Error al eliminar el archivo (${res.status})`);
-        return;
-      }
-      toast.success(res.data.message);
-      mutate(filesByReferenceKey);
-      setOpenDeleteFileDialog(false);
-    } catch {
-      toast.error('Error al descargar el archivo');
-    }
+  async function handleDownloadZip(path: string) {
+    // Build a direct URL so the browser owns the download (native progress UI)
+    const url = new URL('/dea/zip', window.location.origin);
+    url.searchParams.set('source', path);
+    url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
+
+    // Trigger native download
+    const a = document.createElement('a');
+    a.href = url.toString();
+    a.download = path; // browser may override with Content-Disposition filename
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // Optional: toast to indicate start
+    toast.success(`${folder} descargado`);
   }
 
   const visibleFiles = (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true));
@@ -117,21 +87,21 @@ export default function DocumentCard({
         <div className={stickyClassName}>
           <p className="font-bold">{`${title} - ${visibleFiles.length} archivos`}</p>
           <div>
-            {isLoading ? (
-              <TailwindSpinner className="w-4 h-4" />
-            ) : (
-              <div className="flex">
-                <IconUpload
+            <div className="flex">
+              <IconUpload
+                size={iconSize}
+                color="white"
+                className="cursor-pointer mr-2"
+                onClick={() => setOpenUploadDialog(true)}
+              />
+              {(files?.length ?? 0) > 0 && (
+                <DownloadIcon
                   size={iconSize}
-                  color="white"
-                  className="cursor-pointer mr-2"
-                  onClick={() => setOpenUploadDialog(true)}
+                  className="cursor-pointer"
+                  onClick={() => handleDownloadZip(`/GESTION/${client}/${reference}/${folder}`)}
                 />
-                {(files?.length ?? 0) > 0 && (
-                  <DownloadIcon size={iconSize} className="cursor-pointer" onClick={onDownload} />
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -158,22 +128,14 @@ export default function DocumentCard({
                 <div className="flex">
                   <AccessGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
                     <DownloadIcon
-                      className="mr-2"
                       size={iconSize}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDownloadFile(item);
+                        handleDownloadFile(
+                          `/GESTION/${client}/${reference}/${folder}/${item}`,
+                          item
+                        );
                         posthog.capture(deaDownloadFileEvent);
-                      }}
-                    />
-                  </AccessGuard>
-                  <AccessGuard allowedPermissions={['DEA_BORRAR_ARCHIVOS']}>
-                    <Trash2Icon
-                      size={iconSize}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFileToDelete(item);
-                        setOpenDeleteFileDialog(true);
                       }}
                     />
                   </AccessGuard>
@@ -183,33 +145,6 @@ export default function DocumentCard({
           })}
         </div>
       </div>
-
-      <Dialog open={openDeleteFileDialog} onOpenChange={setOpenDeleteFileDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>¿Eliminar archivo?</DialogTitle>
-            <DialogDescription>
-              {fileToDelete ? `¿Seguro que quieres eliminar "${fileToDelete}"?` : ''}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDeleteFileDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              className="cursor-pointer"
-              variant="destructive"
-              onClick={() => {
-                handleDeleteFile();
-                posthog.capture(deaDeleteFileEvent);
-                setOpenDeleteFileDialog(false);
-              }}
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <UploadFileDialog
         open={openUploadDialog}

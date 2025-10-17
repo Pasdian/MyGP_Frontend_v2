@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { DailyTracking, DailyTrackingRowFormatted } from '@/types/dashboard/tracking/dailyTracking';
+import { DailyTracking, DailyTrackingFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import { dailyTrackingColumns } from '@/lib/columns/dailyTrackingColumns';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import DailyTrackingDataTableFilter from '../filters/DailyTrackingDataTableFilter';
@@ -43,7 +43,7 @@ export function DailyTrackingDataTable({
     client?: string | undefined;
     tab?: string | undefined;
   };
-  dailyTrackingData: DailyTracking | undefined;
+  dailyTrackingData: DailyTracking[];
 }) {
   const { user } = useAuth();
   const userCasaUserName = user.complete_user.user.casa_user_name;
@@ -53,14 +53,13 @@ export function DailyTrackingDataTable({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
 
-  const mappedData = React.useMemo<DailyTrackingRowFormatted[]>(() => {
-    if (!Array.isArray(dailyTrackingData?.data)) return [];
-
-    return dailyTrackingData.data.map(
-      (item): DailyTrackingRowFormatted => ({
+  const mappedData = React.useMemo<DailyTrackingFormatted[]>(() => {
+    return dailyTrackingData.map(
+      (item): DailyTrackingFormatted => ({
         ...item,
         ENTRY_DATE_FORMATTED: item.ENTRY_DATE ? getFormattedDate(item.ENTRY_DATE) : null,
         MODIFIED_AT_FORMATTED: item.MODIFIED_AT ? getFormattedDate(item.MODIFIED_AT) : null,
+        MSA_FORMATTED: item.MSA ? getFormattedDate(item.MSA) : null,
         CUSTOM_FORMATTED: item.CUSTOM
           ? customs.find((c) => c.key === item.CUSTOM)?.name ?? null
           : null,
@@ -135,6 +134,7 @@ export function DailyTrackingDataTable({
         Referencia: item.NUM_REFE,
         Cliente: item.CLIENT_NAME,
         'Fecha de Entrada': item.ENTRY_DATE_FORMATTED || item.ENTRY_DATE,
+        MSA: item.MSA_FORMATTED,
         'Dias de Despacho': item.CUSTOM_CLEARANCE_DAYS,
         'Etapa Actual': item.CURRENT_PHASE,
         Aduana: item.CUSTOM_FORMATTED,

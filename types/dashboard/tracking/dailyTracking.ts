@@ -1,18 +1,4 @@
 export type DailyTracking = {
-  success: boolean;
-  totalRecords: number;
-  range: {
-    initialDate: string;
-    finalDate: string;
-  };
-  data: DailyTrackingRowFormatted[];
-  clients: string[];
-  customs: string[];
-  phases: string[];
-  kams: string[];
-};
-
-export type DailyTrackingRow = {
   NUM_REFE: string | null;
   CVE_IMPO: string | null;
   CLIENT_NAME: string | null;
@@ -28,9 +14,10 @@ export type DailyTrackingRow = {
   MSA: string | null;
 };
 
-export type DailyTrackingRowFormatted = DailyTrackingRow & {
+export type DailyTrackingFormatted = DailyTracking & {
   ENTRY_DATE_FORMATTED: string | null;
   MODIFIED_AT_FORMATTED: string | null;
   CUSTOM_FORMATTED: string | null;
   KAM_FORMATTED: string | null;
+  MSA_FORMATTED: string | null;
 };
