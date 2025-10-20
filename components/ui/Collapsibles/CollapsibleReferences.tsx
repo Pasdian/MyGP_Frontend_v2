@@ -36,6 +36,7 @@ export default function CollapsibleReferences() {
     document.body.removeChild(a);
   }
 
+  const filteredItems = fuzzyFilterObjects(filterValue, refs, ['NUM_REFE']);
   // Fuzzy filter
   function fuzzyFilterObjects(
     query: string,
@@ -60,9 +61,6 @@ export default function CollapsibleReferences() {
       })
     );
   }
-
-  const filteredItems = fuzzyFilterObjects(filterValue, refs, ['NUM_REFE']);
-
   if (isRefsLoading)
     return (
       <div className="flex justify-center items-center">

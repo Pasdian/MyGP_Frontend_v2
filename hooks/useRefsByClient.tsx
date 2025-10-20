@@ -1,47 +1,38 @@
-'use client';
-
+// hooks/useRefsByClient.ts
 import useSWR from 'swr';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import axios from 'axios';
 
-type RefRecord = {
+export type RefRecord = {
   NUM_REFE: string;
   ADU_DESP: string;
   FOLDER_HAS_CONTENT: boolean;
 };
 
-// Helper: format a Date as local YYYY-MM-DD (avoids UTC shift)
-function toYMDLocal(d?: Date) {
-  if (!d) return '';
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+const axiosFetcher = (url: string) => axios.get(url).then((r) => r.data);
 
-export function useRefsByClient(
-  client: string | null,
-  initialDate: Date | undefined,
-  finalDate: Date | undefined
-) {
-  // build query parameters safely
-  const initialStr = toYMDLocal(initialDate);
-  const finalStr = toYMDLocal(finalDate);
+const toYMDLocal = (d?: Date) => (d ? d.toISOString().slice(0, 10) : '');
 
-  // only build key when all required params exist
-  const key =
-    client && initialStr && finalStr
-      ? `/dea/getRefsByClient?client=${client}&initialDate=${initialStr}&finalDate=${finalStr}`
-      : null;
+export function useRefsByClient(client: string | null, initialDate?: Date, finalDate?: Date) {
+  const hasParams = !!(client && initialDate && finalDate);
 
-  const { data, error, isLoading } = useSWR<{ refs: RefRecord[] }>(key, axiosFetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 15_000, // 15 seconds cache window
-  });
+  const params = hasParams
+    ? new URLSearchParams({
+        client: String(client),
+        initialDate: toYMDLocal(initialDate),
+        finalDate: toYMDLocal(finalDate),
+        api_key: process.env.NEXT_PUBLIC_PYTHON_API_KEY || '',
+      }).toString()
+    : '';
+
+  // ✅ useSWR is *always called* — same order every render
+  const key = hasParams ? `/dea/getRefsByClient?${params}` : null;
+
+  const { data, error, isLoading, mutate } = useSWR<{ refs: RefRecord[] }>(key, axiosFetcher);
 
   return {
-    refs: data?.refs ?? [],
-    isLoading,
+    refs: Array.isArray(data?.refs) ? data!.refs : [],
+    isLoading: !!(hasParams && isLoading),
     error,
+    refresh: () => mutate(),
   };
 }
