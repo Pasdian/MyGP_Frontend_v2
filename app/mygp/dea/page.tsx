@@ -17,7 +17,7 @@ import { useFloatingWindows } from '@/hooks/useFloatingWindows';
 import useFilesByRef from '@/hooks/useFilesByRef';
 
 export default function DEA() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user } = useAuth();
   const { clientNumber: client, reference } = useDEAStore((state) => state);
   const [subfolder, setSubfolder] = React.useState('');
   const [filename, setFilename] = React.useState('');

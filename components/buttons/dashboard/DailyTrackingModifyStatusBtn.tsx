@@ -14,13 +14,13 @@ import { Row } from '@tanstack/react-table';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IconBallpenFilled } from '@tabler/icons-react';
-import { DailyTrackingRowFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import ModifyDailyTrackingStatus from '@/components/forms/dashboard/ModifyDailyTrackingStatus';
-import useSWRImmutable from 'swr/immutable';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { DailyTrackingFormatted } from '@/types/dashboard/tracking/dailyTracking';
+import { useOperationHistory } from '@/hooks/useOperationHistory';
 import { OperationHistory } from '@/types/dashboard/tracking/operationHistory';
+import { v4 as uuidv4 } from 'uuid';
 
 const TAB_VALUES = ['history', 'modify_status'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -32,15 +32,13 @@ function isTabValue(v: string): v is TabValue {
 export default function DailyTrackingModifyStatusBtn({
   row,
 }: {
-  row: Row<DailyTrackingRowFormatted>;
+  row: Row<DailyTrackingFormatted>;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [tabValue, setTabValue] = React.useState('modify_status');
-  const historyKey =
-    isOpen && `/api/daily-tracking/operation-history?reference=${row.original.NUM_REFE}`; // Only fetch when my dialog isOpen
-
-  const { data: operationHistory, isLoading: isOperationHistoryLoading } =
-    useSWRImmutable<OperationHistory>(historyKey, axiosFetcher);
+  const { history, loading: isHistoryLoading } = useOperationHistory(
+    (isOpen && row.original.NUM_REFE) || ''
+  ); // Fetch only when isOpen
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -75,23 +73,21 @@ export default function DailyTrackingModifyStatusBtn({
           </TabsList>
         </Tabs>
         <div className="h-full overflow-y-scroll">
-          {isOpen && operationHistory && tabValue === 'history' && !isOperationHistoryLoading && (
-            <OperationHistoryTable operationHistory={operationHistory} />
+          {isOpen && history && tabValue === 'history' && !isHistoryLoading && (
+            <OperationHistoryTable history={history} />
           )}
 
-          {isOpen && tabValue == 'modify_status' && isOpen && row && (
+          {tabValue == 'modify_status' && isOpen && row && (
             <ModifyDailyTrackingStatus row={row} setOpenDialog={setIsOpen} />
           )}
         </div>
-        {isOpen && tabValue == 'history' && isOperationHistoryLoading && (
-          <TailwindSpinner className="w-8" />
-        )}
+        {isOpen && tabValue == 'history' && isHistoryLoading && <TailwindSpinner className="w-8" />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function OperationHistoryTable({ operationHistory }: { operationHistory: OperationHistory }) {
+function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
   return (
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace' }}>
@@ -145,13 +141,13 @@ function OperationHistoryTable({ operationHistory }: { operationHistory: Operati
           </tr>
         </thead>
         <tbody>
-          {operationHistory.map((op) => {
+          {history.map((op) => {
             const referencia = op.REFERENCIA;
             const oldStatus = op.OLD_STATUS;
             const newStatus = op.NEW_STATUS;
             const changedBy = op.CHANGED_BY;
             const changedAt = getFormattedDate(op.CHANGED_AT);
-            const key = `${referencia}-${changedAt ?? ''}-${oldStatus}-${newStatus}`;
+            const key = uuidv4();
 
             return (
               <tr key={key}>

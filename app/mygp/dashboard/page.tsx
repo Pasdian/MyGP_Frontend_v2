@@ -4,10 +4,8 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { DailyTrackingDataTable } from '@/components/datatables/dashboard/DailyTrackingDataTable';
 import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
-import { toYMD } from '@/lib/utilityFunctions/toYMD';
 import { useAuth } from '@/hooks/useAuth';
-import useSWRImmutable from 'swr/immutable';
-import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
+import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
@@ -15,7 +13,7 @@ import { customs } from '@/lib/customs/customs';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
-const toISODate = (d?: Date) => (d ? d.toISOString().slice(0, 10) : '');
+import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -30,7 +28,7 @@ export default function Dashboard() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
   const isTraffic = user?.complete_user?.role?.name == 'TRAFICO';
-
+  const isTrafficAdmin = user.complete_user?.role.name == 'TRAFICO_ADMIN';
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(firstDayOfMonth);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(today);
 
@@ -40,7 +38,7 @@ export default function Dashboard() {
   const [phaseValue, setPhaseValue] = React.useState('');
   const [tabValue, setTabValue] = React.useState<'all' | 'open' | 'closed'>('all');
 
-  const { data: meta } = useSWRImmutable<
+  const { data: meta } = useSWR<
     | {
         kam: string[];
         customs: string[];
@@ -104,7 +102,7 @@ export default function Dashboard() {
 
   return (
     <div className="h-full overflow-y-scroll p-2">
-      {(isTraffic || isAdmin) && (
+      {(isTraffic || isAdmin || isTrafficAdmin) && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
             <MyGPDatePicker date={initialDate} setDate={setInitialDate} label="Fecha de Inicio" />
@@ -112,7 +110,7 @@ export default function Dashboard() {
 
             {!isAuthLoading && (
               <>
-                {isAdmin && (
+                {(isTrafficAdmin || isAdmin) && (
                   <MyGPCombo
                     value={kamValue}
                     setValue={setKamValue}
@@ -166,10 +164,12 @@ export default function Dashboard() {
                 </TabsList>
               </Tabs>
             )}
-            <DailyTrackingDataTable
-              dailyTrackingData={dailyTrackingData}
-              filterValues={filterValues}
-            />
+            <DailyTrackingContext.Provider value={{ initialDate, finalDate }}>
+              <DailyTrackingDataTable
+                dailyTrackingData={dailyTrackingData}
+                filterValues={filterValues}
+              />
+            </DailyTrackingContext.Provider>
           </Card>
         </>
       )}

@@ -20,7 +20,6 @@ import { getAllModules } from '@/types/getAllModules/getAllModules';
 import { Row } from '@tanstack/react-table';
 import { moduleModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
-import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   moduleModuleEvents.find((e) => e.alias === 'MODULE_MODIFY_MODULE')?.eventName || '';
@@ -32,8 +31,6 @@ export default function ModifyModuleForm({
   row: Row<getAllModules>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
-
   const form = useForm<z.infer<typeof moduleSchema>>({
     resolver: zodResolver(moduleSchema),
     mode: 'onChange',
@@ -54,7 +51,6 @@ export default function ModifyModuleForm({
         toast.success(res.data.message);
         posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
-        mutate('/api/modules');
       })
       .catch((error) => {
         toast.error(error.response.data.message);

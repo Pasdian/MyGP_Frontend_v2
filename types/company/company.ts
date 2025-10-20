@@ -1,5 +1,4 @@
 export interface Company {
-  uuid: string | null;
-  name: string | null;
-  casa_id: string | null;
+  CVE_IMP: string | null;
+  NOM_IMP: string | null;
 }

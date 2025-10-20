@@ -5,19 +5,18 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { mutate } from 'swr';
 import PreviosDialog from '../Dialogs/PreviosDialog';
 import { Button } from './button';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { deaModuleEvents } from '@/lib/posthog/events';
 import { LoaderCircle } from 'lucide-react';
-import useSWRImmutableMutation from 'swr/mutation';
+import useSWRMutation from 'swr/mutation';
 import DEAInitialDatePicker from '../datepickers/DEAInitialDatePicker';
 import DEAFinalDatePicker from '../datepickers/DEAFinalDatePicker';
 import AccessGuard from '../AccessGuard/AccessGuard';
-import { useCompaniesEvent } from '@/hooks/useCompaniesEvent';
 import { MyGPDeaCombo } from '../comboboxes/MyGPDeaCombo';
+import { useCompanies } from '@/hooks/useCompanies';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -34,14 +33,14 @@ export function SiteHeader() {
   } = useDEAStore((state) => state);
 
   const isDEA = pathname === '/mygp/dea';
-  const { rows: companies } = useCompaniesEvent(isDEA);
+  const { rows: companies } = useCompanies(isDEA);
   const companyOptions = React.useMemo(
     () => companies.map((c) => ({ value: c.CVE_IMP, label: c.NOM_IMP })),
     [companies]
   );
 
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
-    useSWRImmutableMutation(
+    useSWRMutation(
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
@@ -84,7 +83,6 @@ export function SiteHeader() {
                   onClick={async () => {
                     try {
                       await triggerDigitalRecordGeneration();
-                      mutate(`/dea/getFilesByReference?reference=${reference}&client=${client}`);
                       toast.success('Expediente digital generado exitosamente');
                       posthog.capture(posthogEvent);
                     } catch (err) {

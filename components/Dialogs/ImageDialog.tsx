@@ -9,7 +9,7 @@ import Image from 'next/image';
 import React from 'react';
 import TailwindSpinner from '../ui/TailwindSpinner';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
-import useSWRImmutable from 'swr';
+import useSWR from 'swr';
 import { axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -67,7 +67,7 @@ export default function ImageDialog({
   // cache only the current image
   const [imageBlobUrlMap, setImageBlobUrlMap] = React.useState<Map<string, string>>(new Map());
 
-  const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWRImmutable(
+  const { data: curImageUrl, isLoading: isCurImageUrlLoading } = useSWR(
     currentImageKey,
     axiosImageFetcher,
     {

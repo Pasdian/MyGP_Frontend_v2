@@ -26,14 +26,12 @@ import { deliveriesUpsertPhaseSchema } from '@/lib/schemas/transbel/deliveries/d
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { transbelModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
-import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_DELIVERY')?.eventName || '';
 
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveriesFormat> }) {
   const { user } = useAuth();
-  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),
@@ -63,7 +61,6 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
           posthog.capture(posthogEvent);
-          mutate('/api/transbel/getDeliveries');
         } else {
           toast.error('No se pudieron actualizar tus datos');
         }

@@ -13,7 +13,6 @@ import { getAllUsers } from '@/types/users/getAllUsers';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { Row } from '@tanstack/react-table';
 import { toast } from 'sonner';
-import { mutate } from 'swr';
 import { dropdownDeleteClassName } from '@/lib/classNames/adminActions';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
@@ -34,7 +33,6 @@ export default function DeleteUserButton({
     await GPClient.delete(`/api/users/deleteUser/${row.original.user_uuid}`)
       .then((res) => {
         toast.success(res.data.message);
-        mutate('/api/users/getAllUsers');
         posthog.capture(posthogEvent);
       })
       .catch((error) => {

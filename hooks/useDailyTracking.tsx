@@ -1,50 +1,21 @@
-import React from 'react';
-import type { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
+'use client';
 
-function toYMDLocal(d?: Date) {
-  if (!d) return '';
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+import type { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import useSWR from 'swr';
+import { formatLocalDate } from '@/lib/utilityFunctions/formatLocalDate';
 
 export function useDailyTracking(initialDate?: Date, finalDate?: Date) {
-  const [records, setRecords] = React.useState<DailyTracking[]>([]);
+  const from = initialDate ? formatLocalDate(initialDate) : undefined;
+  const to = finalDate ? formatLocalDate(finalDate) : undefined;
 
-  React.useEffect(() => {
-    const from = toYMDLocal(initialDate);
-    const to = toYMDLocal(finalDate);
-    if (!from || !to) return;
+  // build key only when both dates exist
+  const key = from && to ? `/api/daily-tracking?initialDate=${from}&finalDate=${to}` : null;
+  const { data, error, isLoading } = useSWR<DailyTracking[]>(key, axiosFetcher);
 
-    setRecords([]); // reset on new range
-    const es = new EventSource(`/api/daily-tracking?initialDate=${from}&finalDate=${to}`, {
-      withCredentials: true,
-    });
-
-    es.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        if (msg?.meta?.stage === 'start') return;
-        if (msg?.done) {
-          es.close();
-          return;
-        }
-        const row = msg.row ?? msg;
-        setRecords((prev) => [...prev, row]);
-      } catch {
-        // ignore bad data
-      }
-    };
-
-    es.onerror = () => {
-      es.close(); // stop infinite reconnects
-    };
-
-    return () => {
-      es.close();
-    };
-  }, [initialDate, finalDate]);
-
-  return { records };
+  return {
+    records: data ?? [],
+    loading: isLoading,
+    error,
+  };
 }

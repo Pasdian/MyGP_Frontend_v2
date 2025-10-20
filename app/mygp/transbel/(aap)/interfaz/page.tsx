@@ -60,7 +60,7 @@ export default function Page() {
       allowedModules={['All Modules', 'Transbel Interfaz']}
       allowedRoles={['ADMIN', 'AAP']}
     >
-      <div className="flex flex-col justify-center overflow-y-auto">
+      <div className="flex flex-col justify-center w-full overflow-y-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
           <p className="text-2xl font-light tracking-tight mb-5">

@@ -38,5 +38,5 @@ export const modifyUserSchema = z.object({
   role_uuid: USER_ROLE_UUID_VALIDATION,
   casa_user_name: USER_CASA_USERNAME_VALIDATION,
   status: USER_STATUS_VALIDATION,
-  companies_uuids: USER_COMPANIES_VALIDATION, // <-- allow undefined or null
+  companies: USER_COMPANIES_VALIDATION, // <-- allow undefined or null
 });

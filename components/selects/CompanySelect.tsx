@@ -1,227 +1,169 @@
 'use client';
-
-import * as React from 'react';
-import useSWRImmutable from 'swr';
-import { Loader2, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from '@/components/ui/command';
+import React, { useMemo, useState } from 'react';
+import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
-import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-
-type Props = {
-  /** Controlled selection (array of UUIDs) */
-  values?: string[];
-  /** Uncontrolled initial selection */
-  defaultValues?: string[];
-  /** Called whenever selection changes */
-  onValuesChange?(values: string[]): void;
-  /** Trigger button label when nothing selected */
-  placeholder?: string;
-};
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandGroup,
+  CommandItem,
+  CommandEmpty,
+} from '@/components/ui/command';
 
 export default function CompanySelect({
-  values,
-  defaultValues = [],
-  onValuesChange,
-  placeholder = 'Seleccionar compañías',
-}: Props) {
-  const { data: companies, isLoading } = useSWRImmutable<getAllCompanies[]>(
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const { data: companies, isLoading } = useSWR<getAllCompanies[]>(
     '/api/companies/getAllCompanies',
     axiosFetcher
   );
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
-  // controlled vs uncontrolled
-  const isControlled = Array.isArray(values);
-  const [internal, setInternal] = React.useState<string[]>(defaultValues);
-  const selected = React.useMemo<string[]>(
-    () => (isControlled ? values ?? [] : internal),
-    [isControlled, values, internal]
+  const toggle = (id: string) => {
+    onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
+  };
+
+  const clearAll = () => onChange([]);
+
+  const selected = useMemo(
+    () => (companies ?? []).filter((c) => value.includes(String(c.CVE_IMP))),
+    [companies, value]
   );
 
-  // ----- scroll-preserving update -----
-  const listRef = React.useRef<HTMLDivElement | null>(null);
-  const updatePreservingScroll = (next: string[]) => {
-    const el = listRef.current;
-    const top = el?.scrollTop ?? 0;
-    if (!isControlled) setInternal(next);
-    onValuesChange?.(next);
-    requestAnimationFrame(() => {
-      if (el) el.scrollTop = top;
-    });
-  };
+  const unselected = useMemo(
+    () => (companies ?? []).filter((c) => !value.includes(String(c.CVE_IMP))),
+    [companies, value]
+  );
 
-  // helpers
-  const addUnique = (arr: string[], id: string) => (arr.includes(id) ? arr : [...arr, id]);
-  const removeOne = (arr: string[], id: string) => arr.filter((x) => x !== id);
+  if (isLoading) return <p>Loading companies...</p>;
 
-  const onCheckChange = (id: string) => (checked: boolean | 'indeterminate') => {
-    if (!id) return;
-    const isOn = checked === true;
-    const next = isOn ? addUnique(selected, id) : removeOne(selected, id);
-    updatePreservingScroll(next);
-  };
-
-  const isChecked = (id?: string | null) => !!id && selected.includes(id);
-
-  // split companies into selected and unselected buckets (each sorted by name)
-  const { selectedCompanies, unselectedCompanies } = React.useMemo(() => {
-    const result = {
-      selectedCompanies: [] as getAllCompanies[],
-      unselectedCompanies: [] as getAllCompanies[],
-    };
-    if (!companies) return result;
-
-    for (const c of companies) {
-      const id = c.uuid ?? '';
-      if (id && selected.includes(id)) result.selectedCompanies.push(c);
-      else result.unselectedCompanies.push(c);
-    }
-
-    const byName = (a: getAllCompanies, b: getAllCompanies) =>
-      (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' });
-
-    result.selectedCompanies.sort(byName);
-    result.unselectedCompanies.sort(byName);
-    return result;
-  }, [companies, selected]);
-
-  // button summary
-  const summary = React.useMemo(() => {
-    if (!companies || selected.length === 0) return placeholder;
-    const byId = new Map(companies.map((c) => [c.uuid, c]));
-    const names = selected.map((id) => byId.get(id)?.name ?? '').filter(Boolean);
-    if (names.length === 0) return placeholder;
-    const first = names[0];
-    const rest = names.length - 1;
-    return rest > 0 ? `${first} +${rest} más` : first;
-  }, [companies, selected, placeholder]);
-
-  // row renderer to keep markup DRY
-  const renderRow = (c: getAllCompanies) => {
-    const uuid = c.uuid ?? '';
-    const name = c.name ?? '';
-    const filterValue = `${name} ${uuid}`.trim();
-    const checked = isChecked(uuid);
-
-    return (
-      <CommandItem
-        key={uuid}
-        value={filterValue}
-        className={[checked ? 'bg-primary/5' : ''].join(' ')}
-        // Toggle when the row is selected (click or keyboard)
-        onSelect={() => {
-          onCheckChange(uuid)(!checked);
-        }}
-      >
-        <div className="flex items-center w-full gap-3">
-          <div className="flex min-w-0 flex-col">
-            <span className="font-medium truncate max-w-[250px]">{name}</span>
-            <span className="text-xs text-muted-foreground truncate max-w-[250px]">
-              UUID: {uuid}
-            </span>
-          </div>
-
-          <Checkbox
-            checked={checked}
-            onCheckedChange={onCheckChange(uuid)}
-            className="ml-auto [&_svg]:hidden data-[state=checked]:bg-blue-500"
-            // Prevent row's onSelect from also firing when clicking the checkbox
-            onPointerDownCapture={(e) => e.stopPropagation()}
-            onKeyDownCapture={(e) => e.stopPropagation()}
-            disabled={!uuid}
-            aria-label={`Seleccionar ${name}`}
-          />
-        </div>
-      </CommandItem>
-    );
-  };
-
-  // ----- loading / empty -----
-  if (isLoading)
-    return (
-      <div className="flex items-center">
-        <div className="mr-2">
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Cargando compañías..." />
-            </SelectTrigger>
-          </Select>
-        </div>
-        <Loader2 className="w-5 animate-spin" />
-      </div>
-    );
-
-  if (!companies || companies.length === 0)
-    return (
-      <Select>
-        <SelectTrigger>
-          <SelectValue placeholder="No se encontró ninguna compañía" />
-        </SelectTrigger>
-      </Select>
-    );
+  // Reusable checkbox props to avoid double toggle on row + checkbox
+  const checkboxProps = (id: string, checked: boolean) => ({
+    checked,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.stopPropagation();
+      toggle(id);
+    },
+    onClick: (e: React.MouseEvent<HTMLInputElement>) => {
+      // Some browsers fire click after change; guard to avoid bubbling
+      e.stopPropagation();
+    },
+    className: 'flex-shrink-0',
+  });
 
   return (
-    <div className="flex items-center w-full gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setOpen(true)}
-        className="max-w-[350px] truncate"
-      >
-        <Search className="mr-2 h-4 w-4 shrink-0" />
-        <span className="truncate">{summary}</span>
-      </Button>
+    <div>
+      <div className="flex items-center gap-2 flex-wrap mb-2">
+        <Button type="button" onClick={() => setOpen((o) => !o)} className="border p-2 rounded">
+          Seleccionar compañías ({value.length} seleccionada{value.length === 1 ? '' : 's'})
+        </Button>
+        {value.length > 0 && (
+          <Button type="button" variant="secondary" onClick={clearAll}>
+            Limpiar
+          </Button>
+        )}
+      </div>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Buscar por nombre, ID o UUID..." />
-
-        {/* Disable browser scroll anchoring & capture ref */}
-        <CommandList ref={listRef} className="[overflow-anchor:none]">
-          <CommandEmpty>No se encontró la compañía.</CommandEmpty>
-
-          {/* Selected group */}
-          {selectedCompanies.length > 0 && (
-            <>
-              <CommandGroup heading={`Seleccionadas (${selectedCompanies.length})`}>
-                {selectedCompanies.map(renderRow)}
-              </CommandGroup>
-              <CommandSeparator />
-            </>
-          )}
-
-          {/* Unselected group */}
-          <CommandGroup heading={`No seleccionadas (${unselectedCompanies.length})`}>
-            {unselectedCompanies.map(renderRow)}
-          </CommandGroup>
-        </CommandList>
-
-        <div className="flex items-center justify-between px-3 py-2 border-t">
-          <div className="text-xs text-muted-foreground">{selected.length} seleccionada(s)</div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => updatePreservingScroll([])}>
-              Limpiar
-            </Button>
-            <Button
-              className="bg-blue-500 hover:bg-blue-600"
-              size="sm"
-              onClick={() => setOpen(false)}
-            >
-              Listo
-            </Button>
-          </div>
+      {selected.length > 0 && (
+        <div className="flex gap-2 flex-wrap mb-3">
+          {selected.map((c) => {
+            const id = String(c.CVE_IMP);
+            return (
+              <span
+                key={`chip-${id}`}
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm bg-white"
+                title={`${id} - ${c.NOM_IMP}`}
+              >
+                {id} - {c.NOM_IMP}
+                <button
+                  type="button"
+                  onClick={() => toggle(id)}
+                  className="text-gray-500 hover:text-gray-800"
+                  aria-label={`Quitar ${id}`}
+                  title="Quitar"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
         </div>
-      </CommandDialog>
+      )}
+
+      {open && (
+        <div className="border rounded mt-2 bg-white shadow-md">
+          <Command className="rounded-lg">
+            <CommandInput placeholder="Buscar por clave o nombre..." />
+            <CommandList className="max-h-[340px] overflow-y-auto">
+              <CommandEmpty>No se encontraron compañías.</CommandEmpty>
+
+              {selected.length > 0 && (
+                <CommandGroup heading="Seleccionadas">
+                  {selected.map((c) => {
+                    const id = String(c.CVE_IMP);
+                    const label = `${id} - ${c.NOM_IMP}`;
+                    return (
+                      <CommandItem
+                        key={`sel-${id}`}
+                        value={`${id} ${c.NOM_IMP}`}
+                        onSelect={() => toggle(id)}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          type="checkbox"
+                          {...checkboxProps(id, true)}
+                          aria-label={`Deseleccionar ${label}`}
+                        />
+                        <span
+                          title={label}
+                          className="truncate max-w-[230px] sm:max-w-[300px] text-sm text-gray-800"
+                        >
+                          {label}
+                        </span>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              )}
+
+              <CommandGroup heading="Todas">
+                {unselected.map((c) => {
+                  const id = String(c.CVE_IMP);
+                  const label = `${id} - ${c.NOM_IMP}`;
+                  const isChecked = value.includes(id);
+                  return (
+                    <CommandItem
+                      key={`${c.CVE_IMP}-${c.NOM_IMP}`}
+                      value={`${id} ${c.NOM_IMP}`}
+                      onSelect={() => toggle(id)}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        type="checkbox"
+                        {...checkboxProps(id, isChecked)}
+                        aria-label={`${isChecked ? 'Deseleccionar' : 'Seleccionar'} ${label}`}
+                      />
+                      <span
+                        title={label}
+                        className="truncate max-w-[230px] sm:max-w-[300px] text-sm text-gray-800"
+                      >
+                        {label}
+                      </span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </div>
+      )}
     </div>
   );
 }

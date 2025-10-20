@@ -14,13 +14,14 @@ import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { useRefsByClient } from '@/hooks/useRefsByClient';
+import TailwindSpinner from '../TailwindSpinner';
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
   const { reference, setReference, clientNumber, setCustom, initialDate, finalDate } = useDEAStore(
     (state) => state
   );
-  const { refs } = useRefsByClient(clientNumber, initialDate, finalDate);
+  const { refs, isLoading: isRefsLoading } = useRefsByClient(clientNumber, initialDate, finalDate);
 
   // Get zip stream
   function handleDownloadZip(clientNumber: string, reference: string) {
@@ -62,6 +63,12 @@ export default function CollapsibleReferences() {
 
   const filteredItems = fuzzyFilterObjects(filterValue, refs, ['NUM_REFE']);
 
+  if (isRefsLoading)
+    return (
+      <div className="flex justify-center items-center">
+        <TailwindSpinner className="w-8" />
+      </div>
+    );
   return (
     <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
       <Collapsible defaultOpen className="group/collapsible">

@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import React from 'react';
 import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,6 @@ import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
 import { IconSettings } from '@tabler/icons-react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { mutate } from 'swr';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
@@ -41,7 +40,7 @@ export function CarguesDataTable() {
   const carguesKey = '/api/transbel/getCargues';
   const { tabValue } = React.useContext(CargueContext);
 
-  const { data, isLoading } = useSWRImmutable<getCarguesFormat[]>(carguesKey, axiosFetcher);
+  const { data, isLoading } = useSWR<getCarguesFormat[]>(carguesKey, axiosFetcher);
 
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
@@ -106,7 +105,6 @@ export function CarguesDataTable() {
 
       toast.success(res.data.message || 'Se actualizó el estado de los pedimentos');
       setIsSendingToDB(false);
-      mutate(carguesKey);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message || err.message || 'Ocurrió un error';

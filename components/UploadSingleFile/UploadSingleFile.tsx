@@ -3,6 +3,7 @@ import React from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { LoaderCircle } from 'lucide-react';
+import axios from 'axios';
 
 export default function UploadSingleFile({ url }: { url: string }) {
   const [file, setFile] = React.useState<File | null>(null);
@@ -38,12 +39,15 @@ export default function UploadSingleFile({ url }: { url: string }) {
 
       toast.success(res.data?.message || 'Archivo subido correctamente');
       setFile(null);
-    } catch (error: any) {
-      const msg =
-        error?.response?.data?.detail ||
-        error?.response?.data?.message ||
-        error?.message ||
-        'Error al subir el archivo';
+    } catch (error: unknown) {
+      let msg = 'Error al subir el archivo';
+
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.detail || error.response?.data?.message || error.message || msg;
+      } else if (error instanceof Error) {
+        msg = error.message;
+      }
+
       toast.error(msg);
     } finally {
       setUploading(false);

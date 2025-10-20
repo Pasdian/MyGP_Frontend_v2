@@ -41,7 +41,7 @@ export function getAllUsersColumns(
       // Provide filter text for fuzzyFilter (joined names)
       accessorFn: (row) =>
         row.companies
-          ?.map((c) => c?.name ?? "")
+          ?.map((c) => c?.NOM_IMP ?? "")
           .filter(Boolean)
           .join(", ") ?? "",
       filterFn: fuzzyFilter,

@@ -21,7 +21,6 @@ import { getAllRoles } from '@/types/roles/getAllRoles';
 import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
 import { rolesModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
-import { useSWRConfig } from 'swr';
 
 const posthogEvent =
   rolesModuleEvents.find((e) => e.alias === 'ROLES_MODIFY_ROLE')?.eventName || '';
@@ -33,8 +32,6 @@ export default function ModifyRoleForm({
   row: Row<getAllRoles>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
-
   const form = useForm<z.infer<typeof roleSchema>>({
     resolver: zodResolver(roleSchema),
     mode: 'onChange',
@@ -53,8 +50,6 @@ export default function ModifyRoleForm({
         toast.success(res.data.message);
         posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
-        mutate('/api/users/getAllUsers');
-        mutate('/api/roles');
       })
       .catch((error) => {
         toast.error(error.response.data.message);

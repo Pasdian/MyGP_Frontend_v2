@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/table';
 import React from 'react';
 import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr/immutable';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
@@ -32,7 +32,6 @@ import { Button } from '@/components/ui/button';
 import { IconSettings, IconSquareFilled } from '@tabler/icons-react';
 import { CheckIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { mutate } from 'swr';
 import axios from 'axios';
 import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
@@ -63,10 +62,7 @@ export function InterfaceDataTable() {
         }&finalDate=${finalDate.toISOString().split('T')[0]}`
       : '/api/transbel/getRefsPendingCE';
 
-  const { data, isLoading } = useSWRImmutable<getRefsPendingCEFormat[]>(
-    pendingRefsKey,
-    axiosFetcher
-  );
+  const { data, isLoading } = useSWR<getRefsPendingCEFormat[]>(pendingRefsKey, axiosFetcher);
 
   const modifiedData = React.useMemo(() => {
     if (!Array.isArray(data)) return [] as getRefsPendingCEFormat[];
@@ -219,7 +215,6 @@ export function InterfaceDataTable() {
       });
       toast.success(res.data.message || 'Enviado a Workato correctamente');
       setIsSendingToWorkato(false);
-      mutate(pendingRefsKey);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message || err.message || 'Ocurrió un error';

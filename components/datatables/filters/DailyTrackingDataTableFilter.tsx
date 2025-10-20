@@ -1,11 +1,11 @@
 import { Input } from '@/components/ui/input';
-import { DailyTrackingRowFormatted } from '@/types/dashboard/tracking/dailyTracking';
+import { DailyTrackingFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import { Column } from '@tanstack/react-table';
 
 export default function DailyTrackingDataTableFilter({
   column,
 }: {
-  column: Column<DailyTrackingRowFormatted, unknown>;
+  column: Column<DailyTrackingFormatted, unknown>;
 }) {
   const columnFilterValue = column.getFilterValue();
 

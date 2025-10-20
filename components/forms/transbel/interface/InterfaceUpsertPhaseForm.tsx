@@ -13,7 +13,6 @@ import {
 import React from 'react';
 
 import { useForm } from 'react-hook-form';
-import { mutate } from 'swr';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +27,6 @@ import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
 import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
-import { InterfaceContext } from '@/contexts/InterfaceContext';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,7 +49,6 @@ export default function InterfaceUpsertPhaseForm({
   row: Row<getRefsPendingCEFormat>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { initialDate, finalDate } = React.useContext(InterfaceContext);
   const { user } = useAuth();
 
   const schema = z
@@ -211,13 +208,6 @@ export default function InterfaceUpsertPhaseForm({
           toast.success('Datos modificados correctamente');
           posthog.capture(posthogEvent);
           setOpenDialog((opened) => !opened);
-          if (!initialDate || !finalDate) return mutate('/api/transbel/getRefsPendingCE');
-
-          mutate(
-            `/api/transbel/getRefsPendingCE?initialDate=${
-              initialDate.toISOString().split('T')[0]
-            }&finalDate=${finalDate.toISOString().split('T')[0]}`
-          );
         } else {
           toast.error('No se pudieron actualizar tus datos');
         }

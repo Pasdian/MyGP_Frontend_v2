@@ -45,7 +45,7 @@ function msUntilRefresh(token: string | null | undefined): number {
     const { exp } = jwtDecode<JwtClaims>(token);
     if (!exp) return 0;
     const expMs = exp * 1000;
-    const threshold = process.env.NODE_ENV === 'production' ? 2 * 60_000 : 10_000;
+    const threshold = 10_000;
     return Math.max(0, expMs - Date.now() - threshold);
   } catch {
     return 0;

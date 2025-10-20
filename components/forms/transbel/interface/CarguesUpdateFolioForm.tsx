@@ -2,7 +2,6 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { mutate } from 'swr';
 import { toast } from 'sonner';
 import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr/immutable';
 import { getCarguesFormat } from '@/types/transbel/getCargues';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { IconSettings } from '@tabler/icons-react';
@@ -35,12 +34,11 @@ export default function CarguesUpdateFolioForm({
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [comboValue, setComboValue] = React.useState('');
-  const carguesKey = '/api/transbel/getCargues';
   const [isSending, setIsSending] = React.useState(false);
   const folioKey =
     row.original.NUM_REFE && `/api/transbel/datosEmbarque?reference=${row.original.NUM_REFE}`;
 
-  const { data: folioData, isLoading: isFolioDataLoading } = useSWRImmutable<FolioData>(
+  const { data: folioData, isLoading: isFolioDataLoading } = useSWR<FolioData>(
     folioKey,
     axiosFetcher
   );
@@ -109,7 +107,6 @@ export default function CarguesUpdateFolioForm({
       if (res.status == 200) {
         toast.success('Datos modificados correctamente');
         setOpenDialog((opened) => !opened);
-        mutate(carguesKey);
         setIsSending(false);
       } else {
         toast.error('No se pudieron actualizar tus datos');

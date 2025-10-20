@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import useSWRImmutable, { mutate } from 'swr';
+import useSWR from 'swr';
 import axios from 'axios';
 import { GPClient, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 
@@ -40,8 +40,10 @@ type ItemCheckLoose = { uuid: string | null; isChecked?: boolean | null } | null
 const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 export default function Permissions() {
-  const { data: serverData, isLoading: isServerDataLoading } =
-    useSWRImmutable<getRoleModulesAndPermissions>(roleModulesPermissionsKey, axiosFetcher);
+  const { data: serverData, isLoading: isServerDataLoading } = useSWR<getRoleModulesAndPermissions>(
+    roleModulesPermissionsKey,
+    axiosFetcher
+  );
 
   // Local modifiable state
   const [rolesData, setRolesData] = React.useState<getRoleModulesAndPermissions>(serverData || []);
@@ -167,7 +169,6 @@ export default function Permissions() {
 
       const res = await GPClient.post('/api/role-permissions/upsertRoles', payload);
       toast.success(res.data?.message ?? 'Cambios guardados.');
-      mutate(roleModulesPermissionsKey);
     } catch (err) {
       const msg = axios.isAxiosError(err)
         ? err.response?.data?.message ?? err.message
@@ -246,7 +247,7 @@ export default function Permissions() {
 }
 
 function AddPermissionDialog() {
-  const { data: allRoles, isLoading: isAllRolesLoading } = useSWRImmutable<getAllRoles[]>(
+  const { data: allRoles, isLoading: isAllRolesLoading } = useSWR<getAllRoles[]>(
     '/api/roles',
     axiosFetcher
   );
@@ -298,7 +299,6 @@ function AddPermissionDialog() {
       toast.info('Creando permisos...');
       const res = await GPClient.post('/api/role-permissions/createRolePermissions', payload);
       toast.success(res.data?.message ?? 'Permisos creados y asignados.');
-      mutate(roleModulesPermissionsKey);
     } catch (err) {
       const msg = axios.isAxiosError(err)
         ? err.response?.data?.message ?? err.message

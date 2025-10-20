@@ -16,7 +16,7 @@ import {
 import { getDeliveriesFormat } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
@@ -25,7 +25,7 @@ import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DeliveriesDataTable() {
-  const { data, isLoading } = useSWRImmutable<getDeliveriesFormat[]>(
+  const { data, isLoading } = useSWR<getDeliveriesFormat[]>(
     '/api/transbel/getDeliveries',
     axiosFetcher
   );

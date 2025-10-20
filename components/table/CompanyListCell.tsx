@@ -3,16 +3,15 @@ import * as React from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Company } from '@/types/company/company';
 
 export default function CompanyListCell({
   companies,
 }: {
-  companies: Company[] | null | undefined;
+  companies: { CVE_IMP: string; NOM_IMP: string }[];
 }) {
   if (!companies || companies.length === 0) return <>--</>;
 
-  const names = companies.map((c) => c.name ?? '').filter(Boolean);
+  const names = companies.map((c) => c.NOM_IMP ?? '').filter(Boolean);
   if (names.length === 0) return <>--</>;
 
   const MAX_INLINE = 2;

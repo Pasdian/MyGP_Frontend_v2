@@ -14,7 +14,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import useSWRImmutable from 'swr';
+import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import AdminDataTableFilter from '../filters/AdminDataTableFilter';
@@ -25,7 +25,7 @@ type AdminDataTableProps<T> = {
 };
 
 export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTableProps<T>) {
-  const { data } = useSWRImmutable<T[]>(dataTableUrl, axiosFetcher);
+  const { data } = useSWR<T[]>(dataTableUrl, axiosFetcher);
 
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
 

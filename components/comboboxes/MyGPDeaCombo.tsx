@@ -14,6 +14,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAuth } from '@/hooks/useAuth';
 
 export function MyGPDeaCombo({
   value,
@@ -30,12 +31,27 @@ export function MyGPDeaCombo({
   }[];
 }) {
   const [open, setOpen] = React.useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
+
+  // Assuming user.complete_user.user.companies is an array of objects with CVE_IMP
+  const userCompanies = user?.complete_user?.user?.companies || [];
+
+  // Extract CVE_IMP values (e.g., ["123", "456"])
+  const companyIds = userCompanies.map((c) => c.CVE_IMP);
+
+  // If admin, skip filtering — otherwise, filter by companyIds
+  const filteredOptions = isAdmin
+    ? options
+    : options.filter((opt) => companyIds.includes(opt.value));
+
   // Pick the first item in the list
   React.useEffect(() => {
-    if (!value && options?.length > 0) {
-      setValue(options[0].value);
+    if (!value && filteredOptions?.length > 0) {
+      setValue(filteredOptions[0].value);
     }
-  }, [value, options, setValue]);
+  }, [value, filteredOptions, setValue]);
+
   return (
     <div className="flex flex-col gap-2">
       <Popover open={open} onOpenChange={setOpen}>
@@ -45,8 +61,11 @@ export function MyGPDeaCombo({
             id="date"
             className="w-[150px] h-6 justify-between font-normal text-[12px]"
           >
-            <span className="truncate" title={options?.find((k) => k.value === value)?.label}>
-              {options?.find((k) => k.value === value)?.label || `Selecciona ${label}`}
+            <span
+              className="truncate"
+              title={filteredOptions?.find((k) => k.value === value)?.label}
+            >
+              {filteredOptions?.find((k) => k.value === value)?.label || `Selecciona ${label}`}
             </span>
             <ChevronsUpDown className="opacity-50" />
           </Button>
@@ -57,7 +76,7 @@ export function MyGPDeaCombo({
             <CommandList>
               <CommandEmpty>No se encontraron elementos.</CommandEmpty>
               <CommandGroup>
-                {options?.map((item) => {
+                {filteredOptions?.map((item) => {
                   // include label (and value) so search hits both
                   const searchable = `${item.label} ${item.value}`.toLowerCase();
                   return (

@@ -2,7 +2,6 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { mutate } from 'swr';
 import { toast } from 'sonner';
 import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,8 +14,7 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
-import { InterfaceContext } from '@/contexts/InterfaceContext';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 
 const comboOptions = [
@@ -37,12 +35,10 @@ export default function UpdateFolioForm({
   const folioKey =
     row.original.REFERENCIA && `/api/transbel/datosEmbarque?reference=${row.original.REFERENCIA}`;
 
-  const { data: folioData, isLoading: isFolioDataLoading } = useSWRImmutable<FolioData>(
+  const { data: folioData, isLoading: isFolioDataLoading } = useSWR<FolioData>(
     folioKey,
     axiosFetcher
   );
-  const { initialDate, finalDate } = React.useContext(InterfaceContext);
-
   const defaults = React.useMemo(() => {
     const getVal = (tag: string) =>
       folioData?.data?.find((folio) => folio.ETI_IMPR === tag)?.DAT_EMB ?? '';
@@ -79,13 +75,6 @@ export default function UpdateFolioForm({
         if (res.status == 200) {
           toast.success('Datos modificados correctamente');
           setOpenDialog((opened) => !opened);
-          if (!initialDate || !finalDate) return mutate('/api/transbel/getRefsPendingCE');
-
-          mutate(
-            `/api/transbel/getRefsPendingCE?initialDate=${
-              initialDate.toISOString().split('T')[0]
-            }&finalDate=${finalDate.toISOString().split('T')[0]}`
-          );
         } else {
           toast.error('No se pudieron actualizar tus datos');
         }

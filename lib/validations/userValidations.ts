@@ -40,4 +40,4 @@ export const USER_OPTIONAL_PASSWORD_VALIDATION = z
 
 export const USER_ROLE_UUID_VALIDATION = z.string();
 
-export const USER_COMPANIES_VALIDATION = z.array(z.uuid());
+export const USER_COMPANIES_VALIDATION = z.array(z.string());

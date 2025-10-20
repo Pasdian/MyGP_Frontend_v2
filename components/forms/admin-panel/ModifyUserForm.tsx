@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { getAllUsers } from '@/types/users/getAllUsers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
@@ -26,29 +25,26 @@ import CompanySelect from '@/components/selects/CompanySelect';
 import { modifyUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
-import { useSWRConfig } from 'swr';
+import { getAllUsers } from '@/types/users/getAllUsers';
 
 const posthogEvent =
   usersModuleEvents.find((e) => e.alias === 'USERS_MODIFY_USER')?.eventName || '';
 
 export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);
-  const { mutate } = useSWRConfig();
 
   const form = useForm<z.infer<typeof modifyUserSchema>>({
     resolver: zodResolver(modifyUserSchema),
     mode: 'onChange',
     defaultValues: {
-      name: row.original.name ? row.original.name : '',
-      email: row.original.email ? row.original.email : '',
-      mobile: row.original.mobile ? row.original.mobile : '',
+      name: row.original.name || undefined,
+      email: row.original.email || undefined,
+      mobile: row.original.mobile || undefined,
       password: '',
       role_uuid: row.original.role_uuid ? row.original.role_uuid.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
       status: row.original.status == 'active' ? true : false,
-      companies_uuids: (row.original.companies ?? [])
-        .map((c) => c.uuid)
-        .filter((id): id is string => id !== null),
+      companies: row.original.companies?.map((c) => c.CVE_IMP) || undefined, // string[] or undefined
     },
   });
 
@@ -61,12 +57,11 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
       role_uuid: data.role_uuid,
       casa_user_name: data.casa_user_name,
       status: data.status == true ? 'active' : 'inactive',
-      companies_uuids: data.companies_uuids,
+      companies_uuids: data.companies,
     })
       .then((res) => {
         toast.success(res.data.message);
         posthog.capture(posthogEvent);
-        mutate('/api/users/getAllUsers');
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -169,16 +164,12 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
 
           <FormField
             control={form.control}
-            name="companies_uuids"
+            name="companies"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Compañia del Usuario</FormLabel>
                 <FormControl>
-                  <CompanySelect
-                    values={field.value}
-                    onValuesChange={field.onChange}
-                    placeholder="Seleccionar compañías"
-                  />
+                  <CompanySelect value={field.value} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

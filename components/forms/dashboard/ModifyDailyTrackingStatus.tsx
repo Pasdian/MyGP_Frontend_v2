@@ -8,15 +8,13 @@ import { Form } from '@/components/ui/form';
 import { Row } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
-import { DailyTrackingRowFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { dashboardModuleEvents } from '@/lib/posthog/events';
-import { mutate } from 'swr';
 import { Loader2 } from 'lucide-react';
-import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
+import { DailyTrackingFormatted } from '@/types/dashboard/tracking/dailyTracking';
 
 const posthogEvent =
   dashboardModuleEvents.find((e) => e.alias === 'DASHBOARD_MODIFY_OP')?.eventName || '';
@@ -25,15 +23,12 @@ export default function ModifyDailyTrackingStatus({
   row,
   setOpenDialog,
 }: {
-  row: Row<DailyTrackingRowFormatted>;
+  row: Row<DailyTrackingFormatted>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { dailyTrackingKey } = React.useContext(DailyTrackingContext);
-
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const modifyOperationKey = `/api/daily-tracking/modify-operation-status`;
-  const historyKey = `/api/daily-tracking/operation-history?reference=${row.original.NUM_REFE}`;
 
   const schema = z.object({
     status: z.string().min(1, 'Ingresa un estatus').max(250, 'Máximo 250 carácteres').toUpperCase(),
@@ -56,13 +51,11 @@ export default function ModifyDailyTrackingStatus({
       status: data.status || '',
       changedBy: data.casaUserName,
     })
-      .then((res) => {
+      .then(async (res) => {
         if (res.status == 200) {
           toast.success('Operación modificada correctamente');
           posthog.capture(posthogEvent);
           setOpenDialog((opened) => !opened);
-          mutate(historyKey);
-          mutate(dailyTrackingKey);
           setIsSubmitting(false);
         } else {
           toast.error('No se pudieron actualizar la operación');

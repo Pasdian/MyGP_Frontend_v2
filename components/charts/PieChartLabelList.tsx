@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import useSWRImmutable from 'swr';
+import useSWR from 'swr';
 import React from 'react';
 import { toast } from 'sonner';
 import ClientsCombo from '../comboboxes/ClientsCombo';
@@ -42,7 +42,7 @@ export default function PieChartLabelList() {
   const [clientNumber, setClientNumber] = React.useState('005009'); // Transbel Nuevo
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
 
-  const { data: chartData } = useSWRImmutable(
+  const { data: chartData } = useSWR(
     initialDate && finalDate
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
           initialDate.toISOString().split('T')[0]

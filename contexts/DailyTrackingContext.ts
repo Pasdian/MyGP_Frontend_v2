@@ -1,5 +1,6 @@
 import React from 'react';
 
 export const DailyTrackingContext = React.createContext<{
-  dailyTrackingKey: string | undefined;
-}>({ dailyTrackingKey: undefined });
+  initialDate: Date | undefined;
+  finalDate: Date | undefined;
+}>({ initialDate: undefined, finalDate: undefined });

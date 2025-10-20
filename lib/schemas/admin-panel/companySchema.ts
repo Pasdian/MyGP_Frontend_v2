@@ -6,7 +6,7 @@ import {
 import { z } from "zod/v4";
 
 export const CompanySchema = z.object({
-  uuid: COMPANY_UUID_VALIDATION,
-  name: COMPANY_NAME_VALIDATION,
+  CVE_IMP: COMPANY_UUID_VALIDATION,
+  NOM_IMP: COMPANY_NAME_VALIDATION,
   casa_id: COMPANY_CASA_ID_VALIDATION,
 });

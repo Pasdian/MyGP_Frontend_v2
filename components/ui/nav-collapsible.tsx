@@ -1,9 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import {
   IconAdjustments,
-  IconBuilding,
   IconKey,
-  IconLayoutGrid,
   IconPackage,
   IconShield,
   IconUser,
@@ -81,20 +79,20 @@ const userItems = {
           role: ['ADMIN'],
           icon: IconShield,
         },
-        {
-          title: 'Compañias',
-          url: '/mygp/admin-panel/companies',
-          module: ['All Modules'],
-          role: ['ADMIN'],
-          icon: IconBuilding,
-        },
-        {
-          title: 'Módulos',
-          url: '/mygp/admin-panel/modules',
-          module: ['All Modules'],
-          role: ['ADMIN'],
-          icon: IconLayoutGrid,
-        },
+        // {
+        //   title: 'Compañias',
+        //   url: '/mygp/admin-panel/companies',
+        //   module: ['All Modules'],
+        //   role: ['ADMIN'],
+        //   icon: IconBuilding,
+        // },
+        // {
+        //   title: 'Módulos',
+        //   url: '/mygp/admin-panel/modules',
+        //   module: ['All Modules'],
+        //   role: ['ADMIN'],
+        //   icon: IconLayoutGrid,
+        // },
         {
           title: 'Permisos',
           url: '/mygp/admin-panel/permissions',

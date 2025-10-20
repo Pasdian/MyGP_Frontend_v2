@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Button } from '@/components/ui/button';
 
@@ -40,7 +40,7 @@ export default function GipBrowser() {
   const [previewError, setPreviewError] = React.useState<string>('');
 
   const key = `/gip/search${folder ? `?filepath=${encodeURIComponent(folder)}` : ''}`;
-  const { data, isLoading, error } = useSWRImmutable(key, axiosFetcher);
+  const { data, isLoading, error } = useSWR(key, axiosFetcher);
 
   const goInto = (name: string) => {
     setSelectedFile(''); // clear viewer when changing folder

@@ -1,3 +1,5 @@
+import { getAllCompanies } from '../getAllCompanies/getAllCompanies';
+
 export type getAllUsers = {
   id: number | null;
   user_uuid: string | null;
@@ -16,11 +18,5 @@ export type getAllUsers = {
     description: string | null;
     uuid: string | null;
   };
-  companies:
-    | {
-        uuid: string | null;
-        name: string | null;
-        casa_id: string | null;
-      }[]
-    | null;
+  companies: { CVE_IMP: string; NOM_IMP: string }[];
 };
