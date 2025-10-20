@@ -47,7 +47,12 @@ export function DailyTrackingDataTable({
 }) {
   const { user } = useAuth();
   const userCasaUserName = user.complete_user.user.casa_user_name;
-  const isUserAdmin = user?.complete_user?.role?.name === 'ADMIN';
+  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
+  const isTrafficAdmin = user?.complete_user?.role?.name === 'TRAFICO_ADMIN';
+  const hasTrafficAdminPerm = user?.complete_user?.role?.permissions?.some(
+    (p) => p.action === 'DASHBOARD_TRAFICO_ADMIN'
+  );
+
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -105,7 +110,7 @@ export function DailyTrackingDataTable({
       const matchClient = !clientVal || itemClient === clientVal;
       const matchCasaId = item.CASA_ID == userCasaUserName;
 
-      if (isUserAdmin) {
+      if (isAdmin || isTrafficAdmin || hasTrafficAdminPerm) {
         return matchMSA && matchKam && matchCustom && matchPhase && matchClient;
       } else {
         return matchMSA && matchKam && matchCustom && matchPhase && matchClient && matchCasaId;
@@ -113,7 +118,7 @@ export function DailyTrackingDataTable({
 
       // must satisfy all active filters and tab rule
     });
-  }, [mappedData, filterValues, isUserAdmin, userCasaUserName]);
+  }, [mappedData, filterValues, isAdmin, userCasaUserName]);
 
   // Table instance
   const table = useReactTable({

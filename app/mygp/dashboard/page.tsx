@@ -28,7 +28,14 @@ export default function Dashboard() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
   const isTraffic = user?.complete_user?.role?.name == 'TRAFICO';
-  const isTrafficAdmin = user.complete_user?.role.name == 'TRAFICO_ADMIN';
+  const isTrafficAdmin = user?.complete_user?.role?.name === 'TRAFICO_ADMIN';
+  const hasTrafficPerm = user?.complete_user?.role?.permissions?.some(
+    (p) => p.action === 'DASHBOARD_TRAFICO'
+  );
+  const hasTrafficAdminPerm = user?.complete_user?.role?.permissions?.some(
+    (p) => p.action === 'DASHBOARD_TRAFICO_ADMIN'
+  );
+  console.log(user.complete_user.role.permissions);
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(firstDayOfMonth);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(today);
 
@@ -102,7 +109,7 @@ export default function Dashboard() {
 
   return (
     <div className="h-full overflow-y-scroll p-2">
-      {(isTraffic || isAdmin || isTrafficAdmin) && (
+      {(isTraffic || isAdmin || hasTrafficPerm) && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
             <MyGPDatePicker date={initialDate} setDate={setInitialDate} label="Fecha de Inicio" />
@@ -110,7 +117,7 @@ export default function Dashboard() {
 
             {!isAuthLoading && (
               <>
-                {(isTrafficAdmin || isAdmin) && (
+                {(isTrafficAdmin || isAdmin || hasTrafficAdminPerm) && (
                   <MyGPCombo
                     value={kamValue}
                     setValue={setKamValue}
