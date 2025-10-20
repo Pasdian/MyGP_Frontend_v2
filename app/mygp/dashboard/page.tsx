@@ -35,7 +35,6 @@ export default function Dashboard() {
   const hasTrafficAdminPerm = user?.complete_user?.role?.permissions?.some(
     (p) => p.action === 'DASHBOARD_TRAFICO_ADMIN'
   );
-  console.log(user.complete_user.role.permissions);
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(firstDayOfMonth);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(today);
 
@@ -162,7 +161,7 @@ export default function Dashboard() {
             )}
           </div>
           <Card className="mb-8 p-4">
-            {!isAuthLoading && isAdmin && (
+            {!isAuthLoading && (isAdmin || hasTrafficPerm || isTraffic || isTrafficAdmin) && (
               <Tabs value={tabValue} onValueChange={(v) => isTabValue(v) && setTabValue(v)}>
                 <TabsList>
                   <TabsTrigger value="all">Todas</TabsTrigger>
