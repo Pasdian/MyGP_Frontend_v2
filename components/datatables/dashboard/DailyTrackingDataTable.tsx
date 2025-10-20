@@ -118,7 +118,7 @@ export function DailyTrackingDataTable({
 
       // must satisfy all active filters and tab rule
     });
-  }, [mappedData, filterValues, isAdmin, userCasaUserName]);
+  }, [mappedData, filterValues, isAdmin, userCasaUserName, hasTrafficAdminPerm, isTrafficAdmin]);
 
   // Table instance
   const table = useReactTable({

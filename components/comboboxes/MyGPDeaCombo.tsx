@@ -36,14 +36,12 @@ export function MyGPDeaCombo({
 
   // Assuming user.complete_user.user.companies is an array of objects with CVE_IMP
   const userCompanies = user?.complete_user?.user?.companies || [];
-
+  const isAAP = userCompanies.some((company) => company.CVE_IMP === '004108');
   // Extract CVE_IMP values (e.g., ["123", "456"])
   const companyIds = userCompanies.map((c) => c.CVE_IMP);
-
   // If admin, skip filtering — otherwise, filter by companyIds
-  const filteredOptions = isAdmin
-    ? options
-    : options.filter((opt) => companyIds.includes(opt.value));
+  const filteredOptions =
+    isAdmin || isAAP ? options : options.filter((opt) => companyIds.includes(opt.value));
 
   // Pick the first item in the list
   React.useEffect(() => {
