@@ -1,12 +1,12 @@
 import { Input } from '@/components/ui/input';
-import { getDeliveriesFormat } from '@/types/transbel/getDeliveries';
+import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { Column } from '@tanstack/react-table';
 
 export default function DeliveriesDataTableFilter({
   column,
 }: // table, // Debug purposes
 {
-  column: Column<getDeliveriesFormat, unknown>;
+  column: Column<getDeliveries, unknown>;
   // table: TTable<Deliveries>;
 }) {
   const columnFilterValue = column.getFilterValue();

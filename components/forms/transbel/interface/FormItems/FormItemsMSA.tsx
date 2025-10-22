@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
 
@@ -14,7 +14,6 @@ export default function FormItemsMSA({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     },
@@ -23,13 +22,12 @@ export default function FormItemsMSA({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     }
   >;
 
-  row: Row<getRefsPendingCEFormat>;
+  row: Row<getRefsPendingCE>;
 }) {
   return (
     <>
@@ -37,7 +35,12 @@ export default function FormItemsMSA({
         <Label htmlFor="revalidación" className="mb-1">
           Fecha de Revalidación
         </Label>
-        <Input id="revalidación" disabled type="date" value={row.original.REVALIDACION_073 ?? ''} />
+        <Input
+          id="revalidación"
+          disabled
+          type="date"
+          value={row.original.REVALIDACION_073?.split(' ')[0] ?? ''}
+        />
       </div>
       <div>
         <Label htmlFor="ultimoDoc" className="mb-1">
@@ -47,7 +50,7 @@ export default function FormItemsMSA({
           id="ultimoDoc"
           disabled
           type="date"
-          value={row.original.ULTIMO_DOCUMENTO_114 ?? ''}
+          value={row.original.ULTIMO_DOCUMENTO_114?.split(' ')[0] ?? ''}
         />
       </div>
       <div>
@@ -58,7 +61,7 @@ export default function FormItemsMSA({
           id="entregaTransporte"
           disabled
           type="date"
-          value={row.original.ENTREGA_TRANSPORTE_138 ?? ''}
+          value={row.original.ENTREGA_TRANSPORTE_138?.split(' ')[0] ?? ''}
         />
       </div>
 

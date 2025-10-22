@@ -22,18 +22,10 @@ export type getRefsPendingCE = {
   ULTIMO_DOCUMENTO_114_ERROR_MSG?: string;
   MSA_130_ERROR_MSG?: string;
   ENTREGA_TRANSPORTE_138_ERROR_MSG?: string;
-  was_send_to_workato: boolean;
+  workato_status: string;
   workato_created_at: string | null;
   ENTREGA_CDP_140_ERROR_MSG: string | null;
-  sent_and_not_errors: boolean | null;
-  not_errors_and_not_set: boolean | null;
-  pending: boolean;
-  sent: boolean;
-  has_eege_duplicate_error: boolean;
-  has_errors: boolean;
-};
-
-export type getRefsPendingCEFormat = getRefsPendingCE & {
+  has_error: boolean;
   REVALIDACION_073_FORMATTED: string | null;
   ULTIMO_DOCUMENTO_114_FORMATTED: string | null;
   ENTREGA_TRANSPORTE_138_FORMATTED: string | null;
@@ -44,4 +36,6 @@ export type getRefsPendingCEFormat = getRefsPendingCE & {
   GE: string | null;
   CECO: string | null;
   CUENTA: string | null;
+  has_ee_ge_error: boolean;
+  EE_GE_ERROR_MSG: string | null;
 };

@@ -4,7 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { IconTrashFilled } from '@tabler/icons-react';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
@@ -19,7 +19,6 @@ const ExceptionCodeField = ({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     },
@@ -28,12 +27,11 @@ const ExceptionCodeField = ({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     }
   >;
-  row: Row<getRefsPendingCEFormat>;
+  row: Row<getRefsPendingCE>;
 }) => {
   const EXCEPTION_CODE = useWatch({
     control: form.control,
@@ -103,7 +101,6 @@ export default function FormItemsEntregaTransporte({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     },
@@ -112,12 +109,11 @@ export default function FormItemsEntregaTransporte({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     }
   >;
-  row: Row<getRefsPendingCEFormat>;
+  row: Row<getRefsPendingCE>;
 }) {
   return (
     <>
@@ -125,7 +121,12 @@ export default function FormItemsEntregaTransporte({
         <Label htmlFor="revalidación" className="mb-1">
           Fecha de Revalidación
         </Label>
-        <Input id="revalidación" disabled type="date" value={row.original.REVALIDACION_073 ?? ''} />
+        <Input
+          id="revalidación"
+          disabled
+          type="date"
+          value={row.original.REVALIDACION_073?.split(' ')[0] ?? ''}
+        />
       </div>
       <div>
         <Label htmlFor="ultimoDoc" className="mb-1">
@@ -135,14 +136,14 @@ export default function FormItemsEntregaTransporte({
           id="ultimoDoc"
           disabled
           type="date"
-          value={row.original.ULTIMO_DOCUMENTO_114 ?? ''}
+          value={row.original.ULTIMO_DOCUMENTO_114?.split(' ')[0] ?? ''}
         />
       </div>
       <div>
         <Label htmlFor="MSA" className="mb-1">
           Fecha de MSA
         </Label>
-        <Input id="MSA" disabled type="date" value={row.original.MSA_130 ?? ''} />
+        <Input id="MSA" disabled type="date" value={row.original.MSA_130?.split(' ')[0] ?? ''} />
       </div>
       <FormField
         control={form.control}

@@ -3,18 +3,18 @@ import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/Interfa
 import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import { getRefsPendingCEFormat } from "@/types/transbel/getRefsPendingCE";
 import { InterfaceContext } from "@/contexts/InterfaceContext";
+import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 
-const fuzzyFilter = createFuzzyFilter<getRefsPendingCEFormat>();
+const fuzzyFilter = createFuzzyFilter<getRefsPendingCE>();
 type TabValue = "errors" | "pending" | "sent";
 
-export const useInterfaceColumns = (): ColumnDef<getRefsPendingCEFormat>[] => {
+export const useInterfaceColumns = (): ColumnDef<getRefsPendingCE>[] => {
   const { tabValue } = React.useContext(InterfaceContext) as {
     tabValue: TabValue;
   };
 
-  const baseCols = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(
+  const baseCols = React.useMemo<ColumnDef<getRefsPendingCE>[]>(
     () => [
       {
         accessorKey: "REFERENCIA",
@@ -45,12 +45,19 @@ export const useInterfaceColumns = (): ColumnDef<getRefsPendingCEFormat>[] => {
         accessorKey: "EE__GE",
         header: "EE/GE",
         filterFn: fuzzyFilter,
-        cell: ({ row }) =>
-          row.original.EE__GE ? (
-            <p className="text-center">{row.original.EE__GE}</p>
-          ) : (
-            <ErrorTooltip value="--" errorMessage="No existe EE/GE" />
-          ),
+        cell: ({ row }) => {
+          if (row.original.has_ee_ge_error) {
+            return (
+              <ErrorTooltip
+                value={row.original.EE__GE || "--"}
+                errorMessage={
+                  row.original.EE_GE_ERROR_MSG || "Error desconocido"
+                }
+              />
+            );
+          }
+          return <p className="text-center">{row.original.EE__GE || "--"}</p>;
+        },
       },
       {
         accessorKey: "REVALIDACION_073_FORMATTED",
@@ -173,7 +180,7 @@ export const useInterfaceColumns = (): ColumnDef<getRefsPendingCEFormat>[] => {
     []
   );
 
-  const accionesCol: ColumnDef<getRefsPendingCEFormat> = React.useMemo(
+  const accionesCol: ColumnDef<getRefsPendingCE> = React.useMemo(
     () => ({
       id: "ACCIONES",
       header: "Acciones",

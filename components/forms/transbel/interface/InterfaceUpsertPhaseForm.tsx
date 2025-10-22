@@ -21,11 +21,9 @@ import {
   EXCEPTION_CODE_VALIDATION,
   PHASE_VALIDATION,
   REF_VALIDATION,
-  TIME_VALIDATION,
 } from '@/lib/validations/phaseValidations';
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
@@ -38,6 +36,10 @@ import FormItemsEntregaTransporte from './FormItems/FormItemsEntregaTransporte';
 import FormItemsMSA from './FormItems/FormItemsMSA';
 import { transbelModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
+import { InterfaceContext } from '@/contexts/InterfaceContext';
+import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
+import axios from 'axios';
 
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_INTERFACE')?.eventName || '';
@@ -46,18 +48,17 @@ export default function InterfaceUpsertPhaseForm({
   row,
   setOpenDialog,
 }: {
-  row: Row<getRefsPendingCEFormat>;
+  row: Row<getRefsPendingCE>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { user } = useAuth();
-
+  const { setRefsPendingCE } = React.useContext(InterfaceContext);
   const schema = z
     .object({
       ref: REF_VALIDATION,
       phase: PHASE_VALIDATION,
       exceptionCode: EXCEPTION_CODE_VALIDATION,
       date: DATE_VALIDATION,
-      time: TIME_VALIDATION,
       user: USER_CASA_USERNAME_VALIDATION,
     })
     .refine(
@@ -185,36 +186,87 @@ export default function InterfaceUpsertPhaseForm({
       ref: row.original.REFERENCIA || '',
       phase: '',
       exceptionCode: row.original.CE_138 || '',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleString('sv-SE').split(' ')[1].substring(0, 5),
+      date: '',
       user: user.complete_user.user.casa_user_name
         ? user.complete_user.user.casa_user_name
         : 'MYGP',
     },
   });
 
+  const toISODate = (s?: string) => (s ?? '').split(/[ T]/)[0] || '';
+
   const phase = form.watch('phase');
+  React.useEffect(() => {
+    // Set dates when chaging the dropdown
+    const phaseField: Record<string, keyof typeof row.original> = {
+      '073': 'REVALIDACION_073',
+      '114': 'ULTIMO_DOCUMENTO_114',
+      '130': 'MSA_130',
+      '138': 'ENTREGA_TRANSPORTE_138',
+    };
+
+    const getDateFromPhase = (p?: string) => {
+      const field = p ? phaseField[p] : undefined;
+      const raw = field ? row.original[field] : '';
+      return toISODate(typeof raw === 'string' ? raw : '');
+    };
+    form.setValue('date', getDateFromPhase(phase));
+  }, [phase, form, row]);
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    await GPClient.post('/api/casa/upsertPhase', {
-      ref: data.ref,
-      phase: data.phase,
-      exceptionCode: data.exceptionCode,
-      date: `${data.date} ${data.time}`,
-      user: data.user,
-    })
-      .then((res) => {
-        if (res.status == 200) {
-          toast.success('Datos modificados correctamente');
-          posthog.capture(posthogEvent);
-          setOpenDialog((opened) => !opened);
-        } else {
-          toast.error('No se pudieron actualizar tus datos');
-        }
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
+    try {
+      const res = await GPClient.patch(`/api/casa/upsertPhase/${data.ref}`, {
+        phase: data.phase,
+        exceptionCode: data.exceptionCode,
+        date: data.date, // "YYYY-MM-DD"
+        user: data.user,
       });
+
+      if (res.status === 200) {
+        const row = res.data.data; // { NUM_REFE, CVE_ETAP, FEC_ETAP, ... }
+
+        const fieldMap: Record<string, string> = {
+          '073': 'REVALIDACION_073',
+          '114': 'ULTIMO_DOCUMENTO_114',
+          '130': 'MSA_130',
+          '138': 'ENTREGA_TRANSPORTE_138',
+        };
+
+        const field = fieldMap[row.CVE_ETAP];
+        const formatted =
+          typeof formatISOtoDDMMYYYY === 'function' ? formatISOtoDDMMYYYY(row.FEC_ETAP) : null; // or formatISOtoDDMMYY(row.FEC_ETAP)
+
+        setRefsPendingCE((prev) =>
+          prev.map((r) =>
+            r.REFERENCIA === row.NUM_REFE
+              ? {
+                  ...r,
+                  ...(field ? { [field]: row.FEC_ETAP, [`${field}_FORMATTED`]: formatted } : {}),
+                  CVE_ETAP: row.CVE_ETAP,
+                  CVE_MODI: row.CVE_MODI,
+                  OBS_ETAP: row.OBS_ETAP,
+                  FEC_ETAP: row.FEC_ETAP,
+                  HOR_ETAP: row.HOR_ETAP,
+                }
+              : r
+          )
+        );
+
+        toast.success('Datos modificados correctamente');
+        posthog.capture(posthogEvent);
+        setOpenDialog((o) => !o);
+      } else {
+        toast.error('No se pudieron actualizar tus datos');
+      }
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        console.error('Axios error:', err.response?.data || err.message);
+        toast.error(err.response?.data?.message || 'Falló la petición');
+      } else {
+        console.error('Error inesperado:', err);
+        toast.error('Error inesperado');
+      }
+    }
   }
 
   return (
@@ -293,20 +345,6 @@ export default function InterfaceUpsertPhaseForm({
             {phase == '114' && <FormItemsUltimoDocumento form={form} row={row} />}
             {phase == '130' && <FormItemsMSA form={form} row={row} />}
             {phase == '138' && <FormItemsEntregaTransporte form={form} row={row} />}
-
-            <FormField
-              control={form.control}
-              name="time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hora</FormLabel>
-                  <FormControl>
-                    <Input type="time" placeholder="Hora..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}

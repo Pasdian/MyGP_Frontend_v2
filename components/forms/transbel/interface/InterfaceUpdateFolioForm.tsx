@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FOLIO_VALIDATION, REF_VALIDATION } from '@/lib/validations/phaseValidations';
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
@@ -16,6 +16,8 @@ import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
 import useSWR from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
+import { InterfaceContext } from '@/contexts/InterfaceContext';
+import { AxiosError } from 'axios';
 
 const comboOptions = [
   {
@@ -28,9 +30,10 @@ export default function UpdateFolioForm({
   row,
   setOpenDialog,
 }: {
-  row: Row<getRefsPendingCEFormat>;
+  row: Row<getRefsPendingCE>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { setRefsPendingCE } = React.useContext(InterfaceContext);
   const [comboValue, setComboValue] = React.useState('');
   const folioKey =
     row.original.REFERENCIA && `/api/transbel/datosEmbarque?reference=${row.original.REFERENCIA}`;
@@ -66,23 +69,39 @@ export default function UpdateFolioForm({
   }, [defaults, form]);
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    await GPClient.post('/api/transbel/datosEmbarque', {
-      NUM_REFE: data.reference,
-      CVE_DAT: 1, // Impo
-      EE_DATEMB: data.EE,
-    })
-      .then((res) => {
-        if (res.status == 200) {
-          toast.success('Datos modificados correctamente');
-          setOpenDialog((opened) => !opened);
-        } else {
-          toast.error('No se pudieron actualizar tus datos');
-        }
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
+    try {
+      const res = await GPClient.patch(`/api/transbel/datosEmbarque/${data.reference}`, {
+        CVE_DAT: 1, // Impo
+        EE_DATEMB: data.EE,
       });
+
+      if (res.status === 200) {
+        const row = res.data.data; // { NUM_REFE, CVE_DAT, ETI_IMPR, DAT_EMB }
+
+        setRefsPendingCE((prev) =>
+          prev.map((r) =>
+            r.REFERENCIA === row.NUM_REFE
+              ? {
+                  ...r,
+                  EE__GE: row.DAT_EMB, // update only this property
+                }
+              : r
+          )
+        );
+
+        toast.success('Datos modificados correctamente');
+        setOpenDialog((opened) => !opened);
+      } else {
+        toast.error('No se pudieron actualizar tus datos');
+      }
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      const message = err.response?.data?.message || 'Ocurrió un error';
+
+      toast.error(message);
+    }
   }
+
   if (isFolioDataLoading)
     return (
       <div className="flex justify-center items-center">

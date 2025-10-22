@@ -54,7 +54,10 @@ export default function Dashboard() {
     | undefined
   >('/api/daily-tracking/meta', axiosFetcher);
 
-  const { records: dailyTrackingData } = useDailyTracking(initialDate, finalDate);
+  const { records: dailyTrackingData, setRecords: setDailyTrackingData } = useDailyTracking(
+    initialDate,
+    finalDate
+  );
 
   const kamsOptions = React.useMemo(
     () =>
@@ -170,11 +173,10 @@ export default function Dashboard() {
                 </TabsList>
               </Tabs>
             )}
-            <DailyTrackingContext.Provider value={{ initialDate, finalDate }}>
-              <DailyTrackingDataTable
-                dailyTrackingData={dailyTrackingData}
-                filterValues={filterValues}
-              />
+            <DailyTrackingContext.Provider
+              value={{ initialDate, finalDate, dailyTrackingData, setDailyTrackingData }}
+            >
+              <DailyTrackingDataTable filterValues={filterValues} />
             </DailyTrackingContext.Provider>
           </Card>
         </>

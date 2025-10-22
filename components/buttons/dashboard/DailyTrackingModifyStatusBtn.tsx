@@ -16,8 +16,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IconBallpenFilled } from '@tabler/icons-react';
 import ModifyDailyTrackingStatus from '@/components/forms/dashboard/ModifyDailyTrackingStatus';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
-import { DailyTrackingFormatted } from '@/types/dashboard/tracking/dailyTracking';
+import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
+import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
 import { useOperationHistory } from '@/hooks/useOperationHistory';
 import { OperationHistory } from '@/types/dashboard/tracking/operationHistory';
 import { v4 as uuidv4 } from 'uuid';
@@ -29,11 +29,7 @@ function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
 }
 
-export default function DailyTrackingModifyStatusBtn({
-  row,
-}: {
-  row: Row<DailyTrackingFormatted>;
-}) {
+export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTracking> }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [tabValue, setTabValue] = React.useState('modify_status');
   const { history, loading: isHistoryLoading } = useOperationHistory(
@@ -146,7 +142,7 @@ function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
             const oldStatus = op.OLD_STATUS;
             const newStatus = op.NEW_STATUS;
             const changedBy = op.CHANGED_BY;
-            const changedAt = getFormattedDate(op.CHANGED_AT);
+            const changedAt = formatISOtoDDMMYYYY(op.CHANGED_AT);
             const key = uuidv4();
 
             return (

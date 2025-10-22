@@ -14,9 +14,6 @@ export type getDeliveries = {
   ENTREGA_TRANSPORTE_138_ERROR_MSG?: string;
   ENTREGA_CDP_140_ERROR_MSG?: string;
   GUIA_HOUSE_ERROR_MSG?: string;
-};
-
-export type getDeliveriesFormat = getDeliveries & {
   ENTREGA_TRANSPORTE_138_FORMATTED: string | null;
   ENTREGA_CDP_140_FORMATTED: string | null;
 };

@@ -15,10 +15,9 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWR from 'swr';
 import React from 'react';
-import { toast } from 'sonner';
 import ClientsCombo from '../comboboxes/ClientsCombo';
 import { getOperationsDistributionByCustomsDeepCopy } from '@/types/bi/getOperationsDistributionByCustoms';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import { customs } from '@/lib/customs/customs';
 import MyGPDatePicker from '../datepickers/MyGPDatePicker';
 
@@ -57,37 +56,6 @@ export default function PieChartLabelList() {
   const [chartConfig, setChartConfig] = React.useState<ChartConfig>({
     OPERATIONS: { label: 'Operaciones' },
   });
-
-  React.useEffect(() => {
-    function validateDates() {
-      if (!initialDate) return;
-      if (!finalDate) {
-        toast.error('Selecciona una fecha de término');
-        return;
-      }
-
-      const today = new Date();
-      const start = new Date(initialDate);
-      const end = new Date(finalDate);
-
-      if (start > today) {
-        toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
-        return;
-      }
-
-      if (end > today) {
-        toast.error('La fecha de término no puede ser mayor a la fecha actual');
-        return;
-      }
-
-      if (start >= end) {
-        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
-        return;
-      }
-    }
-
-    validateDates();
-  }, [initialDate, finalDate]);
 
   React.useEffect(() => {
     if (!Array.isArray(chartData) || chartData.length === 0) {
@@ -149,7 +117,7 @@ export default function PieChartLabelList() {
           </CardTitle>
           <CardDescription>
             {initialDate && finalDate && clientName
-              ? `${getFormattedDate(initialDate.toISOString())} - ${getFormattedDate(
+              ? `${formatISOtoDDMMYYYY(initialDate.toISOString())} - ${formatISOtoDDMMYYYY(
                   finalDate.toISOString().split('T')[0]
                 )}`
               : ''}
@@ -187,7 +155,7 @@ export default function PieChartLabelList() {
             </div>
             <div className="text-muted-foreground leading-none">
               Período{' '}
-              {`${getFormattedDate(initialDate.toISOString())} - ${getFormattedDate(
+              {`${formatISOtoDDMMYYYY(initialDate.toISOString())} - ${formatISOtoDDMMYYYY(
                 finalDate.toISOString()
               )}`}
             </div>

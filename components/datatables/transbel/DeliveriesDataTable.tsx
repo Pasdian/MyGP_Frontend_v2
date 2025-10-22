@@ -13,39 +13,23 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { getDeliveriesFormat } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
-import useSWR from 'swr/immutable';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DeliveriesContext } from '@/contexts/DeliveriesContext';
 
 export default function DeliveriesDataTable() {
-  const { data, isLoading } = useSWR<getDeliveriesFormat[]>(
-    '/api/transbel/getDeliveries',
-    axiosFetcher
-  );
+  const { deliveries, isLoading: isDeliveriesLoading } = React.useContext(DeliveriesContext);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
 
-  const modifiedData = React.useMemo(() => {
-    if (!Array.isArray(data)) return [] as getDeliveriesFormat[];
-    return data.map((item) => ({
-      ...item,
-      ENTREGA_TRANSPORTE_138_FORMATTED:
-        item.ENTREGA_TRANSPORTE_138 && getFormattedDate(item.ENTREGA_TRANSPORTE_138),
-      ENTREGA_CDP_140_FORMATTED: item.ENTREGA_CDP_140 && getFormattedDate(item.ENTREGA_CDP_140),
-    }));
-  }, [data]);
-
   const rowsForTable = React.useMemo(() => {
-    if (!Array.isArray(modifiedData)) return [];
+    if (!Array.isArray(deliveries)) return [];
 
-    return modifiedData.filter((r) => {
+    return deliveries.filter((r) => {
       const hasError =
         r?.has_entrega_cdp_error === true ||
         r?.has_guia_house_error === true ||
@@ -53,7 +37,7 @@ export default function DeliveriesDataTable() {
 
       return shouldFilterErrors ? hasError : !hasError;
     });
-  }, [modifiedData, shouldFilterErrors]);
+  }, [deliveries, shouldFilterErrors]);
 
   const table = useReactTable({
     data: rowsForTable ?? [],
@@ -67,7 +51,7 @@ export default function DeliveriesDataTable() {
     },
   });
 
-  if (isLoading) return <TailwindSpinner />;
+  if (isDeliveriesLoading) return <TailwindSpinner />;
 
   return (
     <div>

@@ -5,7 +5,6 @@ import {
   EXCEPTION_CODE_VALIDATION,
   PHASE_VALIDATION,
   REF_VALIDATION,
-  TIME_VALIDATION,
   TRANSPORTE_VALIDATION,
 } from "@/lib/validations/phaseValidations";
 import { USER_CASA_USERNAME_VALIDATION } from "@/lib/validations/userValidations";
@@ -17,7 +16,6 @@ export const deliveriesUpsertPhaseSchema = z
     phase: PHASE_VALIDATION,
     exceptionCode: EXCEPTION_CODE_VALIDATION,
     cdp: DATE_VALIDATION,
-    time: TIME_VALIDATION,
     user: USER_CASA_USERNAME_VALIDATION,
     transporte: TRANSPORTE_VALIDATION,
   })

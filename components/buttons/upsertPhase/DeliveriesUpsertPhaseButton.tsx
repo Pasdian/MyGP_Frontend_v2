@@ -13,17 +13,15 @@ import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 
-import { getDeliveriesFormat } from '@/types/transbel/getDeliveries';
+import { getDeliveries } from '@/types/transbel/getDeliveries';
 
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import DeliveriesUpsertPhaseForm from '@/components/forms/transbel/deliveries/DeliveriesUpsertPhaseForm';
 import { IconBallpenFilled } from '@tabler/icons-react';
 
-export const UpdatePhaseRowContext = React.createContext<Row<getDeliveriesFormat> | undefined>(
-  undefined
-);
+export const UpdatePhaseRowContext = React.createContext<Row<getDeliveries> | undefined>(undefined);
 
-export default function DeliveriesUpsertPhaseButton({ row }: { row: Row<getDeliveriesFormat> }) {
+export default function DeliveriesUpsertPhaseButton({ row }: { row: Row<getDeliveries> }) {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

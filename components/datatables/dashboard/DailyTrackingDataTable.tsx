@@ -25,16 +25,13 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { DailyTracking, DailyTrackingFormatted } from '@/types/dashboard/tracking/dailyTracking';
 import { dailyTrackingColumns } from '@/lib/columns/dailyTrackingColumns';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import DailyTrackingDataTableFilter from '../filters/DailyTrackingDataTableFilter';
 import { useAuth } from '@/hooks/useAuth';
-import { customs } from '@/lib/customs/customs';
+import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 
 export function DailyTrackingDataTable({
   filterValues,
-  dailyTrackingData,
 }: {
   filterValues: {
     kam?: string | undefined;
@@ -43,9 +40,9 @@ export function DailyTrackingDataTable({
     client?: string | undefined;
     tab?: string | undefined;
   };
-  dailyTrackingData: DailyTracking[];
 }) {
   const { user } = useAuth();
+  const { dailyTrackingData } = React.useContext(DailyTrackingContext);
   const userCasaUserName = user.complete_user.user.casa_user_name;
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
   const isTrafficAdmin = user?.complete_user?.role?.name === 'TRAFICO_ADMIN';
@@ -58,25 +55,8 @@ export function DailyTrackingDataTable({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
 
-  const mappedData = React.useMemo<DailyTrackingFormatted[]>(() => {
-    return dailyTrackingData.map(
-      (item): DailyTrackingFormatted => ({
-        ...item,
-        ENTRY_DATE_FORMATTED: item.ENTRY_DATE ? getFormattedDate(item.ENTRY_DATE) : null,
-        MODIFIED_AT_FORMATTED: item.MODIFIED_AT ? getFormattedDate(item.MODIFIED_AT) : null,
-        MSA_FORMATTED: item.MSA ? getFormattedDate(item.MSA) : null,
-        CUSTOM_FORMATTED: item.CUSTOM
-          ? customs.find((c) => c.key === item.CUSTOM)?.name ?? null
-          : null,
-        KAM_FORMATTED: item.KAM
-          ? `${item.KAM.split(' ')[0]} ${item.KAM.split(' ')[1] ?? ''}`.trim()
-          : null,
-      })
-    );
-  }, [dailyTrackingData]);
-
   const filteredData = React.useMemo(() => {
-    if (!mappedData) return [];
+    if (!dailyTrackingData) return [];
 
     const normalize = (val?: string | null) => val?.toLowerCase().trim() ?? '';
 
@@ -88,7 +68,7 @@ export function DailyTrackingDataTable({
     const phaseVal = normalize(phase);
     const clientVal = normalize(client);
 
-    return mappedData.filter((item) => {
+    return dailyTrackingData.filter((item) => {
       const itemMSA = normalize(item.MSA);
       const itemKam = normalize(item.KAM);
       const itemCustom = normalize(item.CUSTOM);
@@ -118,7 +98,14 @@ export function DailyTrackingDataTable({
 
       // must satisfy all active filters and tab rule
     });
-  }, [mappedData, filterValues, isAdmin, userCasaUserName, hasTrafficAdminPerm, isTrafficAdmin]);
+  }, [
+    dailyTrackingData,
+    filterValues,
+    isAdmin,
+    userCasaUserName,
+    hasTrafficAdminPerm,
+    isTrafficAdmin,
+  ]);
 
   // Table instance
   const table = useReactTable({

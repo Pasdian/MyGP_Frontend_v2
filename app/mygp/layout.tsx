@@ -10,7 +10,7 @@ export default function MyGPLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   return (
     <SidebarProvider
-      className="h-dvh min-h-0 overflow-hidden"
+      className="h-dvh min-h-0"
       style={
         {
           '--sidebar-width': `calc(var(--spacing) * ${pathname !== '/mygp/dea' ? 50 : 40})`,
@@ -26,7 +26,7 @@ export default function MyGPLayout({ children }: { children: React.ReactNode }) 
             <SiteHeader />
           </div>
 
-          <div className="flex-1 min-h-0 overflow-hidden p-6">{children}</div>
+          <div className="flex-1 min-h-0 overflow-y-auto p-8">{children}</div>
         </SidebarInset>
       </div>
     </SidebarProvider>

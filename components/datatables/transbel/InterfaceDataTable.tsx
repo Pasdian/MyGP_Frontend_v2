@@ -21,8 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
-import useSWR from 'swr/immutable';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
@@ -33,10 +32,9 @@ import { IconSettings, IconSquareFilled } from '@tabler/icons-react';
 import { CheckIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInterfaceColumns } from '@/lib/columns/interfaceColumns';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 
 const TAB_VALUES = ['errors', 'pending', 'sent'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -46,7 +44,8 @@ function isTabValue(v: string): v is TabValue {
 }
 
 export function InterfaceDataTable() {
-  const { initialDate, finalDate, tabValue, setTabValue } = React.useContext(InterfaceContext);
+  const { refsPendingCE, isRefsLoading, tabValue, setTabValue, setRefsPendingCE } =
+    React.useContext(InterfaceContext);
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -55,76 +54,27 @@ export function InterfaceDataTable() {
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>({});
   const interfaceColumns = useInterfaceColumns();
 
-  const pendingRefsKey =
-    initialDate && finalDate
-      ? `/api/transbel/getRefsPendingCE?initialDate=${
-          initialDate.toISOString().split('T')[0]
-        }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : '/api/transbel/getRefsPendingCE';
-
-  const { data, isLoading } = useSWR<getRefsPendingCEFormat[]>(pendingRefsKey, axiosFetcher);
-
-  const modifiedData = React.useMemo(() => {
-    if (!Array.isArray(data)) return [] as getRefsPendingCEFormat[];
-    return data.map((item) => ({
-      ...item,
-      REVALIDACION_073_FORMATTED: item.REVALIDACION_073 && getFormattedDate(item.REVALIDACION_073),
-      ULTIMO_DOCUMENTO_114_FORMATTED:
-        item.ULTIMO_DOCUMENTO_114 && getFormattedDate(item.ULTIMO_DOCUMENTO_114),
-      ENTREGA_TRANSPORTE_138_FORMATTED:
-        item.ENTREGA_TRANSPORTE_138 && getFormattedDate(item.ENTREGA_TRANSPORTE_138),
-      MSA_130_FORMATTED: item.MSA_130 && getFormattedDate(item.MSA_130),
-      ENTREGA_CDP_140_FORMATTED: item.ENTREGA_CDP_140 && getFormattedDate(item.ENTREGA_CDP_140),
-      EE: item.ETI_IMPR === 'EE' ? item.DAT_EMB : null,
-      GE: item.ETI_IMPR === 'GE' ? item.DAT_EMB : null,
-      CECO: item.ETI_IMPR === 'CECO' ? item.DAT_EMB : null,
-      CUENTA: item.ETI_IMPR === 'CUENTA' ? item.DAT_EMB : null,
-
-      workato_created_at_FORMATTED:
-        item.workato_created_at && getFormattedDate(item.workato_created_at),
-    }));
-  }, [data]);
-
   // Filtered rows based on tabs and delete EE__GE duplicates
   const filtered = React.useMemo(() => {
-    const rows = Array.isArray(modifiedData) ? modifiedData : [];
+    const rows = Array.isArray(refsPendingCE) ? refsPendingCE : [];
 
-    let subset: typeof rows;
+    let subset = rows;
     switch (tabValue) {
       case 'errors':
-        subset = rows.filter((r) => r?.has_errors === true);
+        subset = rows.filter((r) => r?.has_error === true);
         break;
       case 'pending':
-        subset = rows.filter((r) => r?.pending === true);
+        subset = rows.filter((r) => !r?.has_error && r.workato_status !== '1');
         break;
       case 'sent':
-        subset = rows.filter((r) => r?.sent === true);
+        subset = rows.filter((r) => r?.workato_status === '1' && !r?.has_error);
         break;
-      default:
-        subset = rows;
     }
 
-    // Only show unique objects on EE__GE (keep first occurrence)
-    const seen = new Set<string>();
-    return subset.filter((r) => {
-      const raw = r?.EE__GE;
-      // if EE__GE is missing/empty, keep the row (not deduped by key)
-      if (raw === null || raw === undefined) return true;
+    return subset;
+  }, [refsPendingCE, tabValue]);
 
-      const key =
-        typeof raw === 'string'
-          ? raw.trim()
-          : (raw as getRefsPendingCEFormat).toString?.() ?? String(raw);
-
-      if (key === '') return true; // keep empties as-is
-
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [modifiedData, tabValue]);
-
-  const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCEFormat>>(
+  const selectionWorkatoColumn = React.useMemo<ColumnDef<getRefsPendingCE>>(
     () => ({
       id: 'select',
       header: ({ table }) => (
@@ -137,7 +87,7 @@ export function InterfaceDataTable() {
         />
       ),
       cell: ({ row }) => {
-        const sent = row.original.was_send_to_workato;
+        const sent = row.original.workato_status == '1';
 
         return (
           <Checkbox
@@ -159,12 +109,12 @@ export function InterfaceDataTable() {
     []
   );
 
-  const baseColumns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
+  const baseColumns = React.useMemo<ColumnDef<getRefsPendingCE>[]>(() => {
     return [...interfaceColumns];
   }, [interfaceColumns]);
 
   // Conditionally add the selection column
-  const columns = React.useMemo<ColumnDef<getRefsPendingCEFormat>[]>(() => {
+  const columns = React.useMemo<ColumnDef<getRefsPendingCE>[]>(() => {
     if (tabValue === 'pending') {
       return [selectionWorkatoColumn, ...baseColumns];
     }
@@ -180,7 +130,7 @@ export function InterfaceDataTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
-    enableRowSelection: (row) => !row.original.was_send_to_workato,
+    enableRowSelection: (row) => row.original.workato_status !== '1',
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => String(row.REFERENCIA),
     // NEW: include visibility in state and handler
@@ -194,13 +144,13 @@ export function InterfaceDataTable() {
 
   // Preselect only when data changes (don’t wipe user clicks on every toggle)
   React.useEffect(() => {
-    if (!Array.isArray(modifiedData)) return;
+    if (!Array.isArray(refsPendingCE)) return;
     const initial: Record<string, boolean> = {};
-    modifiedData.forEach((r) => {
-      if (r?.was_send_to_workato) initial[String(r.REFERENCIA)] = true;
+    refsPendingCE.forEach((r) => {
+      if (r?.workato_status == '1') initial[String(r.REFERENCIA)] = true;
     });
     setRowSelection(initial);
-  }, [modifiedData]);
+  }, [refsPendingCE]);
 
   const selectedWorkatoRows = table
     .getSelectedRowModel()
@@ -209,26 +159,40 @@ export function InterfaceDataTable() {
 
   async function sendToWorkato() {
     try {
-      table.toggleAllRowsSelected(false);
+      const updatedRows = selectedWorkatoRows.map((r) => ({
+        ...r,
+        workato_status: '1',
+      }));
       const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
-        payload: selectedWorkatoRows,
+        payload: updatedRows,
       });
-      toast.success(res.data.message || 'Enviado a Workato correctamente');
-      setIsSendingToWorkato(false);
+      if (res.status === 200) {
+        // Update matching rows in refsPendingCE (keep others unchanged)
+        setRefsPendingCE((prev) =>
+          prev.map((row) => {
+            const updated = updatedRows.find((r) => r.REFERENCIA === row.REFERENCIA);
+            return updated ? updated : row;
+          })
+        );
+
+        table.toggleAllRowsSelected(false);
+        toast.success(res.data.message || 'Datos enviados correctamente');
+      } else {
+        toast.error('No se pudo enviar los datos solicitados');
+      }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message || err.message || 'Ocurrió un error';
         toast.error(message);
-        setIsSendingToWorkato(false);
       } else {
         toast.error('Ocurrió un error inesperado');
-        setIsSendingToWorkato(false);
       }
+    } finally {
       setIsSendingToWorkato(false);
     }
   }
 
-  if (isLoading) return <TailwindSpinner />;
+  if (isRefsLoading) return <TailwindSpinner />;
 
   return (
     <div>

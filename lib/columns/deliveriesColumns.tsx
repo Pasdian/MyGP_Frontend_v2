@@ -1,12 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { getDeliveriesFormat } from "@/types/transbel/getDeliveries";
+import { getDeliveries } from "@/types/transbel/getDeliveries";
 import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 
-const fuzzyFilter = createFuzzyFilter<getDeliveriesFormat>();
+const fuzzyFilter = createFuzzyFilter<getDeliveries>();
 
-export const deliveriesColumns: ColumnDef<getDeliveriesFormat>[] = [
+export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   {
     accessorKey: "ACCIONES",
     header: "Acciones",

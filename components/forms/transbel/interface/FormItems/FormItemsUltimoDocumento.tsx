@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
 
@@ -14,7 +14,6 @@ export default function FormItemsUltimoDocumento({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     },
@@ -23,12 +22,11 @@ export default function FormItemsUltimoDocumento({
       ref: string;
       phase: string;
       date: string;
-      time: string;
       exceptionCode?: string | undefined;
       user?: string | undefined;
     }
   >;
-  row: Row<getRefsPendingCEFormat>;
+  row: Row<getRefsPendingCE>;
 }) {
   return (
     <>
@@ -36,13 +34,18 @@ export default function FormItemsUltimoDocumento({
         <Label htmlFor="revalidación" className="mb-1">
           Fecha de Revalidación
         </Label>
-        <Input id="revalidación" disabled type="date" value={row.original.REVALIDACION_073 ?? ''} />
+        <Input
+          id="revalidación"
+          disabled
+          type="date"
+          value={row.original.REVALIDACION_073?.split(' ')[0] ?? ''}
+        />
       </div>
       <div>
         <Label htmlFor="MSA" className="mb-1">
           Fecha de MSA
         </Label>
-        <Input id="MSA" disabled type="date" value={row.original.MSA_130 ?? ''} />
+        <Input id="MSA" disabled type="date" value={row.original.MSA_130?.split(' ')[0] ?? ''} />
       </div>
       <div>
         <Label htmlFor="entregaTransporte" className="mb-1">
@@ -52,7 +55,7 @@ export default function FormItemsUltimoDocumento({
           id="entregaTransporte"
           disabled
           type="date"
-          value={row.original.ENTREGA_TRANSPORTE_138 ?? ''}
+          value={row.original.ENTREGA_TRANSPORTE_138?.split(' ')[0] ?? ''}
         />
       </div>
 

@@ -14,7 +14,10 @@ import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { dashboardModuleEvents } from '@/lib/posthog/events';
 import { Loader2 } from 'lucide-react';
-import { DailyTrackingFormatted } from '@/types/dashboard/tracking/dailyTracking';
+import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
+import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
+import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
+import { AxiosError } from 'axios';
 
 const posthogEvent =
   dashboardModuleEvents.find((e) => e.alias === 'DASHBOARD_MODIFY_OP')?.eventName || '';
@@ -23,12 +26,12 @@ export default function ModifyDailyTrackingStatus({
   row,
   setOpenDialog,
 }: {
-  row: Row<DailyTrackingFormatted>;
+  row: Row<DailyTracking>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { user } = useAuth();
+  const { setDailyTrackingData } = React.useContext(DailyTrackingContext);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const modifyOperationKey = `/api/daily-tracking/modify-operation-status`;
 
   const schema = z.object({
     status: z.string().min(1, 'Ingresa un estatus').max(250, 'Máximo 250 carácteres').toUpperCase(),
@@ -46,26 +49,51 @@ export default function ModifyDailyTrackingStatus({
 
   async function onSubmit(data: z.infer<typeof schema>) {
     setIsSubmitting(true);
-    await GPClient.post(modifyOperationKey, {
-      reference: row.original.NUM_REFE || '',
-      status: data.status || '',
-      changedBy: data.casaUserName,
-    })
-      .then(async (res) => {
-        if (res.status == 200) {
-          toast.success('Operación modificada correctamente');
-          posthog.capture(posthogEvent);
-          setOpenDialog((opened) => !opened);
-          setIsSubmitting(false);
-        } else {
-          toast.error('No se pudieron actualizar la operación');
-          setIsSubmitting(false);
+
+    try {
+      const res = await GPClient.patch(
+        `/api/daily-tracking/modify-operation-status/${row.original.NUM_REFE}`,
+        {
+          status: data.status || '',
+          changedBy: data.casaUserName,
         }
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-        setIsSubmitting(false);
-      });
+      );
+
+      if (res.status === 200) {
+        toast.success('Operación modificada correctamente');
+        posthog.capture(posthogEvent);
+
+        // Update the modified row in context
+        const updated = res.data?.updated ?? {};
+        const newStatus = updated.STATUS ?? data.status ?? row.original.STATUS;
+        const newModifiedAt =
+          updated.MODIFIED_AT ?? row.original.MODIFIED_AT ?? new Date().toISOString();
+
+        setDailyTrackingData((prev) =>
+          prev.map((r) =>
+            r.NUM_REFE === row.original.NUM_REFE
+              ? {
+                  ...r,
+                  STATUS: newStatus,
+                  MODIFIED_AT: newModifiedAt,
+                  MODIFIED_AT_FORMATTED: formatISOtoDDMMYYYY(newModifiedAt),
+                }
+              : r
+          )
+        );
+
+        setOpenDialog((opened) => !opened);
+      } else {
+        toast.error('No se pudieron actualizar la operación');
+      }
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>;
+      const msg =
+        error.response?.data?.message || error.message || 'Error al modificar la operación';
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

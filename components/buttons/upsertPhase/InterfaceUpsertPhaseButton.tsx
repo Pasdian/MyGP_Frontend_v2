@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { DialogTitle, DialogTrigger } from '@radix-ui/react-dialog';
 import { IconBallpenFilled } from '@tabler/icons-react';
 import InterfaceUpsertPhaseForm from '@/components/forms/transbel/interface/InterfaceUpsertPhaseForm';
@@ -18,7 +18,7 @@ function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
 }
 
-export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPendingCEFormat> }) {
+export default function InterfaceUpsertPhaseButton({ row }: { row: Row<getRefsPendingCE> }) {
   const [openDialog, setOpenDialog] = React.useState(false);
   const [tabValue, setTabValue] = React.useState<'phase' | 'folio'>('phase');
   return (

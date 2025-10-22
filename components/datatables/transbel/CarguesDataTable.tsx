@@ -31,7 +31,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { getFormattedDate } from '@/lib/utilityFunctions/getFormattedDate';
+import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import { getCarguesFormat } from '@/types/transbel/getCargues';
 import { useCarguesColumns } from '@/lib/columns/carguesColumns';
 import { CargueContext } from '@/contexts/CargueContext';
@@ -55,8 +55,8 @@ export function CarguesDataTable() {
     return data.map((item) => ({
       ...item,
       id: uuidv4(),
-      FEC_PAGO_FORMATTED: item.FEC_PAGO && getFormattedDate(item.FEC_PAGO),
-      FEC_ENVIO_FORMATTED: item.FEC_ENVIO && getFormattedDate(item.FEC_ENVIO),
+      FEC_PAGO_FORMATTED: item.FEC_PAGO && formatISOtoDDMMYYYY(item.FEC_PAGO),
+      FEC_ENVIO_FORMATTED: item.FEC_ENVIO && formatISOtoDDMMYYYY(item.FEC_ENVIO),
       NUM_TRAFICO: item.EE || item.GE || item.CECO,
     }));
   }, [data]);

@@ -1,13 +1,16 @@
 'use client';
 
 import { SWRConfig } from 'swr';
+import type { ReactNode } from 'react';
 
-export default function SWRProvider({ children }: { children: React.ReactNode }) {
+export default function SWRProvider({ children }: { children: ReactNode }) {
   return (
     <SWRConfig
       value={{
-        fetcher: (url) => fetch(url).then((res) => res.json()),
-        refreshInterval: 5000, // every 5 seconds
+        refreshInterval: 300000, // 5 minutes in milliseconds
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        shouldRetryOnError: true,
       }}
     >
       {children}

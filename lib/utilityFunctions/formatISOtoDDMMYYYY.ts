@@ -1,5 +1,5 @@
 // This function only receives dates with ISO Format
-export const getFormattedDate = (d: string): string => {
+export const formatISOtoDDMMYYYY = (d: string): string => {
   const date = d.split("T")[0];
   const splittedDate = date.split("-");
 

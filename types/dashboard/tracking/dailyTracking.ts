@@ -12,9 +12,6 @@ export type DailyTracking = {
   MODIFIED_AT: string | null;
   CASA_ID: string | null;
   MSA: string | null;
-};
-
-export type DailyTrackingFormatted = DailyTracking & {
   ENTRY_DATE_FORMATTED: string | null;
   MODIFIED_AT_FORMATTED: string | null;
   CUSTOM_FORMATTED: string | null;

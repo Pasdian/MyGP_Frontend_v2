@@ -1,11 +1,11 @@
 import { Input } from '@/components/ui/input';
-import { getRefsPendingCEFormat } from '@/types/transbel/getRefsPendingCE';
+import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Column } from '@tanstack/react-table';
 
 export default function IntefaceDataTableFilter({
   column,
 }: {
-  column: Column<getRefsPendingCEFormat, unknown>;
+  column: Column<getRefsPendingCE, unknown>;
 }) {
   const columnFilterValue = column.getFilterValue();
 

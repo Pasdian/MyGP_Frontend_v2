@@ -2,7 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import React from "react";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import { DailyTrackingFormatted } from "@/types/dashboard/tracking/dailyTracking";
+import { DailyTracking } from "@/types/dashboard/tracking/dailyTracking";
 import DailyTrackingModifyStatusBtn from "@/components/buttons/dashboard/DailyTrackingModifyStatusBtn";
 import {
   Popover,
@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
 
-const fuzzyFilter = createFuzzyFilter<DailyTrackingFormatted>();
+const fuzzyFilter = createFuzzyFilter<DailyTracking>();
 
-export const dailyTrackingColumns: ColumnDef<DailyTrackingFormatted>[] = [
+export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
   {
     accessorKey: "ACCIONES",
     header: "Acciones",
