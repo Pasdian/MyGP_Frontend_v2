@@ -72,7 +72,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                     REFERENCIA: item.REFERENCIA,
                     EE__GE: item.EE__GE,
                     GUIA_HOUSE: '',
-                    ENTREGA_TRANSPORTE_138: item.ENTREGA_TRANSPORTE_138,
+                    ENTREGA_TRANSPORTE_138: item.ENTREGA_TRANSPORTE_138_FORMATTED,
                     CE_138: item.CE_138,
                     ENTREGA_CDP_140: FEC_ETAP,
                     CE_140: item.CE_140,
