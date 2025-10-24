@@ -32,6 +32,7 @@ import { Label } from '@/components/ui/label';
 import { Role } from '@/types/permissions/role';
 import { getAllRoles } from '@/types/roles/getAllRoles';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 type getRoleModulesAndPermissions = Role[] | null;
 const roleModulesPermissionsKey = '/api/role-modules/getRoleModulesAndPermissions';
@@ -235,12 +236,12 @@ export default function Permissions() {
           </div>
         ))}
 
-        <Button
+        <MyGPButtonPrimary
           onClick={handleSave}
           className="fixed text-md bg-blue-600 hover:bg-blue-700 cursor-pointer bottom-5 right-13"
         >
           Guardar cambios
-        </Button>
+        </MyGPButtonPrimary>
       </div>
     </AccessGuard>
   );
@@ -310,10 +311,10 @@ function AddPermissionDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-blue-500 hover:bg-blue-600 mb-4 cursor-pointer">
+        <MyGPButtonPrimary className="bg-blue-500 hover:bg-blue-600 mb-4 cursor-pointer">
           <IconPlus className="mr-2 h-4 w-4" />
           Añadir Permiso
-        </Button>
+        </MyGPButtonPrimary>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-md max-h-[800px] overflow-y-auto">
@@ -386,13 +387,13 @@ function AddPermissionDialog() {
                   </div>
                 </div>
                 <div>
-                  <Button
+                  <MyGPButtonPrimary
                     type="button"
                     className="h-full bg-red-500 hover:bg-red-600 cursor-pointer"
                     onClick={() => removePermission(perm.id)}
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </MyGPButtonPrimary>
                 </div>
               </div>
             ))}
@@ -400,25 +401,25 @@ function AddPermissionDialog() {
         )}
 
         {selectValue && (
-          <Button
+          <MyGPButtonPrimary
             type="button"
             className="h-full bg-blue-500 hover:bg-blue-600 cursor-pointer mt-2"
             onClick={addPermission}
           >
             <IconPlus />
             <span className="ml-2">Añadir permiso</span>
-          </Button>
+          </MyGPButtonPrimary>
         )}
 
         <DialogFooter>
-          <Button
+          <MyGPButtonPrimary
             type="button"
             className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
             onClick={handleSave}
             disabled={!selectValue || permissions.every((perm) => !perm.action.trim())}
           >
             Guardar
-          </Button>
+          </MyGPButtonPrimary>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -19,6 +19,7 @@ import React from 'react';
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import AddUserButton from '@/components/buttons/admin-panel/users/AddUserButton';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 function UserActionsDropdown({ row }: { row: Row<getAllUsers> }) {
   const [isModifyUserDialogOpen, setIsModifyUserDialogOpen] = React.useState(false);
@@ -28,10 +29,10 @@ function UserActionsDropdown({ row }: { row: Row<getAllUsers> }) {
     <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <MyGPButtonPrimary className="h-8 w-8 p-0">
             <span className="sr-only">Abrir Menú</span>
             <MoreHorizontal />
-          </Button>
+          </MyGPButtonPrimary>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>

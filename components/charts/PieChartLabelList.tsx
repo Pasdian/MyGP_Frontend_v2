@@ -15,11 +15,12 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import useSWR from 'swr';
 import React from 'react';
-import ClientsCombo from '../comboboxes/ClientsCombo';
 import { getOperationsDistributionByCustomsDeepCopy } from '@/types/bi/getOperationsDistributionByCustoms';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import { customs } from '@/lib/customs/customs';
-import MyGPDatePicker from '../datepickers/MyGPDatePicker';
+import MyGPDatePicker from '../MyGPUI/Datepickers/MyGPDatePicker';
+import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
+import { useCompanies } from '@/hooks/useCompanies';
 
 export const COLORS_6 = ['#0B2B66', '#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#8FB2FF'];
 
@@ -37,10 +38,13 @@ export default function PieChartLabelList() {
     new Date(new Date().setMonth(new Date().getMonth() - 1))
   );
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(new Date());
-  const [clientName, setClientName] = React.useState('TRANSBEL SA DE CV - Nuevo');
   const [clientNumber, setClientNumber] = React.useState('005009'); // Transbel Nuevo
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
-
+  const { rows: companies } = useCompanies();
+  const companyOptions = React.useMemo(
+    () => companies.map((c) => ({ value: c.CVE_IMP, label: c.NOM_IMP })),
+    [companies]
+  );
   const { data: chartData } = useSWR(
     initialDate && finalDate
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
@@ -100,23 +104,25 @@ export default function PieChartLabelList() {
           <MyGPDatePicker date={finalDate} setDate={setFinalDate} label="Fecha de Termino" />
         </div>
         <div>
-          <ClientsCombo
-            clientName={clientName}
-            setClientName={setClientName}
-            setClientNumber={setClientNumber}
-            onSelect={() => {}}
+          <MyGPCombo
+            value={clientNumber}
+            setValue={setClientNumber}
+            label="Cliente"
+            options={companyOptions}
+            placeholder="Selecciona un cliente"
+            showValue
           />
         </div>
       </div>
       <Card className="flex flex-col flex-1">
         <CardHeader className="items-center pb-0">
           <CardTitle>
-            {initialDate && finalDate && clientName
-              ? `Operaciones por Aduana - ${clientName}`
+            {initialDate && finalDate
+              ? `Operaciones por Aduana - ${clientNumber}`
               : 'Para visualizar, selecciona los campos correspondientes'}
           </CardTitle>
           <CardDescription>
-            {initialDate && finalDate && clientName
+            {initialDate && finalDate
               ? `${formatISOtoDDMMYYYY(initialDate.toISOString())} - ${formatISOtoDDMMYYYY(
                   finalDate.toISOString().split('T')[0]
                 )}`
@@ -146,7 +152,7 @@ export default function PieChartLabelList() {
             </PieChart>
           </ChartContainer>
         </CardContent>
-        {initialDate && finalDate && clientName && maxOperationValue !== 0 && (
+        {initialDate && finalDate && maxOperationValue !== 0 && (
           <CardFooter className="flex-col gap-2 text-sm">
             <div className="flex items-center gap-2 leading-none font-medium">
               {`El máximo número de operaciones fue ${maxOperationValue}`}

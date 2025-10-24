@@ -1,21 +1,16 @@
 import useSWR from 'swr';
-import type { SWRResponse } from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-
-type FolderFilesMap = Record<string, string[]>;
-
-interface UseFilesByRefReturn {
-  refs: FolderFilesMap;
-  isLoading: boolean;
-  error: any;
-}
+import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useEffect } from 'react';
+import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 
 export default function useFilesByRef(
   reference: string | null,
   client: string | null,
   opts?: { token?: string }
-): UseFilesByRefReturn {
-  // build key only when both params exist
+) {
+  const { setFilesByReference } = useDEAStore((state) => state);
+
   const key =
     reference && client
       ? `/dea/getFilesByReference?reference=${reference}&client=${client}${
@@ -23,15 +18,16 @@ export default function useFilesByRef(
         }`
       : null;
 
-  // SWR handles caching + revalidation
-  const { data, error, isLoading } = useSWR<{ files: FolderFilesMap }>(key, axiosFetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 10000, // 10s cache window in browser
-  });
+  const { data, error, isLoading } = useSWR<getFilesByReference>(key, axiosFetcher);
+  // Store files in global state when data changes
+  useEffect(() => {
+    if (data?.files) {
+      setFilesByReference(data);
+    }
+  }, [data, setFilesByReference]);
 
   return {
-    refs: data?.files ?? {},
+    refs: data?.files,
     isLoading,
     error,
   };

@@ -2,7 +2,6 @@
 
 import AdminCrud from '@/components/AdminCrud/AdminCrud';
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +17,15 @@ import { getAllModules } from '@/types/getAllModules/getAllModules';
 import AddModuleButton from '@/components/buttons/admin-panel/modules/AddModuleButton';
 import ModifyModuleButton from '@/components/buttons/admin-panel/modules/ModifyModuleButton';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 function ModulesActions({ row }: { row: Row<getAllModules> }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
+        <MyGPButtonPrimary className="h-8 w-8 p-0">
           <MoreHorizontal />
-        </Button>
+        </MyGPButtonPrimary>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Acciones</DropdownMenuLabel>

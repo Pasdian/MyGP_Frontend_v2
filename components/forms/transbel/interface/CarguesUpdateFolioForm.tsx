@@ -11,15 +11,27 @@ import { Form } from '@/components/ui/form';
 import { Row } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
-import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
+import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
 import useSWR from 'swr/immutable';
-import { getCarguesFormat } from '@/types/transbel/getCargues';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { IconSettings } from '@tabler/icons-react';
 import { Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { getCargues } from '@/types/transbel/getCargues';
+import useCargues from '@/hooks/useCargues';
+import { CarguesContext } from '@/contexts/CarguesContext';
 
+// onSubmit (updates only selected field from API response)
+type PatchResp = {
+  message: string;
+  data: {
+    NUM_REFE: string;
+    CVE_DAT: 1 | 2 | 3;
+    ETI_IMPR: 'EE' | 'GE' | 'CECO' | 'CUENTA';
+    DAT_EMB: string;
+  };
+};
 const comboOptions = [
   { label: 'Importación', value: 'IMPO' },
   { label: 'Exportación', value: 'EXPO' },
@@ -30,9 +42,10 @@ export default function CarguesUpdateFolioForm({
   row,
   setOpenDialog,
 }: {
-  row: Row<getCarguesFormat>;
+  row: Row<getCargues>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { cargues, setCargues } = React.useContext(CarguesContext);
   const [comboValue, setComboValue] = React.useState('');
   const [isSending, setIsSending] = React.useState(false);
   const folioKey =
@@ -91,12 +104,12 @@ export default function CarguesUpdateFolioForm({
 
   async function onSubmit(data: z.infer<typeof schema>) {
     setIsSending(true);
+
     const CVE_DAT =
-      comboValue == 'IMPO' ? 1 : comboValue == 'EXPO' ? 2 : comboValue == 'CECO' ? 3 : -1;
+      comboValue === 'IMPO' ? 1 : comboValue === 'EXPO' ? 2 : comboValue === 'CECO' ? 3 : -1;
 
     try {
-      const res = await GPClient.post('/api/transbel/datosEmbarque', {
-        NUM_REFE: data.reference,
+      const res = await GPClient.patch(`/api/transbel/datosEmbarque/${data.reference}`, {
         CVE_DAT,
         EE_DATEMB: data.EE,
         GE_DATEMB: data.GE,
@@ -104,21 +117,32 @@ export default function CarguesUpdateFolioForm({
         CUENTA_DATEMB: data.CUENTA,
       });
 
-      if (res.status == 200) {
+      if (res.status === 200) {
+        const { data: payload } = res.data as PatchResp;
+        // Debug info
+        const field = payload.ETI_IMPR as 'EE' | 'GE' | 'CECO' | 'CUENTA';
+        const value = String(payload.DAT_EMB ?? '').trim();
+
+        setCargues((prev) =>
+          prev.map((r) =>
+            r.NUM_REFE === payload.NUM_REFE
+              ? ({ ...r, [field]: value, NUM_TRAFICO: value } as getCargues)
+              : r
+          )
+        );
+
         toast.success('Datos modificados correctamente');
-        setOpenDialog((opened) => !opened);
-        setIsSending(false);
+        setOpenDialog((o) => !o);
       } else {
         toast.error('No se pudieron actualizar tus datos');
-        setIsSending(false);
       }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message ?? 'Error al actualizar');
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error(err.response?.data?.message ?? 'Error al actualizar');
       } else {
         toast.error('Error desconocido al actualizar');
       }
-
+    } finally {
       setIsSending(false);
     }
   }

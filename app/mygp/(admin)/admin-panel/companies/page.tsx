@@ -6,7 +6,6 @@ import ModifyCompanyButton from '@/components/buttons/admin-panel/companies/Modi
 import { getAllCompaniesColumns } from '@/lib/columns/getAllCompaniesColumns';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +17,15 @@ import {
 import { MoreHorizontal } from 'lucide-react';
 import { Row } from '@tanstack/react-table';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 function CompanyActions({ row }: { row: Row<getAllCompanies> }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
+        <MyGPButtonPrimary className="h-8 w-8 p-0">
           <MoreHorizontal />
-        </Button>
+        </MyGPButtonPrimary>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Acciones</DropdownMenuLabel>

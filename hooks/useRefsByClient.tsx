@@ -24,7 +24,7 @@ export function useRefsByClient(client: string | null, initialDate?: Date, final
       }).toString()
     : '';
 
-  // ✅ useSWR is *always called* — same order every render
+  // useSWR is *always called* — same order every render
   const key = hasParams ? `/dea/getRefsByClient?${params}` : null;
 
   const { data, error, isLoading, mutate } = useSWR<{ refs: RefRecord[] }>(key, axiosFetcher);

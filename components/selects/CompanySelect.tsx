@@ -3,7 +3,6 @@ import React, { useMemo, useState } from 'react';
 import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
-import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandInput,
@@ -12,6 +11,7 @@ import {
   CommandItem,
   CommandEmpty,
 } from '@/components/ui/command';
+import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 
 export default function CompanySelect({
   value,
@@ -61,14 +61,10 @@ export default function CompanySelect({
   return (
     <div>
       <div className="flex items-center gap-2 flex-wrap mb-2">
-        <Button type="button" onClick={() => setOpen((o) => !o)} className="border p-2 rounded">
+        <MyGPButtonPrimary onClick={() => setOpen((o) => !o)} className="border p-2 rounded">
           Seleccionar compañías ({value.length} seleccionada{value.length === 1 ? '' : 's'})
-        </Button>
-        {value.length > 0 && (
-          <Button type="button" variant="secondary" onClick={clearAll}>
-            Limpiar
-          </Button>
-        )}
+        </MyGPButtonPrimary>
+        {value.length > 0 && <MyGPButtonPrimary onClick={clearAll}>Limpiar</MyGPButtonPrimary>}
       </div>
 
       {selected.length > 0 && (

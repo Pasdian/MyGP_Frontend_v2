@@ -12,7 +12,7 @@ import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
-import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
+import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
 import useSWR from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';

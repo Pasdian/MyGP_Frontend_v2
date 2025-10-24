@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { deaModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import AccessGuard from '../AccessGuard/AccessGuard';
+import { FolderKey } from '@/types/dea/getFilesByReferences';
 
 const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
@@ -28,7 +29,7 @@ export default function DocumentCard({
   activeFile: string;
   className?: string;
   filterFn?: (item: string) => boolean;
-  folder: string;
+  folder: FolderKey;
 }) {
   const { reference, clientNumber: client } = useDEAStore((state) => state);
 

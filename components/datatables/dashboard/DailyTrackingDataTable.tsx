@@ -73,7 +73,7 @@ export function DailyTrackingDataTable({
       const itemKam = normalize(item.KAM);
       const itemCustom = normalize(item.CUSTOM);
       const itemPhase = normalize(item.CURRENT_PHASE_CODE);
-      const itemClient = normalize(item.CLIENT_NAME);
+      const itemCveImpo = normalize(item.CVE_IMPO);
 
       // tab logic
       let matchMSA = true;
@@ -87,7 +87,7 @@ export function DailyTrackingDataTable({
       const matchKam = !kamVal || itemKam === kamVal;
       const matchCustom = !customVal || itemCustom === customVal;
       const matchPhase = !phaseVal || itemPhase === phaseVal;
-      const matchClient = !clientVal || itemClient === clientVal;
+      const matchClient = !clientVal || itemCveImpo === clientVal;
       const matchCasaId = item.CASA_ID == userCasaUserName;
 
       if (isAdmin || isTrafficAdmin || hasTrafficAdminPerm) {
@@ -177,8 +177,7 @@ export function DailyTrackingDataTable({
       <div className="flex space-x-1 mb-4">
         {filteredData.length > 0 && (
           <Button
-            variant="outline"
-            className="bg-green-500 hover:bg-green-600 hover:text-white cursor-pointer text-white w-[200px]"
+            className="bg-green-500 hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
             onClick={() => convertToCsv()}
           >
             <div>

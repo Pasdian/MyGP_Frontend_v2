@@ -6,50 +6,41 @@ import React from 'react';
 import DocumentCard from '@/components/Cards/DocumentCard';
 import { ExternalLink, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import UploadSingleFile from '@/components/UploadSingleFile/UploadSingleFile';
 import Image from 'next/image';
 import { WindowManagerProvider } from '@/app/providers/WIndowManagerProvider';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import useDEATourOnce, { buildDEAExternalLinkTour } from '@/hooks/useDEATour';
-import { useStreamedFileBlob } from '@/hooks/useStreamBlob';
 import { FloatingWindowsPortal } from '@/components/portals/FloatingWindowsPortal';
 import { useFloatingWindows } from '@/hooks/useFloatingWindows';
 import useFilesByRef from '@/hooks/useFilesByRef';
+import { useClientLogo } from '@/hooks/useClientLogo';
+import { useClientFile } from '@/hooks/useClientFile';
+import UploadFile from '@/components/UploadFiles/UploadFile';
 
 export default function DEA() {
   const { user } = useAuth();
-  const { clientNumber: client, reference } = useDEAStore((state) => state);
+  const { clientNumber: client, reference, filesByReference } = useDEAStore((state) => state);
   const [subfolder, setSubfolder] = React.useState('');
   const [filename, setFilename] = React.useState('');
 
   // Get files by reference stream
-  const { refs } = useFilesByRef(reference, client);
+  useFilesByRef(reference, client);
 
-  const CTA = refs['01-CTA-GASTOS'] ?? [];
-  const ExpAduanal = refs['02-EXPEDIENTE-ADUANAL'] ?? [];
-  const Fiscales = refs['03-FISCALES'] ?? [];
-  const VUCEM = refs['04-VUCEM'] ?? [];
-  const ExpDigital = refs['05-EXP-DIGITAL'] ?? [];
+  const CTA = filesByReference.files?.['01-CTA-GASTOS'] ?? [];
+  const ExpAduanal = filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
+  const Fiscales = filesByReference?.files?.['03-FISCALES'] ?? [];
+  const VUCEM = filesByReference?.files?.['04-VUCEM'] ?? [];
+  const ExpDigital = filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
 
   // Get cliet logo stream
-  const logoKey = React.useMemo(() => {
-    if (!client) return null;
-    return `/dea/getFileContent?source=/GESTION/${client}/logo.png`;
-  }, [client]);
-  const { blobUrl: logoSrc, isLoading: isLogoSrcLoading } = useStreamedFileBlob(logoKey);
-
-  // Get any blob stream (pdf, xml, etc)
-  const filenameBlobKey = React.useMemo(() => {
-    if (!client || !reference || !subfolder || !filename) return null;
-    return `/dea/getFileContent?source=/GESTION/${client}/${reference}/${subfolder}/${filename}`;
-  }, [client, reference, subfolder, filename]);
+  const { logoUrl, isLoading: isLogoUrlLoading } = useClientLogo(client);
 
   // Visualizer effect and contents
-  const { blobUrl, contentType } = useStreamedFileBlob(filenameBlobKey);
+  const { fileUrl, contentType } = useClientFile(client, reference, subfolder, filename);
   const [textContent, setTextContent] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (!blobUrl || !contentType) return;
+    if (!fileUrl || !contentType) return;
 
     // PDF? Don't read as text.
     if (contentType.includes('pdf')) {
@@ -60,7 +51,7 @@ export default function DEA() {
     // Everything else → try to read as text
     (async () => {
       try {
-        const res = await fetch(blobUrl);
+        const res = await fetch(fileUrl);
         const text = await res.text();
         setTextContent(text);
       } catch (err) {
@@ -68,7 +59,7 @@ export default function DEA() {
         setTextContent('⚠️ Error reading file contents');
       }
     })();
-  }, [blobUrl, contentType]);
+  }, [fileUrl, contentType]);
 
   // Windows hook
   const { windows, spawnWindow, closeWindow, toggleMinimize, updateGeometry, bringToFront } =
@@ -234,8 +225,8 @@ export default function DEA() {
                             aria-label="Abrir en ventana separada"
                             className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
                             onClick={() => {
-                              if (blobUrl && contentType)
-                                spawnWindow(filename, blobUrl, contentType);
+                              if (fileUrl && contentType)
+                                spawnWindow(filename, fileUrl, contentType);
                             }}
                           >
                             <ExternalLink size={16} className="cursor-pointer" />
@@ -245,7 +236,7 @@ export default function DEA() {
                     </div>
                     <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
                       {contentType?.includes('pdf') ? (
-                        <iframe src={blobUrl!} className="w-full h-full" />
+                        <iframe src={fileUrl!} className="w-full h-full" />
                       ) : (
                         textContent && (
                           <pre
@@ -282,30 +273,50 @@ export default function DEA() {
           )}
 
           <div className="flex w-full h-full items-center justify-center">
-            {isLogoSrcLoading ? null : logoSrc ? (
-              <div className="relative max-w-[600px]">
-                <Image
-                  src={logoSrc}
-                  alt="client_logo"
-                  width={500}
-                  height={600}
-                  className="w-full h-auto object-contain"
-                />
-              </div>
-            ) : (
-              <div className="h-full overflow-auto p-4 w-full">
-                <p className="mb-4 text-sm font-bold text-gray-700">
-                  La compañía no tiene un logo registrado, da click o arrastra el archivo en la zona
-                  de abajo para subirlo
-                </p>
-                <UploadSingleFile
-                  url={`/dea/uploadLogo?destination=/GESTION/${client}/${reference}`}
-                />
-              </div>
-            )}
+            <ClientLogoSection client={client} />
           </div>
         </div>
       </AccessGuard>
     </WindowManagerProvider>
+  );
+}
+
+export function ClientLogoSection({ client }: { client: string }) {
+  const [version, setVersion] = React.useState(0);
+  const { logoUrl, isLoading: isLogoUrlLoading } = useClientLogo(client, version);
+
+  const handleUploaded = React.useCallback(() => {
+    // bump version to force a refetch and bypass caches
+    setVersion((v) => v + 1);
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      {isLogoUrlLoading ? (
+        <div className="text-sm text-gray-500 text-center">Cargando logo...</div>
+      ) : logoUrl ? (
+        <div className="flex justify-center">
+          <div className="relative bg-white border border-gray-200 rounded-lg shadow-sm p-4 max-w-[500px] w-full">
+            <div className="flex justify-center items-center max-h-[300px] overflow-hidden">
+              <Image
+                src={logoUrl}
+                alt="Logo del cliente"
+                width={400}
+                height={400}
+                className="object-contain w-auto h-auto max-h-[280px] transition-transform duration-200 hover:scale-105"
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="text-sm text-gray-400 text-center">Sin logo disponible</div>
+      )}
+
+      {!logoUrl && (
+        <div className="flex justify-center">
+          <UploadFile to={`/GESTION/${client}`} url="/dea/uploadLogo" onUploaded={handleUploaded} />
+        </div>
+      )}
+    </div>
   );
 }

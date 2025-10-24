@@ -3,18 +3,18 @@ import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import { getCarguesFormat } from "@/types/transbel/getCargues";
-import { CargueContext } from "@/contexts/CargueContext";
 import CarguesUpdateFolioBtn from "@/components/buttons/cargues/CarguesUpdateFolioBtn";
+import { getCargues } from "@/types/transbel/getCargues";
+import { CarguesContext } from "@/contexts/CarguesContext";
 
-const fuzzyFilter = createFuzzyFilter<getCarguesFormat>();
+const fuzzyFilter = createFuzzyFilter<getCargues>();
 type TabValue = "errors" | "pending" | "sent";
 
-export const useCarguesColumns = (): ColumnDef<getCarguesFormat>[] => {
-  const { tabValue } = React.useContext(CargueContext) as {
+export const useCarguesColumns = (): ColumnDef<getCargues>[] => {
+  const { tabValue } = React.useContext(CarguesContext) as {
     tabValue: TabValue;
   };
-  const baseCols = React.useMemo<ColumnDef<getCarguesFormat>[]>(
+  const baseCols = React.useMemo<ColumnDef<getCargues>[]>(
     () => [
       {
         accessorKey: "NUM_REFE",
@@ -109,7 +109,7 @@ export const useCarguesColumns = (): ColumnDef<getCarguesFormat>[] => {
     []
   );
 
-  const accionesCol: ColumnDef<getCarguesFormat> = React.useMemo(
+  const accionesCol: ColumnDef<getCargues> = React.useMemo(
     () => ({
       id: "ACCIONES",
       header: "Acciones",

@@ -19,6 +19,8 @@ import TailwindSpinner from '../ui/TailwindSpinner';
 import ImageDialog from './ImageDialog';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { IconEye } from '@tabler/icons-react';
+import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
+import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
 
 /** Map reference -> centralizada folder code */
 function getCurrentFolderFromReference(reference?: string) {
@@ -131,55 +133,53 @@ export default function PreviosDialog() {
 
   if (!hasAnyData)
     return (
-      <Button
+      <MyGPButtonPrimary
         disabled
         className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs cursor-pointer disabled:opacity-60"
       >
         No existen previos
-      </Button>
+      </MyGPButtonPrimary>
     );
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs cursor-pointer disabled:opacity-60"
+      <MyGPDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`Previos${reference ? ` - ${reference}` : ''}`}
+        description={`Aquí se listan los previos y las partidas de la referencia ${
+          reference ?? '—'
+        }`}
+        // keep your height & scroll behavior
+        trigger={
+          <MyGPButtonPrimary
+            className="h-7 text-xs font-bold"
             disabled={disabled}
             title={disabled ? 'Selecciona aduana y referencia' : 'Ver previos'}
           >
             <IconEye />
-            Ver Previos
-          </Button>
-        </DialogTrigger>
+            <span className="ml-1">Ver Previos</span>
+          </MyGPButtonPrimary>
+        }
+      >
+        <div>
+          {isPartidasPreviosLoading && <TailwindSpinner className="w-10 h-10" />}
 
-        <DialogContent className="max-h-[600px] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Previos {reference ? `- ${reference}` : ''}</DialogTitle>
-            <DialogDescription>
-              Aquí se listan los previos y las partidas de la referencia {reference ?? '—'}
-            </DialogDescription>
-          </DialogHeader>
+          {partidasPreviosError && (
+            <p className="text-sm ml-3 text-red-600">No se pudieron cargar los previos.</p>
+          )}
 
-          <div>
-            {isPartidasPreviosLoading && <TailwindSpinner className="w-10 h-10" />}
+          {!isPartidasPreviosLoading && !partidasPreviosError && !partidasPrevios && (
+            <p className="text-sm ml-3">No existen previos.</p>
+          )}
 
-            {partidasPreviosError && (
-              <p className="text-sm ml-3 text-red-600">No se pudieron cargar los previos.</p>
-            )}
+          {showNoPreviosInDialog && <p className="text-sm ml-3">No se encontraron datos.</p>}
 
-            {!isPartidasPreviosLoading && !partidasPreviosError && !partidasPrevios && (
-              <p className="text-sm ml-3">No existen previos.</p>
-            )}
-
-            {showNoPreviosInDialog && <p className="text-sm ml-3">No se encontraron datos.</p>}
-
-            {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && custom && (
-              <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={treeData} />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+          {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && custom && (
+            <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={treeData} />
+          )}
+        </div>
+      </MyGPDialog>
 
       {/* Image dialog */}
       {openImageDialog &&

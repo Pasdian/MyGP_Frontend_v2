@@ -35,6 +35,7 @@ import axios from 'axios';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInterfaceColumns } from '@/lib/columns/interfaceColumns';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
+import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 
 const TAB_VALUES = ['errors', 'pending', 'sent'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -198,17 +199,17 @@ export function InterfaceDataTable() {
     <div>
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
-          <Tabs
+          <MyGPTabs
             value={tabValue}
-            onValueChange={(v) => isTabValue(v) && setTabValue && setTabValue(v)}
+            onValueChange={(v) => isTabValue(v) && setTabValue?.(v)}
+            defaultValue="errors"
             className="mr-2"
-          >
-            <TabsList>
-              <TabsTrigger value="errors">Con Error</TabsTrigger>
-              <TabsTrigger value="pending">Pendientes de Envio</TabsTrigger>
-              <TabsTrigger value="sent">Enviados</TabsTrigger>
-            </TabsList>
-          </Tabs>
+            tabs={[
+              { value: 'errors', label: 'Con Error' },
+              { value: 'pending', label: 'Pendientes de Envio' },
+              { value: 'sent', label: 'Enviados' },
+            ]}
+          />
           {tabValue == 'pending' && (
             <div>
               <Button

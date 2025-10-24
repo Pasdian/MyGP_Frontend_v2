@@ -20,8 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
-import useSWR from 'swr/immutable';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
@@ -30,18 +29,11 @@ import { IconSettings } from '@tabler/icons-react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
-import { getCarguesFormat } from '@/types/transbel/getCargues';
 import { useCarguesColumns } from '@/lib/columns/carguesColumns';
-import { CargueContext } from '@/contexts/CargueContext';
+import { CarguesContext } from '@/contexts/CarguesContext';
 
 export function CarguesDataTable() {
-  const carguesKey = '/api/transbel/getCargues';
-  const { tabValue } = React.useContext(CargueContext);
-
-  const { data, isLoading } = useSWR<getCarguesFormat[]>(carguesKey, axiosFetcher);
-
+  const { cargues, tabValue, isLoading: isCarguesLoading } = React.useContext(CarguesContext);
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -50,19 +42,9 @@ export function CarguesDataTable() {
 
   const carguesColumns = useCarguesColumns();
   // Ensure each row has a stable id and USE it in the table
-  const modifiedData = React.useMemo(() => {
-    if (!Array.isArray(data)) return [] as (getCarguesFormat & { id: string })[];
-    return data.map((item) => ({
-      ...item,
-      id: uuidv4(),
-      FEC_PAGO_FORMATTED: item.FEC_PAGO && formatISOtoDDMMYYYY(item.FEC_PAGO),
-      FEC_ENVIO_FORMATTED: item.FEC_ENVIO && formatISOtoDDMMYYYY(item.FEC_ENVIO),
-      NUM_TRAFICO: item.EE || item.GE || item.CECO,
-    }));
-  }, [data]);
 
   const filtered = React.useMemo(() => {
-    const rows = Array.isArray(modifiedData) ? modifiedData : [];
+    const rows = Array.isArray(cargues) ? cargues : [];
 
     switch (tabValue) {
       case 'paid':
@@ -75,7 +57,7 @@ export function CarguesDataTable() {
       default:
         return rows;
     }
-  }, [modifiedData, tabValue]);
+  }, [cargues, tabValue]);
 
   // Table instance
   const table = useReactTable({
@@ -118,7 +100,7 @@ export function CarguesDataTable() {
     }
   }
 
-  if (isLoading) return <TailwindSpinner />;
+  if (isCarguesLoading) return <TailwindSpinner />;
 
   return (
     <div>

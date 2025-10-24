@@ -21,6 +21,9 @@ import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
 import { useOperationHistory } from '@/hooks/useOperationHistory';
 import { OperationHistory } from '@/types/dashboard/tracking/operationHistory';
 import { v4 as uuidv4 } from 'uuid';
+import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
+import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
+import { MyGPButtonWarning } from '@/components/MyGPUI/Buttons/MyGPButtonWarning';
 
 const TAB_VALUES = ['history', 'modify_status'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -37,49 +40,49 @@ export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTr
   ); // Fetch only when isOpen
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="cursor-pointer bg-yellow-400 hover:bg-yellow-500">
+    <MyGPDialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      title={
+        tabValue === 'history'
+          ? `Historial - ${row.original.NUM_REFE}`
+          : `Editar Estatus - ${row.original.NUM_REFE}`
+      }
+      description={
+        tabValue === 'history'
+          ? 'Aquí se visualiza el historial de la referencia'
+          : 'Aquí podrás realizar la modificación de un estatus. Haz click en guardar cuando termines de editar los campos.'
+      }
+      trigger={
+        <MyGPButtonWarning>
           <IconBallpenFilled />
           Modificar
-        </Button>
-      </DialogTrigger>
+        </MyGPButtonWarning>
+      }
+    >
+      <MyGPTabs
+        defaultValue="all"
+        tabs={[
+          { value: 'modify_status', label: 'Modificar Estatus' },
+          { value: 'history', label: 'Historial' },
+        ]}
+        value={tabValue}
+        onValueChange={(v) => isTabValue(v) && setTabValue(v)}
+        className="mb-4"
+      />
 
-      <DialogContent className="md:max-w-[900px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {tabValue == 'history'
-              ? `Historial - ${row.original.NUM_REFE}`
-              : `Editar Estatus - ${row.original.NUM_REFE}`}
-          </DialogTitle>
-          <DialogDescription>
-            {tabValue == 'history'
-              ? 'Aquí se visualiza el historial de la referencia'
-              : 'Aquí podrás realizar la modificación de un estatus. Haz click en guardar cuando termines de editar los campos.'}
-          </DialogDescription>
-        </DialogHeader>
-        <Tabs
-          value={tabValue}
-          onValueChange={(v) => isTabValue(v) && setTabValue(v)}
-          className="mr-2"
-        >
-          <TabsList>
-            <TabsTrigger value="modify_status">Modificar Estatus</TabsTrigger>
-            <TabsTrigger value="history">Historial</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="h-full overflow-y-scroll">
-          {isOpen && history && tabValue === 'history' && !isHistoryLoading && (
-            <OperationHistoryTable history={history} />
-          )}
+      <div>
+        {isOpen && history && tabValue === 'history' && !isHistoryLoading && (
+          <OperationHistoryTable history={history} />
+        )}
 
-          {tabValue == 'modify_status' && isOpen && row && (
-            <ModifyDailyTrackingStatus row={row} setOpenDialog={setIsOpen} />
-          )}
-        </div>
-        {isOpen && tabValue == 'history' && isHistoryLoading && <TailwindSpinner className="w-8" />}
-      </DialogContent>
-    </Dialog>
+        {tabValue === 'modify_status' && isOpen && row && (
+          <ModifyDailyTrackingStatus row={row} setOpenDialog={setIsOpen} />
+        )}
+      </div>
+
+      {isOpen && tabValue === 'history' && isHistoryLoading && <TailwindSpinner className="w-8" />}
+    </MyGPDialog>
   );
 }
 

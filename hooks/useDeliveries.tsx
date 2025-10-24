@@ -1,9 +1,12 @@
 import useSWR from 'swr';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getDeliveries } from '@/types/transbel/getDeliveries';
+import { DeliveriesContext } from '@/contexts/DeliveriesContext';
 
 export function useDeliveries() {
+  const ctx = React.useContext(DeliveriesContext);
+  if (!ctx) throw new Error('DeliveriesContext used outside its Provider');
   const { data, error, isLoading, mutate } = useSWR<getDeliveries[]>(
     '/api/transbel/getDeliveries',
     axiosFetcher

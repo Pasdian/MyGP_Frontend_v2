@@ -1,5 +1,5 @@
 'use client';
-import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
+import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toYMD } from '@/lib/utilityFunctions/toYMD';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 function getPreviousBusinessDay(date = new Date()): Date {
   const d = new Date(date);
@@ -178,16 +179,16 @@ export default function CargueManual() {
               .filter(Boolean).length || 0}
           </p>
           {isSendingToApi ? (
-            <Button type="submit" className="bg-blue-500 hover:bg-blue-600" disabled>
+            <MyGPButtonPrimary type="submit" className="bg-blue-500 hover:bg-blue-600" disabled>
               Cargando <Loader2Icon className="animate-spin" />
-            </Button>
+            </MyGPButtonPrimary>
           ) : (
-            <Button
+            <MyGPButtonPrimary
               className="bg-blue-500 hover:bg-blue-600 cursor-pointer font-bold"
               type="submit"
             >
               Enviar Cargue
-            </Button>
+            </MyGPButtonPrimary>
           )}
         </form>
       </Form>

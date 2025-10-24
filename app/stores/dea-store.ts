@@ -1,4 +1,4 @@
-import type { getFilesByReference as GetFilesByReference } from '@/types/dea/getFilesByReferences';
+import type { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import { createStore } from 'zustand/vanilla';
 
 export type DEAState = {
@@ -9,9 +9,9 @@ export type DEAState = {
   initialDate: Date | undefined;
   finalDate: Date | undefined;
   fileName: string;
-  subfolder: string;
+  folder: string;
   clientName: string;
-  filesByReference: GetFilesByReference;
+  filesByReference: getFilesByReference;
 };
 
 export type DEAActions = {
@@ -22,22 +22,21 @@ export type DEAActions = {
   setFinalDate: (finalDate: Date | undefined) => void;
   setPdfUrl: (pdfUrl: string) => void;
   setFile: (file: string) => void;
-  setSubfolder: (subfolder: string) => void;
+  setFolder: (folder: string) => void;
   setClientName: (clientName: string) => void;
-  setFilesByReference: (filesByReference: GetFilesByReference) => void;
+  setFilesByReference: (filesByReference: getFilesByReference) => void;
   resetDEAState: () => void;
 };
 
 export type DEAStore = DEAState & DEAActions;
 
-const emptyFilesByReference = (): GetFilesByReference => ({
+const emptyFilesByReference = (): getFilesByReference => ({
   files: {
     '01-CTA-GASTOS': [],
     '02-EXPEDIENTE-ADUANAL': [],
     '03-FISCALES': [],
     '04-VUCEM': [],
     '05-EXP-DIGITAL': [],
-    SIN_CLASIFICAR: [],
   },
   message: '',
 });
@@ -53,7 +52,7 @@ export const defaultInitState: () => DEAState = () => {
     initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
     finalDate: new Date(),
     fileName: '',
-    subfolder: '',
+    folder: '',
     clientName: '',
     filesByReference: emptyFilesByReference(),
   };
@@ -77,7 +76,7 @@ export const createDEAStore = (initState: DEAState = defaultInitState()) => {
     setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),
     setFile: (fileName) => set(() => ({ fileName })),
     setCustom: (custom) => set(() => ({ custom })),
-    setSubfolder: (subfolder) => set(() => ({ subfolder })),
+    setFolder: (folder) => set(() => ({ folder })),
     setClientName: (clientName) => set(() => ({ clientName })),
 
     setFilesByReference: (filesByReference) => set(() => ({ filesByReference })),

@@ -166,8 +166,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                       />
                     </div>
                     <Button
-                      size="sm"
-                      className="cursor-pointer bg-red-400 hover:bg-red-500"
+                      className="cursor-pointer bg-red-500 hover:bg-red-600"
                       type="button"
                       onClick={() => {
                         form.setValue('exceptionCode', '');

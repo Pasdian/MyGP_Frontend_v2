@@ -14,6 +14,7 @@ import { axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
 
 type FolderKey = 'PARTIDAS' | 'PREVIO';
 
@@ -109,54 +110,48 @@ export default function ImageDialog({
   }, [open, goNext, goPrev]);
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="flex h-[85vh] max-h-[600px] flex-col">
-        <DialogHeader>
-          <DialogTitle className="truncate">
-            {previoInfo.currentFolder} {currentFilename ? `– ${currentFilename}` : ''}
-          </DialogTitle>
-          <DialogDescription>
-            Usa la rueda del mouse o pellizca para hacer zoom. Arrastra para mover la imagen.
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* Viewer */}
-        <div className="flex-1 grid place-items-center overflow-hidden">
-          {isCurImageUrlLoading || !currentFilename ? (
-            <div className="flex justify-center">
-              <TailwindSpinner />
-            </div>
-          ) : imageBlobUrlMap.has(currentFilename) ? (
-            <ImageWithPanningCursor
-              currentFilename={currentFilename}
-              imageBlobUrlMap={imageBlobUrlMap}
-            />
-          ) : (
-            <p className="text-xs text-muted-foreground">No se pudo cargar la imagen.</p>
-          )}
-        </div>
-
-        {/* Nav buttons */}
-        <div className="flex justify-between">
-          <NextPrevButton
-            title="Anterior"
-            icon={<ChevronLeft />}
-            curIndex={currentIndex}
-            lastIndex={lastIndex}
-            isCurImageLoading={!!isCurImageUrlLoading}
-            onClickFn={goPrev}
+    <MyGPDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`${previoInfo.currentFolder}${currentFilename ? ` – ${currentFilename}` : ''}`}
+      description="Usa la rueda del mouse o pellizca para hacer zoom. Arrastra para mover la imagen."
+    >
+      {/* Viewer */}
+      <div className="flex-1 grid place-items-center overflow-hidden">
+        {isCurImageUrlLoading || !currentFilename ? (
+          <div className="flex justify-center">
+            <TailwindSpinner />
+          </div>
+        ) : imageBlobUrlMap.has(currentFilename) ? (
+          <ImageWithPanningCursor
+            currentFilename={currentFilename}
+            imageBlobUrlMap={imageBlobUrlMap}
           />
-          <NextPrevButton
-            title="Siguiente"
-            icon={<ChevronRight />}
-            curIndex={currentIndex}
-            lastIndex={lastIndex}
-            isCurImageLoading={!!isCurImageUrlLoading}
-            onClickFn={goNext}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+        ) : (
+          <p className="text-xs text-muted-foreground">No se pudo cargar la imagen.</p>
+        )}
+      </div>
+
+      {/* Nav buttons */}
+      <div className="mt-3 flex justify-between">
+        <NextPrevButton
+          title="Anterior"
+          icon={<ChevronLeft />}
+          curIndex={currentIndex}
+          lastIndex={lastIndex}
+          isCurImageLoading={!!isCurImageUrlLoading}
+          onClickFn={goPrev}
+        />
+        <NextPrevButton
+          title="Siguiente"
+          icon={<ChevronRight />}
+          curIndex={currentIndex}
+          lastIndex={lastIndex}
+          isCurImageLoading={!!isCurImageUrlLoading}
+          onClickFn={goNext}
+        />
+      </div>
+    </MyGPDialog>
   );
 }
 
@@ -234,8 +229,10 @@ function ImageWithPanningCursor({
                 cursor: isPanning ? 'grabbing' : 'grab',
                 borderRadius: 8,
                 overflow: 'hidden',
-                width: 'min(95vw, 1100px)',
-                height: 'min(70vh, 800px)',
+                width: 500, // fixed width in pixels
+                height: 500, // fixed height in pixels
+                margin: '0 auto', // center the image
+                backgroundColor: '#f9f9f9', // optional background for contrast
               }}
             >
               <Image
@@ -243,8 +240,12 @@ function ImageWithPanningCursor({
                 alt={currentFilename}
                 fill
                 draggable={false}
-                style={{ borderRadius: 8, userSelect: 'none', objectFit: 'contain' }}
-                sizes="(max-width: 1100px) 95vw, 1100px"
+                style={{
+                  borderRadius: 8,
+                  userSelect: 'none',
+                  objectFit: 'contain',
+                }}
+                sizes="900px"
               />
             </div>
           </TransformComponent>

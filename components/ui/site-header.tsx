@@ -10,13 +10,15 @@ import { Button } from './button';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { deaModuleEvents } from '@/lib/posthog/events';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, RocketIcon } from 'lucide-react';
 import useSWRMutation from 'swr/mutation';
 import DEAInitialDatePicker from '../datepickers/DEAInitialDatePicker';
 import DEAFinalDatePicker from '../datepickers/DEAFinalDatePicker';
 import AccessGuard from '../AccessGuard/AccessGuard';
-import { MyGPDeaCombo } from '../comboboxes/MyGPDeaCombo';
 import { useCompanies } from '@/hooks/useCompanies';
+import { ManifestacionDialog } from '../Dialogs/ManifestacionDialog';
+import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
+import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -27,10 +29,12 @@ export function SiteHeader() {
     reference,
     initialDate,
     finalDate,
+    filesByReference,
     setClientNumber,
     setInitialDate,
     setFinalDate,
   } = useDEAStore((state) => state);
+  const hasExpediente = (filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
 
   const isDEA = pathname === '/mygp/dea';
   const { rows: companies } = useCompanies(isDEA);
@@ -65,21 +69,28 @@ export function SiteHeader() {
           <div className="mr-2">
             <div className="flex items-center">
               <p className="font-bold text-xs mr-1">Cliente:</p>
-              <MyGPDeaCombo options={companyOptions} setValue={setClientNumber} value={client} />
+              <MyGPCombo
+                options={companyOptions}
+                setValue={setClientNumber}
+                value={client}
+                className="w-48 h-6 justify-between font-normal text-[12px]"
+                placeholder="Selecciona un cliente"
+                showValue
+              />
             </div>
           </div>
-          <AccessGuard allowedPermissions={['DEA_PREVIOS']}>
-            {reference && (
-              <div className="sm:col-span-1 mr-2">
-                <PreviosDialog key={reference} />
-              </div>
-            )}
-          </AccessGuard>
-          <AccessGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
-            {reference && client && (
-              <div>
-                <Button
-                  className="w-full h-7 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
+          <div></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 w-[900px]">
+            {reference && <ManifestacionDialog key={reference} />}{' '}
+            <AccessGuard allowedPermissions={['DEA_PREVIOS']}>
+              {reference && <PreviosDialog key={reference} />}
+            </AccessGuard>
+            <AccessGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
+              {reference && client && (
+                <MyGPButtonPrimary
+                  className="w-full h-7 text-xs"
+                  disabled={hasExpediente || isDigitalRecordGenerationMutating}
+                  loading={isDigitalRecordGenerationMutating}
                   onClick={async () => {
                     try {
                       await triggerDigitalRecordGeneration();
@@ -87,32 +98,22 @@ export function SiteHeader() {
                       posthog.capture(posthogEvent);
                     } catch (err) {
                       console.error('Generation Failed', err);
+                      toast.error('No se pudo generar el expediente digital.');
                     }
                   }}
-                  // disabled={isDigitalRecordGenerationMutating || hasExpDigital}
                 >
-                  {isDigitalRecordGenerationMutating ? (
-                    <div className="flex items-center justify-center animate-pulse">
-                      <LoaderCircle className="animate-spin mr-2" />
-                      Generando
-                    </div>
+                  {!hasExpediente ? (
+                    <>
+                      <RocketIcon className="mr-2 h-4 w-4" />
+                      Expediente Digital
+                    </>
                   ) : (
-                    <div className="flex items-center justify-center text-xs">
-                      {/* {(filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1 ? (
-                        <>
-                          <RocketIcon className="mr-2" /> Ya Existe un Expediente Digital
-                        </>
-                      ) : (
-                        <>
-                          <RocketIcon className="mr-2" /> Generar Expediente Digital
-                        </>
-                      )} */}
-                    </div>
+                    <>Ya Existe Expediente Digital</>
                   )}
-                </Button>
-              </div>
-            )}
-          </AccessGuard>
+                </MyGPButtonPrimary>
+              )}
+            </AccessGuard>
+          </div>
         </div>
       )}
     </header>

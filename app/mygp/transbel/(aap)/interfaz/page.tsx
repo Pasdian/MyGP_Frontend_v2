@@ -5,7 +5,7 @@ import React from 'react';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
-import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
+import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { useRefsPendingCE } from '@/hooks/useRefsPendingCE';
 
 export default function Page() {

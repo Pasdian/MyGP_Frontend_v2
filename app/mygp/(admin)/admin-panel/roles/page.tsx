@@ -18,15 +18,16 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { Row } from '@tanstack/react-table';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 function RolesActions({ row }: { row: Row<getAllRoles> }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
+        <MyGPButtonPrimary className="h-8 w-8 p-0">
           <span className="sr-only">Abrir Menú</span>
           <MoreHorizontal />
-        </Button>
+        </MyGPButtonPrimary>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Acciones</DropdownMenuLabel>

@@ -3,7 +3,9 @@ import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { CarguesDataTable } from '@/components/datatables/transbel/CarguesDataTable';
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CargueContext } from '@/contexts/CargueContext';
+import { CarguesContext } from '@/contexts/CarguesContext';
+import useCargues from '@/hooks/useCargues';
+import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 
 const TAB_VALUES = ['pending', 'paid'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -14,28 +16,30 @@ function isTabValue(v: string): v is TabValue {
 }
 export default function Cargues() {
   const [tabValue, setTabValue] = React.useState<'paid' | 'pending'>('pending');
-
+  const { cargues, isLoading: isCarguesLoading, setCargues } = useCargues();
   return (
     <AccessGuard
       allowedModules={['All Modules', 'Transbel Interfaz']}
       allowedRoles={['ADMIN', 'AAP']}
     >
-      <div className="flex items-center mb-4 ">
-        <Tabs
+      <div className="flex items-center mb-4 w-[280px]">
+        <MyGPTabs
           value={tabValue}
           onValueChange={(v) => isTabValue(v) && setTabValue(v)}
+          defaultValue="pending"
           className="mr-2"
-        >
-          <TabsList>
-            <TabsTrigger value="pending">Pendientes por Enviar</TabsTrigger>
-            <TabsTrigger value="paid">Enviados</TabsTrigger>
-          </TabsList>
-        </Tabs>
+          tabs={[
+            { value: 'pending', label: 'Pendientes por Enviar' },
+            { value: 'paid', label: 'Enviados' },
+          ]}
+        />
       </div>
 
-      <CargueContext.Provider value={{ tabValue, setTabValue }}>
+      <CarguesContext.Provider
+        value={{ cargues, setCargues, tabValue, setTabValue, isLoading: isCarguesLoading }}
+      >
         <CarguesDataTable />
-      </CargueContext.Provider>
+      </CarguesContext.Provider>
     </AccessGuard>
   );
 }

@@ -3,17 +3,19 @@ import PieChartLabelList from '@/components/charts/PieChartLabelList';
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { DailyTrackingDataTable } from '@/components/datatables/dashboard/DailyTrackingDataTable';
-import { MyGPCombo } from '@/components/comboboxes/MyGPCombo';
+import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { useAuth } from '@/hooks/useAuth';
 import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import MyGPDatePicker from '@/components/datepickers/MyGPDatePicker';
+import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { customs } from '@/lib/customs/customs';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
+import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -49,7 +51,7 @@ export default function Dashboard() {
         kam: string[];
         customs: string[];
         phases: { code: string; name: string }[];
-        clients: string[];
+        clients: { CVE_IMPO: string; CLIENT_NAME: string }[];
       }
     | undefined
   >('/api/daily-tracking/meta', axiosFetcher);
@@ -83,8 +85,8 @@ export default function Dashboard() {
   const clientOptions = React.useMemo(
     () =>
       meta?.clients?.map((item) => ({
-        value: item,
-        label: item,
+        value: item.CVE_IMPO,
+        label: item.CLIENT_NAME,
       })) || [],
     [meta]
   );
@@ -93,7 +95,7 @@ export default function Dashboard() {
     () =>
       meta?.phases?.map((phase) => ({
         value: phase.code,
-        label: `${phase.code}-${phase.name}`,
+        label: phase.name,
       })) || [],
     [meta]
   );
@@ -103,14 +105,14 @@ export default function Dashboard() {
       kam: kamValue || undefined,
       custom: customValue || undefined,
       phase: phaseValue || undefined,
-      client: clientValue || undefined,
+      client: clientValue.split(' ')[0] || undefined,
       tab: tabValue,
     }),
     [kamValue, customValue, phaseValue, clientValue, tabValue]
   );
 
   return (
-    <div className="h-full overflow-y-scroll p-2">
+    <div>
       {(isTraffic || isAdmin || hasTrafficPerm) && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
@@ -125,6 +127,7 @@ export default function Dashboard() {
                     setValue={setKamValue}
                     label="Ejecutivo"
                     options={kamsOptions}
+                    placeholder="Selecciona un ejecutivo"
                   />
                 )}
 
@@ -133,22 +136,26 @@ export default function Dashboard() {
                   setValue={setCustomValue}
                   label="Aduana"
                   options={customsOptions}
+                  placeholder="Selecciona una aduana"
                 />
                 <MyGPCombo
                   value={clientValue}
                   setValue={setClientValue}
                   label="Cliente"
                   options={clientOptions}
+                  placeholder="Selecciona un cliente"
+                  showValue
                 />
                 <MyGPCombo
                   value={phaseValue}
                   setValue={setPhaseValue}
                   label="Etapa Actual"
+                  placeholder="Selecciona la etapa actual"
                   options={phasesOptions}
                 />
                 <div className="flex items-end h-full w-full">
-                  <Button
-                    className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                  <MyGPButtonPrimary
+                    className="cursor-pointer h-9 px-3" // don't override bg here; it's already set in the component
                     onClick={() => {
                       setClientValue('');
                       setCustomValue('');
@@ -156,23 +163,30 @@ export default function Dashboard() {
                       setKamValue('');
                     }}
                   >
-                    <X />
-                    Borrar filtros
-                  </Button>
+                    <span className="flex items-center gap-2 min-w-0">
+                      <X className="h-4 w-4 shrink-0" />
+                      <span className="truncate">Borrar filtros</span>
+                    </span>
+                  </MyGPButtonPrimary>
                 </div>
               </>
             )}
           </div>
           <Card className="mb-8 p-4">
-            {!isAuthLoading && (isAdmin || hasTrafficPerm || isTraffic || isTrafficAdmin) && (
-              <Tabs value={tabValue} onValueChange={(v) => isTabValue(v) && setTabValue(v)}>
-                <TabsList>
-                  <TabsTrigger value="all">Todas</TabsTrigger>
-                  <TabsTrigger value="open">Abiertas</TabsTrigger>
-                  <TabsTrigger value="closed">Despachadas</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
+            <div className="w-[300px]">
+              {!isAuthLoading && (isAdmin || hasTrafficPerm || isTraffic || isTrafficAdmin) && (
+                <MyGPTabs
+                  defaultValue="all"
+                  tabs={[
+                    { value: 'all', label: 'Todas' },
+                    { value: 'open', label: 'Abiertas' },
+                    { value: 'closed', label: 'Despachadas' },
+                  ]}
+                  value={tabValue}
+                  onValueChange={(v) => isTabValue(v) && setTabValue(v)}
+                />
+              )}
+            </div>
             <DailyTrackingContext.Provider
               value={{ initialDate, finalDate, dailyTrackingData, setDailyTrackingData }}
             >
