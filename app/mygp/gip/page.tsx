@@ -14,11 +14,10 @@ function parentDir(p: string) {
   parts.pop();
   return parts.join('/');
 }
-function previewSrc(rel: string) {
+function buildPreviewUrl(rel: string) {
   const u = new URL('/gip/download', window.location.origin);
   u.searchParams.set('filepath', rel);
   u.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
-  u.searchParams.set('_', String(Date.now())); // cache-bust
   return u.toString();
 }
 
@@ -27,12 +26,15 @@ export default function GipBrowserLite() {
   const [selected, setSelected] = React.useState('');
   const [loadingPrev, setLoadingPrev] = React.useState(false);
   const [prevErr, setPrevErr] = React.useState('');
-
   const key = `/gip/search${
     folder
       ? `?filepath=${encodeURIComponent(folder)}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`
       : ''
   }`;
+
+  const previewUrl = React.useMemo(() => {
+    return selected ? buildPreviewUrl(selected) : '';
+  }, [selected]);
   const { data, isLoading, error } = useSWR<Item[]>(key, axiosFetcher);
 
   React.useEffect(() => {
@@ -158,7 +160,7 @@ export default function GipBrowserLite() {
                 )}
                 <iframe
                   key={selected}
-                  src={previewSrc(selected)}
+                  src={previewUrl}
                   className="w-full h-full"
                   frameBorder={0}
                   sandbox="allow-same-origin allow-scripts"
