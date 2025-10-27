@@ -163,7 +163,6 @@ export default function GipBrowserLite() {
                   src={previewUrl}
                   className="w-full h-full"
                   frameBorder={0}
-                  sandbox="allow-same-origin allow-scripts"
                   onLoad={() => setLoadingPrev(false)}
                   onError={() => {
                     setLoadingPrev(false);
