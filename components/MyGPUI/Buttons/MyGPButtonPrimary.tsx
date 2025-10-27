@@ -6,12 +6,11 @@ import { cn } from '@/lib/utils';
 export function MyGPButtonPrimary({
   className,
   children,
-  type = 'button',
   ...props
 }: React.ComponentProps<typeof Button>) {
   return (
     <Button
-      type={type}
+      type="button"
       className={cn('bg-blue-500 w-[130px] hover:bg-blue-600 h-full cursor-pointer', className)}
       {...props}
     >

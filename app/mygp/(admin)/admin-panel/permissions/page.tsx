@@ -24,7 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { IconPlus } from '@tabler/icons-react';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, SaveAll, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -32,6 +32,7 @@ import { Role } from '@/types/permissions/role';
 import { getAllRoles } from '@/types/roles/getAllRoles';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 type getRoleModulesAndPermissions = Role[] | null;
 const roleModulesPermissionsKey = '/api/role-modules/getRoleModulesAndPermissions';
@@ -237,8 +238,9 @@ export default function Permissions() {
 
         <MyGPButtonPrimary
           onClick={handleSave}
-          className="fixed text-md bg-blue-600 hover:bg-blue-700 cursor-pointer bottom-5 right-13"
+          className="fixed text-md w-[180px] h-7 bottom-5 right-13"
         >
+          <SaveAll />
           Guardar cambios
         </MyGPButtonPrimary>
       </div>
@@ -251,7 +253,7 @@ function AddPermissionDialog() {
     '/api/roles',
     axiosFetcher
   );
-
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [selectValue, setSelectValue] = React.useState<string>('');
   const [permissions, setPermissions] = React.useState<
     Array<{ id: string; action: string; description: string }>
@@ -275,6 +277,7 @@ function AddPermissionDialog() {
 
   const handleSave = async () => {
     // limpiar / normalizar
+    setIsSubmitting(true);
     const cleaned = permissions
       .map((p) => ({
         action: p.action.trim().toUpperCase(),
@@ -299,18 +302,20 @@ function AddPermissionDialog() {
       toast.info('Creando permisos...');
       const res = await GPClient.post('/api/role-permissions/createRolePermissions', payload);
       toast.success(res.data?.message ?? 'Permisos creados y asignados.');
+      setIsSubmitting(false);
     } catch (err) {
       const msg = axios.isAxiosError(err)
         ? err.response?.data?.message ?? err.message
         : String(err);
       toast.error(msg);
+      setIsSubmitting(false);
     }
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <MyGPButtonPrimary className="bg-blue-500 hover:bg-blue-600 mb-4 cursor-pointer">
+        <MyGPButtonPrimary className="w-[180px]">
           <IconPlus className="mr-2 h-4 w-4" />
           Añadir Permiso
         </MyGPButtonPrimary>
@@ -411,14 +416,13 @@ function AddPermissionDialog() {
         )}
 
         <DialogFooter>
-          <MyGPButtonPrimary
-            type="button"
-            className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
+          <MyGPButtonSubmit
+            isSubmitting={isSubmitting}
             onClick={handleSave}
             disabled={!selectValue || permissions.every((perm) => !perm.action.trim())}
           >
-            Guardar
-          </MyGPButtonPrimary>
+            <SaveAll /> Guardar
+          </MyGPButtonSubmit>
         </DialogFooter>
       </DialogContent>
     </Dialog>

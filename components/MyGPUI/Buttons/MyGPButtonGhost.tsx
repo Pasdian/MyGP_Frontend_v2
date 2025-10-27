@@ -6,13 +6,12 @@ import { cn } from '@/lib/utils';
 export function MyGPButtonGhost({
   className,
   children,
-  type = 'button',
   ...props
 }: React.ComponentProps<typeof Button>) {
   return (
     <Button
       {...props}
-      type={type}
+      type="button"
       variant="outline"
       className={cn('w-[130px] h-full cursor-pointer', className)}
     >

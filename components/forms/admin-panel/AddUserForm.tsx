@@ -21,9 +21,9 @@ import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import CompanySelect from '@/components/selects/CompanySelect';
-import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 import { MyGPButtonDanger } from '@/components/MyGPUI/Buttons/MyGPButtonDanger';
 import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 const posthogEvent = usersModuleEvents.find((e) => e.alias === 'USERS_ADD_USER')?.eventName || '';
 
@@ -34,6 +34,7 @@ export default function AddUserForm({
 }) {
   const [shouldView, setShouldView] = React.useState(false);
   const { setAllUsers } = React.useContext(UsersDataTableContext);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const form = useForm<z.infer<typeof addUserSchema>>({
     resolver: zodResolver(addUserSchema),
     mode: 'onChange',
@@ -51,6 +52,7 @@ export default function AddUserForm({
   });
 
   async function onSubmit(data: z.infer<typeof addUserSchema>) {
+    setIsSubmitting(true);
     await GPClient.post(`/api/users/createUser`, {
       name: data.name,
       email: data.email,
@@ -66,9 +68,11 @@ export default function AddUserForm({
         setIsOpen((opened) => !opened);
         posthog.capture(posthogEvent);
         setAllUsers((prev) => [...prev, res.data.data]);
+        setIsSubmitting(false);
       })
       .catch((error) => {
         toast.error(error.response.data.message);
+        setIsSubmitting(false);
       });
   }
 
@@ -234,10 +238,10 @@ export default function AddUserForm({
               <X /> Cancelar
             </MyGPButtonDanger>
           </DialogClose>
-          <MyGPButtonPrimary type="submit" className="w-[170px]">
+          <MyGPButtonSubmit isSubmitting={isSubmitting} className="w-[170px]">
             <SaveAllIcon />
             Guardar Cambios
-          </MyGPButtonPrimary>
+          </MyGPButtonSubmit>
         </DialogFooter>
       </form>
     </Form>
