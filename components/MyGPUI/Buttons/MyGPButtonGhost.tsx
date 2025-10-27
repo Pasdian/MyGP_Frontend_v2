@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 // Enterprise primary button: solid color, accessible focus ring, subtle motion
-export function MyGPButtonPrimary({
+export function MyGPButtonGhost({
   className,
   children,
   type = 'button',
@@ -11,9 +11,10 @@ export function MyGPButtonPrimary({
 }: React.ComponentProps<typeof Button>) {
   return (
     <Button
-      type={type}
-      className={cn('bg-blue-500 w-[130px] hover:bg-blue-600 h-full cursor-pointer', className)}
       {...props}
+      type={type}
+      variant="outline"
+      className={cn('w-[130px] h-full cursor-pointer', className)}
     >
       <span className="font-bold grid grid-cols-[auto_auto] items-center gap-1 truncate">
         {children}

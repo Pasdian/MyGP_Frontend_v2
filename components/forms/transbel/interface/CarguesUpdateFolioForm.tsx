@@ -15,12 +15,10 @@ import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
 import useSWR from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
-import { IconSettings } from '@tabler/icons-react';
-import { Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { getCargues } from '@/types/transbel/getCargues';
-import useCargues from '@/hooks/useCargues';
 import { CarguesContext } from '@/contexts/CarguesContext';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 // onSubmit (updates only selected field from API response)
 type PatchResp = {
@@ -45,9 +43,9 @@ export default function CarguesUpdateFolioForm({
   row: Row<getCargues>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { cargues, setCargues } = React.useContext(CarguesContext);
+  const { setCargues } = React.useContext(CarguesContext);
   const [comboValue, setComboValue] = React.useState('');
-  const [isSending, setIsSending] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const folioKey =
     row.original.NUM_REFE && `/api/transbel/datosEmbarque?reference=${row.original.NUM_REFE}`;
 
@@ -103,7 +101,7 @@ export default function CarguesUpdateFolioForm({
   }, [folioData, defaults]);
 
   async function onSubmit(data: z.infer<typeof schema>) {
-    setIsSending(true);
+    setIsSubmitting(true);
 
     const CVE_DAT =
       comboValue === 'IMPO' ? 1 : comboValue === 'EXPO' ? 2 : comboValue === 'CECO' ? 3 : -1;
@@ -143,7 +141,7 @@ export default function CarguesUpdateFolioForm({
         toast.error('Error desconocido al actualizar');
       }
     } finally {
-      setIsSending(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -260,23 +258,7 @@ export default function CarguesUpdateFolioForm({
                 Cancelar
               </Button>
             </DialogClose>
-            <Button
-              disabled={isSending}
-              className="cursor-pointer bg-yellow-500 hover:bg-yellow-600"
-              type="submit"
-            >
-              {isSending ? (
-                <>
-                  <Loader2 className="animate-spin mr-2" />
-                  <p>Enviando</p>
-                </>
-              ) : (
-                <>
-                  <IconSettings className="h-4 w-4" />
-                  <p>Guardar Cambios</p>
-                </>
-              )}{' '}
-            </Button>
+            <MyGPButtonSubmit isSubmitting={isSubmitting} />
           </DialogFooter>
         </form>
       </Form>

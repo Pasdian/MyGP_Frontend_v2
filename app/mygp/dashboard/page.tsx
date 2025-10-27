@@ -7,10 +7,8 @@ import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { useAuth } from '@/hooks/useAuth';
 import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { customs } from '@/lib/customs/customs';
-import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
@@ -155,7 +153,7 @@ export default function Dashboard() {
                 />
                 <div className="flex items-end h-full w-full">
                   <MyGPButtonPrimary
-                    className="cursor-pointer h-9 px-3" // don't override bg here; it's already set in the component
+                    className="cursor-pointer h-9 px-3 w-[150px]"
                     onClick={() => {
                       setClientValue('');
                       setCustomValue('');

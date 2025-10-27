@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
@@ -12,25 +12,56 @@ import {
   CommandEmpty,
 } from '@/components/ui/command';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
+import { cn } from '@/lib/utils';
+
+type CompanySelectProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'onChange' | 'value'
+> & {
+  value: string[];
+  onChange: (v: string[]) => void;
+  showSelection?: boolean;
+  className?: string;
+  placeHolder?: React.ReactNode | string;
+};
 
 export default function CompanySelect({
   value,
   onChange,
-}: {
-  value: string[];
-  onChange: (v: string[]) => void;
-}) {
+  showSelection,
+  className,
+  placeHolder,
+  ...props
+}: CompanySelectProps) {
   const { data: companies, isLoading } = useSWR<getAllCompanies[]>(
     '/api/companies/getAllCompanies',
     axiosFetcher
   );
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // close on outside click and Esc
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   const toggle = (id: string) => {
     onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
   };
-
-  const clearAll = () => onChange([]);
 
   const selected = useMemo(
     () => (companies ?? []).filter((c) => value.includes(String(c.CVE_IMP))),
@@ -42,46 +73,49 @@ export default function CompanySelect({
     [companies, value]
   );
 
-  if (isLoading) return <p>Loading companies...</p>;
+  useEffect(() => {
+    localStorage.setItem('dea-user-companies', JSON.stringify(value));
+  }, [value]);
 
-  // Reusable checkbox props to avoid double toggle on row + checkbox
   const checkboxProps = (id: string, checked: boolean) => ({
     checked,
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
       e.stopPropagation();
       toggle(id);
     },
-    onClick: (e: React.MouseEvent<HTMLInputElement>) => {
-      // Some browsers fire click after change; guard to avoid bubbling
-      e.stopPropagation();
-    },
+    onClick: (e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation(),
     className: 'flex-shrink-0',
   });
-
+  const isReady = !isLoading && companies;
   return (
-    <div>
-      <div className="flex items-center gap-2 flex-wrap mb-2">
-        <MyGPButtonPrimary onClick={() => setOpen((o) => !o)} className="border p-2 rounded">
-          Seleccionar compañías ({value.length} seleccionada{value.length === 1 ? '' : 's'})
+    <div ref={rootRef} className="relative w-full">
+      <div className="flex items-center">
+        <MyGPButtonPrimary
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className={cn('border rounded-md flex-1 px-2', className)}
+          {...props}
+        >
+          {placeHolder ??
+            `Seleccionar compañías (${value.length} seleccionada${value.length === 1 ? '' : 's'})`}
         </MyGPButtonPrimary>
-        {value.length > 0 && <MyGPButtonPrimary onClick={clearAll}>Limpiar</MyGPButtonPrimary>}
       </div>
 
-      {selected.length > 0 && (
-        <div className="flex gap-2 flex-wrap mb-3">
+      {showSelection && selected.length > 0 && (
+        <div className="flex flex-wrap mb-3 gap-2">
           {selected.map((c) => {
             const id = String(c.CVE_IMP);
             return (
               <span
                 key={`chip-${id}`}
-                className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm bg-white"
+                className="inline-flex items-center rounded-full border px-3 py-1 text-xs bg-white"
                 title={`${id} - ${c.NOM_IMP}`}
               >
                 {id} - {c.NOM_IMP}
                 <button
                   type="button"
                   onClick={() => toggle(id)}
-                  className="text-gray-500 hover:text-gray-800"
+                  className="ml-2 text-gray-500 hover:text-gray-800"
                   aria-label={`Quitar ${id}`}
                   title="Quitar"
                 >
@@ -93,11 +127,11 @@ export default function CompanySelect({
         </div>
       )}
 
-      {open && (
-        <div className="border rounded mt-2 bg-white shadow-md">
-          <Command className="rounded-lg">
+      {isReady && open && (
+        <div className="absolute left-0 top-full mt-1 w-[400px] h-[300px] border rounded bg-white shadow-md overflow-hidden z-50">
+          <Command className="rounded-lg h-full">
             <CommandInput placeholder="Buscar por clave o nombre..." />
-            <CommandList className="max-h-[340px] overflow-y-auto">
+            <CommandList className="h-full overflow-y-auto">
               <CommandEmpty>No se encontraron compañías.</CommandEmpty>
 
               {selected.length > 0 && (
@@ -119,7 +153,7 @@ export default function CompanySelect({
                         />
                         <span
                           title={label}
-                          className="truncate max-w-[230px] sm:max-w-[300px] text-sm text-gray-800"
+                          className="truncate max-w-[230px] sm:max-w-[300px] text-xs text-gray-800"
                         >
                           {label}
                         </span>
@@ -148,7 +182,7 @@ export default function CompanySelect({
                       />
                       <span
                         title={label}
-                        className="truncate max-w-[230px] sm:max-w-[300px] text-sm text-gray-800"
+                        className="truncate max-w-[230px] sm:max-w-[300px] text-xs text-gray-800"
                       >
                         {label}
                       </span>

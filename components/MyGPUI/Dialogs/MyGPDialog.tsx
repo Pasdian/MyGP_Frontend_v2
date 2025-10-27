@@ -7,15 +7,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
-
-interface MyGPDialogProps {
-  title: string;
-  description?: string;
-  triggerLabel?: string;
-  children: React.ReactNode;
-}
 
 /**
  * Generic reusable dialog component with scrollable content and capped height.

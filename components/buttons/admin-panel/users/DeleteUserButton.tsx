@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import { dropdownDeleteClassName } from '@/lib/classNames/adminActions';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import React from 'react';
+import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
 
 const posthogEvent =
   usersModuleEvents.find((e) => e.alias === 'USERS_DELETE_USER')?.eventName || '';
@@ -29,11 +31,14 @@ export default function DeleteUserButton({
   open: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { getAllUsers, setAllUsers } = React.useContext(UsersDataTableContext);
   async function deleteUser() {
     await GPClient.delete(`/api/users/deleteUser/${row.original.user_uuid}`)
       .then((res) => {
         toast.success(res.data.message);
         posthog.capture(posthogEvent);
+        console.log(getAllUsers);
+        setAllUsers?.((prev) => prev.filter((u) => u.user_uuid !== row.original.user_uuid));
       })
       .catch((error) => {
         toast.error(error.response.data.message);

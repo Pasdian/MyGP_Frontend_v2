@@ -4,21 +4,18 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { Card } from '@/components/ui/card';
 import React from 'react';
 import DocumentCard from '@/components/Cards/DocumentCard';
-import { ExternalLink, HelpCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import { WindowManagerProvider } from '@/app/providers/WIndowManagerProvider';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
-import useDEATourOnce, { buildDEAExternalLinkTour } from '@/hooks/useDEATour';
 import { FloatingWindowsPortal } from '@/components/portals/FloatingWindowsPortal';
 import { useFloatingWindows } from '@/hooks/useFloatingWindows';
 import useFilesByRef from '@/hooks/useFilesByRef';
 import { useClientLogo } from '@/hooks/useClientLogo';
 import { useClientFile } from '@/hooks/useClientFile';
 import UploadFile from '@/components/UploadFiles/UploadFile';
+import DEAFloatingWindowDriver from '@/components/driver/DEAFloatingWindowDriver';
 
 export default function DEA() {
-  const { user } = useAuth();
   const { clientNumber: client, reference, filesByReference } = useDEAStore((state) => state);
   const [subfolder, setSubfolder] = React.useState('');
   const [filename, setFilename] = React.useState('');
@@ -31,9 +28,6 @@ export default function DEA() {
   const Fiscales = filesByReference?.files?.['03-FISCALES'] ?? [];
   const VUCEM = filesByReference?.files?.['04-VUCEM'] ?? [];
   const ExpDigital = filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
-
-  // Get cliet logo stream
-  const { logoUrl, isLoading: isLogoUrlLoading } = useClientLogo(client);
 
   // Visualizer effect and contents
   const { fileUrl, contentType } = useClientFile(client, reference, subfolder, filename);
@@ -64,35 +58,6 @@ export default function DEA() {
   // Windows hook
   const { windows, spawnWindow, closeWindow, toggleMinimize, updateGeometry, bringToFront } =
     useFloatingWindows();
-
-  // Tour effect
-  useDEATourOnce({
-    enabled: Boolean(filename), // will become true after onFileSelect
-    userId: user?.complete_user?.user?.uuid ?? 'anon',
-    // storageKey is optional; defaults to 'dea-external-link-tour-v1'
-  });
-
-  React.useEffect(() => {
-    if (!filename) return; // only after user has a file context
-    if (typeof window === 'undefined') return;
-
-    const TOUR_KEY = 'dea-external-link-tour-v1';
-    if (localStorage.getItem(TOUR_KEY)) return; // already shown
-
-    // Ensure the icon exists in DOM before starting tour
-    const el = document.querySelector('#dea-external-link');
-    if (!el) return;
-
-    const d = buildDEAExternalLinkTour();
-    d.drive();
-    localStorage.setItem(TOUR_KEY, '1');
-  }, [filename]);
-
-  // Manual trigger handler (help icon)
-  const startTour = React.useCallback(() => {
-    const d = buildDEAExternalLinkTour();
-    d.drive();
-  }, []);
 
   return (
     <WindowManagerProvider>
@@ -202,35 +167,18 @@ export default function DEA() {
                 {/* VIEWER */}
                 <Card className="flex-[5] min-h-0 p-0 overflow-hidden rounded-none">
                   <div className="h-full flex flex-col min-h-0 text-xs">
-                    <div className="sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center z-10">
+                    <div className="sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center">
                       <p className="font-bold truncate">
                         Visor de Archivos{filename ? ` - ${filename}` : ''}
                       </p>
                       <div className="flex items-center gap-2">
-                        {/* Help trigger to replay the tour */}
-                        {filename && (
-                          <button
-                            type="button"
-                            aria-label="¿Cómo funciona?"
-                            className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
-                            onClick={startTour}
-                          >
-                            <HelpCircle size={16} />
-                          </button>
-                        )}
-                        {filename && (
-                          <button
-                            id="dea-external-link"
-                            type="button"
-                            aria-label="Abrir en ventana separada"
-                            className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
-                            onClick={() => {
-                              if (fileUrl && contentType)
-                                spawnWindow(filename, fileUrl, contentType);
-                            }}
-                          >
-                            <ExternalLink size={16} className="cursor-pointer" />
-                          </button>
+                        {filename && fileUrl && (
+                          <DEAFloatingWindowDriver
+                            fileUrl={fileUrl}
+                            contentType={contentType}
+                            filename={filename}
+                            spawnWindow={spawnWindow}
+                          />
                         )}
                       </div>
                     </div>
@@ -281,7 +229,7 @@ export default function DEA() {
   );
 }
 
-export function ClientLogoSection({ client }: { client: string }) {
+function ClientLogoSection({ client }: { client: string }) {
   const [version, setVersion] = React.useState(0);
   const { logoUrl, isLoading: isLogoUrlLoading } = useClientLogo(client, version);
 

@@ -2,7 +2,6 @@
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { CarguesDataTable } from '@/components/datatables/transbel/CarguesDataTable';
 import React from 'react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CarguesContext } from '@/contexts/CarguesContext';
 import useCargues from '@/hooks/useCargues';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';

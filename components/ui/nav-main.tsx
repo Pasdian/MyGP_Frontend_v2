@@ -14,9 +14,8 @@ import { usePathname } from 'next/navigation';
 import React from 'react';
 import AccessGuard from '../AccessGuard/AccessGuard';
 
-const activeItemClass =
-  'bg-blue-200 active:bg-blue-200 hover:bg-blue-300 rounded-md font-bold cursor-pointer';
-const inactiveItemClass = 'rounded-md font-bold cursor-pointer';
+const activeItemClass = 'rounded-none bg-gray-200 hover:bg-gray-300 font-bold cursor-pointer';
+const inactiveItemClass = 'font-bold cursor-pointer';
 
 export function NavMain() {
   const pathname = usePathname();
@@ -28,10 +27,7 @@ export function NavMain() {
           {pathname === '/mygp/dea' ? (
             <Link href="/mygp/dashboard">
               <SidebarMenuItem className="flex items-center gap-2">
-                <SidebarMenuButton
-                  tooltip="Quick Create"
-                  className="rounded-md font-bold cursor-pointer"
-                >
+                <SidebarMenuButton tooltip="Quick Create" className="font-bold cursor-pointer">
                   <IconArrowLeft />
                   <span className="text-xs">Regresar</span>
                 </SidebarMenuButton>

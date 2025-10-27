@@ -1,22 +1,36 @@
-import { getAllCompanies } from '../getAllCompanies/getAllCompanies';
+export interface Company {
+  CVE_IMP: string;
+  NOM_IMP: string;
+}
 
-export type getAllUsers = {
-  id: number | null;
-  user_uuid: string | null;
-  name: string | null;
-  email: string | null;
+export interface Permission {
+  uuid: string;
+  action: string;
+  description: string;
+}
+
+export interface Module {
+  uuid: string;
+  name: string;
+  description: string;
+}
+
+export interface Role {
+  uuid: string;
+  name: string;
+  description: string;
+  permissions: Permission[];
+  modules: Module[];
+}
+
+export interface getAllUsers {
+  user_uuid: string;
+  name: string;
+  casa_user_name: string;
+  email: string;
   mobile: string | null;
-  has_casa_user: boolean | null;
-  casa_user_name: string | null | null;
-  status: string | null;
-  role_uuid: number | null;
-  created_at: string | null;
-  updated_at: string | null;
-  role: {
-    id: number | null;
-    name: string | null;
-    description: string | null;
-    uuid: string | null;
-  };
-  companies: { CVE_IMP: string; NOM_IMP: string }[];
-};
+  status: string;
+  companies_uuids: string;
+  role: Role;
+  companies: Company[];
+}

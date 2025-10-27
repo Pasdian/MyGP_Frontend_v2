@@ -18,8 +18,8 @@ import React from 'react';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveriesContext } from '@/contexts/DeliveriesContext';
+import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 
 export default function DeliveriesDataTable() {
   const { deliveries, isLoading: isDeliveriesLoading } = React.useContext(DeliveriesContext);
@@ -57,15 +57,14 @@ export default function DeliveriesDataTable() {
     <div>
       <div className="flex items-center space-x-2 mb-4">
         <div className="flex items-center">
-          <Tabs
+          <MyGPTabs
+            tabs={[
+              { value: 'errors', label: 'Referencias con Error' },
+              { value: 'not_errors', label: 'Referencias sin Error' },
+            ]}
             value={shouldFilterErrors ? 'errors' : 'not_errors'}
-            onValueChange={(value) => setShouldFilterErrors(value === 'errors')}
-          >
-            <TabsList>
-              <TabsTrigger value="errors">Referencias con Error</TabsTrigger>
-              <TabsTrigger value="not_errors">Referencias sin Error</TabsTrigger>
-            </TabsList>
-          </Tabs>
+            onValueChange={(v) => setShouldFilterErrors(v === 'errors')}
+          />
         </div>
       </div>
       <Table>

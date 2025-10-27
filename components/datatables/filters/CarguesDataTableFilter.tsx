@@ -1,11 +1,11 @@
 import { Input } from '@/components/ui/input';
-import { getCarguesFormat } from '@/types/transbel/getCargues';
+import { getCargues } from '@/types/transbel/getCargues';
 import { Column } from '@tanstack/react-table';
 
 export default function CarguesDataTableFilter({
   column,
 }: {
-  column: Column<getCarguesFormat, unknown>;
+  column: Column<getCargues, unknown>;
 }) {
   const columnFilterValue = column.getFilterValue();
 

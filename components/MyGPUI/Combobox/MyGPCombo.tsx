@@ -23,6 +23,7 @@ export function MyGPCombo({
   showValue,
   placeholder,
   className,
+  pickFirst,
 }: {
   value: string;
   setValue: (v: string) => void;
@@ -34,8 +35,16 @@ export function MyGPCombo({
   showValue?: boolean;
   placeholder?: string;
   className?: string;
+  pickFirst?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
+
+  // Only auto-select first if pickFirst is true
+  React.useEffect(() => {
+    if (pickFirst && !value && options.length > 0) {
+      setValue(options[0].value);
+    }
+  }, [pickFirst, value, options, setValue]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -63,8 +72,27 @@ export function MyGPCombo({
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="p-0 w-[300px] max-h-[300px] overflow-y-hidden">
-          <Command>
+        <PopoverContent className="p-0 w-[350px] max-h-[300px] overflow-y-hidden">
+          <Command
+            // return 0 to hide; >0 to show (higher = higher rank)
+            filter={(value, search) => {
+              const v = value
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/\p{Diacritic}/gu, '');
+              const s = search
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/\p{Diacritic}/gu, '');
+
+              if (!s) return 1;
+              // tweak scoring as needed
+              if (v.startsWith(s)) return 3;
+              if (v.includes(s)) return 2;
+              return 0;
+            }}
+          >
+            {' '}
             <CommandInput placeholder={label} className="h-9" />
             <CommandList>
               <CommandEmpty>No se encontraron elementos.</CommandEmpty>

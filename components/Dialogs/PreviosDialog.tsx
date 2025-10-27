@@ -1,15 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-
-import { Button } from '@/components/ui/button';
 import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
-
 import React from 'react';
 import { Folder, Image } from 'lucide-react';
 import useSWR from 'swr';
@@ -31,7 +20,7 @@ function getCurrentFolderFromReference(reference?: string) {
   return '640';
 }
 
-export default function PreviosDialog() {
+export default function PreviosDialog({ className }: { className?: string }) {
   const { custom, reference } = useDEAStore((state) => state);
   const [open, setOpen] = React.useState(false);
   const [currentFolder, setCurrentFolder] = React.useState('');
@@ -133,10 +122,7 @@ export default function PreviosDialog() {
 
   if (!hasAnyData)
     return (
-      <MyGPButtonPrimary
-        disabled
-        className="h-7 bg-blue-500 hover:bg-blue-600 font-bold text-xs cursor-pointer disabled:opacity-60"
-      >
+      <MyGPButtonPrimary className={className} disabled>
         No existen previos
       </MyGPButtonPrimary>
     );
@@ -153,7 +139,7 @@ export default function PreviosDialog() {
         // keep your height & scroll behavior
         trigger={
           <MyGPButtonPrimary
-            className="h-7 text-xs font-bold"
+            className={className}
             disabled={disabled}
             title={disabled ? 'Selecciona aduana y referencia' : 'Ver previos'}
           >

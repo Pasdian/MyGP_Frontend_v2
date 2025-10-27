@@ -15,7 +15,7 @@ export default function AddUserButton() {
       title="Añadir Usuario"
       description="Aquí podrás añadir un nuevo usuario. Haz click en guardar cuando termines de editar los campos."
       trigger={
-        <MyGPButtonPrimary className="mb-4">
+        <MyGPButtonPrimary className="mb-4 w-[150px]">
           <IconPlus stroke={2} />
           <span className="ml-1">Añadir Usuario</span>
         </MyGPButtonPrimary>

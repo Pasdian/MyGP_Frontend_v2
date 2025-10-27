@@ -10,7 +10,6 @@ import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { Row } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
@@ -18,6 +17,8 @@ import useSWR from 'swr/immutable';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import { AxiosError } from 'axios';
+import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 const comboOptions = [
   {
@@ -35,6 +36,7 @@ export default function UpdateFolioForm({
 }) {
   const { setRefsPendingCE } = React.useContext(InterfaceContext);
   const [comboValue, setComboValue] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const folioKey =
     row.original.REFERENCIA && `/api/transbel/datosEmbarque?reference=${row.original.REFERENCIA}`;
 
@@ -69,6 +71,7 @@ export default function UpdateFolioForm({
   }, [defaults, form]);
 
   async function onSubmit(data: z.infer<typeof schema>) {
+    setIsSubmitting(true);
     try {
       const res = await GPClient.patch(`/api/transbel/datosEmbarque/${data.reference}`, {
         CVE_DAT: 1, // Impo
@@ -91,14 +94,17 @@ export default function UpdateFolioForm({
 
         toast.success('Datos modificados correctamente');
         setOpenDialog((opened) => !opened);
+        setIsSubmitting(false);
       } else {
         toast.error('No se pudieron actualizar tus datos');
+        setIsSubmitting(false);
       }
     } catch (error) {
       const err = error as AxiosError<{ message?: string }>;
       const message = err.response?.data?.message || 'Ocurrió un error';
 
       toast.error(message);
+      setIsSubmitting(false);
     }
   }
 
@@ -140,6 +146,7 @@ export default function UpdateFolioForm({
               setValue={setComboValue}
               options={comboOptions}
               label="Tipo de Operación"
+              pickFirst
             />
             {comboValue == 'IMPO' && (
               <FormField
@@ -159,13 +166,9 @@ export default function UpdateFolioForm({
           </div>
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button variant="outline" className="cursor-pointer">
-                Cancelar
-              </Button>
+              <MyGPButtonGhost>Cancelar</MyGPButtonGhost>
             </DialogClose>
-            <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
-              Guardar Cambios
-            </Button>
+            <MyGPButtonSubmit isSubmitting={isSubmitting} />
           </DialogFooter>
         </form>
       </Form>

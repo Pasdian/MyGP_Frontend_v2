@@ -33,7 +33,7 @@ export default function ExceptionCodeCombo({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <MyGPButtonPrimary type="button">
+        <MyGPButtonPrimary type="button" className="w-[200px]">
           <IconBug stroke={2} className="mr-1" />
           {currentValue || 'Código de Excepción'}
         </MyGPButtonPrimary>

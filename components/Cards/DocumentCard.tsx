@@ -36,7 +36,7 @@ export default function DocumentCard({
   const cardClassName = 'py-0 rounded-none h-full min-h-0 overflow-hidden';
   const wrapperClassName = 'h-full flex flex-col min-h-0';
   const stickyClassName =
-    'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center z-10';
+    'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center';
   const listClassName =
     'flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-2 text-[10px]';
 

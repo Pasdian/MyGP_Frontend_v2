@@ -6,6 +6,8 @@ import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
 import { MyGPTabs } from '../MyGPUI/Tabs/MyGPTabs';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import { Text } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
 const TAB_VALUES = ['upload', 'list'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
 
@@ -19,7 +21,7 @@ type Section = {
   file: File | null;
 };
 
-export function ManifestacionDialog() {
+export function ManifestacionDialog({ className }: { className: string }) {
   const { clientNumber: client, reference } = useDEAStore((s) => s);
   const [tabValue, setTabValue] = React.useState<'upload' | 'list'>('upload');
 
@@ -77,7 +79,7 @@ export function ManifestacionDialog() {
       title="Subir manifestación de valor"
       description="Selecciona los archivos requeridos y opcionales."
       trigger={
-        <MyGPButtonPrimary className="mb-4 text-xs">
+        <MyGPButtonPrimary className={className}>
           <Text />
           <span className="ml-1">Manifestación de Valor</span>
         </MyGPButtonPrimary>
@@ -147,17 +149,29 @@ function UploadManifestacionContent({ makeSections }: { makeSections: () => Sect
       setErrorMsg('Faltan archivos obligatorios.');
       return;
     }
+
     const toUpload = sections.filter((s) => s.file);
     if (!toUpload.length) {
       setErrorMsg('No hay archivos seleccionados.');
       return;
     }
+
     setSubmitting(true);
+
     try {
       await Promise.all(toUpload.map((s) => uploadOne(s.dest, s.file as File)));
       setSections((prev) => prev.map((s) => ({ ...s, file: null })));
-    } catch (e: any) {
-      setErrorMsg(e?.message || 'Error al subir archivos.');
+      toast.success('Archivos subidos exitosamente');
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        const msg =
+          e.response?.data?.message ||
+          e.response?.data?.error ||
+          `Error HTTP ${e.response?.status}: ${e.response?.statusText}`;
+        setErrorMsg(msg);
+      } else {
+        setErrorMsg(e instanceof Error ? e.message : 'Error al subir archivos.');
+      }
     } finally {
       setSubmitting(false);
     }

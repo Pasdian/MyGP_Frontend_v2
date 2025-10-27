@@ -3,11 +3,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import { getCarguesFormat } from "@/types/transbel/getCargues";
+import { getCargues } from "@/types/transbel/getCargues";
 
-const fuzzyFilter = createFuzzyFilter<getCarguesFormat>();
+const fuzzyFilter = createFuzzyFilter<getCargues>();
 
-export const carguesColumns: ColumnDef<getCarguesFormat>[] = [
+export const carguesColumns: ColumnDef<getCargues>[] = [
   {
     accessorKey: "NUM_REFE",
     header: "Referencia",

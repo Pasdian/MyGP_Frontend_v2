@@ -32,7 +32,6 @@ import { IconSettings, IconSquareFilled } from '@tabler/icons-react';
 import { CheckIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInterfaceColumns } from '@/lib/columns/interfaceColumns';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';

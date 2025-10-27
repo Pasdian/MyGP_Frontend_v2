@@ -1,5 +1,4 @@
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
@@ -15,13 +14,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, SaveAllIcon, X } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/RoleSelect';
 import { z } from 'zod/v4';
 import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import CompanySelect from '@/components/selects/CompanySelect';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
+import { MyGPButtonDanger } from '@/components/MyGPUI/Buttons/MyGPButtonDanger';
+import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
 
 const posthogEvent = usersModuleEvents.find((e) => e.alias === 'USERS_ADD_USER')?.eventName || '';
 
@@ -31,6 +33,7 @@ export default function AddUserForm({
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [shouldView, setShouldView] = React.useState(false);
+  const { setAllUsers } = React.useContext(UsersDataTableContext);
   const form = useForm<z.infer<typeof addUserSchema>>({
     resolver: zodResolver(addUserSchema),
     mode: 'onChange',
@@ -62,6 +65,7 @@ export default function AddUserForm({
         toast.success(res.data.message);
         setIsOpen((opened) => !opened);
         posthog.capture(posthogEvent);
+        setAllUsers((prev) => [...prev, res.data.data]);
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -226,13 +230,14 @@ export default function AddUserForm({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="cursor-pointer">
-              Cancelar
-            </Button>
+            <MyGPButtonDanger>
+              <X /> Cancelar
+            </MyGPButtonDanger>
           </DialogClose>
-          <Button className="cursor-pointer bg-blue-500 hover:bg-blue-600" type="submit">
+          <MyGPButtonPrimary type="submit" className="w-[170px]">
+            <SaveAllIcon />
             Guardar Cambios
-          </Button>
+          </MyGPButtonPrimary>
         </DialogFooter>
       </form>
     </Form>

@@ -1,20 +1,8 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-
-import { Button } from '@/components/ui/button';
 import React from 'react';
 import { Row } from '@tanstack/react-table';
-import { DialogTrigger } from '@radix-ui/react-dialog';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IconBallpenFilled } from '@tabler/icons-react';
-import ModifyDailyTrackingStatus from '@/components/forms/dashboard/ModifyDailyTrackingStatus';
 import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
@@ -24,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
 import { MyGPButtonWarning } from '@/components/MyGPUI/Buttons/MyGPButtonWarning';
+import ModifyDailyTrackingStatusForm from '@/components/forms/dashboard/ModifyDailyTrackingStatus';
 
 const TAB_VALUES = ['history', 'modify_status'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -77,7 +66,7 @@ export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTr
         )}
 
         {tabValue === 'modify_status' && isOpen && row && (
-          <ModifyDailyTrackingStatus row={row} setOpenDialog={setIsOpen} />
+          <ModifyDailyTrackingStatusForm row={row} setOpenDialog={setIsOpen} />
         )}
       </div>
 

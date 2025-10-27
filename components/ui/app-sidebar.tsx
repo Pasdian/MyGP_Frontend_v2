@@ -23,17 +23,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-0 overflow-visible"
+              className="flex justify-center data-[slot=sidebar-menu-button]:!p-0 overflow-visible"
             >
               <a href="/mygp/dashboard" className="block">
-                <Image
-                  src="/logo.avif"
-                  alt="Company logo"
-                  width={900}
-                  height={100}
-                  className="w-full h-auto"
-                  priority
-                />
+                <Image src="/logo.avif" alt="Company logo" width={100} height={50} />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

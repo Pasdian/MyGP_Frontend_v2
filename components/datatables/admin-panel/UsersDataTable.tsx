@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ColumnDef, flexRender } from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table';
 import TablePagination from '../pagination/TablePagination';
 import {
   getCoreRowModel,
@@ -14,24 +14,18 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import useSWR from 'swr';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import AdminDataTableFilter from '../filters/AdminDataTableFilter';
+import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
+import { getAllUsersColumns } from '@/lib/columns/getAllUsersColumns';
 
-type AdminDataTableProps<T> = {
-  dataTableUrl: string;
-  columns: ColumnDef<T>[];
-};
-
-export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTableProps<T>) {
-  const { data } = useSWR<T[]>(dataTableUrl, axiosFetcher);
-
+export default function UsersDataTable() {
+  const { getAllUsers } = React.useContext(UsersDataTableContext);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
 
   const table = useReactTable({
-    data: data || [],
-    columns: columns,
+    data: getAllUsers || [],
+    columns: getAllUsersColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -61,7 +55,7 @@ export default function AdminDataTable<T>({ dataTableUrl, columns }: AdminDataTa
                       {flexRender(header.column.columnDef.header, header.getContext())}
                       {header.column.getCanFilter() ? (
                         <div>
-                          <AdminDataTableFilter<T> column={header.column} />
+                          <AdminDataTableFilter column={header.column} />
                         </div>
                       ) : null}
                     </div>

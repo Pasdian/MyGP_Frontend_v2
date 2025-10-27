@@ -25,7 +25,6 @@ import {
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
 import { Row } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
@@ -40,6 +39,8 @@ import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import axios from 'axios';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_INTERFACE')?.eventName || '';
@@ -53,6 +54,7 @@ export default function InterfaceUpsertPhaseForm({
 }) {
   const { user } = useAuth();
   const { setRefsPendingCE } = React.useContext(InterfaceContext);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const schema = z
     .object({
       ref: REF_VALIDATION,
@@ -214,6 +216,7 @@ export default function InterfaceUpsertPhaseForm({
   }, [phase, form, row]);
 
   async function onSubmit(data: z.infer<typeof schema>) {
+    setIsSubmitting(true);
     try {
       const res = await GPClient.patch(`/api/casa/upsertPhase/${data.ref}`, {
         phase: data.phase,
@@ -254,17 +257,22 @@ export default function InterfaceUpsertPhaseForm({
 
         toast.success('Datos modificados correctamente');
         posthog.capture(posthogEvent);
+        setIsSubmitting(false);
+
         setOpenDialog((o) => !o);
       } else {
         toast.error('No se pudieron actualizar tus datos');
+        setIsSubmitting(false);
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         console.error('Axios error:', err.response?.data || err.message);
         toast.error(err.response?.data?.message || 'Falló la petición');
+        setIsSubmitting(false);
       } else {
         console.error('Error inesperado:', err);
         toast.error('Error inesperado');
+        setIsSubmitting(false);
       }
     }
   }
@@ -367,13 +375,9 @@ export default function InterfaceUpsertPhaseForm({
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" className="cursor-pointer">
-                Cancelar
-              </Button>
+              <MyGPButtonGhost>Cancelar</MyGPButtonGhost>
             </DialogClose>
-            <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
-              Guardar Cambios
-            </Button>
+            <MyGPButtonSubmit isSubmitting={isSubmitting} />
           </DialogFooter>
         </form>
       </Form>

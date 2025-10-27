@@ -1,10 +1,3 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import Image from 'next/image';
 import React from 'react';
 import TailwindSpinner from '../ui/TailwindSpinner';

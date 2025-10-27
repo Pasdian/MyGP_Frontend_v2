@@ -6,23 +6,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
 import { Form } from '@/components/ui/form';
 import { Row } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { dashboardModuleEvents } from '@/lib/posthog/events';
-import { Loader2 } from 'lucide-react';
 import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
 import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import { AxiosError } from 'axios';
+import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 const posthogEvent =
   dashboardModuleEvents.find((e) => e.alias === 'DASHBOARD_MODIFY_OP')?.eventName || '';
 
-export default function ModifyDailyTrackingStatus({
+export default function ModifyDailyTrackingStatusForm({
   row,
   setOpenDialog,
 }: {
@@ -129,26 +129,11 @@ export default function ModifyDailyTrackingStatus({
         </div>
         <DialogFooter className="mt-4">
           <DialogClose asChild>
-            <Button variant="outline" className="cursor-pointer">
+            <MyGPButtonGhost variant="outline" className="cursor-pointer">
               Cancelar
-            </Button>
+            </MyGPButtonGhost>
           </DialogClose>
-          <Button
-            className="cursor-pointer bg-yellow-500 hover:bg-yellow-600"
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="animate-spin mr-2" />
-                <p>Enviando</p>
-              </>
-            ) : (
-              <>
-                <p>Guardar Cambios</p>
-              </>
-            )}
-          </Button>
+          <MyGPButtonSubmit isSubmitting={isSubmitting} />
         </DialogFooter>
       </form>
     </Form>

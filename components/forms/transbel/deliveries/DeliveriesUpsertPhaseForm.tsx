@@ -28,6 +28,8 @@ import { transbelModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import { DeliveriesContext } from '@/contexts/DeliveriesContext';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
+import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_DELIVERY')?.eventName || '';
@@ -35,6 +37,7 @@ const posthogEvent =
 export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
   const { user } = useAuth();
   const { setDeliveries } = React.useContext(DeliveriesContext);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),
@@ -53,6 +56,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
   console.log(form.formState.errors);
 
   async function onSubmit(data: z.infer<typeof deliveriesUpsertPhaseSchema>) {
+    setIsSubmitting(true);
     await GPClient.patch(`/api/casa/upsertPhase/${data.ref}`, {
       phase: data.phase,
       exceptionCode: data.exceptionCode,
@@ -93,12 +97,15 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
 
           toast.success('Datos modificados correctamente');
           posthog.capture(posthogEvent);
+          setIsSubmitting(false);
         } else {
           toast.error('No se pudieron actualizar tus datos');
+          setIsSubmitting(false);
         }
       })
       .catch((error) => {
         toast.error(error.response?.data?.message || 'Error de conexión');
+        setIsSubmitting(false);
       });
   }
 
@@ -198,13 +205,9 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="cursor-pointer">
-              Cancelar
-            </Button>
+            <MyGPButtonGhost>Cancelar</MyGPButtonGhost>
           </DialogClose>
-          <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
-            Guardar Cambios
-          </Button>
+          <MyGPButtonSubmit isSubmitting={isSubmitting} />
         </DialogFooter>
       </form>
     </Form>
