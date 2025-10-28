@@ -63,8 +63,8 @@ export function SiteHeader() {
   const companyOptions = React.useMemo(() => {
     if (!companies || companies.length === 0) return [];
 
-    // For AAP: if no selection, show all; if selection present, filter by it.
     if (isAAP) {
+      // AAP: show all or filter by selection
       const hasSelection = companySelect && companySelect.length > 0;
       const base = hasSelection
         ? companies.filter((c) => companySelect.includes(String(c.CVE_IMP)))
@@ -76,16 +76,17 @@ export function SiteHeader() {
       }));
     }
 
-    // Non-AAP: require selection
-    if (!companySelect || companySelect.length === 0) return [];
+    // Non-AAP: only show the user's own companies
+    const userCompanies = user?.complete_user?.user?.companies ?? [];
+    const userCves = userCompanies.map((c: any) => String(c.CVE_IMP));
 
     return companies
-      .filter((c) => companySelect.includes(String(c.CVE_IMP)))
+      .filter((c) => userCves.includes(String(c.CVE_IMP)))
       .map((c) => ({
         value: String(c.CVE_IMP),
         label: c.NOM_IMP,
       }));
-  }, [companies, companySelect, isAAP]);
+  }, [companies, companySelect, isAAP, user]);
 
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
     useSWRMutation(
