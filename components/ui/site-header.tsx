@@ -18,6 +18,8 @@ import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import MyGPDatePicker from '../MyGPUI/Datepickers/MyGPDatePicker';
 import DEAFilterCompanyDriver from '../driver/DEAFilterCompanyDriver';
+import { useAuth } from '@/hooks/useAuth';
+import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -33,32 +35,24 @@ export function SiteHeader() {
     setInitialDate,
     setFinalDate,
   } = useDEAStore((state) => state);
+  const { user } = useAuth();
+  const isAAP = user.complete_user.user.companies.some((company) => company.CVE_IMP === '004108');
+
   const hasExpediente = (filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
   const [companySelect, setCompanySelect] = React.useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('dea-user-companies');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
-            return parsed;
-          }
-        } catch {
-          console.warn('Invalid data in dea-user-companies');
-        }
-      }
-    }
-    return [];
+    const companies: getAllCompanies[] = user?.complete_user?.user?.companies ?? [];
+    return companies.flatMap((c) => (c.CVE_IMP ? [String(c.CVE_IMP)] : []));
   });
 
   const isDEA = pathname === '/mygp/dea';
   const { rows: companies } = useCompanies(isDEA);
 
   const companyOptions = React.useMemo(() => {
-    if (!companies || companies.length === 0) return [];
+    if (!companies || companies.length === 0 || !companySelect || companySelect.length === 0)
+      return [];
 
     return companies
-      .filter((c) => companySelect.includes(String(c.CVE_IMP))) // filter by selection
+      .filter((c) => companySelect.includes(String(c.CVE_IMP))) // filter companies by selected CVE_IMP values
       .map((c) => ({
         value: String(c.CVE_IMP),
         label: c.NOM_IMP,
@@ -92,10 +86,12 @@ export function SiteHeader() {
             showValue
             pickFirst
           />
-          <DEAFilterCompanyDriver
-            companySelect={companySelect}
-            setCompanySelect={setCompanySelect}
-          />
+          {isAAP && (
+            <DEAFilterCompanyDriver
+              companySelect={companySelect}
+              setCompanySelect={setCompanySelect}
+            />
+          )}
           {reference && <ManifestacionDialog className="h-5 text-xs w-[200px]" key={reference} />}
           <AccessGuard allowedPermissions={['DEA_PREVIOS']}>
             {reference && <PreviosDialog key={reference} className="text-xs h-5 w-[150px]" />}
