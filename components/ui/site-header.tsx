@@ -78,7 +78,7 @@ export function SiteHeader() {
 
     // Non-AAP: only show the user's own companies
     const userCompanies = user?.complete_user?.user?.companies ?? [];
-    const userCves = userCompanies.map((c: any) => String(c.CVE_IMP));
+    const userCves = userCompanies.map((c: getAllCompanies) => String(c.CVE_IMP));
 
     return companies
       .filter((c) => userCves.includes(String(c.CVE_IMP)))
