@@ -39,25 +39,53 @@ export function SiteHeader() {
   const isAAP = user.complete_user.user.companies.some((company) => company.CVE_IMP === '004108');
 
   const hasExpediente = (filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
-  const [companySelect, setCompanySelect] = React.useState<string[]>(() => {
-    const companies: getAllCompanies[] = user?.complete_user?.user?.companies ?? [];
-    return companies.flatMap((c) => (c.CVE_IMP ? [String(c.CVE_IMP)] : []));
-  });
 
   const isDEA = pathname === '/mygp/dea';
   const { rows: companies } = useCompanies(isDEA);
 
+  const [companySelect, setCompanySelect] = React.useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dea-user-companies');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
+            return parsed;
+          }
+        } catch {
+          console.warn('Invalid data in dea-user-companies');
+        }
+      }
+    }
+    return [];
+  });
+
   const companyOptions = React.useMemo(() => {
-    if (!companies || companies.length === 0 || !companySelect || companySelect.length === 0)
-      return [];
+    if (!companies || companies.length === 0) return [];
+
+    // For AAP: if no selection, show all; if selection present, filter by it.
+    if (isAAP) {
+      const hasSelection = companySelect && companySelect.length > 0;
+      const base = hasSelection
+        ? companies.filter((c) => companySelect.includes(String(c.CVE_IMP)))
+        : companies;
+
+      return base.map((c) => ({
+        value: String(c.CVE_IMP),
+        label: c.NOM_IMP,
+      }));
+    }
+
+    // Non-AAP: require selection
+    if (!companySelect || companySelect.length === 0) return [];
 
     return companies
-      .filter((c) => companySelect.includes(String(c.CVE_IMP))) // filter companies by selected CVE_IMP values
+      .filter((c) => companySelect.includes(String(c.CVE_IMP)))
       .map((c) => ({
         value: String(c.CVE_IMP),
         label: c.NOM_IMP,
       }));
-  }, [companies, companySelect]);
+  }, [companies, companySelect, isAAP]);
 
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
     useSWRMutation(
