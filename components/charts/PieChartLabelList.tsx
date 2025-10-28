@@ -21,6 +21,8 @@ import { customs } from '@/lib/customs/customs';
 import MyGPDatePicker from '../MyGPUI/Datepickers/MyGPDatePicker';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useAuth } from '@/hooks/useAuth';
+import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 
 export const COLORS_6 = ['#0B2B66', '#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#8FB2FF'];
 
@@ -37,14 +39,43 @@ export default function PieChartLabelList() {
   const [initialDate, setInitialDate] = React.useState<Date | undefined>(
     new Date(new Date().setMonth(new Date().getMonth() - 1))
   );
+  const { user } = useAuth();
+  const isAAP = user.complete_user.user.companies.some((company) => company.CVE_IMP === '004108');
+  const userCompanies = React.useMemo(() => {
+    const companies = user?.complete_user?.user?.companies ?? [];
+    return companies.filter((c: getAllCompanies) => String(c.CVE_IMP) !== '004108');
+  }, [user]);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(new Date());
-  const [clientNumber, setClientNumber] = React.useState('005009'); // Transbel Nuevo
+  const [clientNumber, setClientNumber] = React.useState(() => {
+    const firstCompany = userCompanies[0]?.CVE_IMP;
+    if (firstCompany) return String(firstCompany);
+    if (isAAP) return '005009'; // Transbel Nuevo
+    return '';
+  });
   const [maxOperationValue, setMaxOperationValue] = React.useState(0);
   const { rows: companies } = useCompanies();
-  const companyOptions = React.useMemo(
-    () => companies.map((c) => ({ value: c.CVE_IMP, label: c.NOM_IMP })),
-    [companies]
-  );
+  const companyOptions = React.useMemo(() => {
+    if (!companies || companies.length === 0) return [];
+
+    if (isAAP) {
+      // AAP: show all companies
+      return companies.map((c) => ({
+        value: String(c.CVE_IMP),
+        label: c.NOM_IMP,
+      }));
+    }
+
+    // Non-AAP: only show the user's own companies
+    const userCompanies = user?.complete_user?.user?.companies ?? [];
+    const userCves = userCompanies.map((c: getAllCompanies) => String(c.CVE_IMP));
+
+    return companies
+      .filter((c) => userCves.includes(String(c.CVE_IMP)))
+      .map((c) => ({
+        value: String(c.CVE_IMP),
+        label: c.NOM_IMP,
+      }));
+  }, [companies, isAAP, user]);
   const { data: chartData } = useSWR(
     initialDate && finalDate
       ? `/api/bi/getOperationsDistributionByCustoms?initialDate=${
