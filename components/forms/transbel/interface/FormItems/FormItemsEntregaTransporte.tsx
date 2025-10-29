@@ -3,12 +3,10 @@ import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { IconTrashFilled } from '@tabler/icons-react';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
-import { useWatch } from 'react-hook-form';
 
 const ExceptionCodeField = ({
   form,
@@ -33,26 +31,7 @@ const ExceptionCodeField = ({
   >;
   row: Row<getRefsPendingCE>;
 }) => {
-  const EXCEPTION_CODE = useWatch({
-    control: form.control,
-    name: 'exceptionCode',
-  });
-
-  const ENTREGA_TRANSPORTE_138_DATE = useWatch({
-    control: form.control,
-    name: 'date',
-  });
-
-  const showExceptionCode = shouldPutExceptionCode({
-    exceptionCode: EXCEPTION_CODE,
-    initialDate: row.original.ULTIMO_DOCUMENTO_114,
-    finalDate: ENTREGA_TRANSPORTE_138_DATE,
-    numDays: 7,
-  });
-
-  const shouldShow = showExceptionCode || !!EXCEPTION_CODE;
-
-  if (!shouldShow) return null; // <- fine here (component return), not inside render prop
+  if (!row.original.has_business_days_error) return null; // <- fine here (component return), not inside render prop
 
   return (
     <FormField

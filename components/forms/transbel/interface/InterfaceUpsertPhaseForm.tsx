@@ -28,7 +28,6 @@ import { Row } from '@tanstack/react-table';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { USER_CASA_USERNAME_VALIDATION } from '@/lib/validations/userValidations';
-import { shouldPutExceptionCode } from '@/lib/utilityFunctions/shouldPutExceptionCode';
 import FormItemsRevalidacion from './FormItems/FormItemsRevalidacion';
 import FormItemsUltimoDocumento from './FormItems/FormItemsUltimoDocumento';
 import FormItemsEntregaTransporte from './FormItems/FormItemsEntregaTransporte';
@@ -166,18 +165,17 @@ export default function InterfaceUpsertPhaseForm({
       }
     )
     .refine(
-      (data) => {
-        return !shouldPutExceptionCode({
-          exceptionCode: data.exceptionCode,
-          initialDate: row.original.ULTIMO_DOCUMENTO_114,
-          finalDate: data.date,
-          numDays: 7,
-        });
+      () => {
+        const hasError = row.original.has_business_days_error;
+        const hasException = !!form.watch('exceptionCode');
+
+        // Valid if there's no business days error OR there is an exception code
+        return !hasError || hasException;
       },
       {
         message:
-          'Coloca un código de excepción, la diferencia entre la fecha de último documento y transporte es mayor a 7 dias',
-        path: ['date'],
+          'Coloca un código de excepción, la diferencia entre la fecha de último documento y transporte es mayor a 7 días',
+        path: ['date'], // error will attach to 'date'
       }
     );
 
