@@ -29,6 +29,7 @@ import { dailyTrackingColumns } from '@/lib/columns/dailyTrackingColumns';
 import DailyTrackingDataTableFilter from '../filters/DailyTrackingDataTableFilter';
 import { useAuth } from '@/hooks/useAuth';
 import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
+import TablePageSize from '../pageSize/TablePageSize';
 
 export function DailyTrackingDataTable({
   filterValues,
@@ -51,7 +52,7 @@ export function DailyTrackingDataTable({
   );
 
   // UI state
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
 
@@ -243,7 +244,10 @@ export function DailyTrackingDataTable({
           )}
         </TableBody>
       </Table>
-      <TablePagination table={table} />
+      <div className="w-full flex justify-end items-center gap-2">
+        <TablePageSize pagination={pagination} setPagination={setPagination} />
+        <TablePagination table={table} />
+      </div>
     </div>
   );
 }
