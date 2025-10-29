@@ -18,10 +18,11 @@ import React from 'react';
 import AdminDataTableFilter from '../filters/AdminDataTableFilter';
 import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
 import { getAllUsersColumns } from '@/lib/columns/getAllUsersColumns';
+import TablePageSize from '../pageSize/TablePageSize';
 
 export default function UsersDataTable() {
   const { getAllUsers } = React.useContext(UsersDataTableContext);
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
     data: getAllUsers || [],
@@ -96,7 +97,10 @@ export default function UsersDataTable() {
           )}
         </TableBody>
       </Table>
-      <TablePagination table={table} />
+      <div className="w-full flex justify-end items-center gap-2">
+        <TablePageSize pagination={pagination} setPagination={setPagination} />
+        <TablePagination table={table} />
+      </div>
     </div>
   );
 }

@@ -31,11 +31,12 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { useCarguesColumns } from '@/lib/columns/carguesColumns';
 import { CarguesContext } from '@/contexts/CarguesContext';
+import TablePageSize from '../pageSize/TablePageSize';
 
 export function CarguesDataTable() {
   const { cargues, tabValue, isLoading: isCarguesLoading } = React.useContext(CarguesContext);
   // UI state
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToDB, setIsSendingToDB] = React.useState(false);
@@ -178,7 +179,10 @@ export function CarguesDataTable() {
           )}
         </TableBody>
       </Table>
-      <TablePagination table={table} />
+      <div className="w-full flex justify-end items-center gap-2">
+        <TablePageSize pagination={pagination} setPagination={setPagination} />
+        <TablePagination table={table} />
+      </div>{' '}
     </div>
   );
 }

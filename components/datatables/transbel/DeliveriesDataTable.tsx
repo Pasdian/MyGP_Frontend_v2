@@ -20,10 +20,11 @@ import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import { DeliveriesContext } from '@/contexts/DeliveriesContext';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
+import TablePageSize from '../pageSize/TablePageSize';
 
 export default function DeliveriesDataTable() {
   const { deliveries, isLoading: isDeliveriesLoading } = React.useContext(DeliveriesContext);
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
 
   const rowsForTable = React.useMemo(() => {
@@ -110,7 +111,10 @@ export default function DeliveriesDataTable() {
           )}
         </TableBody>
       </Table>
-      <TablePagination table={table} />
+      <div className="w-full flex justify-end items-center gap-2">
+        <TablePageSize pagination={pagination} setPagination={setPagination} />
+        <TablePagination table={table} />
+      </div>
     </div>
   );
 }

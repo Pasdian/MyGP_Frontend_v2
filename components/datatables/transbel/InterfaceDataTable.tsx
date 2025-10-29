@@ -35,6 +35,7 @@ import axios from 'axios';
 import { useInterfaceColumns } from '@/lib/columns/interfaceColumns';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
+import TablePageSize from '../pageSize/TablePageSize';
 
 const TAB_VALUES = ['errors', 'pending', 'sent'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -47,7 +48,7 @@ export function InterfaceDataTable() {
   const { refsPendingCE, isRefsLoading, tabValue, setTabValue, setRefsPendingCE } =
     React.useContext(InterfaceContext);
   // UI state
-  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 8 });
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
@@ -258,6 +259,7 @@ export function InterfaceDataTable() {
           </div>
         )}
       </div>
+
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -305,7 +307,10 @@ export function InterfaceDataTable() {
           )}
         </TableBody>
       </Table>
-      <TablePagination table={table} />
+      <div className="w-full flex justify-end items-center gap-2">
+        <TablePageSize pagination={pagination} setPagination={setPagination} />
+        <TablePagination table={table} />
+      </div>
     </div>
   );
 }
