@@ -133,7 +133,7 @@ export function DailyTrackingDataTable({
         Aduana: item.CUSTOM_FORMATTED,
         Ejecutivo: item.KAM,
         Estatus: item.STATUS,
-        'Modificado en': item.MODIFIED_AT,
+        'Modificado en': item.MODIFIED_AT_FORMATTED,
       }));
 
       const res = await GPClient.post(
