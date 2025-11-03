@@ -15,6 +15,7 @@ import { getCustomKeyByRef } from '@/lib/customs/customs';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { useRefsByClient } from '@/hooks/useRefsByClient';
 import TailwindSpinner from '../TailwindSpinner';
+import { toast } from 'sonner';
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
@@ -124,6 +125,7 @@ export default function CollapsibleReferences() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDownloadZip(clientNumber, NUM_REFE);
+                                  toast.success(`${NUM_REFE} descargando...`);
                                 }}
                               />
                             )}

@@ -77,7 +77,7 @@ export default function DocumentCard({
     a.remove();
 
     // Optional: toast to indicate start
-    toast.success(`${folder} descargado`);
+    toast.success(`${folder} descargando...`);
   }
 
   const visibleFiles = (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true));

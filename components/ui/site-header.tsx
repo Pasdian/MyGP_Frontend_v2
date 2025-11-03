@@ -9,7 +9,7 @@ import PreviosDialog from '../Dialogs/PreviosDialog';
 import { toast } from 'sonner';
 import posthog from 'posthog-js';
 import { deaModuleEvents } from '@/lib/posthog/events';
-import { RocketIcon } from 'lucide-react';
+import { Loader2, RocketIcon } from 'lucide-react';
 import useSWRMutation from 'swr/mutation';
 import AccessGuard from '../AccessGuard/AccessGuard';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -34,6 +34,7 @@ export function SiteHeader() {
     setClientNumber,
     setInitialDate,
     setFinalDate,
+    setFilesByReference,
   } = useDEAStore((state) => state);
   const { user } = useAuth();
 
@@ -106,7 +107,7 @@ export function SiteHeader() {
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
-
+  console.log(filesByReference);
   return (
     <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-1">
       <div className="flex">
@@ -146,8 +147,18 @@ export function SiteHeader() {
                 disabled={!filesByReference || hasExpediente || isDigitalRecordGenerationMutating}
                 onClick={async () => {
                   try {
-                    await triggerDigitalRecordGeneration();
-                    toast.success('Expediente digital generado exitosamente');
+                    const response = await triggerDigitalRecordGeneration();
+
+                    if (filesByReference) {
+                      filesByReference.files['05-EXP-DIGITAL'] =
+                        filesByReference.files['05-EXP-DIGITAL'] || [];
+
+                      filesByReference.files['05-EXP-DIGITAL'].push(response.filename);
+
+                      setFilesByReference({ ...filesByReference });
+                    }
+
+                    toast.success(`Expediente digital generado: ${response.filename}`);
                     posthog.capture(posthogEvent);
                   } catch (err) {
                     console.error('Generation Failed', err);
@@ -155,7 +166,12 @@ export function SiteHeader() {
                   }
                 }}
               >
-                {!hasExpediente ? (
+                {isDigitalRecordGenerationMutating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generando...
+                  </>
+                ) : !hasExpediente ? (
                   <>
                     <RocketIcon className="mr-2 h-4 w-4" />
                     Expediente Digital
