@@ -13,7 +13,7 @@ export function MyGPButtonGhost({
       {...props}
       type="button"
       variant="outline"
-      className={cn('w-[130px] h-full cursor-pointer', className)}
+      className={cn('h-full cursor-pointer', className)}
     >
       <span className="font-bold grid grid-cols-[auto_auto] items-center gap-1 truncate">
         {children}

@@ -23,19 +23,18 @@ import {
 import React from 'react';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import IntefaceDataTableFilter from '../filters/InterfaceDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { IconSettings, IconSquareFilled } from '@tabler/icons-react';
-import { CheckIcon, Loader2 } from 'lucide-react';
+import { IconSettings } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { useInterfaceColumns } from '@/lib/columns/interfaceColumns';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import TablePageSize from '../pageSize/TablePageSize';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 const TAB_VALUES = ['errors', 'pending', 'sent'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -159,6 +158,7 @@ export function InterfaceDataTable() {
     .map((r) => r.original);
 
   async function sendToWorkato() {
+    setIsSendingToWorkato(true);
     try {
       const updatedRows = selectedWorkatoRows.map((r) => ({
         ...r,
@@ -178,8 +178,10 @@ export function InterfaceDataTable() {
 
         table.toggleAllRowsSelected(false);
         toast.success(res.data.message || 'Datos enviados correctamente');
+        setIsSendingToWorkato(false);
       } else {
         toast.error('No se pudo enviar los datos solicitados');
+        setIsSendingToWorkato(false);
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -187,75 +189,42 @@ export function InterfaceDataTable() {
         toast.error(message);
       } else {
         toast.error('Ocurrió un error inesperado');
+        setIsSendingToWorkato(false);
       }
     } finally {
       setIsSendingToWorkato(false);
     }
   }
 
-  if (isRefsLoading) return <TailwindSpinner />;
+  if (isRefsLoading) return <MyGPSpinner />;
 
   return (
     <div>
-      <div className="flex items-center space-x-2 mb-4">
-        <div className="flex items-center">
+      <div className="grid grid-cols-2 w-[950px] items-center mb-4">
+        <div className="w-[450px]">
           <MyGPTabs
             value={tabValue}
             onValueChange={(v) => isTabValue(v) && setTabValue?.(v)}
             defaultValue="errors"
-            className="mr-2"
+            className="mr-2 mb-0"
             tabs={[
               { value: 'errors', label: 'Con Error' },
               { value: 'pending', label: 'Pendientes de Envio' },
               { value: 'sent', label: 'Enviados' },
             ]}
           />
-          {tabValue == 'pending' && (
-            <div>
-              <Button
-                size="sm"
-                className="bg-blue-500 hover:bg-blue-600 cursor-pointer mr-2"
-                onClick={() => table.toggleAllRowsSelected(true)}
-              >
-                <CheckIcon />
-                Seleccionar todo
-              </Button>
-              {table.getIsAllRowsSelected() && (
-                <Button
-                  size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
-                  onClick={() => table.toggleAllRowsSelected(false)}
-                >
-                  <IconSquareFilled />
-                  Deseleccionar todo
-                </Button>
-              )}
-            </div>
-          )}
         </div>
 
         {selectedWorkatoRows.length > 0 && (
           <div>
-            <Button
-              size="sm"
-              className="bg-blue-500 hover:bg-blue-600"
+            <MyGPButtonSubmit
+              className="h-6"
               onClick={sendToWorkato}
-              disabled={isSendingToWorkato} // optional: disable while loading
+              isSubmitting={isSendingToWorkato} // optional: disable while loading
             >
-              <div className="flex items-center">
-                {isSendingToWorkato ? (
-                  <>
-                    <Loader2 className="animate-spin mr-2" />
-                    <p>Enviando</p>
-                  </>
-                ) : (
-                  <>
-                    <IconSettings className="mr-2 h-4 w-4" />
-                    <p>Enviar {selectedWorkatoRows.length} referencias</p>
-                  </>
-                )}
-              </div>
-            </Button>
+              <IconSettings className="mr-2 h-4 w-4" />
+              <p>Enviar {selectedWorkatoRows.length} referencias</p>
+            </MyGPButtonSubmit>
           </div>
         )}
       </div>

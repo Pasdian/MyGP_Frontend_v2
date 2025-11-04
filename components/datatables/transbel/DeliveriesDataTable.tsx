@@ -15,12 +15,12 @@ import {
 } from '@tanstack/react-table';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
 import { DeliveriesContext } from '@/contexts/DeliveriesContext';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import TablePageSize from '../pageSize/TablePageSize';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export default function DeliveriesDataTable() {
   const { deliveries, isLoading: isDeliveriesLoading } = React.useContext(DeliveriesContext);
@@ -52,7 +52,7 @@ export default function DeliveriesDataTable() {
     },
   });
 
-  if (isDeliveriesLoading) return <TailwindSpinner />;
+  if (isDeliveriesLoading) return <MyGPSpinner />;
 
   return (
     <div>

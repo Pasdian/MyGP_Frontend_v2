@@ -11,7 +11,7 @@ export function MyGPButtonWarning({
     <Button
       {...props}
       type="button"
-      className={cn('bg-yellow-500 w-[130px] hover:bg-yellow-600 h-full cursor-pointer', className)}
+      className={cn('bg-yellow-500 hover:bg-yellow-600 h-full cursor-pointer', className)}
     >
       <span className="font-bold grid grid-cols-[auto_auto] items-center gap-1 truncate">
         {children}

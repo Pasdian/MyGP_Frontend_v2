@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import React from 'react';
-import TailwindSpinner from '../ui/TailwindSpinner';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import useSWR from 'swr';
 import { axiosImageFetcher } from '@/lib/axiosUtils/axios-instance';
@@ -8,6 +7,7 @@ import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
+import MyGPSpinner from '../MyGPUI/Spinners/MyGPSpinner';
 
 type FolderKey = 'PARTIDAS' | 'PREVIO';
 
@@ -112,9 +112,7 @@ export default function ImageDialog({
       {/* Viewer */}
       <div className="flex-1 grid place-items-center overflow-hidden">
         {isCurImageUrlLoading || !currentFilename ? (
-          <div className="flex justify-center">
-            <TailwindSpinner />
-          </div>
+          <MyGPSpinner />
         ) : imageBlobUrlMap.has(currentFilename) ? (
           <ImageWithPanningCursor
             currentFilename={currentFilename}

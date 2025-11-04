@@ -3,7 +3,6 @@
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { IconBallpenFilled } from '@tabler/icons-react';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
 import { useOperationHistory } from '@/hooks/useOperationHistory';
@@ -13,6 +12,7 @@ import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
 import { MyGPButtonWarning } from '@/components/MyGPUI/Buttons/MyGPButtonWarning';
 import ModifyDailyTrackingStatusForm from '@/components/forms/dashboard/ModifyDailyTrackingStatus';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 const TAB_VALUES = ['history', 'modify_status'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -70,7 +70,7 @@ export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTr
         )}
       </div>
 
-      {isOpen && tabValue === 'history' && isHistoryLoading && <TailwindSpinner className="w-8" />}
+      {isOpen && tabValue === 'history' && isHistoryLoading && <MyGPSpinner />}
     </MyGPDialog>
   );
 }

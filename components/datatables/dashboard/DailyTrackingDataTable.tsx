@@ -30,6 +30,7 @@ import DailyTrackingDataTableFilter from '../filters/DailyTrackingDataTableFilte
 import { useAuth } from '@/hooks/useAuth';
 import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 import TablePageSize from '../pageSize/TablePageSize';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export function DailyTrackingDataTable({
   filterValues,
@@ -43,7 +44,8 @@ export function DailyTrackingDataTable({
   };
 }) {
   const { user } = useAuth();
-  const { dailyTrackingData } = React.useContext(DailyTrackingContext);
+  const { dailyTrackingData, isLoading: isDailyTrackingLoading } =
+    React.useContext(DailyTrackingContext);
   const userCasaUserName = user.complete_user.user.casa_user_name;
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
   const isTrafficAdmin = user?.complete_user?.role?.name === 'TRAFICO_ADMIN';
@@ -171,7 +173,7 @@ export function DailyTrackingDataTable({
       setIsConvertingToCsv(false);
     }
   }
-
+  if (isDailyTrackingLoading) return <MyGPSpinner />;
   return (
     <div>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">Seguimiento Diario</h1>
@@ -237,7 +239,7 @@ export function DailyTrackingDataTable({
             <TableRow>
               <TableCell colSpan={dailyTrackingColumns.length} className="h-24 text-center">
                 <div className="flex justify-center">
-                  <p>Cargando...</p>
+                  <p>Sin resultados...</p>
                 </div>
               </TableCell>
             </TableRow>

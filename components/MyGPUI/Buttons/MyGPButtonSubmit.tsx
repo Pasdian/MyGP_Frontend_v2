@@ -1,12 +1,16 @@
 import { Loader2, SaveAll } from 'lucide-react';
 import { MyGPButtonPrimary } from './MyGPButtonPrimary';
+import React from 'react';
 
 export default function MyGPButtonSubmit({
   isSubmitting,
+  children,
   ...props
-}: { isSubmitting?: boolean } & React.ComponentProps<typeof MyGPButtonPrimary>) {
+}: { isSubmitting?: boolean; children?: React.ReactNode } & React.ComponentProps<
+  typeof MyGPButtonPrimary
+>) {
   return (
-    <MyGPButtonPrimary type="submit" className="w-[170px]" disabled={isSubmitting} {...props}>
+    <MyGPButtonPrimary type="submit" disabled={isSubmitting} {...props}>
       {isSubmitting ? (
         <>
           <Loader2 className="animate-spin mr-2" />
@@ -14,7 +18,11 @@ export default function MyGPButtonSubmit({
         </>
       ) : (
         <>
-          <SaveAll /> <p>Guardar Cambios</p>
+          {children || (
+            <>
+              <SaveAll /> <p>Guardar Cambios</p>
+            </>
+          )}
         </>
       )}
     </MyGPButtonPrimary>

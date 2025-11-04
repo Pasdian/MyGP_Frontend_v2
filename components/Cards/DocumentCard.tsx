@@ -9,6 +9,7 @@ import { deaModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
 import AccessGuard from '../AccessGuard/AccessGuard';
 import { FolderKey } from '@/types/dea/getFilesByReferences';
+import MyGPSpinner from '../MyGPUI/Spinners/MyGPSpinner';
 
 const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
@@ -19,26 +20,19 @@ export default function DocumentCard({
   files = [],
   onFileSelect,
   activeFile,
+  isLoading,
   folder,
-  className = '',
   filterFn = () => true,
 }: {
   title: string;
   files: string[];
   onFileSelect: (item: string) => void;
   activeFile: string;
-  className?: string;
+  isLoading: boolean;
   filterFn?: (item: string) => boolean;
   folder: FolderKey;
 }) {
   const { reference, clientNumber: client } = useDEAStore((state) => state);
-
-  const cardClassName = 'py-0 rounded-none h-full min-h-0 overflow-hidden';
-  const wrapperClassName = 'h-full flex flex-col min-h-0';
-  const stickyClassName =
-    'sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center';
-  const listClassName =
-    'flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain p-2 text-[10px]';
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
 
@@ -83,50 +77,52 @@ export default function DocumentCard({
   const visibleFiles = (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true));
 
   return (
-    <Card className={`${cardClassName} ${className}`}>
-      <div className={wrapperClassName}>
-        <div className={stickyClassName}>
-          <p className="font-bold">{`${title} - ${visibleFiles.length} archivos`}</p>
-          <div>
-            <div className="flex">
-              <IconUpload
+    <Card className="rounded-none p-0">
+      <div className="grid grid-rows-[auto_1fr] h-full">
+        <div className="bg-blue-500 p-1 text-[13px] text-white grid grid-cols-[1fr_auto] items-center gap-2 overflow-x-hidden">
+          <p className="min-w-0 break-words overflow-x-hidden font-bold">
+            {`${title} - ${visibleFiles.length} archivos`}
+          </p>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <IconUpload
+              size={iconSize}
+              className="cursor-pointer"
+              onClick={() => setOpenUploadDialog(true)}
+            />
+            {(files?.length ?? 0) > 0 && (
+              <DownloadIcon
                 size={iconSize}
-                color="white"
-                className="cursor-pointer mr-2"
-                onClick={() => setOpenUploadDialog(true)}
+                className="cursor-pointer"
+                onClick={() => handleDownloadZip(`/GESTION/${client}/${reference}/${folder}`)}
               />
-              {(files?.length ?? 0) > 0 && (
-                <DownloadIcon
-                  size={iconSize}
-                  className="cursor-pointer"
-                  onClick={() => handleDownloadZip(`/GESTION/${client}/${reference}/${folder}`)}
-                />
-              )}
-            </div>
+            )}
           </div>
         </div>
 
-        <div className={listClassName}>
-          {visibleFiles.map((item) => {
-            const isActive = item === activeFile;
-            const isPedimentoSimplificado = item.includes('PSIM');
+        <div className="w-full h-full p-1 overflow-y-auto">
+          {isLoading && <MyGPSpinner />}
+          {!isLoading &&
+            visibleFiles.map((item) => {
+              const isActive = item === activeFile;
+              const isPedimentoSimplificado = item.includes('PSIM');
 
-            return (
-              <div
-                key={item}
-                className={`flex justify-between p-1 items-center cursor-pointer mb-1 ${
-                  isActive
-                    ? 'bg-green-300'
-                    : isPedimentoSimplificado
-                    ? 'bg-yellow-200'
-                    : 'even:bg-gray-100'
-                }`}
-                onClick={() => onFileSelect(item)}
-              >
-                <div className="max-w-[80%] truncate">
-                  <p className="truncate">{item}</p>
-                </div>
-                <div className="flex">
+              return (
+                <div
+                  key={item}
+                  className={`flex justify-between items-center cursor-pointer mb-1 p-1 ${
+                    isActive
+                      ? 'bg-green-300'
+                      : isPedimentoSimplificado
+                      ? 'bg-yellow-200'
+                      : 'even:bg-gray-100'
+                  }`}
+                  onClick={() => onFileSelect(item)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] break-words">{item}</p>
+                  </div>
+
                   <AccessGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
                     <DownloadIcon
                       size={iconSize}
@@ -141,9 +137,8 @@ export default function DocumentCard({
                     />
                   </AccessGuard>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
 

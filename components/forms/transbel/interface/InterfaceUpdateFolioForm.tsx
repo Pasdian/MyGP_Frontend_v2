@@ -14,11 +14,11 @@ import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
 import useSWR from 'swr/immutable';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
 import { AxiosError } from 'axios';
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 const comboOptions = [
   {
@@ -108,12 +108,7 @@ export default function UpdateFolioForm({
     }
   }
 
-  if (isFolioDataLoading)
-    return (
-      <div className="flex justify-center items-center">
-        <TailwindSpinner />
-      </div>
-    );
+  if (isFolioDataLoading) return <MyGPSpinner />;
   return (
     <div>
       <div className="mb-4">

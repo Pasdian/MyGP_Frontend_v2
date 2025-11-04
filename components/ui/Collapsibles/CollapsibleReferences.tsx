@@ -14,8 +14,8 @@ import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { useRefsByClient } from '@/hooks/useRefsByClient';
-import TailwindSpinner from '../TailwindSpinner';
 import { toast } from 'sonner';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
@@ -62,12 +62,7 @@ export default function CollapsibleReferences() {
       })
     );
   }
-  if (isRefsLoading)
-    return (
-      <div className="flex justify-center items-center">
-        <TailwindSpinner className="w-8" />
-      </div>
-    );
+  if (isRefsLoading) return <MyGPSpinner />;
   return (
     <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
       <Collapsible defaultOpen className="group/collapsible">
@@ -114,22 +109,24 @@ export default function CollapsibleReferences() {
                           setReference(NUM_REFE);
                         }}
                       >
-                        <div className="flex justify-between items-center">
-                          <p className="max-w-[70px] text-xs truncate">{NUM_REFE}</p>
+                        <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                          <p className="min-w-0 text-[14px] break-words">{NUM_REFE}</p>
 
-                          <div className="flex items-center">
-                            {FOLDER_HAS_CONTENT && (
-                              <DownloadIcon
-                                size={14}
-                                className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDownloadZip(clientNumber, NUM_REFE);
-                                  toast.success(`${NUM_REFE} descargando...`);
-                                }}
-                              />
-                            )}
-                          </div>
+                          {FOLDER_HAS_CONTENT && (
+                            <button
+                              type="button"
+                              aria-label={`Descargar ${NUM_REFE}`}
+                              className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadZip(clientNumber, NUM_REFE);
+                                toast.success(`${NUM_REFE} descargando...`);
+                              }}
+                              title="Descargar ZIP"
+                            >
+                              <DownloadIcon size={14} />
+                            </button>
+                          )}
                         </div>
                       </SidebarMenuItem>
                     );

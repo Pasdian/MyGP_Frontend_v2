@@ -14,6 +14,7 @@ import { useClientLogo } from '@/hooks/useClientLogo';
 import { useClientFile } from '@/hooks/useClientFile';
 import UploadFile from '@/components/UploadFiles/UploadFile';
 import DEAFloatingWindowDriver from '@/components/driver/DEAFloatingWindowDriver';
+import { Loader2Icon } from 'lucide-react';
 
 export default function DEA() {
   const { clientNumber: client, reference, filesByReference } = useDEAStore((state) => state);
@@ -21,7 +22,7 @@ export default function DEA() {
   const [filename, setFilename] = React.useState('');
 
   // Get files by reference stream
-  useFilesByRef(reference, client);
+  const { isLoading } = useFilesByRef(reference, client);
 
   const CTA = filesByReference.files?.['01-CTA-GASTOS'] ?? [];
   const ExpAduanal = filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
@@ -59,173 +60,171 @@ export default function DEA() {
   const { windows, spawnWindow, closeWindow, toggleMinimize, updateGeometry, bringToFront } =
     useFloatingWindows();
 
+  // Custom display pdf (with optional toolbar)
+  const withPdfParams = (url: string, { showToolbar = true } = {}) => {
+    const hasHash = url.includes('#');
+    const sep = hasHash ? '&' : '#';
+    const toolbarParam = showToolbar ? 'toolbar=1' : 'toolbar=0';
+    // Fit to page width; keep FitH as a fallback some viewers honor
+    return `${url}${sep}zoom=page-width&view=FitH&${toolbarParam}`;
+  };
+
   return (
     <WindowManagerProvider>
       <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
-        <div className="h-full min-h-0">
-          {reference && client && (
-            <div className="h-full min-h-0">
-              <div className="flex h-full min-h-0 gap-4 overflow-hidden">
-                {/* LEFT column */}
-                <div className="flex flex-col min-h-0 gap-4 overflow-hidden basis-[168px] shrink-0">
-                  {/* Cuenta de Gastos */}
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <DocumentCard
-                      className="h-full min-h-0"
-                      title="Cuenta de Gastos"
-                      files={CTA}
-                      folder="01-CTA-GASTOS"
-                      onFileSelect={(item) => {
-                        setFilename(item);
-                        setSubfolder('01-CTA-GASTOS');
-                      }}
-                      activeFile={filename}
-                    />
-                  </div>
+        {reference && client ? (
+          <div className="grid grid-cols-[25%_25%_50%] grid-rows-3 h-full gap-2">
+            {/* Cuenta de Gastos */}
+            <DocumentCard
+              title="Cuenta de Gastos"
+              files={CTA}
+              folder="01-CTA-GASTOS"
+              isLoading={isLoading}
+              onFileSelect={(item) => {
+                setFilename(item);
+                setSubfolder('01-CTA-GASTOS');
+              }}
+              activeFile={filename}
+            />
 
-                  {/* Expediente Aduanal */}
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <DocumentCard
-                      className="h-full min-h-0"
-                      title="Expediente Aduanal"
-                      files={ExpAduanal}
-                      folder="02-EXPEDIENTE-ADUANAL"
-                      onFileSelect={(item) => {
-                        setFilename(item);
-                        setSubfolder('02-EXPEDIENTE-ADUANAL');
-                      }}
-                      activeFile={filename}
-                    />
-                  </div>
-
-                  {/* Comprobantes Fiscales */}
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <DocumentCard
-                      className="h-full min-h-0"
-                      title="Comprobantes Fiscales"
-                      files={Fiscales}
-                      folder="03-FISCALES"
-                      onFileSelect={(item) => {
-                        setFilename(item);
-                        setSubfolder('03-FISCALES');
-                      }}
-                      activeFile={filename}
-                    />
+            {/* COVES */}
+            <DocumentCard
+              title="COVES"
+              files={VUCEM}
+              isLoading={isLoading}
+              folder="04-VUCEM"
+              onFileSelect={(item) => {
+                setFilename(item);
+                setSubfolder('04-VUCEM');
+              }}
+              activeFile={filename}
+              filterFn={(item) => item.includes('COVE') || item.includes('PSIM')}
+            />
+            {/* VIEWER */}
+            <Card className="row-span-3 p-0">
+              <div className="grid grid-rows-[auto_1fr] h-full">
+                {/* Header */}
+                <div className="bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center">
+                  <p className="text-[13px] font-bold truncate">
+                    Visor de Archivos{filename ? ` - ${filename}` : ''}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {filename && fileUrl && (
+                      <DEAFloatingWindowDriver
+                        fileUrl={fileUrl}
+                        contentType={contentType}
+                        filename={filename}
+                        spawnWindow={spawnWindow}
+                      />
+                    )}
                   </div>
                 </div>
 
-                {/* RIGHT column */}
-                <div className="flex flex-col min-h-0 gap-4 overflow-hidden basis-[168px] shrink-0">
-                  {/* COVES */}
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <DocumentCard
-                      className="h-full min-h-0"
-                      title="COVES"
-                      files={VUCEM}
-                      folder="04-VUCEM"
-                      onFileSelect={(item) => {
-                        setFilename(item);
-                        setSubfolder('04-VUCEM');
-                      }}
-                      activeFile={filename}
-                      filterFn={(item) => item.includes('COVE') || item.includes('PSIM')}
+                {/* Content area */}
+                <div className="w-full h-full">
+                  {isLoading ? (
+                    <div className="flex w-full h-full items-center justify-center text-gray-400">
+                      <Loader2Icon className="animate-spin" />
+                    </div>
+                  ) : contentType?.includes('pdf') ? (
+                    <iframe
+                      src={withPdfParams(fileUrl!, { showToolbar: true })}
+                      className="w-full h-full border-none"
+                      title="PDF"
+                      allow="fullscreen"
+                      allowFullScreen
                     />
-                  </div>
-
-                  {/* EDocs */}
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <DocumentCard
-                      className="h-full min-h-0"
-                      title="EDocs"
-                      files={VUCEM}
-                      folder="04-VUCEM"
-                      onFileSelect={(item) => {
-                        setFilename(item);
-                        setSubfolder('04-VUCEM');
-                      }}
-                      activeFile={filename}
-                      filterFn={(item) => !item.includes('COVE') && !item.includes('PSIM')}
-                    />
-                  </div>
-
-                  {/* Expediente Digital */}
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    <DocumentCard
-                      className="h-full min-h-0"
-                      title="Expediente Digital"
-                      files={ExpDigital}
-                      folder="05-EXP-DIGITAL"
-                      onFileSelect={(item) => {
-                        setFilename(item);
-                        setSubfolder('05-EXP-DIGITAL');
-                      }}
-                      activeFile={filename}
-                    />
-                  </div>
+                  ) : textContent ? (
+                    <pre
+                      className="
+                        p-4
+                        bg-gray-50
+                        rounded-md
+                        w-full
+                        text-sm
+                        overflow-y-auto
+                        overflow-x-hidden
+                        whitespace-pre-wrap
+                        break-words
+                        break-all
+                      "
+                    >
+                      {textContent}
+                    </pre>
+                  ) : (
+                    <div className="flex w-full h-full items-center justify-center text-gray-400 text-sm">
+                      No hay contenido disponible
+                    </div>
+                  )}
                 </div>
-
-                {/* VIEWER */}
-                <Card className="flex-[5] min-h-0 p-0 overflow-hidden rounded-none">
-                  <div className="h-full flex flex-col min-h-0 text-xs">
-                    <div className="sticky top-0 bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center">
-                      <p className="font-bold truncate">
-                        Visor de Archivos{filename ? ` - ${filename}` : ''}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        {filename && fileUrl && (
-                          <DEAFloatingWindowDriver
-                            fileUrl={fileUrl}
-                            contentType={contentType}
-                            filename={filename}
-                            spawnWindow={spawnWindow}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-                      {contentType?.includes('pdf') ? (
-                        <iframe src={fileUrl!} className="w-full h-full" />
-                      ) : (
-                        textContent && (
-                          <pre
-                            className="
-                              p-4
-                              bg-gray-50
-                              rounded-md
-                              w-full
-                              text-sm
-                              overflow-y-auto
-                              overflow-x-hidden
-                              whitespace-pre-wrap
-                              break-words
-                              break-all
-                            "
-                          >
-                            {textContent}
-                          </pre>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </Card>
               </div>
+            </Card>
 
-              <FloatingWindowsPortal
-                windows={windows}
-                closeWindow={closeWindow}
-                toggleMinimize={toggleMinimize}
-                updateGeometry={updateGeometry}
-                bringToFront={bringToFront}
-              />
-            </div>
-          )}
+            {/* Expediente Aduanal */}
+            <DocumentCard
+              title="Expediente Aduanal"
+              files={ExpAduanal}
+              isLoading={isLoading}
+              folder="02-EXPEDIENTE-ADUANAL"
+              onFileSelect={(item) => {
+                setFilename(item);
+                setSubfolder('02-EXPEDIENTE-ADUANAL');
+              }}
+              activeFile={filename}
+            />
+            {/* EDocs */}
+            <DocumentCard
+              title="EDocs"
+              files={VUCEM}
+              isLoading={isLoading}
+              folder="04-VUCEM"
+              onFileSelect={(item) => {
+                setFilename(item);
+                setSubfolder('04-VUCEM');
+              }}
+              activeFile={filename}
+              filterFn={(item) => !item.includes('COVE') && !item.includes('PSIM')}
+            />
 
-          {!reference && (
-            <div className="flex w-full h-full items-center justify-center">
-              <ClientLogoSection client={client} />
-            </div>
-          )}
-        </div>
+            {/* Comprobantes Fiscales */}
+            <DocumentCard
+              title="Comprobantes Fiscales"
+              files={Fiscales}
+              folder="03-FISCALES"
+              isLoading={isLoading}
+              onFileSelect={(item) => {
+                setFilename(item);
+                setSubfolder('03-FISCALES');
+              }}
+              activeFile={filename}
+            />
+
+            {/* Expediente Digital */}
+            <DocumentCard
+              title="Expediente Digital"
+              files={ExpDigital}
+              isLoading={isLoading}
+              folder="05-EXP-DIGITAL"
+              onFileSelect={(item) => {
+                setFilename(item);
+                setSubfolder('05-EXP-DIGITAL');
+              }}
+              activeFile={filename}
+            />
+
+            <FloatingWindowsPortal
+              windows={windows}
+              closeWindow={closeWindow}
+              toggleMinimize={toggleMinimize}
+              updateGeometry={updateGeometry}
+              bringToFront={bringToFront}
+            />
+          </div>
+        ) : (
+          <div className="flex w-full h-full items-center justify-center">
+            <ClientLogoSection client={client} />
+          </div>
+        )}
       </AccessGuard>
     </WindowManagerProvider>
   );

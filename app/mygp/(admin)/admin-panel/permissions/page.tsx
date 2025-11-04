@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import { IconPlus } from '@tabler/icons-react';
 import { Loader2, SaveAll, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -33,6 +32,7 @@ import { getAllRoles } from '@/types/roles/getAllRoles';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 type getRoleModulesAndPermissions = Role[] | null;
 const roleModulesPermissionsKey = '/api/role-modules/getRoleModulesAndPermissions';
@@ -179,7 +179,7 @@ export default function Permissions() {
     }
   };
 
-  if (isServerDataLoading) return <TailwindSpinner />;
+  if (isServerDataLoading) return <MyGPSpinner />;
   if (!rolesData) return <p>No hay datos</p>;
 
   return (

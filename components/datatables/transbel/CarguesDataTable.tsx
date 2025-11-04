@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/table';
 import React from 'react';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
 import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
@@ -32,6 +31,7 @@ import axios from 'axios';
 import { useCarguesColumns } from '@/lib/columns/carguesColumns';
 import { CarguesContext } from '@/contexts/CarguesContext';
 import TablePageSize from '../pageSize/TablePageSize';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export function CarguesDataTable() {
   const { cargues, tabValue, isLoading: isCarguesLoading } = React.useContext(CarguesContext);
@@ -101,7 +101,7 @@ export function CarguesDataTable() {
     }
   }
 
-  if (isCarguesLoading) return <TailwindSpinner />;
+  if (isCarguesLoading) return <MyGPSpinner />;
 
   return (
     <div>

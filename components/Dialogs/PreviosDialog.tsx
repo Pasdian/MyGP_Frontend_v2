@@ -4,12 +4,12 @@ import { Folder, Image } from 'lucide-react';
 import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
-import TailwindSpinner from '../ui/TailwindSpinner';
 import ImageDialog from './ImageDialog';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { IconEye } from '@tabler/icons-react';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
+import MyGPSpinner from '../MyGPUI/Spinners/MyGPSpinner';
 
 /** Map reference -> centralizada folder code */
 function getCurrentFolderFromReference(reference?: string) {
@@ -149,7 +149,7 @@ export default function PreviosDialog({ className }: { className?: string }) {
         }
       >
         <div>
-          {isPartidasPreviosLoading && <TailwindSpinner className="w-10 h-10" />}
+          {isPartidasPreviosLoading && <MyGPSpinner />}
 
           {partidasPreviosError && (
             <p className="text-sm ml-3 text-red-600">No se pudieron cargar los previos.</p>

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import axios from 'axios';
-import { Loader2Icon } from 'lucide-react';
+import { SendIcon } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 import {
@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toYMD } from '@/lib/utilityFunctions/toYMD';
-import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 function getPreviousBusinessDay(date = new Date()): Date {
   const d = new Date(date);
@@ -177,18 +177,11 @@ export default function CargueManual() {
               .map((s: string) => s.trim())
               .filter(Boolean).length || 0}
           </p>
-          {isSendingToApi ? (
-            <MyGPButtonPrimary type="submit" className="bg-blue-500 hover:bg-blue-600" disabled>
-              Cargando <Loader2Icon className="animate-spin" />
-            </MyGPButtonPrimary>
-          ) : (
-            <MyGPButtonPrimary
-              className="bg-blue-500 hover:bg-blue-600 cursor-pointer font-bold"
-              type="submit"
-            >
-              Enviar Cargue
-            </MyGPButtonPrimary>
-          )}
+
+          <MyGPButtonSubmit isSubmitting={isSendingToApi}>
+            <SendIcon className="mr-3" />
+            Enviar Cargue
+          </MyGPButtonSubmit>
         </form>
       </Form>
     </div>

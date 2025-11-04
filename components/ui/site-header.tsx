@@ -107,7 +107,7 @@ export function SiteHeader() {
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
-  console.log(filesByReference);
+
   return (
     <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-1">
       <div className="flex">

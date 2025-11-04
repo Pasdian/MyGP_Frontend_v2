@@ -14,11 +14,11 @@ import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { FolioData } from '@/types/transbel/folioData';
 import useSWR from 'swr/immutable';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import axios from 'axios';
 import { getCargues } from '@/types/transbel/getCargues';
 import { CarguesContext } from '@/contexts/CarguesContext';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 // onSubmit (updates only selected field from API response)
 type PatchResp = {
@@ -145,12 +145,7 @@ export default function CarguesUpdateFolioForm({
     }
   }
 
-  if (isFolioDataLoading)
-    return (
-      <div className="flex justify-center items-center">
-        <TailwindSpinner />
-      </div>
-    );
+  if (isFolioDataLoading) return <MyGPSpinner />;
 
   return (
     <div>
