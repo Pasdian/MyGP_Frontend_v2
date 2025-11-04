@@ -220,9 +220,11 @@ export default function DEA() {
             </div>
           )}
 
-          <div className="flex w-full h-full items-center justify-center">
-            <ClientLogoSection client={client} />
-          </div>
+          {!reference && (
+            <div className="flex w-full h-full items-center justify-center">
+              <ClientLogoSection client={client} />
+            </div>
+          )}
         </div>
       </AccessGuard>
     </WindowManagerProvider>
