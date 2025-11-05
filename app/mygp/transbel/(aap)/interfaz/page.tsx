@@ -39,7 +39,7 @@ export default function Page() {
           <MyGPCalendar
             setDateRange={setDateRange}
             dateRange={dateRange}
-            label="Fecha de Entrada"
+            label="Fecha de Entrega"
           />
         </div>
       </div>
