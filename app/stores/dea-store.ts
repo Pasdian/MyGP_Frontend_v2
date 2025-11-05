@@ -1,13 +1,18 @@
+import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import type { getFilesByReference } from '@/types/dea/getFilesByReferences';
+import { DateRange } from 'react-day-picker';
 import { createStore } from 'zustand/vanilla';
+
+const today = new Date();
+const from = startOfDay(subMonths(today, 1));
+const to = endOfDay(today);
 
 export type DEAState = {
   clientNumber: string;
   custom: string;
   reference: string;
   pdfUrl: string;
-  initialDate: Date | undefined;
-  finalDate: Date | undefined;
+  dateRange: DateRange | undefined;
   fileName: string;
   folder: string;
   clientName: string;
@@ -18,8 +23,7 @@ export type DEAActions = {
   setClientNumber: (clientNumber: string) => void;
   setCustom: (custom: string) => void;
   setReference: (reference: string) => void;
-  setInitialDate: (initialDate: Date | undefined) => void;
-  setFinalDate: (finalDate: Date | undefined) => void;
+  setDateRange: (dateRange: DateRange | undefined) => void;
   setPdfUrl: (pdfUrl: string) => void;
   setFile: (file: string) => void;
   setFolder: (folder: string) => void;
@@ -49,8 +53,7 @@ export const defaultInitState: () => DEAState = () => {
     custom: '',
     reference,
     pdfUrl: '',
-    initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-    finalDate: new Date(),
+    dateRange: { from, to },
     fileName: '',
     folder: '',
     clientName: '',
@@ -71,8 +74,7 @@ export const createDEAStore = (initState: DEAState = defaultInitState()) => {
       set(() => ({
         reference,
       })),
-    setInitialDate: (initialDate) => set(() => ({ initialDate })),
-    setFinalDate: (finalDate) => set(() => ({ finalDate })),
+    setDateRange: (dateRange) => set(() => ({ dateRange })),
     setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),
     setFile: (fileName) => set(() => ({ fileName })),
     setCustom: (custom) => set(() => ({ custom })),

@@ -7,7 +7,6 @@ import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY'
 import { DailyTracking } from '@/types/dashboard/tracking/dailyTracking';
 import { useOperationHistory } from '@/hooks/useOperationHistory';
 import { OperationHistory } from '@/types/dashboard/tracking/operationHistory';
-import { v4 as uuidv4 } from 'uuid';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
 import { MyGPButtonWarning } from '@/components/MyGPUI/Buttons/MyGPButtonWarning';
@@ -57,7 +56,7 @@ export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTr
         ]}
         value={tabValue}
         onValueChange={(v) => isTabValue(v) && setTabValue(v)}
-        className="mb-4"
+        className="mb-4 w-full"
       />
 
       <div>
@@ -77,73 +76,30 @@ export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTr
 
 function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace' }}>
+    <div className="text-xs">
+      {/* remove inline-block; let it be full width */}
+      <table className="w-full table-auto border-collapse">
         <thead>
-          <tr>
-            <th
-              style={{
-                textAlign: 'left',
-                padding: '4px 8px',
-                borderBottom: '1px solid #ddd',
-              }}
-            >
-              REFERENCIA
-            </th>
-            <th
-              style={{
-                textAlign: 'left',
-                padding: '4px 8px',
-                borderBottom: '1px solid #ddd',
-              }}
-            >
-              ESTATUS VIEJO
-            </th>
-            <th
-              style={{
-                textAlign: 'left',
-                padding: '4px 8px',
-                borderBottom: '1px solid #ddd',
-              }}
-            >
-              NUEVO ESTATUS
-            </th>
-            <th
-              style={{
-                textAlign: 'left',
-                padding: '4px 8px',
-                borderBottom: '1px solid #ddd',
-              }}
-            >
-              MODIFICADO EN
-            </th>
-            <th
-              style={{
-                textAlign: 'left',
-                padding: '4px 8px',
-                borderBottom: '1px solid #ddd',
-              }}
-            >
-              MODIFICADO POR
-            </th>
+          <tr className="text-left">
+            <th className="px-2 py-1 border-b whitespace-nowrap">REFERENCIA</th>
+            <th className="px-2 py-1 border-b whitespace-nowrap">ESTATUS VIEJO</th>
+            <th className="px-2 py-1 border-b whitespace-nowrap">NUEVO ESTATUS</th>
+            <th className="px-2 py-1 border-b whitespace-nowrap">MODIFICADO EN</th>
+            <th className="px-2 py-1 border-b whitespace-nowrap">MODIFICADO POR</th>
           </tr>
         </thead>
         <tbody>
           {history.map((op) => {
-            const referencia = op.REFERENCIA;
-            const oldStatus = op.OLD_STATUS;
-            const newStatus = op.NEW_STATUS;
-            const changedBy = op.CHANGED_BY;
-            const changedAt = formatISOtoDDMMYYYY(op.CHANGED_AT);
-            const key = uuidv4();
-
+            const key = `${op.REFERENCIA}-${op.CHANGED_AT}`;
             return (
               <tr key={key}>
-                <td style={{ padding: '4px 8px', borderBottom: '1px solid #eee' }}>{referencia}</td>
-                <td style={{ padding: '4px 8px', borderBottom: '1px solid #eee' }}>{oldStatus}</td>
-                <td style={{ padding: '4px 8px', borderBottom: '1px solid #eee' }}>{newStatus}</td>
-                <td style={{ padding: '4px 8px', borderBottom: '1px solid #eee' }}>{changedAt}</td>
-                <td style={{ padding: '4px 8px', borderBottom: '1px solid #eee' }}>{changedBy}</td>
+                <td className="px-2 py-1 border-b whitespace-nowrap">{op.REFERENCIA}</td>
+                <td className="px-2 py-1 border-b whitespace-nowrap">{op.OLD_STATUS}</td>
+                <td className="px-2 py-1 border-b whitespace-nowrap">{op.NEW_STATUS}</td>
+                <td className="px-2 py-1 border-b whitespace-nowrap">
+                  {formatISOtoDDMMYYYY(op.CHANGED_AT)}
+                </td>
+                <td className="px-2 py-1 border-b whitespace-nowrap">{op.CHANGED_BY}</td>
               </tr>
             );
           })}

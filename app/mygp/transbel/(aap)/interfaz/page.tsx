@@ -5,21 +5,19 @@ import React from 'react';
 import { InterfaceDataTable } from '@/components/datatables/transbel/InterfaceDataTable';
 import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
-import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { useRefsPendingCE } from '@/hooks/useRefsPendingCE';
+import MyGPCalendar from '@/components/MyGPUI/Datepickers/MyGPCalendar';
+import { DateRange } from 'react-day-picker';
 
 export default function Page() {
-  const [initialDate, setInitialDate] = React.useState<Date | undefined>(undefined);
-
-  const [finalDate, setFinalDate] = React.useState<Date | undefined>(undefined);
-
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const [tabValue, setTabValue] = React.useState<'errors' | 'pending' | 'sent'>('errors');
 
   const {
     refsPendingCE,
     setRefsPendingCE,
     loading: isRefsLoading,
-  } = useRefsPendingCE(initialDate, finalDate);
+  } = useRefsPendingCE(dateRange?.from, dateRange?.to);
 
   return (
     <AccessGuard
@@ -30,20 +28,19 @@ export default function Page() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>
           <p className="text-2xl font-light tracking-tight mb-5">
-            {initialDate && finalDate
-              ? `De ${formatISOtoDDMMYYYY(initialDate.toISOString())} hasta ${formatISOtoDDMMYYYY(
-                  finalDate.toISOString()
-                )}`
+            {dateRange?.from && dateRange?.to
+              ? `De ${formatISOtoDDMMYYYY(
+                  dateRange?.from.toISOString()
+                )} hasta ${formatISOtoDDMMYYYY(dateRange?.to.toISOString())}`
               : null}
           </p>
         </div>
-        <div className="flex mb-5">
-          <div className="mr-5">
-            <MyGPDatePicker date={initialDate} setDate={setInitialDate} label="Fecha de Inicio" />
-          </div>
-          <div>
-            <MyGPDatePicker date={finalDate} setDate={setFinalDate} label="Fecha de Término" />
-          </div>
+        <div className="mb-4 w-[220px]">
+          <MyGPCalendar
+            setDateRange={setDateRange}
+            dateRange={dateRange}
+            label="Fecha de Entrada"
+          />
         </div>
       </div>
       <InterfaceContext.Provider

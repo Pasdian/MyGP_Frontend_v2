@@ -19,10 +19,14 @@ import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
-  const { reference, setReference, clientNumber, setCustom, initialDate, finalDate } = useDEAStore(
+  const { reference, setReference, clientNumber, setCustom, dateRange } = useDEAStore(
     (state) => state
   );
-  const { refs, isLoading: isRefsLoading } = useRefsByClient(clientNumber, initialDate, finalDate);
+  const { refs, isLoading: isRefsLoading } = useRefsByClient(
+    clientNumber,
+    dateRange?.from,
+    dateRange?.to
+  );
 
   // Get zip stream
   function handleDownloadZip(clientNumber: string, reference: string) {

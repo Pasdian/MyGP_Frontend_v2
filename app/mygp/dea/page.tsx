@@ -22,7 +22,7 @@ export default function DEA() {
   const [filename, setFilename] = React.useState('');
 
   // Get files by reference stream
-  const { isLoading } = useFilesByRef(reference, client);
+  const { isLoading: isFilesByRefLoading } = useFilesByRef(reference, client);
 
   const CTA = filesByReference.files?.['01-CTA-GASTOS'] ?? [];
   const ExpAduanal = filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
@@ -31,7 +31,11 @@ export default function DEA() {
   const ExpDigital = filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
 
   // Visualizer effect and contents
-  const { fileUrl, contentType } = useClientFile(client, reference, subfolder, filename);
+  const {
+    fileUrl,
+    contentType,
+    isLoading: isViewerContentLoading,
+  } = useClientFile(client, reference, subfolder, filename);
   const [textContent, setTextContent] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -79,7 +83,7 @@ export default function DEA() {
               title="Cuenta de Gastos"
               files={CTA}
               folder="01-CTA-GASTOS"
-              isLoading={isLoading}
+              isLoading={isFilesByRefLoading}
               onFileSelect={(item) => {
                 setFilename(item);
                 setSubfolder('01-CTA-GASTOS');
@@ -91,7 +95,7 @@ export default function DEA() {
             <DocumentCard
               title="COVES"
               files={VUCEM}
-              isLoading={isLoading}
+              isLoading={isFilesByRefLoading}
               folder="04-VUCEM"
               onFileSelect={(item) => {
                 setFilename(item);
@@ -122,7 +126,7 @@ export default function DEA() {
 
                 {/* Content area */}
                 <div className="w-full h-full">
-                  {isLoading ? (
+                  {isViewerContentLoading ? (
                     <div className="flex w-full h-full items-center justify-center text-gray-400">
                       <Loader2Icon className="animate-spin" />
                     </div>
@@ -164,7 +168,7 @@ export default function DEA() {
             <DocumentCard
               title="Expediente Aduanal"
               files={ExpAduanal}
-              isLoading={isLoading}
+              isLoading={isFilesByRefLoading}
               folder="02-EXPEDIENTE-ADUANAL"
               onFileSelect={(item) => {
                 setFilename(item);
@@ -176,7 +180,7 @@ export default function DEA() {
             <DocumentCard
               title="EDocs"
               files={VUCEM}
-              isLoading={isLoading}
+              isLoading={isFilesByRefLoading}
               folder="04-VUCEM"
               onFileSelect={(item) => {
                 setFilename(item);
@@ -191,7 +195,7 @@ export default function DEA() {
               title="Comprobantes Fiscales"
               files={Fiscales}
               folder="03-FISCALES"
-              isLoading={isLoading}
+              isLoading={isFilesByRefLoading}
               onFileSelect={(item) => {
                 setFilename(item);
                 setSubfolder('03-FISCALES');
@@ -203,7 +207,7 @@ export default function DEA() {
             <DocumentCard
               title="Expediente Digital"
               files={ExpDigital}
-              isLoading={isLoading}
+              isLoading={isFilesByRefLoading}
               folder="05-EXP-DIGITAL"
               onFileSelect={(item) => {
                 setFilename(item);

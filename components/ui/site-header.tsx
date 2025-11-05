@@ -16,10 +16,10 @@ import { useCompanies } from '@/hooks/useCompanies';
 import { ManifestacionDialog } from '../Dialogs/ManifestacionDialog';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
-import MyGPDatePicker from '../MyGPUI/Datepickers/MyGPDatePicker';
 import DEAFilterCompanyDriver from '../driver/DEAFilterCompanyDriver';
 import { useAuth } from '@/hooks/useAuth';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
+import MyGPCalendar from '../MyGPUI/Datepickers/MyGPCalendar';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -28,12 +28,10 @@ export function SiteHeader() {
   const {
     clientNumber: client,
     reference,
-    initialDate,
-    finalDate,
+    dateRange,
     filesByReference,
     setClientNumber,
-    setInitialDate,
-    setFinalDate,
+    setDateRange,
     setFilesByReference,
   } = useDEAStore((state) => state);
   const { user } = useAuth();
@@ -107,7 +105,6 @@ export function SiteHeader() {
       client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
-
   return (
     <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-1">
       <div className="flex">
@@ -116,15 +113,13 @@ export function SiteHeader() {
       {pathname == '/mygp/dea' && (
         <div className="font-bold grid grid-cols-[auto_auto_auto_auto_auto_auto_auto_auto_auto_auto] items-center gap-2 w-fit">
           <p className="text-xs">Periodo:</p>
-          <MyGPDatePicker date={initialDate} setDate={setInitialDate} className="text-xs h-5" />
-          <p className="text-xs">A</p>
-          <MyGPDatePicker date={finalDate} setDate={setFinalDate} className="text-xs h-5" />
+          <MyGPCalendar dateRange={dateRange} setDateRange={setDateRange} className="text-xs h-5" />
           <p className="font-bold text-xs mr-1">Cliente:</p>
           <MyGPCombo
             options={companyOptions}
             setValue={setClientNumber}
             value={client}
-            className="h-5 text-xs w-[200px]"
+            className="h-5 text-xs w-[230px]"
             placeholder="Selecciona un cliente"
             showValue
             pickFirst

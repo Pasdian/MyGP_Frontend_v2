@@ -7,13 +7,14 @@ import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 import { useAuth } from '@/hooks/useAuth';
 import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { customs } from '@/lib/customs/customs';
 import { X } from 'lucide-react';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
+import MyGPCalendar from '@/components/MyGPUI/Datepickers/MyGPCalendar';
+import { DateRange } from 'react-day-picker';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -23,8 +24,6 @@ function isTabValue(v: string): v is TabValue {
 }
 
 export default function Dashboard() {
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const { user, isLoading: isAuthLoading } = useAuth();
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
   const isTraffic = user?.complete_user?.role?.name == 'TRAFICO';
@@ -35,8 +34,10 @@ export default function Dashboard() {
   const hasTrafficAdminPerm = user?.complete_user?.role?.permissions?.some(
     (p) => p.action === 'DASHBOARD_TRAFICO_ADMIN'
   );
-  const [initialDate, setInitialDate] = React.useState<Date | undefined>(firstDayOfMonth);
-  const [finalDate, setFinalDate] = React.useState<Date | undefined>(today);
+  const [fechaEntradaRange, setFechaEntradaRange] = React.useState<DateRange | undefined>(
+    undefined
+  );
+  // const [fechaMSARange, setFechaMSARange] = React.useState<DateRange | undefined>(undefined);
 
   const [kamValue, setKamValue] = React.useState('');
   const [customValue, setCustomValue] = React.useState('');
@@ -58,7 +59,7 @@ export default function Dashboard() {
     records: dailyTrackingData,
     setRecords: setDailyTrackingData,
     loading: isLoading,
-  } = useDailyTracking(initialDate, finalDate);
+  } = useDailyTracking(fechaEntradaRange?.from, fechaEntradaRange?.to);
 
   const kamsOptions = React.useMemo(
     () =>
@@ -115,8 +116,16 @@ export default function Dashboard() {
       {(isTraffic || isAdmin || hasTrafficPerm) && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
-            <MyGPDatePicker date={initialDate} setDate={setInitialDate} label="Fecha de Inicio" />
-            <MyGPDatePicker date={finalDate} setDate={setFinalDate} label="Fecha de Termino" />
+            <MyGPCalendar
+              setDateRange={setFechaEntradaRange}
+              dateRange={fechaEntradaRange}
+              label="Fecha de Entrada"
+            />
+            {/* <MyGPCalendar
+              setDateRange={setFechaMSARange}
+              dateRange={fechaMSARange}
+              label="Fecha de MSA"
+            /> */}
 
             {!isAuthLoading && (
               <>
@@ -187,7 +196,13 @@ export default function Dashboard() {
               )}
             </div>
             <DailyTrackingContext.Provider
-              value={{ initialDate, finalDate, dailyTrackingData, setDailyTrackingData, isLoading }}
+              value={{
+                initialDate: fechaEntradaRange?.from,
+                finalDate: fechaEntradaRange?.to,
+                dailyTrackingData,
+                setDailyTrackingData,
+                isLoading,
+              }}
             >
               <DailyTrackingDataTable
                 filterValues={filterValues}

@@ -30,13 +30,19 @@ export function MyGPDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="sm:max-w-md max-h-[80vh] max-w-[80vw] overflow-y-auto overflow-x-hidden">
+      <DialogContent
+        className="
+          max-w-[80vw] sm:max-w-[900px]  /* override shadcn max-w-lg */
+          w-full                          /* fill the allowed width */
+          max-h-[80vh]
+        "
+      >
         <DialogHeader>
           <DialogTitle>{title || ''}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <div className="w-full min-w-0">{children}</div>
+        <div className="w-full ">{children}</div>
       </DialogContent>
     </Dialog>
   );

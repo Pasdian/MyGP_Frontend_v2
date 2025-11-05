@@ -19,9 +19,10 @@ import AdminDataTableFilter from '../filters/AdminDataTableFilter';
 import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
 import { getAllUsersColumns } from '@/lib/columns/getAllUsersColumns';
 import TablePageSize from '../pageSize/TablePageSize';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export default function UsersDataTable() {
-  const { getAllUsers } = React.useContext(UsersDataTableContext);
+  const { getAllUsers, isUsersLoading } = React.useContext(UsersDataTableContext);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
 
   const table = useReactTable({
@@ -35,7 +36,7 @@ export default function UsersDataTable() {
       pagination, // Pagination
     },
   });
-
+  if (isUsersLoading) return <MyGPSpinner />;
   return (
     <div>
       <Table>
