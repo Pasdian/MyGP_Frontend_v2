@@ -9,69 +9,66 @@ import {
 import { Carousel } from '../ui/carousel';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import UploadFile from '../UploadFiles/UploadFile';
-import { FolderKey, getFilesByReference } from '@/types/dea/getFilesByReferences';
+import { FolderKey } from '@/types/dea/getFilesByReferences';
 
 export default function UploadFileDialog({
   setOpen,
   open,
   title,
-  folder,
+  currentFolder,
 }: {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   open: boolean;
   title: string;
-  folder: FolderKey;
+  currentFolder: FolderKey;
 }) {
-  const {
-    clientNumber: client,
-    reference,
-    setFilesByReference,
-    filesByReference,
-  } = useDEAStore((state) => state);
+  const { client, file, setFile } = useDEAStore((state) => state);
 
   const [filename, setFilename] = React.useState('');
   const [successfulUpload, setSuccessfulUpload] = React.useState(false);
 
-  // Update store safely after success
+  // Update store safely after success (supports legacy + new shapes)
   React.useEffect(() => {
     if (successfulUpload && filename) {
-      const base: getFilesByReference = filesByReference ?? {
-        files: {
-          '01-CTA-GASTOS': [],
-          '02-EXPEDIENTE-ADUANAL': [],
-          '03-FISCALES': [],
-          '04-VUCEM': [],
-          '05-EXP-DIGITAL': [],
-        },
-        message: '',
-      };
+      // Ensure base structure exists
+      const base = file.filesByReference ?? { message: '', files: {} };
+      const files = base.files ?? {};
 
-      const current = base.files[folder];
-      if (!current.includes(filename)) {
-        setFilesByReference({
-          ...base,
-          files: { ...base.files, [folder]: [...current, filename] },
-          message: base.message,
+      // Ensure folder exists
+      const selectedFolder = currentFolder || 'SIN_CLASIFICAR';
+      const currentFiles = files[selectedFolder] || [];
+
+      // Add new file if not already there
+      if (!currentFiles.includes(filename)) {
+        setFile({
+          ...file,
+          filesByReference: {
+            ...base,
+            files: {
+              ...files,
+              [currentFolder]: [...currentFiles, filename],
+            },
+          },
         });
       }
 
+      // Reset flags
       setSuccessfulUpload(false);
       setFilename('');
     }
-  }, [successfulUpload, filename, folder, filesByReference, setFilesByReference]);
-
+  }, [successfulUpload, filename, currentFolder, file, setFile]);
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <Carousel>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Subir archivo - {folder}</DialogTitle>
+            <DialogTitle>Subir archivo - {currentFolder}</DialogTitle>
             <DialogDescription>Aquí podrás subir un archivo a {title}</DialogDescription>
           </DialogHeader>
 
           <div className="overflow-hidden">
             <UploadFile
-              to={`/GESTION/${client}/${reference}/${folder}`}
+              to={`/GESTION/${client.number}/${client.reference}/${currentFolder}`}
               setFilename={setFilename}
               setSuccess={setSuccessfulUpload}
             />

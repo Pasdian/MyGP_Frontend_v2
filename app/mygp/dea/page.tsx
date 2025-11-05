@@ -17,33 +17,40 @@ import DEAFloatingWindowDriver from '@/components/driver/DEAFloatingWindowDriver
 import { Loader2Icon } from 'lucide-react';
 
 export default function DEA() {
-  const { clientNumber: client, reference, filesByReference } = useDEAStore((state) => state);
-  const [subfolder, setSubfolder] = React.useState('');
-  const [filename, setFilename] = React.useState('');
+  const { client, file, setFile } = useDEAStore((state) => state);
 
   // Get files by reference stream
-  const { isLoading: isFilesByRefLoading } = useFilesByRef(reference, client);
+  const { refs: filesByReference, isLoading: isFilesByRefLoading } = useFilesByRef(
+    client.reference,
+    client.number
+  );
 
-  const CTA = filesByReference.files?.['01-CTA-GASTOS'] ?? [];
-  const ExpAduanal = filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
-  const Fiscales = filesByReference?.files?.['03-FISCALES'] ?? [];
-  const VUCEM = filesByReference?.files?.['04-VUCEM'] ?? [];
-  const ExpDigital = filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
+  // Update the context if filesByReference change
+  React.useEffect(() => {
+    if (!isFilesByRefLoading && filesByReference) {
+      setFile({ filesByReference });
+    }
+  }, [filesByReference, isFilesByRefLoading, setFile]);
+
+  const CTA = file.filesByReference?.files?.['01-CTA-GASTOS'] ?? [];
+  const ExpAduanal = file.filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
+  const Fiscales = file.filesByReference?.files?.['03-FISCALES'] ?? [];
+  const VUCEM = file.filesByReference?.files?.['04-VUCEM'] ?? [];
+  const ExpDigital = file.filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
 
   // Visualizer effect and contents
   const {
     fileUrl,
     contentType,
     isLoading: isViewerContentLoading,
-  } = useClientFile(client, reference, subfolder, filename);
-  const [textContent, setTextContent] = React.useState<string | null>(null);
+  } = useClientFile(client.number, client.reference, file.folder, file.activeFile);
 
   React.useEffect(() => {
     if (!fileUrl || !contentType) return;
 
     // PDF? Don't read as text.
     if (contentType.includes('pdf')) {
-      setTextContent(null);
+      setFile({ textContent: null });
       return;
     }
 
@@ -52,13 +59,13 @@ export default function DEA() {
       try {
         const res = await fetch(fileUrl);
         const text = await res.text();
-        setTextContent(text);
+        setFile({ textContent: text });
       } catch (err) {
         console.error('Error reading text content:', err);
-        setTextContent('⚠️ Error reading file contents');
+        setFile({ textContent: '⚠️ Error reading file contents' });
       }
     })();
-  }, [fileUrl, contentType]);
+  }, [fileUrl, contentType, setFile]);
 
   // Windows hook
   const { windows, spawnWindow, closeWindow, toggleMinimize, updateGeometry, bringToFront } =
@@ -76,19 +83,17 @@ export default function DEA() {
   return (
     <WindowManagerProvider>
       <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
-        {reference && client ? (
+        {client.reference && client.number ? (
           <div className="grid grid-cols-[25%_25%_50%] grid-rows-3 h-full gap-2">
             {/* Cuenta de Gastos */}
             <DocumentCard
               title="Cuenta de Gastos"
               files={CTA}
-              folder="01-CTA-GASTOS"
+              currentFolder="01-CTA-GASTOS"
               isLoading={isFilesByRefLoading}
               onFileSelect={(item) => {
-                setFilename(item);
-                setSubfolder('01-CTA-GASTOS');
+                setFile({ activeFile: item, folder: '01-CTA-GASTOS' });
               }}
-              activeFile={filename}
             />
 
             {/* COVES */}
@@ -96,12 +101,10 @@ export default function DEA() {
               title="COVES"
               files={VUCEM}
               isLoading={isFilesByRefLoading}
-              folder="04-VUCEM"
+              currentFolder="04-VUCEM"
               onFileSelect={(item) => {
-                setFilename(item);
-                setSubfolder('04-VUCEM');
+                setFile({ activeFile: item, folder: '04-VUCEM' });
               }}
-              activeFile={filename}
               filterFn={(item) => item.includes('COVE') || item.includes('PSIM')}
             />
             {/* VIEWER */}
@@ -110,14 +113,14 @@ export default function DEA() {
                 {/* Header */}
                 <div className="bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center">
                   <p className="text-[13px] font-bold truncate">
-                    Visor de Archivos{filename ? ` - ${filename}` : ''}
+                    Visor de Archivos{file.activeFile ? ` - ${file.activeFile}` : ''}
                   </p>
                   <div className="flex items-center gap-2">
-                    {filename && fileUrl && (
+                    {file.activeFile && fileUrl && (
                       <DEAFloatingWindowDriver
                         fileUrl={fileUrl}
                         contentType={contentType}
-                        filename={filename}
+                        filename={file.activeFile}
                         spawnWindow={spawnWindow}
                       />
                     )}
@@ -138,7 +141,7 @@ export default function DEA() {
                       allow="fullscreen"
                       allowFullScreen
                     />
-                  ) : textContent ? (
+                  ) : file.textContent ? (
                     <pre
                       className="
                         p-4
@@ -153,7 +156,7 @@ export default function DEA() {
                         break-all
                       "
                     >
-                      {textContent}
+                      {file.textContent}
                     </pre>
                   ) : (
                     <div className="flex w-full h-full items-center justify-center text-gray-400 text-sm">
@@ -169,24 +172,20 @@ export default function DEA() {
               title="Expediente Aduanal"
               files={ExpAduanal}
               isLoading={isFilesByRefLoading}
-              folder="02-EXPEDIENTE-ADUANAL"
+              currentFolder="02-EXPEDIENTE-ADUANAL"
               onFileSelect={(item) => {
-                setFilename(item);
-                setSubfolder('02-EXPEDIENTE-ADUANAL');
+                setFile({ activeFile: item, folder: '02-EXPEDIENTE-ADUANAL' });
               }}
-              activeFile={filename}
             />
             {/* EDocs */}
             <DocumentCard
               title="EDocs"
               files={VUCEM}
               isLoading={isFilesByRefLoading}
-              folder="04-VUCEM"
+              currentFolder="04-VUCEM"
               onFileSelect={(item) => {
-                setFilename(item);
-                setSubfolder('04-VUCEM');
+                setFile({ activeFile: item, folder: '04-VUCEM' });
               }}
-              activeFile={filename}
               filterFn={(item) => !item.includes('COVE') && !item.includes('PSIM')}
             />
 
@@ -194,13 +193,11 @@ export default function DEA() {
             <DocumentCard
               title="Comprobantes Fiscales"
               files={Fiscales}
-              folder="03-FISCALES"
+              currentFolder="03-FISCALES"
               isLoading={isFilesByRefLoading}
               onFileSelect={(item) => {
-                setFilename(item);
-                setSubfolder('03-FISCALES');
+                setFile({ activeFile: item, folder: '03-FISCALES' });
               }}
-              activeFile={filename}
             />
 
             {/* Expediente Digital */}
@@ -208,12 +205,10 @@ export default function DEA() {
               title="Expediente Digital"
               files={ExpDigital}
               isLoading={isFilesByRefLoading}
-              folder="05-EXP-DIGITAL"
+              currentFolder="05-EXP-DIGITAL"
               onFileSelect={(item) => {
-                setFilename(item);
-                setSubfolder('05-EXP-DIGITAL');
+                setFile({ activeFile: item, folder: '05-EXP-DIGITAL' });
               }}
-              activeFile={filename}
             />
 
             <FloatingWindowsPortal
@@ -226,7 +221,7 @@ export default function DEA() {
           </div>
         ) : (
           <div className="flex w-full h-full items-center justify-center">
-            <ClientLogoSection client={client} />
+            <ClientLogoSection client={client.number} />
           </div>
         )}
       </AccessGuard>

@@ -3,33 +3,56 @@ import type { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import { DateRange } from 'react-day-picker';
 import { createStore } from 'zustand/vanilla';
 
+/**
+ * Dates
+ */
 const today = new Date();
 const from = startOfDay(subMonths(today, 1));
 const to = endOfDay(today);
 
-export type DEAState = {
-  clientNumber: string;
+/**
+ * Domain models grouped into objects so we can remove most individual setters
+ */
+export type Client = {
+  number: string;
+  reference: string; // keep if you actually use it; otherwise remove from here and defaults
   custom: string;
-  reference: string;
-  pdfUrl: string;
+};
+
+export type Filters = {
   dateRange: DateRange | undefined;
-  fileName: string;
+};
+
+export type FileState = {
+  pdfUrl: string;
+  textContent: string | undefined | null;
   folder: string;
-  clientName: string;
   filesByReference: getFilesByReference;
+  activeFile: string;
+};
+
+export type DEAState = {
+  client: Client;
+  filters: Filters;
+  file: FileState;
 };
 
 export type DEAActions = {
-  setClientNumber: (clientNumber: string) => void;
-  setCustom: (custom: string) => void;
-  setReference: (reference: string) => void;
-  setDateRange: (dateRange: DateRange | undefined) => void;
-  setPdfUrl: (pdfUrl: string) => void;
-  setFile: (file: string) => void;
-  setFolder: (folder: string) => void;
-  setClientName: (clientName: string) => void;
-  setFilesByReference: (filesByReference: getFilesByReference) => void;
-  resetDEAState: () => void;
+  /**
+   * Shallow patch for the root state (use nested setters below for convenience)
+   */
+  patch: (partial: Partial<DEAState>) => void;
+
+  /** Update only client fields */
+  setClient: (patch: Partial<Client>) => void;
+  /** Update only filter fields */
+  setFilters: (patch: Partial<Filters>) => void;
+  /** Update only file fields */
+  setFile: (patch: Partial<FileState>) => void;
+
+  /** Reset to defaults */
+  resetFileState: () => void;
+  resetClientState: () => void;
 };
 
 export type DEAStore = DEAState & DEAActions;
@@ -45,44 +68,70 @@ const emptyFilesByReference = (): getFilesByReference => ({
   message: '',
 });
 
-export const defaultInitState: () => DEAState = () => {
-  const clientNumber = '';
-  const reference = '';
-  return {
-    clientNumber,
-    custom: '',
-    reference,
-    pdfUrl: '',
-    dateRange: { from, to },
-    fileName: '',
-    folder: '',
-    clientName: '',
-    filesByReference: emptyFilesByReference(),
-  };
-};
+export const defaultInitState = (): DEAState => ({
+  client: {
+    number: '',
+    reference: '',
+    custom: '', // Used in previos
+  },
+  filters: {
+    dateRange: { from, to }, // site-header.tsx date range
+  },
+  file: {
+    pdfUrl: '', // Current pdf url blob
+    textContent: '', // Current xml url blob
+    folder: '', // Current folder
+    filesByReference: emptyFilesByReference(), // Files by reference
+    activeFile: '', // Current active file
+  },
+});
 
 export const initDEAStore = (): DEAState => defaultInitState();
 
 export const createDEAStore = (initState: DEAState = defaultInitState()) => {
   return createStore<DEAStore>()((set) => ({
     ...initState,
-    setClientNumber: (clientNumber) =>
-      set(() => ({
-        clientNumber,
-      })),
-    setReference: (reference) =>
-      set(() => ({
-        reference,
-      })),
-    setDateRange: (dateRange) => set(() => ({ dateRange })),
-    setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),
-    setFile: (fileName) => set(() => ({ fileName })),
-    setCustom: (custom) => set(() => ({ custom })),
-    setFolder: (folder) => set(() => ({ folder })),
-    setClientName: (clientName) => set(() => ({ clientName })),
 
-    setFilesByReference: (filesByReference) => set(() => ({ filesByReference })),
+    patch: (partial) => set((state) => ({ ...state, ...partial })),
 
-    resetDEAState: () => set(() => defaultInitState()),
+    setClient: (patch) =>
+      set((state) => ({
+        client: { ...state.client, ...patch },
+      })),
+
+    setFilters: (patch) =>
+      set((state) => ({
+        filters: { ...state.filters, ...patch },
+      })),
+
+    setFile: (patch) =>
+      set((state) => ({
+        file: { ...state.file, ...patch },
+      })),
+
+    resetFileState: () =>
+      set((state) => {
+        if (state.file.pdfUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(state.file.pdfUrl);
+        }
+        return {
+          file: {
+            pdfUrl: '',
+            fileName: '',
+            textContent: '',
+            folder: '',
+            activeFile: '',
+            filesByReference: emptyFilesByReference(),
+          },
+        };
+      }),
+    resetClientState: () =>
+      set(() => ({
+        client: {
+          number: '',
+          reference: '',
+          custom: '',
+        },
+      })),
   }));
 };

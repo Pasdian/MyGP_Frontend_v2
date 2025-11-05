@@ -24,6 +24,8 @@ export function MyGPCombo({
   placeholder,
   className,
   pickFirst,
+  onSelect,
+  ...props
 }: {
   value: string;
   setValue: (v: string) => void;
@@ -35,6 +37,7 @@ export function MyGPCombo({
   showValue?: boolean;
   placeholder?: string;
   className?: string;
+  onSelect?: () => void;
   pickFirst?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -61,6 +64,7 @@ export function MyGPCombo({
             aria-expanded={open}
             id={label}
             className={cn('cursor-pointer flex justify-between items-center text-left', className)}
+            {...props}
           >
             <span
               className="flex-1 truncate text-left"
@@ -104,6 +108,7 @@ export function MyGPCombo({
                     onSelect={() => {
                       setValue(item.value === value ? '' : item.value);
                       setOpen(false);
+                      onSelect?.();
                     }}
                   >
                     <div className="grid grid-cols-[auto_1fr] items-center min-w-0 gap-2">

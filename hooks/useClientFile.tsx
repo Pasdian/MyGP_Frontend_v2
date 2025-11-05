@@ -11,7 +11,7 @@ type UseClientFileResult = {
 export function useClientFile(
   client: string | null,
   reference: string | null,
-  subfolder: string | null,
+  currentFolder: string | null,
   filename: string | null
 ): UseClientFileResult {
   const [fileUrl, setFileUrl] = React.useState<string | null>(null);
@@ -21,7 +21,7 @@ export function useClientFile(
 
   React.useEffect(() => {
     // Only run when all params are defined
-    if (!client || !reference || !subfolder || !filename) {
+    if (!client || !reference || !currentFolder || !filename) {
       setFileUrl(null);
       setContentType(null);
       setError(null);
@@ -29,7 +29,7 @@ export function useClientFile(
     }
 
     const controller = new AbortController();
-    const fetchUrl = `/dea/getFileContent?source=/GESTION/${client}/${reference}/${subfolder}/${filename}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`;
+    const fetchUrl = `/dea/getFileContent?source=/GESTION/${client}/${reference}/${currentFolder}/${filename}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`;
 
     setIsLoading(true);
     setError(null);
@@ -53,7 +53,7 @@ export function useClientFile(
       controller.abort();
       if (fileUrl) URL.revokeObjectURL(fileUrl);
     };
-  }, [client, reference, subfolder, filename]); // ✅ refetches automatically when any changes
+  }, [client, reference, currentFolder, filename]); // refetches automatically when any changes
 
   const download = React.useCallback(() => {
     if (!fileUrl || !filename) return;

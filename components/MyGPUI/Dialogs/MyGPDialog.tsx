@@ -35,6 +35,7 @@ export function MyGPDialog({
           max-w-[80vw] sm:max-w-[900px]  /* override shadcn max-w-lg */
           w-full                          /* fill the allowed width */
           max-h-[80vh]
+          overflow-y-auto
         "
       >
         <DialogHeader>

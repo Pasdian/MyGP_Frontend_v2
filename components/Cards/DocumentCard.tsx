@@ -19,20 +19,18 @@ export default function DocumentCard({
   title,
   files = [],
   onFileSelect,
-  activeFile,
   isLoading,
-  folder,
+  currentFolder,
   filterFn = () => true,
 }: {
   title: string;
   files: string[];
   onFileSelect: (item: string) => void;
-  activeFile: string;
   isLoading: boolean;
   filterFn?: (item: string) => boolean;
-  folder: FolderKey;
+  currentFolder: FolderKey;
 }) {
-  const { reference, clientNumber: client } = useDEAStore((state) => state);
+  const { client, file } = useDEAStore((state) => state);
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
 
@@ -71,11 +69,10 @@ export default function DocumentCard({
     a.remove();
 
     // Optional: toast to indicate start
-    toast.success(`${folder} descargando...`);
+    toast.success(`${currentFolder} descargando...`);
   }
 
   const visibleFiles = (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true));
-
   return (
     <Card className="rounded-none p-0">
       <div className="grid grid-rows-[auto_1fr] h-full">
@@ -94,7 +91,11 @@ export default function DocumentCard({
               <DownloadIcon
                 size={iconSize}
                 className="cursor-pointer"
-                onClick={() => handleDownloadZip(`/GESTION/${client}/${reference}/${folder}`)}
+                onClick={() =>
+                  handleDownloadZip(
+                    `/GESTION/${client.number}/${client.reference}/${currentFolder}`
+                  )
+                }
               />
             )}
           </div>
@@ -104,7 +105,7 @@ export default function DocumentCard({
           {isLoading && <MyGPSpinner />}
           {!isLoading &&
             visibleFiles.map((item) => {
-              const isActive = item === activeFile;
+              const isActive = item === file.activeFile;
               const isPedimentoSimplificado = item.includes('PSIM');
 
               return (
@@ -129,7 +130,7 @@ export default function DocumentCard({
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDownloadFile(
-                          `/GESTION/${client}/${reference}/${folder}/${item}`,
+                          `/GESTION/${client.number}/${client.reference}/${currentFolder}/${item}`,
                           item
                         );
                         posthog.capture(deaDownloadFileEvent);
@@ -146,7 +147,7 @@ export default function DocumentCard({
         open={openUploadDialog}
         setOpen={setOpenUploadDialog}
         title={title}
-        folder={folder}
+        currentFolder={currentFolder}
       />
     </Card>
   );

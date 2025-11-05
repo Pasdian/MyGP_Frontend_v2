@@ -1,33 +1,18 @@
-import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
-import { useEffect } from 'react';
 import { getFilesByReference } from '@/types/dea/getFilesByReferences';
+import useSWR from 'swr';
 
-export default function useFilesByRef(
-  reference: string | null,
-  client: string | null,
-  opts?: { token?: string }
-) {
-  const { setFilesByReference } = useDEAStore((state) => state);
-
+export default function useFilesByRef(reference: string | null, client: string | null) {
   const key =
     reference && client
-      ? `/dea/getFilesByReference?reference=${reference}&client=${client}${
-          opts?.token ? `&token=${opts.token}` : ''
-        }`
+      ? `/dea/getFilesByReference?reference=${reference}&client=${client}&token=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`
       : null;
 
   const { data, error, isLoading } = useSWR<getFilesByReference>(key, axiosFetcher);
-  // Store files in global state when data changes
-  useEffect(() => {
-    if (data?.files) {
-      setFilesByReference(data);
-    }
-  }, [data, setFilesByReference]);
 
   return {
-    refs: data?.files,
+    // return the WHOLE object so it matches FileState.filesByReference type
+    refs: data, // <-- not data?.files
     isLoading,
     error,
   };

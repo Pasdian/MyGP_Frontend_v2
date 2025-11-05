@@ -21,7 +21,7 @@ function getCurrentFolderFromReference(reference?: string) {
 }
 
 export default function PreviosDialog({ className }: { className?: string }) {
-  const { custom, reference } = useDEAStore((state) => state);
+  const { client } = useDEAStore((state) => state);
   const [open, setOpen] = React.useState(false);
   const [currentFolder, setCurrentFolder] = React.useState('');
   const [openImageDialog, setOpenImageDialog] = React.useState(false);
@@ -30,14 +30,15 @@ export default function PreviosDialog({ className }: { className?: string }) {
 
   // Stable SWR key
   const baseFolder = React.useMemo(
-    () => (custom && reference ? getCurrentFolderFromReference(reference) : null),
-    [custom, reference]
+    () =>
+      client.custom && client.reference ? getCurrentFolderFromReference(client.reference) : null,
+    [client]
   );
 
   const partidasPreviosKey = React.useMemo(() => {
-    if (!custom || !reference || !baseFolder) return null;
-    return `/dea/scan?source=/centralizada/${baseFolder}/${custom}/Previos/${reference}`;
-  }, [custom, reference, baseFolder]);
+    if (!client.custom || !client.reference || !baseFolder) return null;
+    return `/dea/scan?source=/centralizada/${baseFolder}/${client.custom}/Previos/${client.reference}`;
+  }, [client, baseFolder]);
 
   const {
     data: partidasPrevios,
@@ -88,13 +89,6 @@ export default function PreviosDialog({ className }: { className?: string }) {
     }
   }, [open]);
 
-  React.useEffect(() => {
-    // if user changes reference/custom while dialog is open, reset selections
-    setCurrentFolder('');
-    setCurrentItem('');
-    setOpenImageDialog(false);
-  }, [reference, custom]);
-
   // Helpers
   const getImageKey = React.useCallback(
     ({
@@ -115,7 +109,7 @@ export default function PreviosDialog({ className }: { className?: string }) {
     []
   );
 
-  const disabled = !custom || !reference;
+  const disabled = !client.custom || !client.reference;
   const hasAnyData = !!treeData.length;
   const showNoPreviosInDialog =
     !isPartidasPreviosLoading && !partidasPreviosError && partidasPrevios && !hasAnyData;
@@ -132,9 +126,9 @@ export default function PreviosDialog({ className }: { className?: string }) {
       <MyGPDialog
         open={open}
         onOpenChange={setOpen}
-        title={`Previos${reference ? ` - ${reference}` : ''}`}
+        title={`Previos${client.reference && ` - ${client.reference}`}`}
         description={`Aquí se listan los previos y las partidas de la referencia ${
-          reference ?? '—'
+          client.reference ?? '—'
         }`}
         // keep your height & scroll behavior
         trigger={
@@ -161,28 +155,28 @@ export default function PreviosDialog({ className }: { className?: string }) {
 
           {showNoPreviosInDialog && <p className="text-sm ml-3">No se encontraron datos.</p>}
 
-          {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && custom && (
+          {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && client && (
             <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={treeData} />
           )}
         </div>
       </MyGPDialog>
 
       {/* Image dialog */}
-      {openImageDialog &&
-        currentFolder &&
-        custom &&
-        reference &&
-        currentItem &&
-        partidasPrevios && (
-          <ImageDialog
-            key={`${currentFolder}/${currentItem}`}
-            open={openImageDialog}
-            onOpenChange={setOpenImageDialog}
-            partidasPrevios={partidasPrevios}
-            getImageKey={getImageKey}
-            previoInfo={{ custom, reference, currentFolder, imageName: currentItem }}
-          />
-        )}
+      {openImageDialog && currentFolder && client && currentItem && partidasPrevios && (
+        <ImageDialog
+          key={`${currentFolder}/${currentItem}`}
+          open={openImageDialog}
+          onOpenChange={setOpenImageDialog}
+          partidasPrevios={partidasPrevios}
+          getImageKey={getImageKey}
+          previoInfo={{
+            custom: client.custom,
+            reference: client.reference,
+            currentFolder,
+            imageName: currentItem,
+          }}
+        />
+      )}
     </>
   );
 }

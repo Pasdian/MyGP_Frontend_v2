@@ -4,14 +4,15 @@ import { TreeView } from '@/components/ui/tree-view'; // adjust import to your T
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { toTreeData } from '@/lib/utilityFunctions/toTreeData';
 import { Folder } from 'lucide-react';
+import { Client } from '@/app/stores/dea-store';
 
-export function ManifestacionTree({ client, reference }: { client: string; reference: string }) {
+export function ManifestacionTree({ client }: { client: Client }) {
   const {
     data: list,
     isLoading,
     error,
   } = useSWR<Record<string, string[]> | undefined>(
-    `/dea/scan?source=/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR`,
+    `/dea/scan?source=/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR`,
     axiosFetcher
   );
 

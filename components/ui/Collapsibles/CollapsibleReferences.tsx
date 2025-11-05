@@ -19,13 +19,11 @@ import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
-  const { reference, setReference, clientNumber, setCustom, dateRange } = useDEAStore(
-    (state) => state
-  );
+  const { client, setClient, filters, resetFileState } = useDEAStore((state) => state);
   const { refs, isLoading: isRefsLoading } = useRefsByClient(
-    clientNumber,
-    dateRange?.from,
-    dateRange?.to
+    client.number,
+    filters.dateRange?.from,
+    filters.dateRange?.to
   );
 
   // Get zip stream
@@ -92,9 +90,9 @@ export default function CollapsibleReferences() {
                   onChange={(e) => setFilterValue(e.target.value)}
                 />
 
-                {clientNumber &&
+                {client.number &&
                   filteredItems?.map(({ NUM_REFE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
-                    const isActive = reference === NUM_REFE;
+                    const isActive = client.reference === NUM_REFE;
                     const base =
                       'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
                     const active = FOLDER_HAS_CONTENT
@@ -109,8 +107,9 @@ export default function CollapsibleReferences() {
                         onClick={() => {
                           if (!FOLDER_HAS_CONTENT) return;
                           const custom = getCustomKeyByRef(NUM_REFE);
-                          setCustom(custom || '');
-                          setReference(NUM_REFE);
+                          setClient({ custom: custom || '' });
+                          setClient({ reference: NUM_REFE });
+                          resetFileState();
                         }}
                       >
                         <div className="grid grid-cols-[1fr_auto] items-center gap-2">
@@ -123,7 +122,7 @@ export default function CollapsibleReferences() {
                               className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDownloadZip(clientNumber, NUM_REFE);
+                                handleDownloadZip(client.number, NUM_REFE);
                                 toast.success(`${NUM_REFE} descargando...`);
                               }}
                               title="Descargar ZIP"

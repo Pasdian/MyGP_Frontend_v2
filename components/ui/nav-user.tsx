@@ -20,7 +20,7 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { usePathname } from 'next/navigation';
 
 export function NavUser() {
-  const { resetDEAState } = useDEAStore((state) => state);
+  const { resetFileState } = useDEAStore((state) => state);
   const { user, logout, isLoading } = useAuth();
   const { isMobile } = useSidebar();
   const pathname = usePathname();
@@ -61,7 +61,7 @@ export function NavUser() {
             <DropdownMenuItem
               onClick={() => {
                 logout();
-                resetDEAState();
+                resetFileState();
               }}
             >
               <IconLogout />
