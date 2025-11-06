@@ -35,7 +35,7 @@ export default function Page() {
               : null}
           </p>
         </div>
-        <div className="mb-4 w-[220px]">
+        <div className="mb-4 w-[250px]">
           <MyGPCalendar
             setDateRange={setDateRange}
             dateRange={dateRange}

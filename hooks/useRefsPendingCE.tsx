@@ -1,32 +1,48 @@
+'use client';
+
 import * as React from 'react';
 import useSWR from 'swr';
 import { getRefsPendingCE } from '@/types/transbel/getRefsPendingCE';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { InterfaceContext } from '@/contexts/InterfaceContext';
+import { formatLocalDate } from '@/lib/utilityFunctions/formatLocalDate';
+import { getLastMonthRange } from '@/lib/utilityFunctions/getLastMonthRange';
 
 export function useRefsPendingCE(initialDate?: Date, finalDate?: Date) {
   const ctx = React.useContext(InterfaceContext);
   if (!ctx) throw new Error('InterfaceContext used outside its Provider');
-  const key =
-    initialDate && finalDate
-      ? `/api/transbel/getRefsPendingCE?initialDate=${
-          initialDate.toISOString().split('T')[0]
-        }&finalDate=${finalDate.toISOString().split('T')[0]}`
-      : '/api/transbel/getRefsPendingCE';
 
+  // 🗓 Default range → last month start → current month end
+  const today = new Date();
+  const { start: lastMonthStart } = getLastMonthRange();
+  const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  const startDate = initialDate ?? lastMonthStart;
+  const endDate = finalDate ?? currentMonthEnd;
+
+  // Build query params safely
+  const params = new URLSearchParams();
+
+  // Always include base range (fallback handled above)
+  params.set('initialDate', formatLocalDate(startDate) ?? '');
+  params.set('finalDate', formatLocalDate(endDate) ?? '');
+
+  // Create SWR key
+  const key = `/api/transbel/getRefsPendingCE?${params.toString()}`;
+
+  // Fetch with SWR
   const { data, error, isLoading } = useSWR<getRefsPendingCE[]>(key, axiosFetcher);
 
-  // Local state to allow UI-level modifications without re-fetching
+  // Local editable state
   const [refsPendingCE, setRefsPendingCE] = React.useState<getRefsPendingCE[]>([]);
 
-  // Sync SWR data to local state when fetched
   React.useEffect(() => {
     if (data) setRefsPendingCE(data);
   }, [data]);
 
   return {
     refsPendingCE,
-    setRefsPendingCE, // Expose setter to update locally
+    setRefsPendingCE,
     loading: isLoading,
     error,
   };

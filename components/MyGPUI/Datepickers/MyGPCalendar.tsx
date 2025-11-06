@@ -52,14 +52,6 @@ export default function MyGPCalendar({
     return { from: oneYearAgo, to: today };
   };
 
-  // Last month default values
-
-  React.useEffect(() => {
-    if (!dateRange) {
-      setDateRange(getLastMonth());
-    }
-  }, [dateRange, setDateRange]);
-
   const formatDate = (date: Date | undefined) => {
     if (!date) return '';
     return date.toLocaleDateString('es-MX', {

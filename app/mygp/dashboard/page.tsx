@@ -34,22 +34,28 @@ export default function Dashboard() {
   const hasTrafficAdminPerm = user?.complete_user?.role?.permissions?.some(
     (p) => p.action === 'DASHBOARD_TRAFICO_ADMIN'
   );
-  const [fechaEntradaRange, setFechaEntradaRange] = React.useState<DateRange | undefined>(
-    undefined
-  );
-  // const [fechaMSARange, setFechaMSARange] = React.useState<DateRange | undefined>(undefined);
 
-  const [kamValue, setKamValue] = React.useState('');
-  const [customValue, setCustomValue] = React.useState('');
-  const [clientValue, setClientValue] = React.useState('');
-  const [phaseValue, setPhaseValue] = React.useState('');
-  const [tabValue, setTabValue] = React.useState<'all' | 'open' | 'closed'>('all');
+  const [dates, setDates] = React.useState<{
+    fechaEntradaRange: DateRange | undefined;
+    MSARange: DateRange | undefined;
+  }>({
+    fechaEntradaRange: undefined,
+    MSARange: undefined,
+  });
+
+  const [metaState, setMetaState] = React.useState({
+    kamValue: '',
+    customValue: '',
+    clientValue: '',
+    currentPhaseValue: '',
+    tabValue: 'all',
+  });
 
   const { data: meta } = useSWR<
     | {
         kam: string[];
         customs: string[];
-        phases: { code: string; name: string }[];
+        phases: string[];
         clients: { CVE_IMPO: string; CLIENT_NAME: string }[];
       }
     | undefined
@@ -59,7 +65,7 @@ export default function Dashboard() {
     records: dailyTrackingData,
     setRecords: setDailyTrackingData,
     loading: isLoading,
-  } = useDailyTracking(fechaEntradaRange?.from, fechaEntradaRange?.to);
+  } = useDailyTracking(dates);
 
   const kamsOptions = React.useMemo(
     () =>
@@ -94,21 +100,10 @@ export default function Dashboard() {
   const phasesOptions = React.useMemo(
     () =>
       meta?.phases?.map((phase) => ({
-        value: phase.code,
-        label: phase.name,
+        value: phase,
+        label: phase,
       })) || [],
     [meta]
-  );
-  // Filters
-  const filterValues = React.useMemo(
-    () => ({
-      kam: kamValue || undefined,
-      custom: customValue || undefined,
-      phase: phaseValue || undefined,
-      client: clientValue.split(' ')[0] || undefined,
-      tab: tabValue,
-    }),
-    [kamValue, customValue, phaseValue, clientValue, tabValue]
   );
 
   return (
@@ -117,22 +112,24 @@ export default function Dashboard() {
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
             <MyGPCalendar
-              setDateRange={setFechaEntradaRange}
-              dateRange={fechaEntradaRange}
+              dateRange={dates.fechaEntradaRange}
+              setDateRange={(value) => setDates((prev) => ({ ...prev, fechaEntradaRange: value }))}
               label="Fecha de Entrada"
             />
-            {/* <MyGPCalendar
-              setDateRange={setFechaMSARange}
-              dateRange={fechaMSARange}
-              label="Fecha de MSA"
-            /> */}
+            <MyGPCalendar
+              dateRange={dates.MSARange}
+              setDateRange={(value) => setDates((prev) => ({ ...prev, MSARange: value }))}
+              label="MSA"
+            />
 
             {!isAuthLoading && (
               <>
                 {(isTrafficAdmin || isAdmin || hasTrafficAdminPerm) && (
                   <MyGPCombo
-                    value={kamValue}
-                    setValue={setKamValue}
+                    value={metaState.kamValue}
+                    setValue={(newValue) =>
+                      setMetaState((prev) => ({ ...prev, kamValue: newValue }))
+                    }
                     label="Ejecutivo"
                     options={kamsOptions}
                     placeholder="Selecciona un ejecutivo"
@@ -140,23 +137,31 @@ export default function Dashboard() {
                 )}
 
                 <MyGPCombo
-                  value={customValue}
-                  setValue={setCustomValue}
+                  value={metaState.customValue}
+                  setValue={(newValue) =>
+                    setMetaState((prev) => ({ ...prev, customValue: newValue }))
+                  }
                   label="Aduana"
                   options={customsOptions}
                   placeholder="Selecciona una aduana"
                 />
+
                 <MyGPCombo
-                  value={clientValue}
-                  setValue={setClientValue}
+                  value={metaState.clientValue}
+                  setValue={(newValue) =>
+                    setMetaState((prev) => ({ ...prev, clientValue: newValue }))
+                  }
                   label="Cliente"
                   options={clientOptions}
                   placeholder="Selecciona un cliente"
                   showValue
                 />
+
                 <MyGPCombo
-                  value={phaseValue}
-                  setValue={setPhaseValue}
+                  value={metaState.currentPhaseValue}
+                  setValue={(newValue) =>
+                    setMetaState((prev) => ({ ...prev, currentPhaseValue: newValue }))
+                  }
                   label="Etapa Actual"
                   placeholder="Selecciona la etapa actual"
                   options={phasesOptions}
@@ -165,10 +170,17 @@ export default function Dashboard() {
                   <MyGPButtonPrimary
                     className="cursor-pointer h-9 px-3 w-[150px]"
                     onClick={() => {
-                      setClientValue('');
-                      setCustomValue('');
-                      setPhaseValue('');
-                      setKamValue('');
+                      setMetaState({
+                        kamValue: '',
+                        clientValue: '',
+                        customValue: '',
+                        currentPhaseValue: '',
+                        tabValue: 'all',
+                      });
+                      setDates({
+                        fechaEntradaRange: undefined,
+                        MSARange: undefined,
+                      });
                     }}
                   >
                     <span className="flex items-center gap-2 min-w-0">
@@ -190,24 +202,22 @@ export default function Dashboard() {
                     { value: 'open', label: 'Abiertas' },
                     { value: 'closed', label: 'Despachadas' },
                   ]}
-                  value={tabValue}
-                  onValueChange={(v) => isTabValue(v) && setTabValue(v)}
+                  value={metaState.tabValue}
+                  onValueChange={(v) =>
+                    isTabValue(v) && setMetaState((prev) => ({ ...prev, tabValue: v }))
+                  }
                 />
               )}
             </div>
             <DailyTrackingContext.Provider
               value={{
-                initialDate: fechaEntradaRange?.from,
-                finalDate: fechaEntradaRange?.to,
+                dates,
                 dailyTrackingData,
                 setDailyTrackingData,
                 isLoading,
               }}
             >
-              <DailyTrackingDataTable
-                filterValues={filterValues}
-                key={JSON.stringify(filterValues)}
-              />
+              <DailyTrackingDataTable metaState={metaState} key={JSON.stringify(metaState)} />
             </DailyTrackingContext.Provider>
           </Card>
         </>

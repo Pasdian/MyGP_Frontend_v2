@@ -4,13 +4,6 @@ import { DateRange } from 'react-day-picker';
 import { createStore } from 'zustand/vanilla';
 
 /**
- * Dates
- */
-const today = new Date();
-const from = startOfDay(subMonths(today, 1));
-const to = endOfDay(today);
-
-/**
  * Domain models grouped into objects so we can remove most individual setters
  */
 export type Client = {
@@ -75,7 +68,7 @@ export const defaultInitState = (): DEAState => ({
     custom: '', // Used in previos
   },
   filters: {
-    dateRange: { from, to }, // site-header.tsx date range
+    dateRange: undefined, // site-header.tsx date range
   },
   file: {
     pdfUrl: '', // Current pdf url blob

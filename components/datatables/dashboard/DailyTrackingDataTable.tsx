@@ -33,19 +33,21 @@ import TablePageSize from '../pageSize/TablePageSize';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export function DailyTrackingDataTable({
-  filterValues,
+  metaState,
 }: {
-  filterValues: {
-    kam?: string | undefined;
-    custom?: string | undefined;
-    phase?: string | undefined;
-    client?: string | undefined;
-    tab?: string | undefined;
+  metaState: {
+    kamValue: string;
+    customValue: string;
+    clientValue: string;
+    currentPhaseValue: string;
+    tabValue: string;
   };
 }) {
   const { user } = useAuth();
   const { dailyTrackingData, isLoading: isDailyTrackingLoading } =
     React.useContext(DailyTrackingContext);
+
+  // User info
   const userCasaUserName = user.complete_user.user.casa_user_name;
   const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
   const isTrafficAdmin = user?.complete_user?.role?.name === 'TRAFICO_ADMIN';
@@ -59,55 +61,33 @@ export function DailyTrackingDataTable({
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
 
   const filteredData = React.useMemo(() => {
-    if (!dailyTrackingData) return [];
+    if (!Array.isArray(dailyTrackingData) || dailyTrackingData.length === 0) return [];
 
-    const normalize = (val?: string | null) => val?.toLowerCase().trim() ?? '';
+    const { tabValue, kamValue, customValue, currentPhaseValue, clientValue } = metaState ?? {};
 
-    const { kam, custom, phase, client, tab } = filterValues;
+    const result = dailyTrackingData.filter((item) => {
+      if (currentPhaseValue && item.CURRENT_PHASE !== currentPhaseValue) return false;
+      if (tabValue === 'open' && item.MSA) return false; // skip if MSA is not empty
+      if (tabValue === 'closed' && !item.MSA) return false; // skip if MSA is empty
+      if (kamValue && item.KAM !== kamValue) return false;
+      if (customValue && item.CUSTOM !== customValue) return false;
+      if (clientValue && item.CVE_IMPO !== clientValue) return false;
 
-    const tabVal = normalize(tab);
-    const kamVal = normalize(kam);
-    const customVal = normalize(custom);
-    const phaseVal = normalize(phase);
-    const clientVal = normalize(client);
-
-    return dailyTrackingData.filter((item) => {
-      const itemMSA = normalize(item.MSA);
-      const itemKam = normalize(item.KAM);
-      const itemCustom = normalize(item.CUSTOM);
-      const itemPhase = normalize(item.CURRENT_PHASE_CODE);
-      const itemCveImpo = normalize(item.CVE_IMPO);
-
-      // tab logic
-      let matchMSA = true;
-      if (tabVal === 'open') {
-        matchMSA = itemMSA === ''; // MSA is empty
-      } else if (tabVal === 'closed') {
-        matchMSA = itemMSA !== ''; // MSA has a value
+      if (!(isAdmin || isTrafficAdmin || hasTrafficAdminPerm)) {
+        if (item.CASA_ID !== userCasaUserName) return false;
       }
 
-      // each filter only matters if it has a value
-      const matchKam = !kamVal || itemKam === kamVal;
-      const matchCustom = !customVal || itemCustom === customVal;
-      const matchPhase = !phaseVal || itemPhase === phaseVal;
-      const matchClient = !clientVal || itemCveImpo === clientVal;
-      const matchCasaId = item.CASA_ID == userCasaUserName;
-
-      if (isAdmin || isTrafficAdmin || hasTrafficAdminPerm) {
-        return matchMSA && matchKam && matchCustom && matchPhase && matchClient;
-      } else {
-        return matchMSA && matchKam && matchCustom && matchPhase && matchClient && matchCasaId;
-      }
-
-      // must satisfy all active filters and tab rule
+      return true;
     });
+
+    return result;
   }, [
     dailyTrackingData,
-    filterValues,
+    metaState,
     isAdmin,
-    userCasaUserName,
-    hasTrafficAdminPerm,
     isTrafficAdmin,
+    hasTrafficAdminPerm,
+    userCasaUserName,
   ]);
 
   // Table instance
@@ -174,9 +154,10 @@ export function DailyTrackingDataTable({
     }
   }
   if (isDailyTrackingLoading) return <MyGPSpinner />;
+
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">Seguimiento Diario</h1>
+      <h1 className="mb-4 text-2xl font-bold tracking-tight">Seguimiento Diario</h1>{' '}
       <div className="flex space-x-1 mb-4">
         {filteredData.length > 0 && (
           <Button
