@@ -66,11 +66,11 @@ export default function CargueManual() {
   });
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
+    form.reset();
     const lines = data.referenciasTextArea
       .split('\n')
       .map((s: string) => s.trim())
       .filter(Boolean);
-
     try {
       setIsSendingToApi(true);
       const payload = {
