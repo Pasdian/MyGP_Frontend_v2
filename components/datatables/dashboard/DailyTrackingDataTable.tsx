@@ -8,6 +8,8 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
 } from '@tanstack/react-table';
 import {
@@ -59,6 +61,7 @@ export function DailyTrackingDataTable({
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const filteredData = React.useMemo(() => {
     if (!Array.isArray(dailyTrackingData) || dailyTrackingData.length === 0) return [];
@@ -99,7 +102,10 @@ export function DailyTrackingDataTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
-    state: { columnFilters, pagination },
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    sortDescFirst: true,
+    state: { columnFilters, pagination, sorting },
   });
 
   async function convertToCsv() {

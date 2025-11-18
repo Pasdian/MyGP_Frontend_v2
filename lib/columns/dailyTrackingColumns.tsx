@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import React from "react";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 import { DailyTracking } from "@/types/dashboard/tracking/dailyTracking";
@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const fuzzyFilter = createFuzzyFilter<DailyTracking>();
 
@@ -40,8 +41,28 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     ),
   },
   {
-    accessorKey: "ENTRY_DATE_FORMATTED",
-    header: "Fecha de Entrada",
+    accessorKey: "ENTRY_DATE",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted(); // "asc" | "desc" | false
+
+      const Icon =
+        isSorted === "asc"
+          ? ArrowUp
+          : isSorted === "desc"
+          ? ArrowDown
+          : ArrowUpDown;
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(isSorted === "asc");
+          }}
+        >
+          Fecha de Entrada
+          <Icon className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
       <p className="text-center">{row.original.ENTRY_DATE_FORMATTED || "--"}</p>
@@ -49,8 +70,28 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     sortingFn: "alphanumeric",
   },
   {
-    accessorKey: "MSA_FORMATTED",
-    header: "MSA",
+    accessorKey: "MSA",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted(); // "asc" | "desc" | false
+
+      const Icon =
+        isSorted === "asc"
+          ? ArrowUp
+          : isSorted === "desc"
+          ? ArrowDown
+          : ArrowUpDown;
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(isSorted === "asc");
+          }}
+        >
+          MSA
+          <Icon className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
       <p className="text-center">{row.original.MSA_FORMATTED || "--"}</p>
@@ -58,7 +99,27 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
   },
   {
     accessorKey: "CUSTOM_CLEARANCE_DAYS",
-    header: "Días de Despacho",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted(); // "asc" | "desc" | false
+
+      const Icon =
+        isSorted === "asc"
+          ? ArrowUp
+          : isSorted === "desc"
+          ? ArrowDown
+          : ArrowUpDown;
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(isSorted === "asc");
+          }}
+        >
+          Días de Despacho
+          <Icon className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
       <p className="text-center">
