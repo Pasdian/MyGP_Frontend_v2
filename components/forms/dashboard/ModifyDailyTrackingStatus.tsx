@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod/v4';
+import { z } from 'zod';
 import { Form } from '@/components/ui/form';
 import { Row } from '@tanstack/react-table';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
@@ -18,6 +18,14 @@ import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY'
 import { AxiosError } from 'axios';
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { statusOptions } from '@/lib/statusOptions/statusOptions';
 
 const posthogEvent =
   dashboardModuleEvents.find((e) => e.alias === 'DASHBOARD_MODIFY_OP')?.eventName || '';
@@ -33,8 +41,25 @@ export default function ModifyDailyTrackingStatusForm({
   const { setDailyTrackingData } = React.useContext(DailyTrackingContext);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  const currentStatus = row.original.STATUS || '';
+
+  const findInitialValues = (status: string) => {
+    const upperStatus = status.toUpperCase();
+    for (const [category, options] of Object.entries(statusOptions)) {
+      const match = options.find((opt) => opt.toUpperCase() === upperStatus);
+      if (match) return { category, status: match };
+    }
+    return { category: '', status: '' };
+  };
+
+  const { category: initialCategory, status: initialStatus } = React.useMemo(
+    () => findInitialValues(currentStatus),
+    [currentStatus]
+  );
+
   const schema = z.object({
-    status: z.string().min(1, 'Ingresa un estatus').max(250, 'Máximo 250 carácteres').toUpperCase(),
+    category: z.string().optional(),
+    status: z.string().min(1, 'Selecciona un estatus'),
     casaUserName: z.string().min(1, 'No puedes cambiar el estatus sin un nombre de usuario CASA'),
   });
 
@@ -42,10 +67,13 @@ export default function ModifyDailyTrackingStatusForm({
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      status: row.original.STATUS || '',
+      category: initialCategory,
+      status: initialStatus,
       casaUserName: user.complete_user.user.casa_user_name || 'MYGP',
     },
   });
+
+  const selectedCategory = form.watch('category');
 
   async function onSubmit(data: z.infer<typeof schema>) {
     setIsSubmitting(true);
@@ -102,17 +130,69 @@ export default function ModifyDailyTrackingStatusForm({
         <div className="grid gap-4">
           <FormField
             control={form.control}
-            name="status"
+            name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Estatus</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingresa un estatus..." className="uppercase" {...field} />
-                </FormControl>
+                <FormLabel>Categoría</FormLabel>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    form.setValue('status', ''); // Reset status when category changes
+                  }}
+                  defaultValue={field.value}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una categoría" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Object.keys(statusOptions).map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Estatus</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                  disabled={!selectedCategory}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona un estatus" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {selectedCategory &&
+                      statusOptions[selectedCategory as keyof typeof statusOptions]?.map(
+                        (status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        )
+                      )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="casaUserName"
