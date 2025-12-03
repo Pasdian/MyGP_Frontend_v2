@@ -13,6 +13,7 @@ import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import React from 'react';
 import { NavItem } from '@/types/nav/navItem';
+import { BookPlusIcon } from 'lucide-react';
 
 const userItems = {
   navCollapsible: [
@@ -46,6 +47,18 @@ const userItems = {
           module: ['Transbel Cargues', 'All Modules'],
           role: ['ADMIN', 'TRANSBEL_ADMIN'],
           icon: IconManualGearbox,
+        },
+      ],
+    },
+    {
+      title: 'Operaciones',
+      items: [
+        {
+          title: 'Referencias',
+          url: '/mygp/transbel/referencias',
+          module: ['Transbel Cargues', 'All Modules'],
+          role: ['ADMIN', 'TRANSBEL_ADMIN'],
+          icon: BookPlusIcon,
         },
       ],
     },

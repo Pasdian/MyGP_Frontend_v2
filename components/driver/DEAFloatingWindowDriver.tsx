@@ -1,26 +1,15 @@
-import { WindowData } from '@/hooks/useFloatingWindows';
 import { driver } from 'driver.js';
 import { ExternalLink } from 'lucide-react';
 import React from 'react';
 
 export default function DEAFloatingWindowDriver({
-  fileUrl,
-  contentType,
   filename,
   spawnWindow,
 }: {
-  fileUrl: string;
-  contentType: string | null;
   filename: string;
-  spawnWindow: (
-    filename: string,
-    sourceBlobUrl: string,
-    contentType: string,
-    initialGeom?: Partial<Pick<WindowData, 'height' | 'width' | 'x' | 'y'>> | undefined
-  ) => Promise<void>;
+  spawnWindow: () => void;
 }) {
   React.useEffect(() => {
-    // Check if user has already seen the tour
     const hasSeenTour = localStorage.getItem('deaExternalLinkTourSeen');
 
     if (!hasSeenTour) {
@@ -31,7 +20,6 @@ export default function DEAFloatingWindowDriver({
         showButtons: ['next', 'close'],
         nextBtnText: 'Siguiente',
         doneBtnText: 'Cerrar',
-
         steps: [
           {
             element: '#dea-external-link',
@@ -45,9 +33,8 @@ export default function DEAFloatingWindowDriver({
           },
         ],
       });
-      tour.drive();
 
-      // Mark as seen
+      tour.drive();
       localStorage.setItem('deaExternalLinkTourSeen', 'true');
     }
   }, []);
@@ -56,11 +43,9 @@ export default function DEAFloatingWindowDriver({
     <button
       id="dea-external-link"
       type="button"
-      aria-label="Abrir en ventana separada"
+      aria-label={`Abrir ${filename} en ventana separada`}
       className="grid place-items-center rounded hover:bg-blue-600/50 active:scale-95 transition px-1"
-      onClick={() => {
-        if (fileUrl && contentType) spawnWindow(filename, fileUrl, contentType);
-      }}
+      onClick={spawnWindow}
     >
       <ExternalLink size={16} className="cursor-pointer" />
     </button>

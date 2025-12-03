@@ -24,16 +24,21 @@ function isTabValue(v: string): v is TabValue {
 }
 
 export default function Dashboard() {
-  const { user, isLoading: isAuthLoading } = useAuth();
-  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
-  const isTraffic = user?.complete_user?.role?.name == 'TRAFICO';
-  const isTrafficAdmin = user?.complete_user?.role?.name === 'TRAFICO_ADMIN';
-  const hasTrafficPerm = user?.complete_user?.role?.permissions?.some(
-    (p) => p.action === 'DASHBOARD_TRAFICO'
-  );
-  const hasTrafficAdminPerm = user?.complete_user?.role?.permissions?.some(
-    (p) => p.action === 'DASHBOARD_TRAFICO_ADMIN'
-  );
+  const { user, isLoading: isAuthLoading, hasPermission } = useAuth();
+
+  const role = user?.complete_user?.role;
+  const roleName = role?.name;
+
+  const isAdmin = roleName === 'ADMIN';
+  const isTraffic = roleName === 'TRAFICO';
+  const isTrafficAdmin = roleName === 'TRAFICO_ADMIN';
+
+  const hasTrafficPerm = hasPermission('DASHBOARD_TRAFICO');
+  const hasTrafficAdminPerm = hasPermission('DASHBOARD_TRAFICO_ADMIN');
+
+  const canViewDashboard = isTraffic || isAdmin || hasTrafficPerm;
+  const canFilterByKam = isTrafficAdmin || isAdmin || hasTrafficAdminPerm;
+  const canSeeTabs = !isAuthLoading && (isAdmin || hasTrafficPerm || isTraffic || isTrafficAdmin);
 
   const [dates, setDates] = React.useState<{
     fechaEntradaRange: DateRange | undefined;
@@ -48,7 +53,7 @@ export default function Dashboard() {
     customValue: '',
     clientValue: '',
     currentPhaseValue: '',
-    tabValue: 'all',
+    tabValue: 'all' as TabValue,
   });
 
   const { data: meta } = useSWR<
@@ -81,8 +86,8 @@ export default function Dashboard() {
       meta?.customs?.map((item) => {
         const custom = customs.find((c) => c.key === item);
         return {
-          value: item, // link to custom.key
-          label: `${item} - ${custom?.name || 'Sin registro'}`, // show code - name
+          value: item,
+          label: `${item} - ${custom?.name || 'Sin registro'}`,
         };
       }) || []
     );
@@ -108,7 +113,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      {(isTraffic || isAdmin || hasTrafficPerm) && (
+      {canViewDashboard && (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
             <MyGPCalendar
@@ -124,7 +129,7 @@ export default function Dashboard() {
 
             {!isAuthLoading && (
               <>
-                {(isTrafficAdmin || isAdmin || hasTrafficAdminPerm) && (
+                {canFilterByKam && (
                   <MyGPCombo
                     value={metaState.kamValue}
                     setValue={(newValue) =>
@@ -166,6 +171,7 @@ export default function Dashboard() {
                   placeholder="Selecciona la etapa actual"
                   options={phasesOptions}
                 />
+
                 <div className="flex items-end h-full w-full">
                   <MyGPButtonPrimary
                     className="cursor-pointer h-9 px-3 w-[150px]"
@@ -192,9 +198,10 @@ export default function Dashboard() {
               </>
             )}
           </div>
+
           <Card className="mb-8 p-4">
             <div className="w-[300px]">
-              {!isAuthLoading && (isAdmin || hasTrafficPerm || isTraffic || isTrafficAdmin) && (
+              {canSeeTabs && (
                 <MyGPTabs
                   defaultValue="all"
                   tabs={[
@@ -222,7 +229,9 @@ export default function Dashboard() {
           </Card>
         </>
       )}
-      <PieChartLabelList />;
+      <div className="mb-4">
+        <PieChartLabelList />
+      </div>
     </div>
   );
 }

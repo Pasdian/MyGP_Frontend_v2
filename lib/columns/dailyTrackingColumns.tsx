@@ -3,7 +3,6 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import React from "react";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 import { DailyTracking } from "@/types/dashboard/tracking/dailyTracking";
-import DailyTrackingModifyStatusBtn from "@/components/buttons/dashboard/DailyTrackingModifyStatusBtn";
 import {
   Popover,
   PopoverContent,
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import DailyTrackingModifyStatus from "@/components/buttons/dashboard/DailyTrackingModifyStatus";
 
 const fuzzyFilter = createFuzzyFilter<DailyTracking>();
 
@@ -19,7 +19,7 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     accessorKey: "ACCIONES",
     header: "Acciones",
     cell: ({ row }) => {
-      return <DailyTrackingModifyStatusBtn row={row} />;
+      return <DailyTrackingModifyStatus row={row} />;
     },
   },
   {

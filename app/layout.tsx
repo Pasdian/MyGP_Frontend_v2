@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { Roboto } from 'next/font/google';
-import AuthProvider from '@/components/AuthProvider/AuthProvider';
 import { DEAStoreProvider } from './providers/dea-store-provider';
 import SWRProvider from './providers/SWRProvider';
 
@@ -24,9 +23,7 @@ export default function RootLayout({
     <html lang="es-MX" className={roboto.className}>
       <body>
         <SWRProvider>
-          <AuthProvider>
-            <DEAStoreProvider>{children}</DEAStoreProvider>
-          </AuthProvider>
+          <DEAStoreProvider>{children}</DEAStoreProvider>
           <Toaster position="top-center" />
         </SWRProvider>
       </body>

@@ -1,18 +1,21 @@
 'use client';
 
+import React from 'react';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { AuthContext } from '@/contexts/AuthContext';
-import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
 import { toast } from 'sonner';
-import { LoginResponse } from '@/types/auth/login';
+import { LoginResponse, Me, AuthSession } from '@/types/auth/login';
 import { jwtDecode } from 'jwt-decode';
 import posthog from 'posthog-js';
 import { User } from '@/types/user/user';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+
+const isDev = process.env.NODE_ENV === 'development';
 
 type JwtClaims = { exp?: number };
 
-const defaultUser: LoginResponse = {
+const defaultUser: AuthSession = {
   message: '',
   accessToken: '',
   complete_user: {
@@ -32,11 +35,8 @@ const defaultUser: LoginResponse = {
 
 function safeIdentify(person: User) {
   const email = person?.email;
-  if (!email) return; // don't identify anonymous/partial users
-
-  posthog.identify(email, {
-    uuid: person?.uuid,
-  });
+  if (!email) return;
+  posthog.identify(email, { uuid: person.uuid });
 }
 
 function msUntilRefresh(token: string | null | undefined): number {
@@ -52,126 +52,235 @@ function msUntilRefresh(token: string | null | undefined): number {
   }
 }
 
-export default function AuthProvider({ children }: { children: React.ReactNode }) {
+type AuthProviderProps = {
+  children: React.ReactNode;
+  initialUser: AuthSession | null;
+  initialAccessToken?: string | null;
+};
+
+type AuthState = {
+  user: AuthSession;
+  accessToken: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+};
+
+export default function AuthProvider({
+  children,
+  initialUser,
+  initialAccessToken,
+}: AuthProviderProps) {
   const router = useRouter();
-  const pathname = usePathname();
 
-  const [user, setUser] = React.useState<LoginResponse>(defaultUser);
-  const [accessToken, setAccessToken] = React.useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [isLoginLoading, setIsLoginLoading] = React.useState(false);
+  const [authState, setAuthState] = React.useState<AuthState>({
+    user: initialUser ?? defaultUser,
+    accessToken: initialAccessToken ?? initialUser?.accessToken ?? null,
+    isAuthenticated: Boolean(initialUser),
+    isLoading: false,
+  });
 
-  // Try to refresh using HttpOnly cookie
+  const { user, accessToken, isAuthenticated, isLoading } = authState;
+
+  const setUser = (nextUser: AuthSession) => {
+    setAuthState((prev) => ({ ...prev, user: nextUser }));
+  };
+
+  const setAccessToken = (token: string | null) => {
+    setAuthState((prev) => ({ ...prev, accessToken: token }));
+  };
+
+  const setIsAuthenticated = (value: boolean) => {
+    setAuthState((prev) => ({ ...prev, isAuthenticated: value }));
+  };
+
+  const setIsLoading = (value: boolean) => {
+    setAuthState((prev) => ({ ...prev, isLoading: value }));
+  };
+
+  const roleName = user?.complete_user?.role?.name;
+  const permissions = React.useMemo(() => user?.complete_user?.role?.permissions ?? [], [user]);
+  const hasRole = React.useCallback(
+    (role: string | string[]) => {
+      if (!roleName) return false;
+      if (Array.isArray(role)) {
+        return role.includes(roleName);
+      }
+      return roleName === role;
+    },
+    [roleName]
+  );
+
+  const hasPermission = React.useCallback(
+    (perm: string | string[]) => {
+      if (!permissions.length) return false;
+
+      if (Array.isArray(perm)) {
+        return permissions.some((p) => perm.includes(p.action as string));
+      }
+
+      return permissions.some((p) => (p.action as string) === perm);
+    },
+    [permissions]
+  );
+
   const refresh = React.useCallback(async () => {
-    // inside refresh()
+    setIsLoading(true);
     try {
-      const res = await GPClient.post<LoginResponse>(
+      // 1) Refresh token (extends cookie and gives you new accessToken)
+      const refreshRes = await GPClient.post<LoginResponse>(
         '/api/auth/refreshToken',
         {},
         { withCredentials: true }
       );
-      setAccessToken(res.data.accessToken);
-      setUser(res.data);
-      setIsAuthenticated(true);
 
-      const person = res?.data?.complete_user?.user;
-      safeIdentify(person); // identify only after confirmed refresh success
+      const newToken = refreshRes.data.accessToken;
+
+      // 2) Get user data from /me
+      const meRes = await GPClient.get<Me>('/api/auth/me', {
+        withCredentials: true,
+      });
+
+      const next: AuthSession = {
+        ...refreshRes.data, // message + accessToken
+        ...meRes.data, // complete_user
+      };
+
+      setAuthState((prev) => ({
+        ...prev,
+        accessToken: newToken,
+        user: next,
+        isAuthenticated: true,
+        isLoading: false,
+      }));
+
+      const person = next.complete_user?.user;
+      if (person) safeIdentify(person);
+
       return true;
     } catch (error) {
-      console.error('Error refreshing token', error);
-      posthog.reset(); // ensure no stale identity when not authenticated
+      console.error('Error refreshing AuthSession', error);
+
+      if (isDev) {
+        setAuthState((prev) => ({
+          ...prev,
+          isLoading: false,
+        }));
+        return false;
+      }
+
+      posthog.reset();
+
+      setAuthState((prev) => ({
+        ...prev,
+        isAuthenticated: false,
+        accessToken: null,
+        user: defaultUser,
+        isLoading: false,
+      }));
+
       return false;
     }
   }, []);
 
   React.useEffect(() => {
-    let cancelled = false;
+    if (isAuthenticated && user?.complete_user?.user) {
+      safeIdentify(user.complete_user.user);
+    }
+  }, [isAuthenticated, user]);
 
-    (async () => {
-      const ok = await refresh();
+  // PROD: schedule revalidation based on token expiry
+  React.useEffect(() => {
+    if (isDev) return;
+    if (!accessToken) return;
 
-      if (cancelled) return;
+    const delay = msUntilRefresh(accessToken);
+    if (!delay) return;
 
-      const isPublic = pathname === '/' || pathname === '/login';
-      const isDashboard = pathname.startsWith('/mygp');
+    const id = setTimeout(() => {
+      refresh();
+    }, delay);
 
-      if (ok) {
-        // If logged in and on a public page, go to dashboard
-        if (isPublic && !isDashboard) {
-          router.replace('/mygp/dashboard');
-          return;
-        }
-        // already authenticated and on a protected page; continue
-        setIsLoading(false);
-        return;
+    return () => clearTimeout(id);
+  }, [accessToken, refresh]);
+
+  // DEV: periodically refresh AuthSession
+  React.useEffect(() => {
+    if (!isDev) return;
+    if (!accessToken) return;
+
+    const id = setInterval(() => {
+      refresh();
+    }, 20_000); // 20 seconds
+
+    return () => clearInterval(id);
+  }, [accessToken, refresh]);
+
+  // Daily full-page refresh at 7:00 AM (local time)
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const isDev = process.env.NODE_ENV === 'development';
+
+    const scheduleNextReload = () => {
+      const now = new Date();
+
+      // DEV: reload in 1 minute for testing
+      if (isDev) {
+        const delay = 60_000; // 1 minute
+        return window.setTimeout(() => {
+          window.location.reload();
+        }, delay);
       }
 
-      // Not authenticated: send to login unless we’re already there
-      if (pathname !== '/login') {
-        router.replace('/login');
-        return;
+      // PROD: schedule next 7:00 AM
+      const next = new Date(now);
+      next.setHours(7, 0, 0, 0);
+
+      if (next <= now) {
+        next.setDate(next.getDate() + 1); // schedule for tomorrow
       }
 
-      setIsLoading(false);
-    })();
+      const delay = next.getTime() - now.getTime();
+
+      return window.setTimeout(() => {
+        window.location.reload();
+      }, delay);
+    };
+
+    const timeoutId = scheduleNextReload();
 
     return () => {
-      cancelled = true;
+      window.clearTimeout(timeoutId);
     };
-  }, [pathname, refresh, router]);
-
-  // Schedule refresh before token expiry
-  React.useEffect(() => {
-    if (pathname === '/login' || !accessToken) return;
-    const delay = msUntilRefresh(accessToken);
-    const id = setTimeout(async () => {
-      const ok = await refresh();
-      if (!ok) router.replace('/login');
-    }, delay);
-    return () => clearTimeout(id);
-  }, [pathname, accessToken, refresh, router]);
-
-  async function login(data: { email: string; password: string }) {
-    setIsLoginLoading(true);
-    return GPClient.post('/api/auth/login', data, { withCredentials: true })
-      .then((res: { data: LoginResponse }) => {
-        toast.success(res.data.message);
-        setAccessToken(res.data.accessToken);
-        setUser(res.data);
-        setIsAuthenticated(true);
-
-        const person = res.data.complete_user?.user;
-        safeIdentify(person); // identify only after successful login
-
-        router.replace('/mygp/dashboard');
-        setIsLoginLoading(false);
-      })
-      .catch((error) => {
-        toast.error(error.response?.data?.message || 'Login failed');
-        setIsLoginLoading(false);
-      });
-  }
+  }, []);
 
   async function logout() {
-    return GPClient.post('/api/auth/logout', {}, { withCredentials: true })
-      .then((res) => {
-        toast.success(res.data.message);
-        setAccessToken(null);
-        setUser(defaultUser);
-        setIsAuthenticated(false);
+    try {
+      const res = await GPClient.post('/api/auth/logout', {}, { withCredentials: true });
 
-        posthog.reset(); // drop identity, revert to anonymous
-        localStorage.removeItem('dea-external-link-tour');
+      toast.success(res.data.message);
 
-        window.location.replace('/login');
-      })
-      .catch((error) => {
-        toast.error(error.response?.data?.message || 'Logout failed');
-      });
+      posthog.reset();
+      localStorage.removeItem('dea-external-link-tour');
+
+      setAuthState((prev) => ({
+        ...prev,
+        accessToken: null,
+        user: defaultUser,
+        isAuthenticated: false,
+      }));
+
+      router.replace('/login');
+    } catch (error: unknown) {
+      let message = 'Logout failed';
+
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message ?? message;
+      }
+
+      toast.error(message);
+    }
   }
-
-  if (isLoading) return null;
 
   return (
     <AuthContext.Provider
@@ -181,10 +290,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         isLoading,
         isAuthenticated,
         logout,
-        login,
+        setAccessToken,
+        setIsAuthenticated,
         accessToken,
+        safeIdentify,
         refresh,
-        isLoginLoading,
+        hasRole,
+        hasPermission,
       }}
     >
       {children}

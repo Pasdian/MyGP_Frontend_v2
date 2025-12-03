@@ -1,9 +1,15 @@
 import axios from "axios";
 
+const isServer = typeof window === "undefined";
+
+// Must be something like "http://localhost:3000" in dev or "https://mygp.pascal.com.mx" in prod
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+
 export const GPClient = axios.create({
+  baseURL: isServer ? APP_URL : undefined,
   withCredentials: true,
   headers: {
-    "Cache-Control": "no-cache", // Avoid static routes by default
+    "Cache-Control": "no-cache",
     "X-API-KEY": process.env.NEXT_PUBLIC_PYTHON_API_KEY || "",
   },
 });
@@ -13,7 +19,6 @@ export const axiosFetcher = (url: string) =>
 
 export const axiosBlobFetcher = (url: string) =>
   GPClient.get(url, { responseType: "blob" }).then((res) => {
-    // Create a new Blob instance from the response data and avoid caching
     return new Blob([res.data], { type: res.data.type });
   });
 

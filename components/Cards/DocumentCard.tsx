@@ -15,6 +15,16 @@ const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
 const iconSize = 14;
 
+type DocumentCardProps = {
+  title: string;
+  files: string[];
+  onFileSelect: (item: string) => void;
+  isLoading: boolean;
+  filterFn?: (item: string) => boolean;
+  currentFolder: FolderKey;
+  className?: string;
+};
+
 export default function DocumentCard({
   title,
   files = [],
@@ -22,60 +32,48 @@ export default function DocumentCard({
   isLoading,
   currentFolder,
   filterFn = () => true,
-}: {
-  title: string;
-  files: string[];
-  onFileSelect: (item: string) => void;
-  isLoading: boolean;
-  filterFn?: (item: string) => boolean;
-  currentFolder: FolderKey;
-}) {
+}: DocumentCardProps) {
   const { client, file } = useDEAStore((state) => state);
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
 
   async function handleDownloadFile(path: string, item: string) {
-    // Build a direct URL so the browser owns the download (native progress UI)
     const url = new URL('/dea/downloadFile', window.location.origin);
     url.searchParams.set('source', path);
     url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
 
-    // Trigger native download
     const a = document.createElement('a');
     a.href = url.toString();
-    a.download = path; // browser may override with Content-Disposition filename
+    a.download = path;
     a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
     a.remove();
 
-    // Optional: toast to indicate start
     toast.success(`Descargando: ${item}`);
   }
 
   async function handleDownloadZip(path: string) {
-    // Build a direct URL so the browser owns the download (native progress UI)
     const url = new URL('/dea/zip', window.location.origin);
     url.searchParams.set('source', path);
     url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
 
-    // Trigger native download
     const a = document.createElement('a');
     a.href = url.toString();
-    a.download = path; // browser may override with Content-Disposition filename
+    a.download = path;
     a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
     a.remove();
 
-    // Optional: toast to indicate start
     toast.success(`${currentFolder} descargando...`);
   }
 
   const visibleFiles = (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true));
+
   return (
-    <Card className="rounded-none p-0">
-      <div className="grid grid-rows-[auto_1fr] h-full">
+    <Card className="rounded-none p-0 h-full min-h-0">
+      <div className="grid grid-rows-[auto_1fr] h-full min-h-0">
         <div className="bg-blue-500 p-1 text-[13px] text-white grid grid-cols-[1fr_auto] items-center gap-2 overflow-x-hidden">
           <p className="min-w-0 break-words overflow-x-hidden font-bold">
             {`${title} - ${visibleFiles.length} archivos`}
@@ -101,7 +99,7 @@ export default function DocumentCard({
           </div>
         </div>
 
-        <div className="w-full h-full p-1 overflow-y-auto">
+        <div className="w-full h-full p-1 overflow-y-auto min-h-0">
           {isLoading && <MyGPSpinner />}
           {!isLoading &&
             visibleFiles.map((item) => {

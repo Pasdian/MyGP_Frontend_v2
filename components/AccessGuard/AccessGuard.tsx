@@ -87,7 +87,7 @@ export default function AccessGuard({
   allowedPermissions,
   requireAllModules = false,
   requireAllPermissions = false,
-  redirectTo = '/mygp/dashboard',
+  redirectTo = '/login',
   fallback = null,
 }: AccessGuardProps) {
   const pathname = usePathname();

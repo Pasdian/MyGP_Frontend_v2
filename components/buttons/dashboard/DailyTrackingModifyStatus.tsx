@@ -20,7 +20,7 @@ function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
 }
 
-export default function DailyTrackingModifyStatusBtn({ row }: { row: Row<DailyTracking> }) {
+export default function DailyTrackingModifyStatus({ row }: { row: Row<DailyTracking> }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [tabValue, setTabValue] = React.useState('modify_status');
   const { history, loading: isHistoryLoading } = useOperationHistory(

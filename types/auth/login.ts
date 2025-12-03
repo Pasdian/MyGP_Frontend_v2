@@ -3,8 +3,13 @@ import { User } from '../permissions/user';
 export interface LoginResponse {
   message: string;
   accessToken: string;
+}
+
+export interface Me {
   complete_user: CompleteUser;
 }
+
+export type AuthSession = LoginResponse & Me;
 
 interface CompleteUser {
   user: User;

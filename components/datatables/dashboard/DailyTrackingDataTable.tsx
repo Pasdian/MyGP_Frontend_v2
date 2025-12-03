@@ -21,12 +21,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import React from 'react';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
 import { dailyTrackingColumns } from '@/lib/columns/dailyTrackingColumns';
 import DailyTrackingDataTableFilter from '../filters/DailyTrackingDataTableFilter';
 import { useAuth } from '@/hooks/useAuth';
@@ -110,7 +108,9 @@ export function DailyTrackingDataTable({
 
   async function convertToCsv() {
     setIsConvertingToCsv(true);
+
     try {
+      // Format fields the same way you did before
       const formattedData = filteredData.map((item) => ({
         Referencia: item.NUM_REFE,
         Cliente: item.CLIENT_NAME,
@@ -124,21 +124,31 @@ export function DailyTrackingDataTable({
         'Modificado en': item.MODIFIED_AT_FORMATTED,
       }));
 
-      const res = await GPClient.post(
-        '/api/csv-converter',
-        { payload: formattedData },
-        { responseType: 'blob' }
-      );
+      // Build CSV string
+      const headers = Object.keys(formattedData[0] || {}).join(',');
+      const rows = formattedData
+        .map((row) =>
+          Object.values(row)
+            .map((value) => {
+              if (value == null) return '';
+              const v = String(value);
+              if (v.includes(',') || v.includes('"') || v.includes('\n')) {
+                return `"${v.replace(/"/g, '""')}"`;
+              }
+              return v;
+            })
+            .join(',')
+        )
+        .join('\n');
 
-      // Try to use filename from server headers, otherwise fallback
-      const dispo = res.headers['content-disposition'] || '';
-      const match = dispo.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
-      const filename = match?.[1] || `daily-tracking-${Date.now()}.csv`;
+      const csvString = `${headers}\n${rows}`;
 
-      // Create a download
-      const url = window.URL.createObjectURL(
-        new Blob([res.data], { type: 'text/csv;charset=utf-8;' })
-      );
+      // Create downloadable CSV file
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+
+      const filename = `seguimiento-diario-${Date.now()}.csv`;
+
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', filename);
@@ -148,13 +158,8 @@ export function DailyTrackingDataTable({
       window.URL.revokeObjectURL(url);
 
       toast.success('CSV generado correctamente');
-      setIsConvertingToCsv(false);
-    } catch (err) {
-      const message =
-        (axios.isAxiosError(err) && (err.response?.data?.message || err.message)) ||
-        'Ocurrió un error';
-      toast.error(message);
-      setIsConvertingToCsv(false);
+    } catch {
+      toast.error('Ocurrió un error al generar el CSV');
     } finally {
       setIsConvertingToCsv(false);
     }
