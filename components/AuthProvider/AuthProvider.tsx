@@ -4,14 +4,11 @@ import React from 'react';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { AuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { LoginResponse, Me, AuthSession } from '@/types/auth/login';
-import { jwtDecode } from 'jwt-decode';
+import { Me, AuthSession } from '@/types/auth/login';
 import posthog from 'posthog-js';
 import { User } from '@/types/user/user';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-
-type JwtClaims = { exp?: number };
 
 const defaultUser: AuthSession = {
   message: '',
@@ -35,19 +32,6 @@ function safeIdentify(person: User) {
   const email = person?.email;
   if (!email) return;
   posthog.identify(email, { uuid: person.uuid });
-}
-
-function msUntilRefresh(token: string | null | undefined): number {
-  try {
-    if (!token) return 0;
-    const { exp } = jwtDecode<JwtClaims>(token);
-    if (!exp) return 0;
-    const expMs = exp * 1000;
-    const threshold = 10_000;
-    return Math.max(0, expMs - Date.now() - threshold);
-  } catch {
-    return 0;
-  }
 }
 
 type AuthProviderProps = {
@@ -126,29 +110,21 @@ export default function AuthProvider({
     [permissions]
   );
 
+  // NEW: refresh that just calls /api/auth/me, no /refreshToken
   const refresh = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      const refreshRes = await GPClient.post<LoginResponse>(
-        '/api/auth/refreshToken',
-        {},
-        { withCredentials: true }
-      );
-
-      const newToken = refreshRes.data.accessToken;
-
       const meRes = await GPClient.get<Me>('/api/auth/me', {
         withCredentials: true,
       });
 
       const next: AuthSession = {
-        ...refreshRes.data,
+        ...authState.user,
         ...meRes.data,
       };
 
       setAuthState((prev) => ({
         ...prev,
-        accessToken: newToken,
         user: next,
         isAuthenticated: true,
         isLoading: false,
@@ -159,7 +135,7 @@ export default function AuthProvider({
 
       return true;
     } catch (error) {
-      console.error('Error refreshing AuthSession', error);
+      console.error('Error refreshing AuthSession via /api/auth/me', error);
 
       posthog.reset();
 
@@ -171,9 +147,11 @@ export default function AuthProvider({
         isLoading: false,
       }));
 
+      router.replace('/login');
+
       return false;
     }
-  }, []);
+  }, [authState.user, router]);
 
   React.useEffect(() => {
     if (isAuthenticated && user?.complete_user?.user) {
@@ -181,23 +159,19 @@ export default function AuthProvider({
     }
   }, [isAuthenticated, user]);
 
-  // Schedule revalidation based on token expiry (same in dev and prod)
+  // Periodically revalidate session via /api/auth/me
   React.useEffect(() => {
-    if (!accessToken) return;
+    if (!isAuthenticated) return;
 
-    const delay = msUntilRefresh(accessToken);
+    // Revalidate every 5 minutes (300000 ms)
+    const INTERVAL = 5 * 60 * 1000;
 
-    if (delay <= 0) {
-      refresh();
-      return;
-    }
+    const id = setInterval(() => {
+      refresh(); // This now calls GET /api/auth/me
+    }, INTERVAL);
 
-    const id = window.setTimeout(() => {
-      refresh();
-    }, delay);
-
-    return () => window.clearTimeout(id);
-  }, [accessToken, refresh]);
+    return () => clearInterval(id);
+  }, [isAuthenticated, refresh]);
 
   async function logout() {
     try {
