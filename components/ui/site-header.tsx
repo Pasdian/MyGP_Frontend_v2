@@ -51,22 +51,23 @@ export function SiteHeader() {
   const isDEA = pathname === '/mygp/dea';
   const { rows: companies } = useCompanies(isDEA);
 
-  const [companySelect, setCompanySelect] = React.useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('dea-user-companies');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
-            return parsed;
-          }
-        } catch {
-          console.warn('Invalid data in dea-user-companies');
-        }
+  const [companySelect, setCompanySelect] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const saved = localStorage.getItem('dea-user-companies');
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
+        setCompanySelect(parsed);
       }
+    } catch {
+      console.warn('Invalid data in dea-user-companies');
     }
-    return [];
-  });
+  }, []);
 
   const companyOptions = React.useMemo(() => {
     if (!companies || companies.length === 0) return [];

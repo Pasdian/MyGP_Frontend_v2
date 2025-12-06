@@ -199,34 +199,6 @@ export default function AuthProvider({
     return () => window.clearTimeout(id);
   }, [accessToken, refresh]);
 
-  // Daily full-page refresh at 7:00 AM (local time) in both dev and prod
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const scheduleNextReload = () => {
-      const now = new Date();
-
-      const next = new Date(now);
-      next.setHours(7, 0, 0, 0);
-
-      if (next <= now) {
-        next.setDate(next.getDate() + 1);
-      }
-
-      const delay = next.getTime() - now.getTime();
-
-      return window.setTimeout(() => {
-        window.location.reload();
-      }, delay);
-    };
-
-    const timeoutId = scheduleNextReload();
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
-
   async function logout() {
     try {
       const res = await GPClient.post('/api/auth/logout', {}, { withCredentials: true });
