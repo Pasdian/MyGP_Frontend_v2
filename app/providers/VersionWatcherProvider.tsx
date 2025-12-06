@@ -4,7 +4,8 @@ import { useEffect } from 'react';
 
 const CLIENT_RELEASE_VERSION = process.env.NEXT_PUBLIC_RELEASE_VERSION;
 
-const CHECK_INTERVAL_MS = 60_000; // 1 minute
+// 1 hour in ms
+const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 3_600_000
 
 export function VersionWatcherProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -33,10 +34,10 @@ export function VersionWatcherProvider({ children }: { children: React.ReactNode
     // Initial check
     checkVersion();
 
-    // Periodic check
+    // Periodic check (every hour)
     intervalId = window.setInterval(checkVersion, CHECK_INTERVAL_MS);
 
-    // Re-check on tab visibility change
+    // Re-check on tab visibility change (so users don't wait up to 1h)
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         checkVersion();
