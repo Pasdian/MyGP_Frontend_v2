@@ -183,7 +183,7 @@ export default function Permissions() {
   if (!rolesData) return <p>No hay datos</p>;
 
   return (
-    <AccessGuard allowedModules={['All Modules']} allowedRoles={['ADMIN']}>
+    <AccessGuard allowedRoles={['ADMIN']}>
       <div className="overflow-y-auto max-h-full">
         <div className="mb-4">
           <AddPermissionDialog />

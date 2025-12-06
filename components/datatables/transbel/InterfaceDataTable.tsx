@@ -138,6 +138,7 @@ export function InterfaceDataTable() {
     // NEW: include visibility in state and handler
     state: { columnFilters, pagination, rowSelection, columnVisibility },
     onColumnVisibilityChange: setColumnVisibility,
+    autoResetPageIndex: false,
   });
   // toggle "ACCIONES" only on 'errors'
   React.useEffect(() => {

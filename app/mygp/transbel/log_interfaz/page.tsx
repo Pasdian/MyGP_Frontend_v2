@@ -1,3 +1,4 @@
+'use client';
 import {
   Table,
   TableBody,
@@ -13,36 +14,54 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
-import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
-import TablePagination from '../pagination/TablePagination';
-import { DeliveriesContext } from '@/contexts/DeliveriesContext';
-import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
-import TablePageSize from '../pageSize/TablePageSize';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
+import TablePageSize from '@/components/datatables/pageSize/TablePageSize';
+import TablePagination from '@/components/datatables/pagination/TablePagination';
+import TransbelApiLogFilter from '@/components/datatables/filters/TransbelApiLogFilter';
+import { apiLogColumns } from '@/lib/columns/apiLogColumns';
+import useSWR from 'swr';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import MyGPCalendar from '@/components/MyGPUI/Datepickers/MyGPCalendar';
+import { DateRange } from 'react-day-picker';
 
-export default function DeliveriesDataTable() {
-  const { deliveries, isLoading: isDeliveriesLoading } = React.useContext(DeliveriesContext);
+function getLastAndCurrentMonthRange(): DateRange {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth(); // 0 = January
+
+  // First day of last month
+  const from =
+    month === 0
+      ? new Date(year - 1, 11, 1) // December of previous year
+      : new Date(year, month - 1, 1);
+
+  // Last day of current month
+  const to = new Date(year, month + 1, 0); // day 0 of next month = last day of this month
+
+  return { from, to };
+}
+
+export default function TransbelApiLog() {
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
-  const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+  // Inside your component:
+  const defaultRange = React.useMemo(() => getLastAndCurrentMonthRange(), []);
 
-  const rowsForTable = React.useMemo(() => {
-    if (!Array.isArray(deliveries)) return [];
+  const hasCustomRange = dateRange?.from && dateRange?.to;
 
-    return deliveries.filter((r) => {
-      const hasError =
-        r?.has_entrega_cdp_error === true ||
-        r?.has_guia_house_error === true ||
-        r?.has_entrega_transporte_error === true;
+  const effectiveFrom = hasCustomRange ? dateRange!.from! : defaultRange.from!;
+  const effectiveTo = hasCustomRange ? dateRange!.to! : defaultRange.to!;
 
-      return shouldFilterErrors ? hasError : !hasError;
-    });
-  }, [deliveries, shouldFilterErrors]);
+  const key = `/api/transbel/getTransbelApiLog?initialDate=${effectiveFrom
+    .toISOString()
+    .slice(0, 10)}&finalDate=${effectiveTo.toISOString().slice(0, 10)}`;
+
+  const { data, isLoading } = useSWR(key, axiosFetcher);
 
   const table = useReactTable({
-    data: rowsForTable ?? [],
-    columns: deliveriesColumns,
+    data: data ?? [],
+    columns: apiLogColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -50,24 +69,13 @@ export default function DeliveriesDataTable() {
     state: {
       pagination, // Pagination
     },
-    autoResetPageIndex: false,
   });
-
-  if (isDeliveriesLoading) return <MyGPSpinner />;
+  if (isLoading) return <MyGPSpinner />;
 
   return (
     <div>
-      <div className="flex items-center space-x-2 mb-4">
-        <div className="flex items-center">
-          <MyGPTabs
-            tabs={[
-              { value: 'errors', label: 'Referencias con Error' },
-              { value: 'not_errors', label: 'Referencias sin Error' },
-            ]}
-            value={shouldFilterErrors ? 'errors' : 'not_errors'}
-            onValueChange={(v) => setShouldFilterErrors(v === 'errors')}
-          />
-        </div>
+      <div className="w-[300px] mb-4">
+        <MyGPCalendar dateRange={dateRange} setDateRange={setDateRange} />
       </div>
       <Table>
         <TableHeader>
@@ -81,7 +89,7 @@ export default function DeliveriesDataTable() {
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanFilter() ? (
                           <div>
-                            <DeliveriesDataTableFilter column={header.column} />
+                            <TransbelApiLogFilter column={header.column} />
                           </div>
                         ) : null}
                       </div>
@@ -105,7 +113,7 @@ export default function DeliveriesDataTable() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={deliveriesColumns.length} className="h-24 text-center">
+              <TableCell colSpan={apiLogColumns.length} className="h-24 text-center">
                 Sin resultados.
               </TableCell>
             </TableRow>

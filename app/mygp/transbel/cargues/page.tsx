@@ -17,10 +17,7 @@ export default function Cargues() {
   const [tabValue, setTabValue] = React.useState<'paid' | 'pending'>('pending');
   const { cargues, isLoading: isCarguesLoading, setCargues } = useCargues();
   return (
-    <AccessGuard
-      allowedModules={['All Modules', 'Transbel Interfaz']}
-      allowedRoles={['ADMIN', 'AAP']}
-    >
+    <AccessGuard allowedRoles={['ADMIN', 'AAP']}>
       <div className="flex items-center mb-4 w-[280px]">
         <MyGPTabs
           value={tabValue}

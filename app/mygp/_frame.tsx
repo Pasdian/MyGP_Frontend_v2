@@ -15,14 +15,15 @@ export default function MyGPFrame({ children }: { children: React.ReactNode }) {
         } as React.CSSProperties
       }
     >
-      <div className="flex h-screen w-full bg-background">
-        {/* Sidebar */}
+      <div className="flex h-screen w-full">
+        {/* Sidebar on the left */}
         <AppSidebar variant="inset" />
 
-        {/* Main shell */}
-        <div className="flex flex-1 flex-col min-h-0">
+        {/* Main area: header + scrollable content */}
+        <div className="flex flex-1 flex-col overflow-hidden">
           <SiteHeader />
-          <main className="flex-1 min-h-0 p-4 overflow-auto">{children}</main>
+
+          <main className="flex-1 overflow-x-hidden p-4">{children}</main>
         </div>
       </div>
     </SidebarProvider>

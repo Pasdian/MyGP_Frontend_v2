@@ -66,7 +66,7 @@ export default function CollapsibleReferences() {
   }
   if (isRefsLoading) return <MyGPSpinner />;
   return (
-    <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
+    <AccessGuard allowedRoles={['ADMIN', 'DEA']}>
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup>
           <SidebarGroupLabel

@@ -42,9 +42,10 @@ type ModifyEtapaFormValues = z.infer<typeof modifyEtapaSchema>;
 type ModifyEtapaProps = {
   CVE_ETAP: string;
   FEC_ETAP: string;
+  OBS_ETAP: string;
 };
 
-export function ModifyEtapa({ CVE_ETAP, FEC_ETAP }: ModifyEtapaProps) {
+export function ModifyEtapa({ CVE_ETAP, FEC_ETAP, OBS_ETAP }: ModifyEtapaProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { ADU_DESP, PAT_AGEN, NUM_REFE } = useNumRefeParams();
@@ -53,7 +54,7 @@ export function ModifyEtapa({ CVE_ETAP, FEC_ETAP }: ModifyEtapaProps) {
     resolver: zodResolver(modifyEtapaSchema),
     defaultValues: {
       etapa: CVE_ETAP || '',
-      observaciones: '',
+      observaciones: OBS_ETAP,
       fecha: new Date(normalizeSqlDate(FEC_ETAP)),
       modificadoPor,
     },

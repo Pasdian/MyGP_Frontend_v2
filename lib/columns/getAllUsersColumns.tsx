@@ -38,7 +38,7 @@ export const getAllUsersColumns: ColumnDef<getAllUsers>[] = [
     cell: ({ row }) => row.original.mobile ?? "--",
   },
   {
-    accessorKey: "role_description",
+    accessorKey: "role.description",
     header: "Rol",
     filterFn: fuzzyFilter,
     cell: ({ row }) => row.original.role.description ?? "--",

@@ -6,11 +6,11 @@ import axios from "axios";
 
 export async function getServerSession(): Promise<AuthSession | null> {
   const cookieStore = await cookies();
-  const accessCookie = cookieStore.get("access_token");
-  const refreshCookie = cookieStore.get("refresh_token");
 
-  // If there are no auth cookies, user is not logged in
-  if (!accessCookie && !refreshCookie) {
+  const hasAccess = cookieStore.get("access_token");
+  const hasRefresh = cookieStore.get("refresh_token");
+
+  if (!hasAccess && !hasRefresh) {
     return null;
   }
 
@@ -27,6 +27,8 @@ export async function getServerSession(): Promise<AuthSession | null> {
       withCredentials: true,
     });
 
+    const accessCookie = cookieStore.get("access_token");
+
     const session: AuthSession = {
       message: "",
       accessToken: accessCookie?.value ?? "",
@@ -34,13 +36,9 @@ export async function getServerSession(): Promise<AuthSession | null> {
     };
 
     return session;
-  } catch (err: unknown) {
-    // 401 from /me just means "not logged in" → return null quietly
-    if (axios.isAxiosError(err)) {
-      const status = err.response?.status;
-      if (status === 401) {
-        return null;
-      }
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 401) {
+      return null;
     }
 
     console.error("getServerSession /me failed", err);

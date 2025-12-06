@@ -9,10 +9,7 @@ import React from 'react';
 export default function Deliveries() {
   const { deliveries, setDeliveries, isLoading } = useDeliveries();
   return (
-    <AccessGuard
-      allowedModules={['All Modules', 'Transbel Entregas']}
-      allowedRoles={['ADMIN', 'AAP', 'STARS']}
-    >
+    <AccessGuard allowedRoles={['ADMIN', 'AAP', 'STARS']}>
       <h1 className="text-2xl font-bold tracking-tight mb-4">Entregas a CDP / CPAC</h1>
       <DeliveriesContext.Provider value={{ deliveries, setDeliveries, isLoading }}>
         <DeliveriesDataTable />

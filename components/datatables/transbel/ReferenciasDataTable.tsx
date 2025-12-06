@@ -36,6 +36,7 @@ export function ReferenciasDataTable() {
     onColumnFiltersChange: setColumnFilters,
     getPaginationRowModel: getPaginationRowModel(),
     state: { columnFilters, pagination },
+    autoResetPageIndex: false,
   });
 
   if (isLoading) return <MyGPSpinner />;

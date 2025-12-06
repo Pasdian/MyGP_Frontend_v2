@@ -10,7 +10,7 @@ import UsersDataTable from '@/components/datatables/admin-panel/UsersDataTable';
 export default function Users() {
   const { users: getAllUsers, setUsers: setAllUsers, isLoading: isUsersLoading } = useGetAllUsers();
   return (
-    <AccessGuard allowedModules={['All Modules']} allowedRoles={['ADMIN']}>
+    <AccessGuard allowedRoles={['ADMIN']}>
       <UsersDataTableContext.Provider value={{ getAllUsers, setAllUsers, isUsersLoading }}>
         <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Usuarios</h1>
         <div>

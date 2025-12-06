@@ -46,7 +46,7 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           )}
-          <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
+          <AccessGuard allowedRoles={['ADMIN', 'DEA']}>
             <Link href="/mygp/dea">
               <SidebarMenuItem className="flex items-center gap-2">
                 <SidebarMenuButton

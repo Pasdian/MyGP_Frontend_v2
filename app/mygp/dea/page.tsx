@@ -112,7 +112,7 @@ export default function DEA() {
   }, [fileUrl, isPdf]);
 
   return (
-    <AccessGuard allowedModules={['All Modules', 'DEA']} allowedRoles={['ADMIN', 'DEA']}>
+    <AccessGuard allowedRoles={['ADMIN', 'DEA']}>
       {client.reference && client.number ? (
         <div className="grid grid-cols-[20%_20%_60%] grid-rows-3 gap-2 h-full">
           {/* Cuenta de Gastos */}

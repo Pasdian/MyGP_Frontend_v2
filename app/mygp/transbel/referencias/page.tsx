@@ -7,10 +7,7 @@ import { ReferenciasDataTable } from '@/components/datatables/transbel/Referenci
 
 export default function Referencias() {
   return (
-    <AccessGuard
-      allowedModules={['All Modules', 'Transbel Interfaz']}
-      allowedRoles={['ADMIN', 'AAP']}
-    >
+    <AccessGuard allowedRoles={['ADMIN', 'TRAFICO_ADMIN']}>
       <AllTransbelRefsProvider>
         <p className="font-bold text-xl mb-4">Modificar Referencias</p>
         <ReferenciasDataTable />

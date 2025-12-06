@@ -36,6 +36,7 @@ export default function EtapasDataTable({ NUM_REFE }: { NUM_REFE: string }) {
     onColumnFiltersChange: setColumnFilters,
     getPaginationRowModel: getPaginationRowModel(),
     state: { columnFilters, pagination },
+    autoResetPageIndex: false,
   });
   return (
     <div className="overflow-hidden rounded-md border">

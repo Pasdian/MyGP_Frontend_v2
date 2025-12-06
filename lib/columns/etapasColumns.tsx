@@ -17,6 +17,7 @@ export const etapasColumns: ColumnDef<Phase>[] = [
           <ModifyEtapa
             CVE_ETAP={row.original.CVE_ETAP || ""}
             FEC_ETAP={row.original.FEC_ETAP || ""}
+            OBS_ETAP={row.original.OBS_ETAP || ""}
           />
         </div>
       );

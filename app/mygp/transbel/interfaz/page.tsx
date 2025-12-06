@@ -20,10 +20,7 @@ export default function Page() {
   } = useRefsPendingCE(dateRange?.from, dateRange?.to);
 
   return (
-    <AccessGuard
-      allowedModules={['All Modules', 'Transbel Interfaz']}
-      allowedRoles={['ADMIN', 'AAP']}
-    >
+    <AccessGuard allowedRoles={['ADMIN', 'AAP']}>
       <div className="flex flex-col justify-center w-full overflow-y-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>

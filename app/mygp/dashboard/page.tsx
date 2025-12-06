@@ -224,7 +224,7 @@ export default function Dashboard() {
                 isLoading,
               }}
             >
-              <DailyTrackingDataTable metaState={metaState} key={JSON.stringify(metaState)} />
+              <DailyTrackingDataTable metaState={metaState} />
             </DailyTrackingContext.Provider>
           </Card>
         </>

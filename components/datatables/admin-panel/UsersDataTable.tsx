@@ -35,6 +35,7 @@ export default function UsersDataTable() {
     state: {
       pagination, // Pagination
     },
+    autoResetPageIndex: false,
   });
   if (isUsersLoading) return <MyGPSpinner />;
   return (

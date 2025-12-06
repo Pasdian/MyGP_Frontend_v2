@@ -72,6 +72,7 @@ export function CarguesDataTable() {
     onRowSelectionChange: setRowSelection,
     state: { columnFilters, pagination, rowSelection },
     enableRowSelection: true,
+    autoResetPageIndex: false,
   });
 
   const selectedRows = table

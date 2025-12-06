@@ -11,8 +11,6 @@ import { User } from '@/types/user/user';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
-const isDev = process.env.NODE_ENV === 'development';
-
 type JwtClaims = { exp?: number };
 
 const defaultUser: AuthSession = {
@@ -99,6 +97,11 @@ export default function AuthProvider({
 
   const roleName = user?.complete_user?.role?.name;
   const permissions = React.useMemo(() => user?.complete_user?.role?.permissions ?? [], [user]);
+
+  const getCasaUsername = () => {
+    return user.complete_user.user.casa_user_name;
+  };
+
   const hasRole = React.useCallback(
     (role: string | string[]) => {
       if (!roleName) return false;
@@ -126,7 +129,6 @@ export default function AuthProvider({
   const refresh = React.useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1) Refresh token (extends cookie and gives you new accessToken)
       const refreshRes = await GPClient.post<LoginResponse>(
         '/api/auth/refreshToken',
         {},
@@ -135,14 +137,13 @@ export default function AuthProvider({
 
       const newToken = refreshRes.data.accessToken;
 
-      // 2) Get user data from /me
       const meRes = await GPClient.get<Me>('/api/auth/me', {
         withCredentials: true,
       });
 
       const next: AuthSession = {
-        ...refreshRes.data, // message + accessToken
-        ...meRes.data, // complete_user
+        ...refreshRes.data,
+        ...meRes.data,
       };
 
       setAuthState((prev) => ({
@@ -159,14 +160,6 @@ export default function AuthProvider({
       return true;
     } catch (error) {
       console.error('Error refreshing AuthSession', error);
-
-      if (isDev) {
-        setAuthState((prev) => ({
-          ...prev,
-          isLoading: false,
-        }));
-        return false;
-      }
 
       posthog.reset();
 
@@ -188,56 +181,36 @@ export default function AuthProvider({
     }
   }, [isAuthenticated, user]);
 
-  // PROD: schedule revalidation based on token expiry
+  // Schedule revalidation based on token expiry (same in dev and prod)
   React.useEffect(() => {
-    if (isDev) return;
     if (!accessToken) return;
 
     const delay = msUntilRefresh(accessToken);
-    if (!delay) return;
 
-    const id = setTimeout(() => {
+    if (delay <= 0) {
+      refresh();
+      return;
+    }
+
+    const id = window.setTimeout(() => {
       refresh();
     }, delay);
 
-    return () => clearTimeout(id);
+    return () => window.clearTimeout(id);
   }, [accessToken, refresh]);
 
-  // DEV: periodically refresh AuthSession
-  React.useEffect(() => {
-    if (!isDev) return;
-    if (!accessToken) return;
-
-    const id = setInterval(() => {
-      refresh();
-    }, 20_000); // 20 seconds
-
-    return () => clearInterval(id);
-  }, [accessToken, refresh]);
-
-  // Daily full-page refresh at 7:00 AM (local time)
+  // Daily full-page refresh at 7:00 AM (local time) in both dev and prod
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const isDev = process.env.NODE_ENV === 'development';
 
     const scheduleNextReload = () => {
       const now = new Date();
 
-      // DEV: reload in 1 minute for testing
-      if (isDev) {
-        const delay = 60_000; // 1 minute
-        return window.setTimeout(() => {
-          window.location.reload();
-        }, delay);
-      }
-
-      // PROD: schedule next 7:00 AM
       const next = new Date(now);
       next.setHours(7, 0, 0, 0);
 
       if (next <= now) {
-        next.setDate(next.getDate() + 1); // schedule for tomorrow
+        next.setDate(next.getDate() + 1);
       }
 
       const delay = next.getTime() - now.getTime();
@@ -297,6 +270,7 @@ export default function AuthProvider({
         refresh,
         hasRole,
         hasPermission,
+        getCasaUsername,
       }}
     >
       {children}

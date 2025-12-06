@@ -7,9 +7,9 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { toast } from 'sonner';
 import { deaModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
-import AccessGuard from '../AccessGuard/AccessGuard';
 import { FolderKey } from '@/types/dea/getFilesByReferences';
 import MyGPSpinner from '../MyGPUI/Spinners/MyGPSpinner';
+import PermissionGuard from '../PermissionGuard/PermissionGuard';
 
 const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
@@ -122,7 +122,7 @@ export default function DocumentCard({
                     <p className="text-[11px] break-words">{item}</p>
                   </div>
 
-                  <AccessGuard allowedPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
+                  <PermissionGuard requiredPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
                     <DownloadIcon
                       size={iconSize}
                       onClick={(e) => {
@@ -134,7 +134,7 @@ export default function DocumentCard({
                         posthog.capture(deaDownloadFileEvent);
                       }}
                     />
-                  </AccessGuard>
+                  </PermissionGuard>
                 </div>
               );
             })}

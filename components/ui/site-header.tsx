@@ -11,7 +11,6 @@ import posthog from 'posthog-js';
 import { deaModuleEvents } from '@/lib/posthog/events';
 import { Loader2, RocketIcon } from 'lucide-react';
 import useSWRMutation from 'swr/mutation';
-import AccessGuard from '../AccessGuard/AccessGuard';
 import { useCompanies } from '@/hooks/useCompanies';
 import { ManifestacionDialog } from '../Dialogs/ManifestacionDialog';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
@@ -20,6 +19,7 @@ import DEAFilterCompanyDriver from '../driver/DEAFilterCompanyDriver';
 import { useAuth } from '@/hooks/useAuth';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import MyGPCalendar from '../MyGPUI/Datepickers/MyGPCalendar';
+import PermissionGuard from '../PermissionGuard/PermissionGuard';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -140,13 +140,13 @@ export function SiteHeader() {
           {client.reference && (
             <ManifestacionDialog className="h-5 text-xs w-[200px]" key={client.reference} />
           )}
-          <AccessGuard allowedPermissions={['DEA_PREVIOS']}>
+          <PermissionGuard requiredPermissions={['DEA_PREVIOS']}>
             {client.reference && (
               <PreviosDialog key={client.reference} className="text-xs h-5 w-[150px]" />
             )}
-          </AccessGuard>
+          </PermissionGuard>
 
-          <AccessGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
+          <PermissionGuard requiredPermissions={['DEA_EXP_DIGITAL']}>
             {client.reference && client.number && (
               <MyGPButtonPrimary
                 className="h-5 text-xs w-[200px]"
@@ -194,7 +194,7 @@ export function SiteHeader() {
                 )}
               </MyGPButtonPrimary>
             )}
-          </AccessGuard>
+          </PermissionGuard>
         </div>
       )}
     </header>

@@ -43,17 +43,15 @@ export function DailyTrackingDataTable({
     tabValue: string;
   };
 }) {
-  const { user } = useAuth();
+  const { hasPermission, hasRole, getCasaUsername } = useAuth();
   const { dailyTrackingData, isLoading: isDailyTrackingLoading } =
     React.useContext(DailyTrackingContext);
 
   // User info
-  const userCasaUserName = user.complete_user.user.casa_user_name;
-  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
-  const isTrafficAdmin = user?.complete_user?.role?.name === 'TRAFICO_ADMIN';
-  const hasTrafficAdminPerm = user?.complete_user?.role?.permissions?.some(
-    (p) => p.action === 'DASHBOARD_TRAFICO_ADMIN'
-  );
+  const userCasaUserName = getCasaUsername();
+  const isAdmin = hasRole('ADMIN');
+  const isTrafficAdmin = hasRole('TRAFICO_ADMIN');
+  const hasTrafficAdminPerm = hasPermission('DASHBOARD_TRAFICO_ADMIN');
 
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
@@ -104,6 +102,7 @@ export function DailyTrackingDataTable({
     getSortedRowModel: getSortedRowModel(),
     sortDescFirst: true,
     state: { columnFilters, pagination, sorting },
+    autoResetPageIndex: false,
   });
 
   async function convertToCsv() {
