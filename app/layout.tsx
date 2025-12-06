@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { Roboto } from 'next/font/google';
 import { DEAStoreProvider } from './providers/dea-store-provider';
 import SWRProvider from './providers/SWRProvider';
+import { VersionGate } from '@/components/VersionGate/VersionGate';
 
 export const metadata: Metadata = {
   title: 'MyGP',
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="es-MX" className={roboto.className}>
       <body>
         <SWRProvider>
+          <VersionGate />
           <DEAStoreProvider>{children}</DEAStoreProvider>
           <Toaster position="top-center" />
         </SWRProvider>
