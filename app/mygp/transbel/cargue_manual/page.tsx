@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toYMD } from '@/lib/utilityFunctions/toYMD';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 
 function getPreviousBusinessDay(date = new Date()): Date {
   const d = new Date(date);
@@ -103,7 +104,7 @@ export default function CargueManual() {
   }, [dateYMD]);
 
   return (
-    <div>
+    <AccessGuard allowedRoles={["ADMIN", "TRANSBEL_ADMIN"]}>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">
         Subir Cargue Manual: {filename || '(sin nombre)'}
       </h1>
@@ -184,6 +185,6 @@ export default function CargueManual() {
           </MyGPButtonSubmit>
         </form>
       </Form>
-    </div>
+    </AccessGuard>
   );
 }
