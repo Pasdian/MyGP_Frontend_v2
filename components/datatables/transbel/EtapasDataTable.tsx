@@ -20,19 +20,20 @@ import TablePageSize from '../pageSize/TablePageSize';
 import TablePagination from '../pagination/TablePagination';
 import { etapasColumns } from '@/lib/columns/etapasColumns';
 import { useEtapas } from '@/hooks/useEtapas/useEtapas';
+import { etapas } from '@/lib/etapas/etapas';
 
 export default function EtapasDataTable() {
-  const { etapas } = useEtapas();
+  const { etapas: etapasData } = useEtapas();
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const etapasWithDesc = React.useMemo(
     () =>
-      etapas?.map((e) => ({
+      etapasData?.map((e) => ({
         ...e,
         DESC_ETAP: etapas.find((et) => et.CVE_ETAP == e.CVE_ETAP)?.DESC_ETAP || null,
       })),
-    [etapas]
+    [etapasData]
   );
 
   const table = useReactTable({

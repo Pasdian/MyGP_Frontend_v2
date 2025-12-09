@@ -54,12 +54,6 @@ const userItems = {
           role: CARGUE_MANUAL_ROLES,
           icon: IconManualGearbox,
         },
-        {
-          title: 'Workato Log',
-          url: '/mygp/transbel/log_interfaz',
-          role: WORKATO_LOG_ROLES,
-          icon: IconAdjustments,
-        },
         // {
         //   title: 'Embarque',
         //   url: '/mygp/transbel/datos_embarque',

@@ -3,6 +3,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 import { Phase } from "@/types/casa/Phase";
 import { ModifyEtapa } from "@/components/datatables/transbel/ModifyEtapa";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 const fuzzyFilter = createFuzzyFilter<Phase>();
 
@@ -49,10 +55,26 @@ export const etapasColumns: ColumnDef<Phase>[] = [
     header: () => <div className="text-center w-full">Observaciones</div>,
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.OBS_ETAP) {
+      const value = row.original.OBS_ETAP;
+      if (!value) {
         return <div className="text-center w-full">---</div>;
       }
-      return <p className="text-center">{row.original.OBS_ETAP}</p>;
+
+      return (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="text-center truncate overflow-hidden whitespace-nowrap max-w-[350px] mx-auto cursor-pointer">
+                {value}
+              </p>
+            </TooltipTrigger>
+
+            <TooltipContent side="top" className="max-w-xs break-words">
+              {value}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
     },
   },
   {

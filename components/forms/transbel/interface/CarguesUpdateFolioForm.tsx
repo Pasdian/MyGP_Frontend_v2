@@ -181,6 +181,7 @@ export default function CarguesUpdateFolioForm({
               setValue={setComboValue}
               options={comboOptions}
               label="Tipo de Operación"
+              placeholder="Tipo de Operación"
             />
 
             {comboValue == 'IMPO' && (
