@@ -7,8 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { Phase } from '@/types/casa/Phase';
+
 
 import {
   ColumnFiltersState,
@@ -19,29 +18,20 @@ import {
 } from '@tanstack/react-table';
 import React from 'react';
 
-import useSWR from 'swr';
 import TablePageSize from '../pageSize/TablePageSize';
 import TablePagination from '../pagination/TablePagination';
-import { etapasColumns } from '@/lib/columns/etapasColumns';
-import { etapas } from '@/lib/etapas/etapas';
+import { embarqueColumns } from '@/lib/columns/embarqueColumns';
+import { useEmbarque } from '@/hooks/useEmbarque/useEmbarque';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
-export default function EtapasDataTable({ NUM_REFE }: { NUM_REFE: string }) {
-  const { data } = useSWR<Phase[]>(`/api/casa/getPhases?NUM_REFE=${NUM_REFE}`, axiosFetcher);
+export default function EmbarqueDataTable() {
+  const { embarque, isLoading } = useEmbarque();
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
-  const etapasWithDesc = React.useMemo(
-    () =>
-    data?.map((e) => ({
-      ...e,
-      DESC_ETAP: etapas.find((et) => et.CVE_ETAP == e.CVE_ETAP)?.DESC_ETAP || null
-    })),
-    [data]
-  );
-
   const table = useReactTable({
-    data: etapasWithDesc || [],
-    columns: etapasColumns,
+    data: embarque || [],
+    columns: embarqueColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
@@ -49,6 +39,9 @@ export default function EtapasDataTable({ NUM_REFE }: { NUM_REFE: string }) {
     state: { columnFilters, pagination },
     autoResetPageIndex: false,
   });
+
+  if(isLoading) return <MyGPSpinner/>
+
   return (
     <div className="overflow-hidden rounded-md border">
       <Table className="mb-4">
@@ -80,7 +73,7 @@ export default function EtapasDataTable({ NUM_REFE }: { NUM_REFE: string }) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={etapasColumns.length} className="h-24 text-center">
+              <TableCell colSpan={embarqueColumns.length} className="h-24 text-center">
                 Sin resultados.
               </TableCell>
             </TableRow>

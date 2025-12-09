@@ -65,7 +65,7 @@ export function ModifyEtapa({ CVE_ETAP, FEC_ETAP, OBS_ETAP }: ModifyEtapaProps) 
 
     const payload = {
       phase: data.etapa,
-      exceptionCode: '',
+      exceptionCode: data.observaciones,
       date: data.fecha ? data.fecha.toISOString() : null,
       user: data.modificadoPor,
     };

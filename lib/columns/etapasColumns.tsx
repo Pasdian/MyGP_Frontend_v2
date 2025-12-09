@@ -1,6 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import React from "react";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 import { Phase } from "@/types/casa/Phase";
 import { ModifyEtapa } from "@/components/datatables/transbel/ModifyEtapa";
@@ -35,14 +34,14 @@ export const etapasColumns: ColumnDef<Phase>[] = [
     },
   },
   {
-    accessorKey: "CVE_ETAP",
+    accessorKey: "DESC_ETAP",
     header: () => <div className="text-center w-full">Etapa</div>,
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      if (!row.original.CVE_ETAP) {
+      if (!row.original.DESC_ETAP) {
         return <div className="text-center w-full">---</div>;
       }
-      return <p className="text-center">{row.original.CVE_ETAP}</p>;
+      return <p className="text-center">{row.original.DESC_ETAP}</p>;
     },
   },
   {

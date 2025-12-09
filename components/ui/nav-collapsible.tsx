@@ -13,7 +13,7 @@ import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import React from 'react';
 import { NavItem } from '@/types/nav/navItem';
-import { BookPlusIcon } from 'lucide-react';
+import { BookPlusIcon, Container } from 'lucide-react';
 
 const userItems = {
   navCollapsible: [
@@ -49,6 +49,12 @@ const userItems = {
           url: '/mygp/transbel/log_interfaz',
           role: ['ADMIN', 'TRANSBEL_ADMIN'],
           icon: IconAdjustments,
+        },
+        {
+          title: 'Embarque',
+          url: '/mygp/transbel/datos_embarque',
+          role: ['ADMIN', 'TRANSBEL_ADMIN'],
+          icon: Container,
         },
       ],
     },
