@@ -22,7 +22,6 @@ import {
   GIP_ROLES,
   INTERFAZ_ROLES,
   OPERACIONES_REFERENCIAS_ROLES,
-  WORKATO_LOG_ROLES,
 } from '@/lib/modules/moduleRole';
 
 const userItems = {
