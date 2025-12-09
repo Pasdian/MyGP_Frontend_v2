@@ -8,6 +8,7 @@ import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { useRefsPendingCE } from '@/hooks/useRefsPendingCE';
 import MyGPCalendar from '@/components/MyGPUI/Datepickers/MyGPCalendar';
 import { DateRange } from 'react-day-picker';
+import { INTERFAZ_ROLES } from '@/lib/modules/moduleRole';
 
 export default function Page() {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -20,7 +21,7 @@ export default function Page() {
   } = useRefsPendingCE(dateRange?.from, dateRange?.to);
 
   return (
-    <AccessGuard allowedRoles={['ADMIN', 'TRANSBEL', 'TRANSBEL_ADMIN']}>
+    <AccessGuard allowedRoles={INTERFAZ_ROLES}>
       <div className="flex flex-col justify-center w-full overflow-y-auto">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Interfaz de Transbel</h1>

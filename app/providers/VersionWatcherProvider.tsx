@@ -12,8 +12,6 @@ export function VersionWatcherProvider({ children }: { children: React.ReactNode
     if (process.env.NODE_ENV === 'development') return;
     if (!CLIENT_RELEASE_VERSION) return;
 
-    let intervalId: number | undefined;
-
     const checkVersion = async () => {
       try {
         const res = await fetch('/frontend-version', { cache: 'no-store' });
@@ -35,7 +33,7 @@ export function VersionWatcherProvider({ children }: { children: React.ReactNode
     checkVersion();
 
     // Periodic check (every hour)
-    intervalId = window.setInterval(checkVersion, CHECK_INTERVAL_MS);
+    const intervalId = window.setInterval(checkVersion, CHECK_INTERVAL_MS);
 
     // Re-check on tab visibility change (so users don't wait up to 1h)
     const onVisible = () => {

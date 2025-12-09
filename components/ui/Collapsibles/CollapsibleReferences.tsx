@@ -16,6 +16,7 @@ import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { useRefsByClient } from '@/hooks/useRefsByClient';
 import { toast } from 'sonner';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
+import { DEA_ROLES } from '@/lib/modules/moduleRole';
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
@@ -66,7 +67,7 @@ export default function CollapsibleReferences() {
   }
   if (isRefsLoading) return <MyGPSpinner />;
   return (
-    <AccessGuard allowedRoles={['ADMIN', 'DEA']}>
+    <AccessGuard allowedRoles={DEA_ROLES}>
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup>
           <SidebarGroupLabel

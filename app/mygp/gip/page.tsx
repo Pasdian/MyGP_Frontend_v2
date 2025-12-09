@@ -1,5 +1,7 @@
 'use client';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { GIP_ROLES } from '@/lib/modules/moduleRole';
 import * as React from 'react';
 import useSWR from 'swr/immutable';
 
@@ -47,133 +49,135 @@ export default function GipBrowserLite() {
   const atRoot = !folder || folder === '/';
 
   return (
-    <div className="p-4 space-y-3">
-      <div className="flex items-center gap-2 text-sm">
-        <button
-          onClick={() => {
-            setFolder('');
-            setSelected('');
-          }}
-          disabled={atRoot}
-          className="text-blue-600 hover:underline disabled:text-gray-400"
-        >
-          /
-        </button>
-        {folder
-          .split('/')
-          .filter(Boolean)
-          .map((seg, i, a) => {
-            const p = a.slice(0, i + 1).join('/');
-            return (
-              <React.Fragment key={p}>
-                <span>/</span>
-                <button
-                  onClick={() => {
-                    setFolder(p);
-                    setSelected('');
-                  }}
-                  className="text-blue-600 hover:underline"
-                >
-                  {seg}
-                </button>
-              </React.Fragment>
-            );
-          })}
-        <div className="ml-auto flex items-center gap-2">
-          {!atRoot && (
-            <button
-              onClick={() => {
-                setFolder(parentDir(folder));
-                setSelected('');
-              }}
-              className="px-2 py-1 border rounded hover:bg-gray-50"
-            >
-              Atrás
-            </button>
-          )}
-          {selected && (
-            <button
-              onClick={() => {
-                setSelected('');
-              }}
-              className="px-2 py-1 border rounded hover:bg-gray-50"
-            >
-              Cerrar visor
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="border rounded-md overflow-y-auto max-h-[80vh]">
-          {isLoading && <div className="p-3 text-gray-500">Cargando…</div>}
-          {error && <div className="p-3 text-red-600">Error al cargar.</div>}
-          {Array.isArray(data) && data.length === 0 && (
-            <div className="p-3 text-gray-500">Carpeta vacía.</div>
-          )}
-
-          {Array.isArray(data) &&
-            data.map((it, i) => {
-              const rel = joinPath(folder, it.name);
-              const selectedRow = !it.is_dir && selected === rel;
+    <AccessGuard allowedRoles={GIP_ROLES}>
+      <div className="p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm">
+          <button
+            onClick={() => {
+              setFolder('');
+              setSelected('');
+            }}
+            disabled={atRoot}
+            className="text-blue-600 hover:underline disabled:text-gray-400"
+          >
+            /
+          </button>
+          {folder
+            .split('/')
+            .filter(Boolean)
+            .map((seg, i, a) => {
+              const p = a.slice(0, i + 1).join('/');
               return (
-                <button
-                  key={rel}
-                  onClick={() => (it.is_dir ? setFolder(rel) : setSelected(rel))}
-                  title={it.name}
-                  className={`w-full text-left flex items-center gap-2 px-3 py-2 border-b last:border-b-0 ${
-                    selectedRow
-                      ? 'bg-blue-50 border-l-4 border-blue-400'
-                      : i % 2
-                      ? 'bg-white'
-                      : 'bg-gray-50'
-                  } hover:bg-gray-100`}
-                >
-                  <span aria-hidden>{it.is_dir ? '📁' : '📄'}</span>
-                  <span className="truncate">{it.name}</span>
-                </button>
+                <React.Fragment key={p}>
+                  <span>/</span>
+                  <button
+                    onClick={() => {
+                      setFolder(p);
+                      setSelected('');
+                    }}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {seg}
+                  </button>
+                </React.Fragment>
               );
             })}
+          <div className="ml-auto flex items-center gap-2">
+            {!atRoot && (
+              <button
+                onClick={() => {
+                  setFolder(parentDir(folder));
+                  setSelected('');
+                }}
+                className="px-2 py-1 border rounded hover:bg-gray-50"
+              >
+                Atrás
+              </button>
+            )}
+            {selected && (
+              <button
+                onClick={() => {
+                  setSelected('');
+                }}
+                className="px-2 py-1 border rounded hover:bg-gray-50"
+              >
+                Cerrar visor
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="relative border rounded-md min-h-[300px] h-[80vh] overflow-hidden flex flex-col">
-          {!selected ? (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
-              Selecciona un archivo para previsualizar
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-3 px-3 py-2 border-b bg-gray-50">
-                <span className="text-xs uppercase text-gray-500">Vista previa:</span>
-                <span className="font-medium truncate">{selected.split('/').pop()}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="border rounded-md overflow-y-auto max-h-[80vh]">
+            {isLoading && <div className="p-3 text-gray-500">Cargando…</div>}
+            {error && <div className="p-3 text-red-600">Error al cargar.</div>}
+            {Array.isArray(data) && data.length === 0 && (
+              <div className="p-3 text-gray-500">Carpeta vacía.</div>
+            )}
+
+            {Array.isArray(data) &&
+              data.map((it, i) => {
+                const rel = joinPath(folder, it.name);
+                const selectedRow = !it.is_dir && selected === rel;
+                return (
+                  <button
+                    key={rel}
+                    onClick={() => (it.is_dir ? setFolder(rel) : setSelected(rel))}
+                    title={it.name}
+                    className={`w-full text-left flex items-center gap-2 px-3 py-2 border-b last:border-b-0 ${
+                      selectedRow
+                        ? 'bg-blue-50 border-l-4 border-blue-400'
+                        : i % 2
+                        ? 'bg-white'
+                        : 'bg-gray-50'
+                    } hover:bg-gray-100`}
+                  >
+                    <span aria-hidden>{it.is_dir ? '📁' : '📄'}</span>
+                    <span className="truncate">{it.name}</span>
+                  </button>
+                );
+              })}
+          </div>
+
+          <div className="relative border rounded-md min-h-[300px] h-[80vh] overflow-hidden flex flex-col">
+            {!selected ? (
+              <div className="flex-1 flex items-center justify-center text-gray-500">
+                Selecciona un archivo para previsualizar
               </div>
-              <div className="flex-1 overflow-hidden relative">
-                {loadingPrev && (
-                  <div className="absolute inset-0 z-10 bg-white/70 flex items-center justify-center">
-                    <div className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
-                  </div>
-                )}
-                {prevErr && !loadingPrev && (
-                  <div className="absolute inset-0 z-10 bg-white/90 flex items-center justify-center p-6 text-center">
-                    <div className="text-red-600">No se pudo cargar la vista previa.</div>
-                  </div>
-                )}
-                <iframe
-                  key={selected}
-                  src={previewUrl}
-                  className="w-full h-full"
-                  frameBorder={0}
-                  onLoad={() => setLoadingPrev(false)}
-                  onError={() => {
-                    setLoadingPrev(false);
-                    setPrevErr('');
-                  }}
-                />
+            ) : (
+              <div>
+                <div className="flex items-center gap-3 px-3 py-2 border-b bg-gray-50">
+                  <span className="text-xs uppercase text-gray-500">Vista previa:</span>
+                  <span className="font-medium truncate">{selected.split('/').pop()}</span>
+                </div>
+                <div className="flex-1 overflow-hidden relative">
+                  {loadingPrev && (
+                    <div className="absolute inset-0 z-10 bg-white/70 flex items-center justify-center">
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
+                    </div>
+                  )}
+                  {prevErr && !loadingPrev && (
+                    <div className="absolute inset-0 z-10 bg-white/90 flex items-center justify-center p-6 text-center">
+                      <div className="text-red-600">No se pudo cargar la vista previa.</div>
+                    </div>
+                  )}
+                  <iframe
+                    key={selected}
+                    src={previewUrl}
+                    className="w-full h-full"
+                    frameBorder={0}
+                    onLoad={() => setLoadingPrev(false)}
+                    onError={() => {
+                      setLoadingPrev(false);
+                      setPrevErr('');
+                    }}
+                  />
+                </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AccessGuard>
   );
 }

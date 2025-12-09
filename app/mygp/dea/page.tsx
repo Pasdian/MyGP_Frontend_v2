@@ -12,6 +12,7 @@ import { useClientFile } from '@/hooks/useClientFile';
 import UploadFile from '@/components/UploadFiles/UploadFile';
 import DEAFloatingWindowDriver from '@/components/driver/DEAFloatingWindowDriver';
 import { Loader2Icon } from 'lucide-react';
+import { DEA_ROLES } from '@/lib/modules/moduleRole';
 
 export default function DEA() {
   const { client, file, setFile } = useDEAStore((state) => state);
@@ -112,7 +113,7 @@ export default function DEA() {
   }, [fileUrl, isPdf]);
 
   return (
-    <AccessGuard allowedRoles={['ADMIN', 'DEA']}>
+    <AccessGuard allowedRoles={DEA_ROLES}>
       {client.reference && client.number ? (
         <div className="grid grid-cols-[20%_20%_60%] grid-rows-3 gap-2 h-full">
           {/* Cuenta de Gastos */}

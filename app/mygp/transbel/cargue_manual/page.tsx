@@ -21,6 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toYMD } from '@/lib/utilityFunctions/toYMD';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import { CARGUE_MANUAL_ROLES } from '@/lib/modules/moduleRole';
 
 function getPreviousBusinessDay(date = new Date()): Date {
   const d = new Date(date);
@@ -104,7 +105,7 @@ export default function CargueManual() {
   }, [dateYMD]);
 
   return (
-    <AccessGuard allowedRoles={["ADMIN", "TRANSBEL_ADMIN"]}>
+    <AccessGuard allowedRoles={CARGUE_MANUAL_ROLES}>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">
         Subir Cargue Manual: {filename || '(sin nombre)'}
       </h1>

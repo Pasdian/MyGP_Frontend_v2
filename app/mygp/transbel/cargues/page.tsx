@@ -5,6 +5,7 @@ import React from 'react';
 import { CarguesContext } from '@/contexts/CarguesContext';
 import useCargues from '@/hooks/useCargues';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
+import { CARGUE_ROLES } from '@/lib/modules/moduleRole';
 
 const TAB_VALUES = ['pending', 'paid'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -17,7 +18,7 @@ export default function Cargues() {
   const [tabValue, setTabValue] = React.useState<'paid' | 'pending'>('pending');
   const { cargues, isLoading: isCarguesLoading, setCargues } = useCargues();
   return (
-    <AccessGuard allowedRoles={['ADMIN', 'TRANSBEL', "TRANSBEL_ADMIN"]}>
+    <AccessGuard allowedRoles={CARGUE_ROLES}>
       <div className="flex items-center mb-4 w-[280px]">
         <MyGPTabs
           value={tabValue}

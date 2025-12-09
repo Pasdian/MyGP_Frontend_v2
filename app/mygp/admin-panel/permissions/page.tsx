@@ -33,6 +33,7 @@ import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
+import { ADMIN_ROLES } from '@/lib/modules/moduleRole';
 
 type getRoleModulesAndPermissions = Role[] | null;
 const roleModulesPermissionsKey = '/api/role-modules/getRoleModulesAndPermissions';
@@ -183,7 +184,7 @@ export default function Permissions() {
   if (!rolesData) return <p>No hay datos</p>;
 
   return (
-    <AccessGuard allowedRoles={['ADMIN']}>
+    <AccessGuard allowedRoles={ADMIN_ROLES}>
       <div className="overflow-y-auto max-h-full">
         <div className="mb-4">
           <AddPermissionDialog />

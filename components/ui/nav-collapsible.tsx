@@ -13,7 +13,17 @@ import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import React from 'react';
 import { NavItem } from '@/types/nav/navItem';
-import { BookPlusIcon, Container } from 'lucide-react';
+import { BookPlusIcon } from 'lucide-react';
+import {
+  ADMIN_ROLES,
+  CARGUE_MANUAL_ROLES,
+  CARGUE_ROLES,
+  ENTREGAS_ROLES,
+  GIP_ROLES,
+  INTERFAZ_ROLES,
+  OPERACIONES_REFERENCIAS_ROLES,
+  WORKATO_LOG_ROLES,
+} from '@/lib/modules/moduleRole';
 
 const userItems = {
   navCollapsible: [
@@ -23,39 +33,39 @@ const userItems = {
         {
           title: 'Entregas a Cliente',
           url: '/mygp/transbel/entregas',
-          role: ['ADMIN', 'STARS', 'TRANSBEL', 'TRANSBEL_ADMIN'],
+          role: ENTREGAS_ROLES,
           icon: IconPackage,
         },
         {
           title: 'Interfaz - Cod. Exc.',
           url: '/mygp/transbel/interfaz',
-          role: ['ADMIN', 'TRANSBEL', 'TRANSBEL_ADMIN'],
+          role: INTERFAZ_ROLES,
           icon: IconAdjustments,
         },
         {
           title: 'Cargues',
           url: '/mygp/transbel/cargues',
-          role: ['ADMIN', 'TRANSBEL_ADMIN'],
+          role: CARGUE_ROLES,
           icon: IconTruck,
         },
         {
           title: 'Cargue Manual',
           url: '/mygp/transbel/cargue_manual',
-          role: ['ADMIN', 'TRANSBEL_ADMIN'],
+          role: CARGUE_MANUAL_ROLES,
           icon: IconManualGearbox,
         },
         {
           title: 'Workato Log',
           url: '/mygp/transbel/log_interfaz',
-          role: ['ADMIN', 'TRANSBEL_ADMIN'],
+          role: WORKATO_LOG_ROLES,
           icon: IconAdjustments,
         },
-        {
-          title: 'Embarque',
-          url: '/mygp/transbel/datos_embarque',
-          role: ['ADMIN', 'TRANSBEL_ADMIN'],
-          icon: Container,
-        },
+        // {
+        //   title: 'Embarque',
+        //   url: '/mygp/transbel/datos_embarque',
+        //   role: DATOS_EMBARQUE_ROLES,
+        //   icon: Container,
+        // },
       ],
     },
     {
@@ -63,8 +73,8 @@ const userItems = {
       items: [
         {
           title: 'Referencias',
-          url: '/mygp/transbel/referencias',
-          role: ['ADMIN', 'TRAFICO_ADMIN'],
+          url: '/mygp/operaciones/referencias',
+          role: OPERACIONES_REFERENCIAS_ROLES,
           icon: BookPlusIcon,
         },
       ],
@@ -75,7 +85,7 @@ const userItems = {
         {
           title: 'GIP',
           url: '/mygp/gip',
-          role: ['ADMIN', 'GIP'],
+          role: GIP_ROLES,
           icon: IconFolderBolt,
         },
       ],
@@ -86,13 +96,13 @@ const userItems = {
         {
           title: 'Usuarios',
           url: '/mygp/admin-panel/users',
-          role: ['ADMIN'],
+          role: ADMIN_ROLES,
           icon: IconUser,
         },
         {
           title: 'Permisos',
           url: '/mygp/admin-panel/permissions',
-          role: ['ADMIN'],
+          role: ADMIN_ROLES,
           icon: IconKey,
         },
       ],

@@ -15,6 +15,9 @@ import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import MyGPCalendar from '@/components/MyGPUI/Datepickers/MyGPCalendar';
 import { DateRange } from 'react-day-picker';
+import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { DASHBOARD_ROLES } from '@/lib/modules/moduleRole';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -24,21 +27,7 @@ function isTabValue(v: string): v is TabValue {
 }
 
 export default function Dashboard() {
-  const { user, isLoading: isAuthLoading, hasPermission } = useAuth();
-
-  const role = user?.complete_user?.role;
-  const roleName = role?.name;
-
-  const isAdmin = roleName === 'ADMIN';
-  const isTraffic = roleName === 'TRAFICO';
-  const isTrafficAdmin = roleName === 'TRAFICO_ADMIN';
-
-  const hasTrafficPerm = hasPermission('DASHBOARD_TRAFICO');
-  const hasTrafficAdminPerm = hasPermission('DASHBOARD_TRAFICO_ADMIN');
-
-  const canViewDashboard = isTraffic || isAdmin || hasTrafficPerm;
-  const canFilterByKam = isTrafficAdmin || isAdmin || hasTrafficAdminPerm;
-  const canSeeTabs = !isAuthLoading && (isAdmin || hasTrafficPerm || isTraffic || isTrafficAdmin);
+  const { isLoading: isAuthLoading } = useAuth();
 
   const [dates, setDates] = React.useState<{
     fechaEntradaRange: DateRange | undefined;
@@ -113,8 +102,8 @@ export default function Dashboard() {
 
   return (
     <div>
-      {canViewDashboard && (
-        <>
+      <AccessGuard allowedRoles={DASHBOARD_ROLES}>
+        <PermissionGuard>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
             <MyGPCalendar
               dateRange={dates.fechaEntradaRange}
@@ -129,7 +118,7 @@ export default function Dashboard() {
 
             {!isAuthLoading && (
               <>
-                {canFilterByKam && (
+                <PermissionGuard requiredPermissions={['DASHBOARD_TRAFICO_ADMIN']}>
                   <MyGPCombo
                     value={metaState.kamValue}
                     setValue={(newValue) =>
@@ -139,7 +128,7 @@ export default function Dashboard() {
                     options={kamsOptions}
                     placeholder="Selecciona un ejecutivo"
                   />
-                )}
+                </PermissionGuard>
 
                 <MyGPCombo
                   value={metaState.customValue}
@@ -201,20 +190,18 @@ export default function Dashboard() {
 
           <Card className="mb-8 p-4">
             <div className="w-[300px]">
-              {canSeeTabs && (
-                <MyGPTabs
-                  defaultValue="all"
-                  tabs={[
-                    { value: 'all', label: 'Todas' },
-                    { value: 'open', label: 'Abiertas' },
-                    { value: 'closed', label: 'Despachadas' },
-                  ]}
-                  value={metaState.tabValue}
-                  onValueChange={(v) =>
-                    isTabValue(v) && setMetaState((prev) => ({ ...prev, tabValue: v }))
-                  }
-                />
-              )}
+              <MyGPTabs
+                defaultValue="all"
+                tabs={[
+                  { value: 'all', label: 'Todas' },
+                  { value: 'open', label: 'Abiertas' },
+                  { value: 'closed', label: 'Despachadas' },
+                ]}
+                value={metaState.tabValue}
+                onValueChange={(v) =>
+                  isTabValue(v) && setMetaState((prev) => ({ ...prev, tabValue: v }))
+                }
+              />
             </div>
             <DailyTrackingContext.Provider
               value={{
@@ -227,8 +214,8 @@ export default function Dashboard() {
               <DailyTrackingDataTable metaState={metaState} />
             </DailyTrackingContext.Provider>
           </Card>
-        </>
-      )}
+        </PermissionGuard>
+      </AccessGuard>
       <div className="mb-4">
         <PieChartLabelList />
       </div>

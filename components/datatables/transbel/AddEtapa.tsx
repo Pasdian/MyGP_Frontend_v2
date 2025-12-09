@@ -15,17 +15,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { useNumRefeParams } from '@/app/providers/NumRefeParamsProvider';
 import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
-import { MyGPButtonWarning } from '@/components/MyGPUI/Buttons/MyGPButtonWarning';
-import { IconPencil } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 import { EtapasCombobox } from '@/components/MyGPUI/Combobox/EtapasCombobox';
 import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { SaveIcon } from 'lucide-react';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { toast } from 'sonner';
-import { normalizeSqlDate } from '@/lib/utilityFunctions/normalizeSqlDate';
 import { useEtapas } from '@/hooks/useEtapas/useEtapas';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
-const modifyEtapaSchema = z.object({
+const addEtapaSchema = z.object({
   etapa: z.string({ required_error: 'Selecciona una etapa' }).min(1, 'Selecciona una etapa'),
 
   observaciones: z.string().max(250, 'Máximo 250 caracteres').optional(),
@@ -37,26 +36,20 @@ const modifyEtapaSchema = z.object({
   modificadoPor: z.string({ required_error: 'Usuario requerido' }).min(1, 'Usuario requerido'),
 });
 
-type ModifyEtapaFormValues = z.infer<typeof modifyEtapaSchema>;
+type ModifyEtapaFormValues = z.infer<typeof addEtapaSchema>;
 
-type ModifyEtapaProps = {
-  CVE_ETAP: string;
-  FEC_ETAP: string;
-  OBS_ETAP: string;
-};
-
-export function ModifyEtapa({ CVE_ETAP, FEC_ETAP, OBS_ETAP }: ModifyEtapaProps) {
+export function AñadirEtapa() {
   const { user } = useAuth();
   const { upsertEtapa } = useEtapas();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { ADU_DESP, PAT_AGEN, NUM_REFE } = useNumRefeParams();
   const modificadoPor = user?.complete_user?.user?.casa_user_name || 'MYGP';
   const form = useForm<ModifyEtapaFormValues>({
-    resolver: zodResolver(modifyEtapaSchema),
+    resolver: zodResolver(addEtapaSchema),
     defaultValues: {
-      etapa: CVE_ETAP || '',
-      observaciones: OBS_ETAP,
-      fecha: new Date(normalizeSqlDate(FEC_ETAP)),
+      etapa: '',
+      observaciones: '',
+      fecha: new Date(),
       modificadoPor,
     },
   });
@@ -71,7 +64,7 @@ export function ModifyEtapa({ CVE_ETAP, FEC_ETAP, OBS_ETAP }: ModifyEtapaProps) 
     });
 
     try {
-      toast.success('Etapa modificada correctamente');
+      toast.success('Etapa añadida correctamente');
     } catch (error: unknown) {
       console.error(error);
       toast.error('Ocurrió un error al modificar la etapa');
@@ -83,13 +76,13 @@ export function ModifyEtapa({ CVE_ETAP, FEC_ETAP, OBS_ETAP }: ModifyEtapaProps) 
   return (
     <MyGPDialog
       trigger={
-        <MyGPButtonWarning>
-          <IconPencil />
-          Modificar
-        </MyGPButtonWarning>
+        <MyGPButtonPrimary>
+          <IconPlus />
+          Añadir Etapa
+        </MyGPButtonPrimary>
       }
     >
-      <p className="font-bold text-lg">Modificar - {NUM_REFE}</p>
+      <p className="font-bold text-lg">Añadir - {NUM_REFE}</p>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">

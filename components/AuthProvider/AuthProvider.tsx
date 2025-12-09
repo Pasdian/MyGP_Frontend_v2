@@ -163,8 +163,8 @@ export default function AuthProvider({
   React.useEffect(() => {
     if (!isAuthenticated) return;
 
-    // Revalidate every 5 minutes (300000 ms)
-    const INTERVAL = 5 * 60 * 1000;
+    // Revalidate every 10 minutes (600000 ms)
+    const INTERVAL = 10 * 60 * 1000;
 
     const id = setInterval(() => {
       refresh(); // This now calls GET /api/auth/me

@@ -7,9 +7,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { Phase } from '@/types/casa/Phase';
-
 import {
   ColumnFiltersState,
   flexRender,
@@ -19,24 +16,23 @@ import {
 } from '@tanstack/react-table';
 import React from 'react';
 
-import useSWR from 'swr';
 import TablePageSize from '../pageSize/TablePageSize';
 import TablePagination from '../pagination/TablePagination';
 import { etapasColumns } from '@/lib/columns/etapasColumns';
-import { etapas } from '@/lib/etapas/etapas';
+import { useEtapas } from '@/hooks/useEtapas/useEtapas';
 
-export default function EtapasDataTable({ NUM_REFE }: { NUM_REFE: string }) {
-  const { data } = useSWR<Phase[]>(`/api/casa/getPhases?NUM_REFE=${NUM_REFE}`, axiosFetcher);
+export default function EtapasDataTable() {
+  const { etapas } = useEtapas();
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const etapasWithDesc = React.useMemo(
     () =>
-    data?.map((e) => ({
-      ...e,
-      DESC_ETAP: etapas.find((et) => et.CVE_ETAP == e.CVE_ETAP)?.DESC_ETAP || null
-    })),
-    [data]
+      etapas?.map((e) => ({
+        ...e,
+        DESC_ETAP: etapas.find((et) => et.CVE_ETAP == e.CVE_ETAP)?.DESC_ETAP || null,
+      })),
+    [etapas]
   );
 
   const table = useReactTable({
@@ -49,6 +45,7 @@ export default function EtapasDataTable({ NUM_REFE }: { NUM_REFE: string }) {
     state: { columnFilters, pagination },
     autoResetPageIndex: false,
   });
+
   return (
     <div className="overflow-hidden rounded-md border">
       <Table className="mb-4">
