@@ -6,13 +6,8 @@ import { getCargues } from "@/types/transbel/getCargues";
 import { CarguesContext } from "@/contexts/CarguesContext";
 
 const fuzzyFilter = createFuzzyFilter<getCargues>();
-type TabValue = "errors" | "pending" | "sent";
 
 export const useCarguesColumns = (): ColumnDef<getCargues>[] => {
-  const { tabValue } = React.useContext(CarguesContext) as {
-    tabValue: TabValue;
-  };
-
   const baseCols = React.useMemo<ColumnDef<getCargues>[]>(
     () => [
       {
