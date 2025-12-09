@@ -23,22 +23,6 @@ import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { CARGUE_MANUAL_ROLES } from '@/lib/modules/moduleRole';
 
-function getPreviousBusinessDay(date = new Date()): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() - 1); // start with yesterday
-
-  // If Saturday → go back to Friday
-  if (d.getDay() === 6) {
-    d.setDate(d.getDate() - 1);
-  }
-  // If Sunday → go back to Friday
-  else if (d.getDay() === 0) {
-    d.setDate(d.getDate() - 2);
-  }
-
-  return d;
-}
-
 export default function CargueManual() {
   const [isSendingToApi, setIsSendingToApi] = React.useState(false);
   const [formattedDate, setFormattedDate] = React.useState('');
@@ -61,7 +45,7 @@ export default function CargueManual() {
     resolver: zodResolver(schema),
     mode: 'onChange',
     defaultValues: {
-      date: getPreviousBusinessDay(),
+      date: new Date(),
       referenciasTextArea: '',
       suffix: '',
     },

@@ -5,11 +5,13 @@ import { useEffect } from 'react';
 const CLIENT_RELEASE_VERSION = process.env.NEXT_PUBLIC_RELEASE_VERSION;
 
 // 1 hour in ms
-const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 3_600_000
+const CHECK_INTERVAL_MS =
+  process.env.NODE_ENV === 'development'
+    ? 5_000 // dev → 5 seconds
+    : 60 * 60 * 1000; // prod → 1 hour
 
 export function VersionWatcherProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') return;
     if (!CLIENT_RELEASE_VERSION) return;
 
     const checkVersion = async () => {

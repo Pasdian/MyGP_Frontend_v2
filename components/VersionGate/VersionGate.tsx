@@ -1,11 +1,11 @@
 'use client';
 
-import { runHardResetIfNeeded } from '@/lib/runHardReset';
+import { reloadIfNeeded } from '@/lib/reloadIfNeeded';
 import { useEffect } from 'react';
 
 export function VersionGate() {
   useEffect(() => {
-    runHardResetIfNeeded();
+    reloadIfNeeded();
   }, []);
 
   return null;
