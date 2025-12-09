@@ -1,4 +1,10 @@
-export const DASHBOARD_ROLES = ["TRAFICO", "TRAFICO_ADMIN", "ADMIN"];
+export const DASHBOARD_ROLES = [
+  "TRAFICO",
+  "TRAFICO_ADMIN",
+  "ADMIN",
+  "TRANSBEL_ADMIN",
+  "TRANSBEL",
+];
 
 export const DEA_ROLES = [
   "TRAFICO_ADMIN",
@@ -21,7 +27,13 @@ export const DATOS_EMBARQUE_ROLES = ["ADMIN", "TRANSBEL_ADMIN"];
 
 export const WORKATO_LOG_ROLES = ["ADMIN", "TRANSBEL_ADMIN"];
 
-export const OPERACIONES_REFERENCIAS_ROLES = ["ADMIN", "TRAFICO_ADMIN"];
+export const OPERACIONES_REFERENCIAS_ROLES = [
+  "ADMIN",
+  "TRAFICO_ADMIN",
+  "TRAFICO",
+  "TRANSBEL",
+  "TRANSBEL_ADMIN",
+];
 export const GIP_ROLES = ["ADMIN", "GIP"];
 
 export const ADMIN_ROLES = ["ADMIN"];
