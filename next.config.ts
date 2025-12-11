@@ -9,6 +9,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_RELEASE_VERSION: pkg.version, // bump only on big changes
   },
+  output: 'standalone',
 };
 
 export default nextConfig;

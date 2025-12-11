@@ -1,17 +1,16 @@
 import { useAuth } from '@/hooks/useAuth';
 import {
   IconAdjustments,
-  IconKey,
   IconPackage,
   IconUser,
   IconTruck,
   IconManualGearbox,
   IconFolderBolt,
+  IconDoor,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
-import React from 'react';
 import { NavItem } from '@/types/nav/navItem';
 import { BookPlusIcon } from 'lucide-react';
 import {
@@ -93,10 +92,10 @@ const userItems = {
           icon: IconUser,
         },
         {
-          title: 'Permisos',
+          title: 'Accesos',
           url: '/mygp/admin-panel/permissions',
           role: ADMIN_ROLES,
-          icon: IconKey,
+          icon: IconDoor,
         },
       ],
     },

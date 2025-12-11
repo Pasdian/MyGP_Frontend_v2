@@ -167,7 +167,7 @@ export function DailyTrackingDataTable({
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">Seguimiento Diario</h1>{' '}
+      <h1 className="mb-4 text-2xl font-bold tracking-tight">Seguimiento Diario</h1>
       <div className="flex space-x-1 mb-4">
         {filteredData.length > 0 && (
           <Button
