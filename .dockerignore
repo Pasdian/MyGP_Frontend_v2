@@ -16,7 +16,6 @@ yarn-error.log*
 *.log
 
 # Environment files
-.env
 .env*.local
 
 # Git / VCS
