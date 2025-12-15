@@ -8,9 +8,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-/**
- * Generic reusable dialog component with scrollable content and capped height.
- */
 export function MyGPDialog({
   title,
   description,
@@ -21,19 +18,19 @@ export function MyGPDialog({
 }: {
   title?: string;
   description?: string;
-  trigger?: React.ReactNode; // custom trigger node
+  trigger?: React.ReactNode;
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
 
       <DialogContent
         className="
-          max-w-[80vw] sm:max-w-[900px]  /* override shadcn max-w-lg */
-          w-full                          /* fill the allowed width */
+          max-w-[80vw] sm:max-w-[900px]
+          w-full
           max-h-[80vh]
           overflow-y-auto
         "
@@ -43,7 +40,7 @@ export function MyGPDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <div className="w-full ">{children}</div>
+        <div className="w-full">{children}</div>
       </DialogContent>
     </Dialog>
   );

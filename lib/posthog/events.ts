@@ -22,6 +22,13 @@ interface UserEvent {
   description: string;
 }
 
+interface NavbarEvent {
+  id: number;
+  alias: "NAVBAR_MODIFY_USER";
+  eventName: string;
+  description: string;
+}
+
 interface DashboardEvent {
   id: number;
   alias: "DASHBOARD_MODIFY_OP";
@@ -168,5 +175,14 @@ export const dashboardModuleEvents: DashboardEvent[] = [
     alias: "DASHBOARD_MODIFY_OP",
     eventName: "DASHBOARD_MODIFY_OP_EVENT",
     description: "Ejecutivo de Tráfico modifica una operación",
+  },
+];
+
+export const navbarEvents: NavbarEvent[] = [
+  {
+    id: 1,
+    alias: "NAVBAR_MODIFY_USER",
+    eventName: "NAVBAR_MODIFY_USER_EVENT",
+    description: "El usuario modifica sus propios datos",
   },
 ];

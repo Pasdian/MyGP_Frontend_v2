@@ -29,9 +29,15 @@ const defaultUser: AuthSession = {
 };
 
 function safeIdentify(person: User) {
-  const email = person?.email;
-  if (!email) return;
-  posthog.identify(email, { uuid: person.uuid });
+  const { uuid, email, name } = person ?? {};
+  if (!uuid) return;
+
+  posthog.identify(uuid);
+
+  posthog.people.set({
+    $name: name ?? undefined,
+    $email: email ?? undefined,
+  });
 }
 
 type AuthProviderProps = {

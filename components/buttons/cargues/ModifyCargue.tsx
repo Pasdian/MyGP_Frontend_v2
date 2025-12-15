@@ -3,11 +3,12 @@
 import React from 'react';
 import { Row } from '@tanstack/react-table';
 import { IconBallpenFilled } from '@tabler/icons-react';
-import CarguesUpdateFolioForm from '@/components/forms/transbel/interface/CarguesUpdateFolioForm';
+import { ModifyCargueForm } from '@/components/forms/transbel/cargue/ModifyCargueForm';
 import { getCargues } from '@/types/transbel/getCargues';
 import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
 import { MyGPButtonWarning } from '@/components/MyGPUI/Buttons/MyGPButtonWarning';
-export default function CarguesUpdateFolioBtn({ row }: { row: Row<getCargues> }) {
+
+export default function ModifyCargue({ row }: { row: Row<getCargues> }) {
   const [openDialog, setOpenDialog] = React.useState(false);
 
   return (
@@ -22,7 +23,13 @@ export default function CarguesUpdateFolioBtn({ row }: { row: Row<getCargues> })
       }
     >
       {openDialog && row && row.original.NUM_REFE && (
-        <CarguesUpdateFolioForm row={row} setOpenDialog={setOpenDialog} />
+        <ModifyCargueForm
+          NUM_REFE={row.original.NUM_REFE || ''}
+          EE={row.original.EE || ''}
+          GE={row.original.GE || ''}
+          CECO={row.original.CECO || ''}
+          CUENTA={row.original.CUENTA || ''}
+        />
       )}
     </MyGPDialog>
   );

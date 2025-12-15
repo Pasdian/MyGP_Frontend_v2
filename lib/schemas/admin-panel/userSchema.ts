@@ -40,3 +40,15 @@ export const modifyUserSchema = z.object({
   status: USER_STATUS_VALIDATION,
   companies: USER_COMPANIES_VALIDATION, // <-- allow undefined or null
 });
+
+export const modifyUserLocalSchema = z.object({
+  name: USER_NAME_VALIDATION,
+  email: USER_EMAIL_VALIDATION,
+  mobile: USER_MOBILE_VALIDATION,
+  old_password: USER_OPTIONAL_PASSWORD_VALIDATION,
+  new_password: USER_OPTIONAL_PASSWORD_VALIDATION,
+  role_uuid: USER_ROLE_UUID_VALIDATION,
+  casa_user_name: USER_CASA_USERNAME_VALIDATION,
+  status: USER_STATUS_VALIDATION,
+  companies: z.array(z.string()).optional, // <-- allow undefined or null
+});

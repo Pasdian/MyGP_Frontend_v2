@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import {
+  Column,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -29,12 +30,12 @@ import { Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { useCarguesColumns } from '@/lib/columns/carguesColumns';
-import { CarguesContext } from '@/contexts/CarguesContext';
 import TablePageSize from '../pageSize/TablePageSize';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
+import { useCargue } from '@/hooks/useCargue/useCargue';
 
 export function CarguesDataTable() {
-  const { cargues, tabValue, isLoading: isCarguesLoading } = React.useContext(CarguesContext);
+  const { cargues, tabValue, isLoading: isCarguesLoading } = useCargue();
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -122,8 +123,8 @@ export function CarguesDataTable() {
         return;
       }
 
-      const getHeaderLabel = (col: any) => {
-        const h = col.columnDef?.header;
+      const getHeaderLabel = <TData,>(col: Column<TData, unknown>) => {
+        const h = col.columnDef.header;
         return typeof h === 'string' ? h : col.id;
       };
 

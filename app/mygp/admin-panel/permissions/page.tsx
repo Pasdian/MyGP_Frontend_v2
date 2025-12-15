@@ -114,8 +114,10 @@ const fuzzyMatchScore = (text: string, query: string) => {
 
 export default function Permissions() {
   const { data, isLoading } = useSWR<RolesResponse>(roleModulesPermissionsKey, axiosFetcher);
+
+  const roles = useMemo<Role[]>(() => data ?? [], [data]);
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const roles = data ?? [];
 
   const [query, setQuery] = useState('');
 

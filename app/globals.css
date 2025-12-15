@@ -128,3 +128,11 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.mygp-tour .driver-popover-footer {
+  display: none !important;
+}
+
+.mygp-tour .driver-popover-close-btn {
+  display: none !important;
+}

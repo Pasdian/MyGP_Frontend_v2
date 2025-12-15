@@ -5,7 +5,7 @@ export default function DatosEmbarque() {
   return (
     <>
       <div>
-        <p className="font-semibold text-2xl">Datos de Embarque</p>
+        <p className="font-semibold text-2xl mb-4">Datos de Embarque</p>
         <EmbarqueProvider>
           <EmbarqueDataTable />
         </EmbarqueProvider>

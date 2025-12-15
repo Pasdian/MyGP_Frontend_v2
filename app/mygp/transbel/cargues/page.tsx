@@ -1,42 +1,17 @@
 'use client';
 import { CarguesDataTable } from '@/components/datatables/transbel/CarguesDataTable';
-import React from 'react';
-import { CarguesContext } from '@/contexts/CarguesContext';
-import useCargues from '@/hooks/useCargues';
-import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
+import { CarguesTabs } from '@/components/datatables/transbel/CarguesTabs';
+import CargueProvider from '@/app/providers/CargueProvider';
 
-const TAB_VALUES = ['pending', 'paid'] as const;
-type TabValue = (typeof TAB_VALUES)[number];
-// 2) Type guard to narrow string -> TabValue
-
-function isTabValue(v: string): v is TabValue {
-  return (TAB_VALUES as readonly string[]).includes(v);
-}
 export default function Cargues() {
-  const [tabValue, setTabValue] = React.useState<'paid' | 'pending'>('pending');
-  const { cargues, isLoading: isCarguesLoading, setCargues } = useCargues();
   return (
     <PermissionGuard requiredPermissions={[PERM.TRANSBEL_CARGUES]}>
-      <div className="flex items-center mb-4 w-[280px]">
-        <MyGPTabs
-          value={tabValue}
-          onValueChange={(v) => isTabValue(v) && setTabValue(v)}
-          defaultValue="pending"
-          className="mr-2"
-          tabs={[
-            { value: 'pending', label: 'Pendientes por Enviar' },
-            { value: 'paid', label: 'Enviados' },
-          ]}
-        />
-      </div>
-
-      <CarguesContext.Provider
-        value={{ cargues, setCargues, tabValue, setTabValue, isLoading: isCarguesLoading }}
-      >
+      <CargueProvider>
+        <CarguesTabs />
         <CarguesDataTable />
-      </CarguesContext.Provider>
+      </CargueProvider>
     </PermissionGuard>
   );
 }

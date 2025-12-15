@@ -1,16 +1,18 @@
-import { getCargues } from '@/types/transbel/getCargues';
-import React from 'react';
+'use client';
 
-export const CarguesContext = React.createContext<{
+import React from 'react';
+import { getCargues } from '@/types/transbel/getCargues';
+import { UpdateFolioInput } from '@/hooks/useCargue/useCargueData';
+
+export type TabValue = 'pending' | 'paid';
+
+export type CarguesContextValue = {
   cargues: getCargues[] | undefined;
-  setCargues: React.Dispatch<React.SetStateAction<getCargues[]>>;
+  updateFolio: (input: UpdateFolioInput) => Promise<void>;
   isLoading: boolean | undefined;
-  tabValue: 'paid' | 'pending' | undefined;
-  setTabValue: React.Dispatch<React.SetStateAction<'paid' | 'pending'>> | undefined;
-}>({
-  cargues: undefined,
-  setCargues: () => {},
-  isLoading: undefined,
-  tabValue: undefined,
-  setTabValue: undefined,
-});
+  tabValue: TabValue;
+  setTabValue: React.Dispatch<React.SetStateAction<TabValue>>;
+  isTabValue: (v: string) => v is TabValue;
+};
+
+export const CarguesContext = React.createContext<CarguesContextValue | null>(null);

@@ -11,8 +11,6 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import PermissionGuard from '../PermissionGuard/PermissionGuard';
-import { PERM } from '@/lib/modules/permissions';
 
 const activeItemClass = 'rounded-none bg-gray-200 hover:bg-gray-300 font-bold cursor-pointer';
 const inactiveItemClass = 'font-bold cursor-pointer';

@@ -17,7 +17,7 @@ import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import React from 'react';
 import { SaveIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { useEmbarque } from '@/hooks/useEmbarque/useEmbarque';
+import { useCargue } from '@/hooks/useCargue/useCargue';
 
 const embarqueSchema = z
   .object({
@@ -94,8 +94,8 @@ type ModifyEmbarqueProps = {
   CUENTA: string;
 };
 
-export function ModifyEmbarque({ NUM_REFE, EE, GE, CECO, CUENTA }: ModifyEmbarqueProps) {
-  const { updateEmbarque } = useEmbarque();
+export function ModifyCargueForm({ NUM_REFE, EE, GE, CECO, CUENTA }: ModifyEmbarqueProps) {
+  const { updateFolio } = useCargue();
 
   const form = useForm<EmbarqueFormValues>({
     resolver: zodResolver(embarqueSchema),
@@ -115,7 +115,7 @@ export function ModifyEmbarque({ NUM_REFE, EE, GE, CECO, CUENTA }: ModifyEmbarqu
   const onSubmit = async (data: EmbarqueFormValues) => {
     setIsSubmitting(true);
     try {
-      await updateEmbarque({
+      await updateFolio({
         NUM_REFE: data.NUM_REFE,
         EE: data.EE ?? '',
         GE: data.GE ?? '',

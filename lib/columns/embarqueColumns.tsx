@@ -15,13 +15,21 @@ export const embarqueColumns: ColumnDef<Embarque>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex justify-center">
-          <MyGPDialog trigger={
+          <MyGPDialog
+            trigger={
               <MyGPButtonWarning>
-              <PencilIcon/>Modificar
-            </MyGPButtonWarning>
-
-          }>
-            <ModifyEmbarque EE={row.original.EE || ""} GE={row.original.GE || ""} CECO_CUENTA={row.original.CECO_CUENTA || ""}/>
+                <PencilIcon />
+                Modificar
+              </MyGPButtonWarning>
+            }
+          >
+            <ModifyEmbarque
+              EE={row.original.EE || ""}
+              GE={row.original.GE || ""}
+              CECO={row.original.CECO_CUENTA?.split("/")[0] || ""}
+              CUENTA={row.original.CECO_CUENTA?.split("/")[1] || ""}
+              NUM_REFE={row.original.REF || ""}
+            />
           </MyGPDialog>
         </div>
       );
@@ -67,7 +75,7 @@ export const embarqueColumns: ColumnDef<Embarque>[] = [
       return <p className="text-center">{formatted}</p>;
     },
   },
-    {
+  {
     accessorKey: "ADUANA",
     header: () => <div className="text-center w-full">Aduana</div>,
     filterFn: fuzzyFilter,
@@ -100,7 +108,7 @@ export const embarqueColumns: ColumnDef<Embarque>[] = [
       return <p className="text-center">{row.original.EE}</p>;
     },
   },
-    {
+  {
     accessorKey: "GE",
     header: () => <div className="text-center w-full">GE</div>,
     filterFn: fuzzyFilter,
@@ -111,7 +119,7 @@ export const embarqueColumns: ColumnDef<Embarque>[] = [
       return <p className="text-center">{row.original.GE}</p>;
     },
   },
-      {
+  {
     accessorKey: "CECO_CUENTA",
     header: () => <div className="text-center w-full">CECO/CUENTA</div>,
     filterFn: fuzzyFilter,
@@ -123,4 +131,3 @@ export const embarqueColumns: ColumnDef<Embarque>[] = [
     },
   },
 ];
-

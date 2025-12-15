@@ -13,7 +13,7 @@ import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import { NavItem } from '@/types/nav/navItem';
-import { BookPlusIcon } from 'lucide-react';
+import { BookPlusIcon, Container } from 'lucide-react';
 import { PERM, type Permission } from '@/lib/modules/permissions';
 
 type NavItemDef = NavItem & {
@@ -52,6 +52,12 @@ const nav: NavGroupDef[] = [
         url: '/mygp/transbel/cargue_manual',
         requires: [PERM.TRANSBEL_CARGUE_MANUAL],
         icon: IconManualGearbox,
+      },
+      {
+        title: 'Embarque',
+        url: '/mygp/transbel/datos_embarque',
+        requires: [PERM.TRANSBEL_DATOS_EMBARQUE],
+        icon: Container,
       },
     ],
   },
@@ -125,14 +131,13 @@ export default function NavCollapsible() {
     return new Set<Permission>(rolePerms);
   }, [rawRolePerms]);
 
-  const can = (perm: Permission) => effectivePermissions.has(perm);
-  const canAny = (perms: Permission[] = []) => (perms.length === 0 ? true : perms.some(can));
-
   const filteredNav = useMemo(() => {
+    const canAny = (perms: Permission[] = []) =>
+      perms.length === 0 ? true : perms.some((p) => effectivePermissions.has(p));
+
     return nav
       .map((group) => {
         const items = group.items.filter((item) => canAny(item.requires));
-
         return items.length > 0 ? { ...group, items } : null;
       })
       .filter((g): g is NonNullable<typeof g> => Boolean(g));

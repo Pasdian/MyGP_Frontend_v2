@@ -3,9 +3,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import React from "react";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
-import CarguesUpdateFolioBtn from "@/components/buttons/cargues/CarguesUpdateFolioBtn";
 import { getCargues } from "@/types/transbel/getCargues";
 import { CarguesContext } from "@/contexts/CarguesContext";
+import ModifyCargue from "@/components/buttons/cargues/ModifyCargue";
 
 const fuzzyFilter = createFuzzyFilter<getCargues>();
 type TabValue = "errors" | "pending" | "sent";
@@ -113,7 +113,7 @@ export const useCarguesColumns = (): ColumnDef<getCargues>[] => {
     () => ({
       id: "ACCIONES",
       header: "Acciones",
-      cell: ({ row }) => <CarguesUpdateFolioBtn row={row} />,
+      cell: ({ row }) => <ModifyCargue row={row} />,
     }),
     []
   );
