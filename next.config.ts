@@ -11,7 +11,6 @@ const nextConfig = {
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
-  output: 'standalone',
 };
 
 export default nextConfig;
