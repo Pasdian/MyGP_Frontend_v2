@@ -20,8 +20,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toYMD } from '@/lib/utilityFunctions/toYMD';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
-import { CARGUE_MANUAL_ROLES } from '@/lib/modules/moduleRole';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 export default function CargueManual() {
   const [isSendingToApi, setIsSendingToApi] = React.useState(false);
@@ -89,7 +89,7 @@ export default function CargueManual() {
   }, [dateYMD]);
 
   return (
-    <AccessGuard allowedRoles={CARGUE_MANUAL_ROLES}>
+    <PermissionGuard requiredPermissions={[PERM.TRANSBEL_CARGUE_MANUAL]}>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">
         Subir Cargue Manual: {filename || '(sin nombre)'}
       </h1>
@@ -170,6 +170,6 @@ export default function CargueManual() {
           </MyGPButtonSubmit>
         </form>
       </Form>
-    </AccessGuard>
+    </PermissionGuard>
   );
 }

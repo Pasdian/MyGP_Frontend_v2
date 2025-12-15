@@ -10,6 +10,7 @@ import posthog from 'posthog-js';
 import { FolderKey } from '@/types/dea/getFilesByReferences';
 import MyGPSpinner from '../MyGPUI/Spinners/MyGPSpinner';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 const deaDownloadFileEvent =
   deaModuleEvents.find((e) => e.alias === 'DEA_DOWNLOAD_FILE')?.eventName || '';
@@ -80,21 +81,26 @@ export default function DocumentCard({
           </p>
 
           <div className="flex items-center gap-2 shrink-0">
-            <IconUpload
-              size={iconSize}
-              className="cursor-pointer"
-              onClick={() => setOpenUploadDialog(true)}
-            />
-            {(files?.length ?? 0) > 0 && (
-              <DownloadIcon
+            <PermissionGuard requiredPermissions={[PERM.DEA_SUBIR_ARCHIVOS]}>
+              <IconUpload
                 size={iconSize}
                 className="cursor-pointer"
-                onClick={() =>
-                  handleDownloadZip(
-                    `/GESTION/${client.number}/${client.reference}/${currentFolder}`
-                  )
-                }
+                onClick={() => setOpenUploadDialog(true)}
               />
+            </PermissionGuard>
+
+            {(files?.length ?? 0) > 0 && (
+              <PermissionGuard requiredPermissions={[PERM.DEA_DESCARGAR_ARCHIVOS]}>
+                <DownloadIcon
+                  size={iconSize}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    handleDownloadZip(
+                      `/GESTION/${client.number}/${client.reference}/${currentFolder}`
+                    )
+                  }
+                />
+              </PermissionGuard>
             )}
           </div>
         </div>
@@ -122,7 +128,7 @@ export default function DocumentCard({
                     <p className="text-[11px] break-words">{item}</p>
                   </div>
 
-                  <PermissionGuard requiredPermissions={['DEA_DESCARGAR_ARCHIVOS']}>
+                  <PermissionGuard requiredPermissions={[PERM.DEA_DESCARGAR_ARCHIVOS]}>
                     <DownloadIcon
                       size={iconSize}
                       onClick={(e) => {

@@ -1,17 +1,17 @@
 'use client';
 
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { AllTransbelRefsProvider } from '@/app/providers/AllTransbelRefsProvider';
 import { ReferenciasDataTable } from '@/components/datatables/transbel/ReferenciasDataTable';
-import { OPERACIONES_REFERENCIAS_ROLES } from '@/lib/modules/moduleRole';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 export default function Referencias() {
   return (
-    <AccessGuard allowedRoles={OPERACIONES_REFERENCIAS_ROLES}>
+    <PermissionGuard requiredPermissions={[PERM.OPERACIONES_MODIFICAR_REFERENCIAS]}>
       <AllTransbelRefsProvider>
         <p className="font-bold text-xl mb-4">Modificar Referencias</p>
         <ReferenciasDataTable />
       </AllTransbelRefsProvider>
-    </AccessGuard>
+    </PermissionGuard>
   );
 }

@@ -171,7 +171,7 @@ export function DailyTrackingDataTable({
       <div className="flex space-x-1 mb-4">
         {filteredData.length > 0 && (
           <Button
-            className="bg-green-500 hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
+            className="bg-green-500 font-bold hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
             onClick={() => convertToCsv()}
           >
             <div>

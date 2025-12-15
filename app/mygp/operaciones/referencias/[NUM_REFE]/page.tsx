@@ -2,18 +2,18 @@
 
 import EtapasProvider from '@/app/providers/EtapasProvider';
 import { NumRefeParamsProvider, useNumRefeParams } from '@/app/providers/NumRefeParamsProvider';
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { AñadirEtapa } from '@/components/datatables/transbel/AddEtapa';
 import EtapasDataTable from '@/components/datatables/transbel/EtapasDataTable';
-import { OPERACIONES_REFERENCIAS_ROLES } from '@/lib/modules/moduleRole';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 export default function NUM_REFE() {
   return (
-    <AccessGuard allowedRoles={OPERACIONES_REFERENCIAS_ROLES}>
+    <PermissionGuard requiredPermissions={[PERM.OPERACIONES_MODIFICAR_REFERENCIAS]}>
       <NumRefeParamsProvider>
         <Wrapper />
       </NumRefeParamsProvider>
-    </AccessGuard>
+    </PermissionGuard>
   );
 }
 

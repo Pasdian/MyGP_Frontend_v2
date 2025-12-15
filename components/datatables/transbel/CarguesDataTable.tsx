@@ -25,7 +25,7 @@ import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
 import CarguesDataTableFilter from '../filters/CarguesDataTableFilter';
 import { IconSettings } from '@tabler/icons-react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { useCarguesColumns } from '@/lib/columns/carguesColumns';
@@ -40,6 +40,7 @@ export function CarguesDataTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToDB, setIsSendingToDB] = React.useState(false);
+  const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
 
   const carguesColumns = useCarguesColumns();
   // Ensure each row has a stable id and USE it in the table
@@ -102,11 +103,102 @@ export function CarguesDataTable() {
     }
   }
 
+  function convertToCsv() {
+    setIsConvertingToCsv(true);
+
+    try {
+      // Export ALL filtered rows (not just current page):
+      // - table.getFilteredRowModel() respects ColumnFiltersState
+      // - it does not depend on pagination
+      const filteredRows = table.getFilteredRowModel().rows;
+
+      const leafCols = table.getAllLeafColumns();
+
+      // Remove non-data/UI columns if you have them (adjust ids if needed)
+      const exportCols = leafCols.filter((c) => c.id !== 'select' && c.id !== 'ACCIONES');
+
+      if (!filteredRows.length || !exportCols.length) {
+        toast.error('No hay datos para exportar');
+        return;
+      }
+
+      const getHeaderLabel = (col: any) => {
+        const h = col.columnDef?.header;
+        return typeof h === 'string' ? h : col.id;
+      };
+
+      const escapeCsv = (value: unknown) => {
+        if (value === null || value === undefined) return '';
+        const s = String(value);
+        if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+        return s;
+      };
+
+      const headers = exportCols.map((c) => escapeCsv(getHeaderLabel(c))).join(',');
+
+      const lines = filteredRows.map((row) => {
+        return exportCols
+          .map((col) => {
+            // Use TanStack's computed value for this row/column
+            const v = row.getValue(col.id);
+            return escapeCsv(v);
+          })
+          .join(',');
+      });
+
+      const csv = [headers, ...lines].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+
+      const filename = `cargues_${tabValue}_${yyyy}-${mm}-${dd}.csv`;
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+      toast.success('CSV generado correctamente');
+    } catch {
+      toast.error('No se pudo generar el CSV');
+    } finally {
+      setIsConvertingToCsv(false);
+    }
+  }
+
   if (isCarguesLoading) return <MyGPSpinner />;
 
   return (
     <div>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">Cargues de Transbel</h1>
+      {filtered.length > 0 && (
+        <Button
+          className="bg-green-500 hover:bg-green-700 font-bold hover:text-white cursor-pointer text-white w-[200px]"
+          onClick={() => convertToCsv()}
+        >
+          <div>
+            {isConvertingToCsv ? (
+              <div className="flex space-x-2 items-center">
+                <Loader2 className="animate-spin" />
+                <p>Cargando...</p>
+              </div>
+            ) : (
+              <div className="flex space-x-2 items-center">
+                <Sheet className="mr-2 h-4 w-4" />
+                <p> Exportar Tabla a CSV</p>
+              </div>
+            )}
+          </div>
+        </Button>
+      )}
       <div className="flex items-center space-x-2 mb-4">
         {selectedRows.length > 0 && (
           <div>

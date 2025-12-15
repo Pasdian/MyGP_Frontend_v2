@@ -1,11 +1,11 @@
 'use client';
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { CarguesDataTable } from '@/components/datatables/transbel/CarguesDataTable';
 import React from 'react';
 import { CarguesContext } from '@/contexts/CarguesContext';
 import useCargues from '@/hooks/useCargues';
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
-import { CARGUE_ROLES } from '@/lib/modules/moduleRole';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 const TAB_VALUES = ['pending', 'paid'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -18,7 +18,7 @@ export default function Cargues() {
   const [tabValue, setTabValue] = React.useState<'paid' | 'pending'>('pending');
   const { cargues, isLoading: isCarguesLoading, setCargues } = useCargues();
   return (
-    <AccessGuard allowedRoles={CARGUE_ROLES}>
+    <PermissionGuard requiredPermissions={[PERM.TRANSBEL_CARGUES]}>
       <div className="flex items-center mb-4 w-[280px]">
         <MyGPTabs
           value={tabValue}
@@ -37,6 +37,6 @@ export default function Cargues() {
       >
         <CarguesDataTable />
       </CarguesContext.Provider>
-    </AccessGuard>
+    </PermissionGuard>
   );
 }

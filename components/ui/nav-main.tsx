@@ -11,9 +11,8 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React from 'react';
-import AccessGuard from '../AccessGuard/AccessGuard';
-import { DEA_ROLES } from '@/lib/modules/moduleRole';
+import PermissionGuard from '../PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 const activeItemClass = 'rounded-none bg-gray-200 hover:bg-gray-300 font-bold cursor-pointer';
 const inactiveItemClass = 'font-bold cursor-pointer';
@@ -47,19 +46,17 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           )}
-          <AccessGuard allowedRoles={DEA_ROLES}>
-            <Link href="/mygp/dea">
-              <SidebarMenuItem className="flex items-center gap-2">
-                <SidebarMenuButton
-                  tooltip="Quick Create"
-                  className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
-                >
-                  <IconAddressBook />
-                  <span>DEA</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </Link>
-          </AccessGuard>
+          <Link href="/mygp/dea">
+            <SidebarMenuItem className="flex items-center gap-2">
+              <SidebarMenuButton
+                tooltip="Quick Create"
+                className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
+              >
+                <IconAddressBook />
+                <span>DEA</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </Link>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

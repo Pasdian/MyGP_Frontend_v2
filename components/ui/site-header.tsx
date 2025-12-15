@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import MyGPCalendar from '../MyGPUI/Datepickers/MyGPCalendar';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -141,13 +142,13 @@ export function SiteHeader() {
           {client.reference && (
             <ManifestacionDialog className="h-5 text-xs w-[200px]" key={client.reference} />
           )}
-          <PermissionGuard requiredPermissions={['DEA_PREVIOS']}>
+          <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
             {client.reference && (
               <PreviosDialog key={client.reference} className="text-xs h-5 w-[150px]" />
             )}
           </PermissionGuard>
 
-          <PermissionGuard requiredPermissions={['DEA_EXP_DIGITAL']}>
+          <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
             {client.reference && client.number && (
               <MyGPButtonPrimary
                 className="h-5 text-xs w-[200px]"

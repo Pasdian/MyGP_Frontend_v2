@@ -38,8 +38,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es-MX" className={roboto.className}>
-      <body>
+    <html lang="es-MX" className="overflow-y-hidden">
+      <body className="overflow-y-hidden">
         <SWRProvider>
           <VersionGate />
           <DEAStoreProvider>{children}</DEAStoreProvider>

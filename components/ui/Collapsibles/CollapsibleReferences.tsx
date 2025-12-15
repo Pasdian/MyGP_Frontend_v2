@@ -12,11 +12,11 @@ import { useDEAStore } from '@/app/providers/dea-store-provider';
 import React from 'react';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { useRefsByClient } from '@/hooks/useRefsByClient';
 import { toast } from 'sonner';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
-import { DEA_ROLES } from '@/lib/modules/moduleRole';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
@@ -67,7 +67,7 @@ export default function CollapsibleReferences() {
   }
   if (isRefsLoading) return <MyGPSpinner />;
   return (
-    <AccessGuard allowedRoles={DEA_ROLES}>
+    <div>
       <Collapsible defaultOpen className="group/collapsible">
         <SidebarGroup>
           <SidebarGroupLabel
@@ -117,19 +117,21 @@ export default function CollapsibleReferences() {
                           <p className="min-w-0 text-[14px] break-words">{NUM_REFE}</p>
 
                           {FOLDER_HAS_CONTENT && (
-                            <button
-                              type="button"
-                              aria-label={`Descargar ${NUM_REFE}`}
-                              className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDownloadZip(client.number, NUM_REFE);
-                                toast.success(`${NUM_REFE} descargando...`);
-                              }}
-                              title="Descargar ZIP"
-                            >
-                              <DownloadIcon size={14} />
-                            </button>
+                            <PermissionGuard requiredPermissions={[PERM.DEA_DESCARGAR_ARCHIVOS]}>
+                              <button
+                                type="button"
+                                aria-label={`Descargar ${NUM_REFE}`}
+                                className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownloadZip(client.number, NUM_REFE);
+                                  toast.success(`${NUM_REFE} descargando...`);
+                                }}
+                                title="Descargar ZIP"
+                              >
+                                <DownloadIcon size={14} />
+                              </button>
+                            </PermissionGuard>
                           )}
                         </div>
                       </SidebarMenuItem>
@@ -140,6 +142,6 @@ export default function CollapsibleReferences() {
           </CollapsibleContent>
         </SidebarGroup>
       </Collapsible>
-    </AccessGuard>
+    </div>
   );
 }

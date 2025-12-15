@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   IconAdjustments,
@@ -13,125 +14,135 @@ import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import { NavItem } from '@/types/nav/navItem';
 import { BookPlusIcon } from 'lucide-react';
-import {
-  ADMIN_ROLES,
-  CARGUE_MANUAL_ROLES,
-  CARGUE_ROLES,
-  ENTREGAS_ROLES,
-  GIP_ROLES,
-  INTERFAZ_ROLES,
-  OPERACIONES_REFERENCIAS_ROLES,
-} from '@/lib/modules/moduleRole';
+import { PERM, type Permission } from '@/lib/modules/permissions';
 
-const userItems = {
-  navCollapsible: [
-    {
-      title: 'Transbel',
-      items: [
-        {
-          title: 'Entregas a Cliente',
-          url: '/mygp/transbel/entregas',
-          role: ENTREGAS_ROLES,
-          icon: IconPackage,
-        },
-        {
-          title: 'Interfaz - Cod. Exc.',
-          url: '/mygp/transbel/interfaz',
-          role: INTERFAZ_ROLES,
-          icon: IconAdjustments,
-        },
-        {
-          title: 'Cargues',
-          url: '/mygp/transbel/cargues',
-          role: CARGUE_ROLES,
-          icon: IconTruck,
-        },
-        {
-          title: 'Cargue Manual',
-          url: '/mygp/transbel/cargue_manual',
-          role: CARGUE_MANUAL_ROLES,
-          icon: IconManualGearbox,
-        },
-        // {
-        //   title: 'Embarque',
-        //   url: '/mygp/transbel/datos_embarque',
-        //   role: DATOS_EMBARQUE_ROLES,
-        //   icon: Container,
-        // },
-      ],
-    },
-    {
-      title: 'Operaciones',
-      items: [
-        {
-          title: 'Referencias',
-          url: '/mygp/operaciones/referencias',
-          role: OPERACIONES_REFERENCIAS_ROLES,
-          icon: BookPlusIcon,
-        },
-      ],
-    },
-    {
-      title: 'Sistema GIP',
-      items: [
-        {
-          title: 'GIP',
-          url: '/mygp/gip',
-          role: GIP_ROLES,
-          icon: IconFolderBolt,
-        },
-      ],
-    },
-    {
-      title: 'Admin',
-      items: [
-        {
-          title: 'Usuarios',
-          url: '/mygp/admin-panel/users',
-          role: ADMIN_ROLES,
-          icon: IconUser,
-        },
-        {
-          title: 'Accesos',
-          url: '/mygp/admin-panel/permissions',
-          role: ADMIN_ROLES,
-          icon: IconDoor,
-        },
-      ],
-    },
-  ],
+type NavItemDef = NavItem & {
+  requires?: Permission[];
+};
+
+type NavGroupDef = {
+  title: string;
+  items: NavItemDef[];
+};
+
+const nav: NavGroupDef[] = [
+  {
+    title: 'Transbel',
+    items: [
+      {
+        title: 'Entregas a Cliente',
+        url: '/mygp/transbel/entregas',
+        requires: [PERM.TRANSBEL_ENTREGAS],
+        icon: IconPackage,
+      },
+      {
+        title: 'Interfaz - Cod. Exc.',
+        url: '/mygp/transbel/interfaz',
+        requires: [PERM.TRANSBEL_INTERFAZ],
+        icon: IconAdjustments,
+      },
+      {
+        title: 'Cargues',
+        url: '/mygp/transbel/cargues',
+        requires: [PERM.TRANSBEL_CARGUES],
+        icon: IconTruck,
+      },
+      {
+        title: 'Cargue Manual',
+        url: '/mygp/transbel/cargue_manual',
+        requires: [PERM.TRANSBEL_CARGUE_MANUAL],
+        icon: IconManualGearbox,
+      },
+    ],
+  },
+  {
+    title: 'Operaciones',
+    items: [
+      {
+        title: 'Referencias',
+        url: '/mygp/operaciones/referencias',
+        requires: [PERM.OPERACIONES_MODIFICAR_REFERENCIAS],
+        icon: BookPlusIcon,
+      },
+    ],
+  },
+  {
+    title: 'Sistema GIP',
+    items: [
+      {
+        title: 'GIP',
+        url: '/mygp/gip',
+        requires: [PERM.SISTEMAGIP_EXPLORADOR],
+        icon: IconFolderBolt,
+      },
+    ],
+  },
+  {
+    title: 'Admin',
+    items: [
+      {
+        title: 'Usuarios',
+        url: '/mygp/admin-panel/users',
+        requires: [PERM.ADMIN_USUARIOS],
+        icon: IconUser,
+      },
+      {
+        title: 'Accesos',
+        url: '/mygp/admin-panel/permissions',
+        requires: [PERM.ADMIN_ACCESOS],
+        icon: IconDoor,
+      },
+    ],
+  },
+];
+
+const PERM_SET = new Set<string>(Object.values(PERM));
+
+const isPermission = (p: string): p is Permission => PERM_SET.has(p);
+
+const normalizePermissionActions = (perms: unknown): Permission[] => {
+  if (!Array.isArray(perms)) return [];
+
+  const actions = perms
+    .map((x) => {
+      if (!x || typeof x !== 'object') return undefined;
+      const action = (x as { action?: unknown }).action;
+      return typeof action === 'string' ? action : undefined;
+    })
+    .filter((a): a is string => typeof a === 'string');
+
+  return actions.filter(isPermission);
 };
 
 export default function NavCollapsible() {
   const { user } = useAuth();
   const pathname = usePathname();
 
-  const userRoleName =
-    typeof user?.complete_user?.role?.name === 'string' && user.complete_user.role.name.length > 0
-      ? user.complete_user.role.name
-      : null;
+  const rawRolePerms = user?.complete_user?.role?.permissions;
 
-  const filteredNav = userItems.navCollapsible
-    .map((group: { title: string; items: NavItem[] }) => {
-      const filteredItems = group.items.filter((item) => {
-        const itemRoles = item.role ?? [];
+  const effectivePermissions = useMemo(() => {
+    const rolePerms = normalizePermissionActions(rawRolePerms);
+    return new Set<Permission>(rolePerms);
+  }, [rawRolePerms]);
 
-        // If item has no roles defined, show it to everyone
-        if (itemRoles.length === 0) return true;
+  const can = (perm: Permission) => effectivePermissions.has(perm);
+  const canAny = (perms: Permission[] = []) => (perms.length === 0 ? true : perms.some(can));
 
-        // If user has a role, check if item allows it
-        return !!userRoleName && itemRoles.includes(userRoleName);
-      });
+  const filteredNav = useMemo(() => {
+    return nav
+      .map((group) => {
+        const items = group.items.filter((item) => canAny(item.requires));
 
-      return filteredItems.length ? { ...group, items: filteredItems } : null;
-    })
-    .filter((g): g is NonNullable<typeof g> => Boolean(g));
+        return items.length > 0 ? { ...group, items } : null;
+      })
+      .filter((g): g is NonNullable<typeof g> => Boolean(g));
+  }, [effectivePermissions]);
 
   return (
     <>
       {pathname !== '/mygp/dea' ? (
-        filteredNav.map((item) => (
-          <CollapsibleNavItem key={item.title} item={item} pathname={pathname} />
+        filteredNav.map((group) => (
+          <CollapsibleNavItem key={group.title} item={group} pathname={pathname} />
         ))
       ) : (
         <CollapsibleReferences />

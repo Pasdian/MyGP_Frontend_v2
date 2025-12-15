@@ -15,9 +15,8 @@ import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary
 import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import MyGPCalendar from '@/components/MyGPUI/Datepickers/MyGPCalendar';
 import { DateRange } from 'react-day-picker';
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
-import { DASHBOARD_ROLES } from '@/lib/modules/moduleRole';
+import { PERM } from '@/lib/modules/permissions';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -102,120 +101,116 @@ export default function Dashboard() {
 
   return (
     <div>
-      <AccessGuard allowedRoles={DASHBOARD_ROLES}>
-        <PermissionGuard>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
-            <MyGPCalendar
-              dateRange={dates.fechaEntradaRange}
-              setDateRange={(value) => setDates((prev) => ({ ...prev, fechaEntradaRange: value }))}
-              label="Fecha de Entrada"
-            />
-            <MyGPCalendar
-              dateRange={dates.MSARange}
-              setDateRange={(value) => setDates((prev) => ({ ...prev, MSARange: value }))}
-              label="MSA"
-            />
+      <PermissionGuard requiredPermissions={[PERM.DASHBOARD_TRAFICO]}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
+          <MyGPCalendar
+            dateRange={dates.fechaEntradaRange}
+            setDateRange={(value) => setDates((prev) => ({ ...prev, fechaEntradaRange: value }))}
+            label="Fecha de Entrada"
+          />
+          <MyGPCalendar
+            dateRange={dates.MSARange}
+            setDateRange={(value) => setDates((prev) => ({ ...prev, MSARange: value }))}
+            label="MSA"
+          />
 
-            {!isAuthLoading && (
-              <>
-                <PermissionGuard requiredPermissions={['DASHBOARD_TRAFICO_ADMIN']}>
-                  <MyGPCombo
-                    value={metaState.kamValue}
-                    setValue={(newValue) =>
-                      setMetaState((prev) => ({ ...prev, kamValue: newValue }))
-                    }
-                    label="Ejecutivo"
-                    options={kamsOptions}
-                    placeholder="Selecciona un ejecutivo"
-                  />
-                </PermissionGuard>
-
+          {!isAuthLoading && (
+            <>
+              <PermissionGuard requiredPermissions={[PERM.DASHBOARD_TRAFICO_ADMIN]}>
                 <MyGPCombo
-                  value={metaState.customValue}
-                  setValue={(newValue) =>
-                    setMetaState((prev) => ({ ...prev, customValue: newValue }))
-                  }
-                  label="Aduana"
-                  options={customsOptions}
-                  placeholder="Selecciona una aduana"
+                  value={metaState.kamValue}
+                  setValue={(newValue) => setMetaState((prev) => ({ ...prev, kamValue: newValue }))}
+                  label="Ejecutivo"
+                  options={kamsOptions}
+                  placeholder="Selecciona un ejecutivo"
                 />
+              </PermissionGuard>
 
-                <MyGPCombo
-                  value={metaState.clientValue}
-                  setValue={(newValue) =>
-                    setMetaState((prev) => ({ ...prev, clientValue: newValue }))
-                  }
-                  label="Cliente"
-                  options={clientOptions}
-                  placeholder="Selecciona un cliente"
-                  showValue
-                />
-
-                <MyGPCombo
-                  value={metaState.currentPhaseValue}
-                  setValue={(newValue) =>
-                    setMetaState((prev) => ({ ...prev, currentPhaseValue: newValue }))
-                  }
-                  label="Etapa Actual"
-                  placeholder="Selecciona la etapa actual"
-                  options={phasesOptions}
-                />
-
-                <div className="flex items-end h-full w-full">
-                  <MyGPButtonPrimary
-                    className="cursor-pointer h-9 px-3 w-[150px]"
-                    onClick={() => {
-                      setMetaState({
-                        kamValue: '',
-                        clientValue: '',
-                        customValue: '',
-                        currentPhaseValue: '',
-                        tabValue: 'all',
-                      });
-                      setDates({
-                        fechaEntradaRange: undefined,
-                        MSARange: undefined,
-                      });
-                    }}
-                  >
-                    <span className="flex items-center gap-2 min-w-0">
-                      <X className="h-4 w-4 shrink-0" />
-                      <span className="truncate">Borrar filtros</span>
-                    </span>
-                  </MyGPButtonPrimary>
-                </div>
-              </>
-            )}
-          </div>
-
-          <Card className="mb-8 p-4">
-            <div className="w-[300px]">
-              <MyGPTabs
-                defaultValue="all"
-                tabs={[
-                  { value: 'all', label: 'Todas' },
-                  { value: 'open', label: 'Abiertas' },
-                  { value: 'closed', label: 'Despachadas' },
-                ]}
-                value={metaState.tabValue}
-                onValueChange={(v) =>
-                  isTabValue(v) && setMetaState((prev) => ({ ...prev, tabValue: v }))
+              <MyGPCombo
+                value={metaState.customValue}
+                setValue={(newValue) =>
+                  setMetaState((prev) => ({ ...prev, customValue: newValue }))
                 }
+                label="Aduana"
+                options={customsOptions}
+                placeholder="Selecciona una aduana"
               />
-            </div>
-            <DailyTrackingContext.Provider
-              value={{
-                dates,
-                dailyTrackingData,
-                setDailyTrackingData,
-                isLoading,
-              }}
-            >
-              <DailyTrackingDataTable metaState={metaState} />
-            </DailyTrackingContext.Provider>
-          </Card>
-        </PermissionGuard>
-      </AccessGuard>
+
+              <MyGPCombo
+                value={metaState.clientValue}
+                setValue={(newValue) =>
+                  setMetaState((prev) => ({ ...prev, clientValue: newValue }))
+                }
+                label="Cliente"
+                options={clientOptions}
+                placeholder="Selecciona un cliente"
+                showValue
+              />
+
+              <MyGPCombo
+                value={metaState.currentPhaseValue}
+                setValue={(newValue) =>
+                  setMetaState((prev) => ({ ...prev, currentPhaseValue: newValue }))
+                }
+                label="Etapa Actual"
+                placeholder="Selecciona la etapa actual"
+                options={phasesOptions}
+              />
+
+              <div className="flex items-end h-full w-full">
+                <MyGPButtonPrimary
+                  className="cursor-pointer h-9 px-3 w-[150px]"
+                  onClick={() => {
+                    setMetaState({
+                      kamValue: '',
+                      clientValue: '',
+                      customValue: '',
+                      currentPhaseValue: '',
+                      tabValue: 'all',
+                    });
+                    setDates({
+                      fechaEntradaRange: undefined,
+                      MSARange: undefined,
+                    });
+                  }}
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    <X className="h-4 w-4 shrink-0" />
+                    <span className="truncate">Borrar filtros</span>
+                  </span>
+                </MyGPButtonPrimary>
+              </div>
+            </>
+          )}
+        </div>
+
+        <Card className="mb-8 p-4">
+          <div className="w-[300px]">
+            <MyGPTabs
+              defaultValue="all"
+              tabs={[
+                { value: 'all', label: 'Todas' },
+                { value: 'open', label: 'Abiertas' },
+                { value: 'closed', label: 'Despachadas' },
+              ]}
+              value={metaState.tabValue}
+              onValueChange={(v) =>
+                isTabValue(v) && setMetaState((prev) => ({ ...prev, tabValue: v }))
+              }
+            />
+          </div>
+          <DailyTrackingContext.Provider
+            value={{
+              dates,
+              dailyTrackingData,
+              setDailyTrackingData,
+              isLoading,
+            }}
+          >
+            <DailyTrackingDataTable metaState={metaState} />
+          </DailyTrackingContext.Provider>
+        </Card>
+      </PermissionGuard>
       <div className="mb-4">
         <PieChartLabelList />
       </div>

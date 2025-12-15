@@ -2,16 +2,17 @@
 
 import React from 'react';
 import AddUserButton from '@/components/buttons/admin-panel/users/AddUserButton';
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
 import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
 import useGetAllUsers from '@/hooks/useGetAllUsers';
 import UsersDataTable from '@/components/datatables/admin-panel/UsersDataTable';
-import { ADMIN_ROLES } from '@/lib/modules/moduleRole';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 export default function Users() {
   const { users: getAllUsers, setUsers: setAllUsers, isLoading: isUsersLoading } = useGetAllUsers();
+
   return (
-    <AccessGuard allowedRoles={ADMIN_ROLES}>
+    <PermissionGuard requiredPermissions={[PERM.ADMIN_USUARIOS]}>
       <UsersDataTableContext.Provider value={{ getAllUsers, setAllUsers, isUsersLoading }}>
         <h1 className="text-2xl font-bold tracking-tight mb-4">Panel Administrativo / Usuarios</h1>
         <div>
@@ -19,6 +20,6 @@ export default function Users() {
         </div>
         <UsersDataTable />
       </UsersDataTableContext.Provider>
-    </AccessGuard>
+    </PermissionGuard>
   );
 }

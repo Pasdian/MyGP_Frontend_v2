@@ -2,11 +2,12 @@ import axios from "axios";
 
 const isServer = typeof window === "undefined";
 
-// Must be something like "http://localhost:3000" in dev or "https://mygp.pascal.com.mx" in prod
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+const APP_URL = isServer
+  ? process.env.APP_URL_INTERNAL
+  : process.env.NEXT_PUBLIC_APP_URL;
 
 export const GPClient = axios.create({
-  baseURL: isServer ? APP_URL : undefined,
+  baseURL: APP_URL,
   withCredentials: true,
   headers: {
     "Cache-Control": "no-cache",

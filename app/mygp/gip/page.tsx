@@ -1,7 +1,7 @@
 'use client';
-import AccessGuard from '@/components/AccessGuard/AccessGuard';
+import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { GIP_ROLES } from '@/lib/modules/moduleRole';
+import { PERM } from '@/lib/modules/permissions';
 import * as React from 'react';
 import useSWR from 'swr/immutable';
 
@@ -49,7 +49,7 @@ export default function GipBrowserLite() {
   const atRoot = !folder || folder === '/';
 
   return (
-    <AccessGuard allowedRoles={GIP_ROLES}>
+    <PermissionGuard requiredPermissions={[PERM.SISTEMAGIP_EXPLORADOR]}>
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-2 text-sm">
           <button
@@ -178,6 +178,6 @@ export default function GipBrowserLite() {
           </div>
         </div>
       </div>
-    </AccessGuard>
+    </PermissionGuard>
   );
 }

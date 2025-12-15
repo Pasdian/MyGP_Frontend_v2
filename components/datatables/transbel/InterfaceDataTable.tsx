@@ -36,6 +36,8 @@ import TablePageSize from '../pageSize/TablePageSize';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 import { pickBestByReferenciaCore } from '@/lib/utilityFunctions/transbelInterfaceFilter';
+import { Button } from '@/components/ui/button';
+import { Loader2, Sheet } from 'lucide-react';
 
 const TAB_VALUES = ['errors', 'pending', 'sent'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -47,6 +49,8 @@ function isTabValue(v: string): v is TabValue {
 export function InterfaceDataTable() {
   const { refsPendingCE, isRefsLoading, tabValue, setTabValue, setRefsPendingCE } =
     React.useContext(InterfaceContext);
+  const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
+
   // UI state
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -198,11 +202,120 @@ export function InterfaceDataTable() {
       setIsSendingToWorkato(false);
     }
   }
+  async function convertToCsv() {
+    setIsConvertingToCsv(true);
+
+    try {
+      // Use filtered rows (current tab) and only the columns currently visible
+      const rows = filtered ?? [];
+
+      const visibleLeafColumns = table
+        .getAllLeafColumns()
+        .filter((c) => c.getIsVisible())
+        .filter((c) => c.id !== 'select' && c.id !== 'ACCIONES'); // never export UI/action columns
+
+      if (!rows.length || !visibleLeafColumns.length) {
+        toast.error('No hay datos para exportar');
+        return;
+      }
+
+      // Build header labels
+      const headers = visibleLeafColumns.map((col) => {
+        const defHeader = col.columnDef.header;
+        if (typeof defHeader === 'string') return defHeader;
+        // Fallback: use column id if header is a React node/function
+        return col.id;
+      });
+
+      const escapeCsv = (value: unknown) => {
+        if (value === null || value === undefined) return '';
+        const s = String(value);
+        // Quote if it contains comma, quote, or newline
+        if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+        return s;
+      };
+
+      // Extract values using TanStack accessors when possible
+      const dataLines = rows.map((row) => {
+        return visibleLeafColumns
+          .map((col) => {
+            // Prefer accessorFn; fallback to direct key lookup using accessorKey/id
+            let val: unknown;
+
+            const accessorKey = (col.columnDef as any).accessorKey as string | undefined;
+            const accessorFn = (col.columnDef as any).accessorFn as
+              | ((originalRow: any, index: number) => unknown)
+              | undefined;
+
+            if (accessorFn) {
+              val = accessorFn(row as any, 0);
+            } else if (accessorKey) {
+              val = (row as any)?.[accessorKey];
+            } else {
+              // Last resort: try by column id
+              val = (row as any)?.[col.id];
+            }
+
+            return escapeCsv(val);
+          })
+          .join(',');
+      });
+
+      const csv = [headers.map(escapeCsv).join(','), ...dataLines].join('\n');
+
+      // Download
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+
+      const filename = `interface_${tabValue}_${yyyy}-${mm}-${dd}.csv`;
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+      toast.success('CSV generado correctamente');
+    } catch (e) {
+      toast.error('No se pudo generar el CSV');
+    } finally {
+      setIsConvertingToCsv(false);
+    }
+  }
 
   if (isRefsLoading) return <MyGPSpinner />;
 
   return (
     <div>
+      <div className="mb-4">
+        {filtered.length > 0 && (
+          <Button
+            className="bg-green-500 hover:bg-green-700 font-bold hover:text-white cursor-pointer text-white w-[200px]"
+            onClick={() => convertToCsv()}
+          >
+            <div>
+              {isConvertingToCsv ? (
+                <div className="flex space-x-2 items-center">
+                  <Loader2 className="animate-spin" />
+                  <p>Cargando...</p>
+                </div>
+              ) : (
+                <div className="flex space-x-2 items-center">
+                  <Sheet className="mr-2 h-4 w-4" />
+                  <p> Exportar Tabla a CSV</p>
+                </div>
+              )}
+            </div>
+          </Button>
+        )}
+      </div>
       <div className="grid grid-cols-2 w-[950px] items-center mb-4">
         <div className="w-[450px]">
           <MyGPTabs

@@ -1,18 +1,18 @@
 'use client';
+
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import type { Permission } from '@/lib/modules/permissions';
 
 type PermissionGuardProps = {
   children: React.ReactNode;
-  requiredPermissions?: string[];
+  requiredPermissions?: Permission[];
 };
 
 export default function PermissionGuard({ children, requiredPermissions }: PermissionGuardProps) {
   const router = useRouter();
-  const { isAuthenticated, isLoading, hasPermission, hasRole } = useAuth();
-
-  const isAdmin = hasRole('ADMIN');
+  const { isAuthenticated, isLoading, hasPermission } = useAuth();
 
   React.useEffect(() => {
     if (isLoading) return;
@@ -24,8 +24,7 @@ export default function PermissionGuard({ children, requiredPermissions }: Permi
   if (isLoading) return null;
   if (!isAuthenticated) return null;
 
-  // Skip permission checks for admin
-  if (!isAdmin && requiredPermissions?.length) {
+  if (requiredPermissions?.length) {
     const allowed = requiredPermissions.some((p) => hasPermission(p));
     if (!allowed) return null;
   }
