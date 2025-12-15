@@ -5,7 +5,6 @@ export function useClientLogo(client: string | null, version = 0) {
   const [logoUrl, setLogoUrl] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  console.log('KEY:', process.env.NEXT_PUBLIC_PYTHON_API_KEY);
   // keep a ref to revoke the previous ObjectURL
   const objectUrlRef = React.useRef<string | null>(null);
 
