@@ -202,68 +202,55 @@ export function InterfaceDataTable() {
       setIsSendingToWorkato(false);
     }
   }
+
   async function convertToCsv() {
     setIsConvertingToCsv(true);
 
     try {
-      // Use filtered rows (current tab) and only the columns currently visible
-      const rows = filtered ?? [];
+      // Export all rows after filters (not just current page)
+      const exportRows = table.getFilteredRowModel().rows;
 
-      const visibleLeafColumns = table
-        .getAllLeafColumns()
-        .filter((c) => c.getIsVisible())
-        .filter((c) => c.id !== 'select' && c.id !== 'ACCIONES'); // never export UI/action columns
+      // Export only currently visible leaf columns (excluding UI columns)
+      const exportCols = table
+        .getVisibleLeafColumns()
+        .filter((c) => c.id !== 'select' && c.id !== 'ACCIONES');
 
-      if (!rows.length || !visibleLeafColumns.length) {
+      if (!exportRows.length || !exportCols.length) {
         toast.error('No hay datos para exportar');
         return;
       }
 
-      // Build header labels
-      const headers = visibleLeafColumns.map((col) => {
-        const defHeader = col.columnDef.header;
-        if (typeof defHeader === 'string') return defHeader;
-        // Fallback: use column id if header is a React node/function
+      const headerLabel = (col: (typeof exportCols)[number]) => {
+        const h = col.columnDef.header;
+        if (typeof h === 'string') return h;
+        // If header is a function / React node, fall back to id
         return col.id;
-      });
+      };
 
       const escapeCsv = (value: unknown) => {
         if (value === null || value === undefined) return '';
+        if (value instanceof Date) value = value.toISOString();
+
         const s = String(value);
         // Quote if it contains comma, quote, or newline
         if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
         return s;
       };
 
-      // Extract values using TanStack accessors when possible
-      const dataLines = rows.map((row) => {
-        return visibleLeafColumns
+      const headers = exportCols.map((col) => escapeCsv(headerLabel(col))).join(',');
+
+      const dataLines = exportRows.map((row) => {
+        return exportCols
           .map((col) => {
-            // Prefer accessorFn; fallback to direct key lookup using accessorKey/id
-            let val: unknown;
-
-            const accessorKey = (col.columnDef as any).accessorKey as string | undefined;
-            const accessorFn = (col.columnDef as any).accessorFn as
-              | ((originalRow: any, index: number) => unknown)
-              | undefined;
-
-            if (accessorFn) {
-              val = accessorFn(row as any, 0);
-            } else if (accessorKey) {
-              val = (row as any)?.[accessorKey];
-            } else {
-              // Last resort: try by column id
-              val = (row as any)?.[col.id];
-            }
-
+            // This uses TanStack's computed value for the column
+            const val = row.getValue(col.id);
             return escapeCsv(val);
           })
           .join(',');
       });
 
-      const csv = [headers.map(escapeCsv).join(','), ...dataLines].join('\n');
+      const csv = [headers, ...dataLines].join('\n');
 
-      // Download
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
 
@@ -271,7 +258,6 @@ export function InterfaceDataTable() {
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');
-
       const filename = `interface_${tabValue}_${yyyy}-${mm}-${dd}.csv`;
 
       const a = document.createElement('a');
@@ -283,7 +269,7 @@ export function InterfaceDataTable() {
 
       URL.revokeObjectURL(url);
       toast.success('CSV generado correctamente');
-    } catch (e) {
+    } catch {
       toast.error('No se pudo generar el CSV');
     } finally {
       setIsConvertingToCsv(false);

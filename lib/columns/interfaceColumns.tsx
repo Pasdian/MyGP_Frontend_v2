@@ -168,7 +168,7 @@ export const useInterfaceColumns = (): ColumnDef<getRefsPendingCE>[] => {
         ),
       },
       {
-        accessorKey: "workato_last_modified_FORMATTED",
+        accessorKey: "workato_created_at_FORMATTED",
         header: "Fecha Último Envio",
         cell: ({ row }) => (
           <p className="text-center">
