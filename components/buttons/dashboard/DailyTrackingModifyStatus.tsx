@@ -94,8 +94,12 @@ function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
             return (
               <tr key={key}>
                 <td className="px-2 py-1 border-b whitespace-nowrap">{op.REFERENCIA}</td>
-                <td className="px-2 py-1 border-b whitespace-nowrap">{op.OLD_STATUS}</td>
-                <td className="px-2 py-1 border-b whitespace-nowrap">{op.NEW_STATUS}</td>
+                <td className="px-2 py-1 border-b whitespace-normal break-words">
+                  {op.NEW_STATUS}
+                </td>
+                <td className="px-2 py-1 border-b whitespace-normal break-words">
+                  {op.NEW_STATUS}
+                </td>
                 <td className="px-2 py-1 border-b whitespace-nowrap">
                   {formatISOtoDDMMYYYY(op.CHANGED_AT)}
                 </td>
