@@ -35,7 +35,6 @@ import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
 import TablePageSize from '../pageSize/TablePageSize';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
-import { pickBestByReferenciaCore } from '@/lib/utilityFunctions/transbelInterfaceFilter';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sheet } from 'lucide-react';
 
@@ -70,7 +69,6 @@ export function InterfaceDataTable() {
         break;
       case 'pending':
         subset = rows.filter((r) => !r?.has_error && r.workato_status !== '1');
-        subset = pickBestByReferenciaCore(subset);
         break;
       case 'sent':
         subset = rows.filter((r) => r?.workato_status === '1' && !r?.has_error);

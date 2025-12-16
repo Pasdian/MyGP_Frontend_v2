@@ -37,6 +37,7 @@ function safeIdentify(person: User) {
   posthog.people.set({
     $name: name ?? undefined,
     $email: email ?? undefined,
+    version: process.env.NEXT_PUBLIC_RELEASE_VERSION,
   });
 }
 
