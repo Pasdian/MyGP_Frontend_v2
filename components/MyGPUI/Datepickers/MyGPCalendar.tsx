@@ -14,7 +14,7 @@ type MyGPCalendarProps = {
   dateRange: DateRange | undefined;
   setDateRange: (value: DateRange | undefined) => void;
   label?: string;
-} & React.ComponentProps<typeof Button>; // inherit all <Button> props
+} & React.ComponentProps<typeof Button>;
 
 export default function MyGPCalendar({
   dateRange,
@@ -23,6 +23,11 @@ export default function MyGPCalendar({
   ...props
 }: MyGPCalendarProps) {
   const [open, setOpen] = React.useState(false);
+  const [draftRange, setDraftRange] = React.useState<DateRange | undefined>(dateRange);
+
+  React.useEffect(() => {
+    if (open) setDraftRange(dateRange);
+  }, [open, dateRange]);
 
   const getLastWeek = () => {
     const today = new Date();
@@ -62,7 +67,17 @@ export default function MyGPCalendar({
   };
 
   const handlePresetClick = (preset: DateRange) => {
-    setDateRange(preset);
+    setDraftRange(preset);
+  };
+
+  const handleApply = () => {
+    setDateRange(draftRange);
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    setDraftRange(dateRange);
+    setOpen(false);
   };
 
   return (
@@ -72,6 +87,7 @@ export default function MyGPCalendar({
           {label}
         </Label>
       )}
+
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-start text-left" {...props}>
@@ -89,6 +105,7 @@ export default function MyGPCalendar({
             )}
           </Button>
         </PopoverTrigger>
+
         <PopoverContent className="w-auto p-0" align="start">
           <div className="flex items-start">
             <div className="border-r pr-2 pl-1 py-2 space-y-0.5 w-[130px] shrink-0">
@@ -128,7 +145,7 @@ export default function MyGPCalendar({
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
-                  onClick={() => setDateRange(undefined)}
+                  onClick={() => setDraftRange(undefined)}
                 >
                   Limpiar
                 </Button>
@@ -138,26 +155,21 @@ export default function MyGPCalendar({
             <div className="p-3">
               <Calendar
                 mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
+                defaultMonth={draftRange?.from}
+                selected={draftRange}
+                onSelect={setDraftRange}
                 numberOfMonths={2}
                 locale={es}
                 showOutsideDays={false}
               />
             </div>
           </div>
+
           <div className="border-t p-4 flex justify-end gap-2">
-            <MyGPButtonGhost
-              size="sm"
-              onClick={() => {
-                setDateRange(undefined);
-                setOpen(false);
-              }}
-            >
+            <MyGPButtonGhost size="sm" onClick={handleCancel}>
               Cancelar
             </MyGPButtonGhost>
-            <MyGPButtonPrimary size="sm" onClick={() => setOpen(false)}>
+            <MyGPButtonPrimary size="sm" onClick={handleApply}>
               Aplicar
             </MyGPButtonPrimary>
           </div>

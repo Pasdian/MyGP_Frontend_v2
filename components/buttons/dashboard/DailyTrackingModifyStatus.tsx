@@ -42,9 +42,9 @@ export default function DailyTrackingModifyStatus({ row }: { row: Row<DailyTrack
           : 'Aquí podrás realizar la modificación de un estatus. Haz click en guardar cuando termines de editar los campos.'
       }
       trigger={
-        <MyGPButtonWarning>
+        <MyGPButtonWarning className="w-[140px]">
           <IconBallpenFilled />
-          Modificar
+          {row.original.NUM_REFE}
         </MyGPButtonWarning>
       }
     >

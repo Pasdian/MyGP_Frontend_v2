@@ -25,16 +25,27 @@ function isTabValue(v: string): v is TabValue {
   return (TAB_VALUES as readonly string[]).includes(v);
 }
 
+function getDefaultDashboardRanges(): {
+  fechaEntradaRange: DateRange;
+  MSARange: DateRange | undefined;
+} {
+  const today = new Date();
+  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  return {
+    fechaEntradaRange: { from: lastMonthStart, to: currentMonthEnd },
+    MSARange: undefined,
+  };
+}
+
 export default function Dashboard() {
   const { isLoading: isAuthLoading } = useAuth();
 
   const [dates, setDates] = React.useState<{
     fechaEntradaRange: DateRange | undefined;
     MSARange: DateRange | undefined;
-  }>({
-    fechaEntradaRange: undefined,
-    MSARange: undefined,
-  });
+  }>(() => getDefaultDashboardRanges());
 
   const [metaState, setMetaState] = React.useState({
     kamValue: '',
@@ -172,6 +183,8 @@ export default function Dashboard() {
                       fechaEntradaRange: undefined,
                       MSARange: undefined,
                     });
+
+                    setDates(getDefaultDashboardRanges());
                   }}
                 >
                   <span className="flex items-center gap-2 min-w-0">

@@ -9,6 +9,7 @@ import posthog from 'posthog-js';
 import { User } from '@/types/user/user';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { Company } from '@/types/company/company';
 
 const defaultUser: AuthSession = {
   message: '',
@@ -117,6 +118,13 @@ export default function AuthProvider({
     [permissions]
   );
 
+  const hasCompany = (companyCode: string): boolean => {
+    const companies = user.complete_user?.user?.companies as Company[] | undefined;
+    if (!Array.isArray(companies)) return false;
+
+    return companies.some((c) => c.CVE_IMP === companyCode);
+  };
+
   // NEW: refresh that just calls /api/auth/me, no /refreshToken
   const refresh = React.useCallback(async () => {
     setIsLoading(true);
@@ -224,6 +232,7 @@ export default function AuthProvider({
         hasRole,
         hasPermission,
         getCasaUsername,
+        hasCompany,
       }}
     >
       {children}

@@ -1,47 +1,45 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import React from "react";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 import { DailyTracking } from "@/types/dashboard/tracking/dailyTracking";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ChevronDown } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import DailyTrackingModifyStatus from "@/components/buttons/dashboard/DailyTrackingModifyStatus";
+import React from "react";
+import HoverPopover from "@/components/HoverPopover/HoverPopover";
 
 const fuzzyFilter = createFuzzyFilter<DailyTracking>();
 
 export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
   {
-    accessorKey: "ACCIONES",
-    header: "Acciones",
-    cell: ({ row }) => {
-      return <DailyTrackingModifyStatus row={row} />;
-    },
-  },
-  {
     accessorKey: "NUM_REFE",
     header: "Referencia",
+    meta: {
+      label: "Referencia",
+    },
     filterFn: fuzzyFilter,
-    cell: ({ row }) => (
-      <p className="text-center">{row.original.NUM_REFE || "--"}</p>
-    ),
+    cell: ({ row }) => <DailyTrackingModifyStatus row={row} />,
   },
   {
     accessorKey: "CLIENT_NAME",
     header: "Cliente",
+    meta: {
+      label: "Cliente",
+    },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
-      <p className="text-center truncate max-w-[150px] overflow-hidden whitespace-nowrap">
-        {row.original.CLIENT_NAME || "--"}
-      </p>
+      <HoverPopover
+        text={row.original.CLIENT_NAME}
+        className="text-center truncate overflow-hidden whitespace-nowrap"
+        maxWidthClass="max-w-[150px]"
+      />
     ),
   },
   {
     accessorKey: "ENTRY_DATE",
+    meta: {
+      label: "Fecha de Entrada",
+    },
     header: ({ column }) => {
       const isSorted = column.getIsSorted(); // "asc" | "desc" | false
 
@@ -71,6 +69,9 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
   },
   {
     accessorKey: "MSA",
+    meta: {
+      label: "MSA",
+    },
     header: ({ column }) => {
       const isSorted = column.getIsSorted(); // "asc" | "desc" | false
 
@@ -98,7 +99,58 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     ),
   },
   {
+    accessorKey: "ULT_DOC_114_FORMATTED",
+    meta: {
+      label: "Último Documento",
+    },
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted(); // "asc" | "desc" | false
+
+      const Icon =
+        isSorted === "asc"
+          ? ArrowUp
+          : isSorted === "desc"
+          ? ArrowDown
+          : ArrowUpDown;
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(isSorted === "asc");
+          }}
+        >
+          Último Documento
+          <Icon className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => (
+      <p className="text-center">
+        {row.original.ULT_DOC_114_FORMATTED || "--"}
+      </p>
+    ),
+  },
+  {
+    accessorKey: "PROVIDER",
+    header: "Proveedor",
+    meta: {
+      label: "Proveedor",
+    },
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => (
+      <HoverPopover
+        text={row.original.PROVIDER}
+        className="text-center truncate overflow-hidden whitespace-nowrap"
+        maxWidthClass="max-w-[200px]"
+      />
+    ),
+  },
+  {
     accessorKey: "CUSTOM_CLEARANCE_DAYS",
+    meta: {
+      label: "Días de Despacho",
+    },
     header: ({ column }) => {
       const isSorted = column.getIsSorted(); // "asc" | "desc" | false
 
@@ -130,16 +182,23 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
   {
     accessorKey: "CURRENT_PHASE",
     header: "Etapa Actual",
+    meta: {
+      label: "Etapa Actual",
+    },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
-      <p className="text-center truncate max-w-[200px] overflow-hidden whitespace-nowrap">
-        {row.original.CURRENT_PHASE || "--"}
-      </p>
+      <HoverPopover
+        text={row.original.CURRENT_PHASE}
+        className="text-center truncate overflow-hidden whitespace-nowrap"
+        maxWidthClass="max-w-[200px]"
+      />
     ),
   },
-
   {
     accessorKey: "CUSTOM_FORMATTED",
+    meta: {
+      label: "Aduana",
+    },
     header: "Aduana",
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
@@ -149,39 +208,39 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
   {
     accessorKey: "KAM_FORMATTED",
     header: "Ejecutivo",
+    meta: {
+      label: "Ejecutivo",
+    },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
-      <p className="text-center">{row.original.KAM_FORMATTED || "--"}</p>
+      <HoverPopover
+        text={row.original.KAM}
+        className="text-center truncate overflow-hidden whitespace-nowrap"
+        maxWidthClass="max-w-[150px]"
+      />
     ),
   },
   {
     accessorKey: "STATUS",
+    meta: {
+      label: "Estatus",
+    },
     header: "Estatus",
     filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.STATUS) {
-        return <p className="text-center">{row.original.STATUS || "--"}</p>;
-      }
-      return (
-        <Popover>
-          <PopoverTrigger className="w-full">
-            <div className="flex items-center gap-1 max-w-[350px]">
-              <p className="text-xs text-center flex items-center justify-center flex-1 min-w-0 whitespace-normal break-words line-clamp-3 text-justify">
-                {row.original.STATUS || "--"}
-              </p>
-
-              <ChevronDown className="opacity-50 w-4 flex-shrink-0 mt-0.5" />
-            </div>
-          </PopoverTrigger>
-          <PopoverContent className="text-xs">
-            {row.original.STATUS || "--"}
-          </PopoverContent>
-        </Popover>
-      );
-    },
+    cell: ({ row }) => (
+      <HoverPopover
+        text={row.original.STATUS}
+        className="text-xs text-justify whitespace-normal break-words line-clamp-3"
+        maxWidthClass="max-w-[350px]"
+        contentClassName="text-xs"
+      />
+    ),
   },
   {
     accessorKey: "MODIFIED_AT_FORMATTED",
+    meta: {
+      label: "Modificado en",
+    },
     header: "Modificado en",
     filterFn: fuzzyFilter,
     cell: ({ row }) => (

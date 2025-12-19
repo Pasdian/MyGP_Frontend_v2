@@ -23,6 +23,7 @@ import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useAuth } from '@/hooks/useAuth';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
+import { COMPANY } from '@/lib/companies/companies';
 
 export const COLORS_6 = ['#0B2B66', '#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#8FB2FF'];
 
@@ -40,10 +41,14 @@ export default function PieChartLabelList() {
     new Date(new Date().setMonth(new Date().getMonth() - 1))
   );
   const { user } = useAuth();
-  const isAAP = user.complete_user.user.companies.some((company) => company.CVE_IMP === '004108');
+  const isAAP = user.complete_user.user.companies.some(
+    (company) => company.CVE_IMP === COMPANY.AGENCIA_ADUANAL_PASCAL_SC
+  );
   const userCompanies = React.useMemo(() => {
     const companies = user?.complete_user?.user?.companies ?? [];
-    return companies.filter((c: getAllCompanies) => String(c.CVE_IMP) !== '004108');
+    return companies.filter(
+      (c: getAllCompanies) => String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
+    );
   }, [user]);
   const [finalDate, setFinalDate] = React.useState<Date | undefined>(new Date());
   const [clientNumber, setClientNumber] = React.useState(() => {

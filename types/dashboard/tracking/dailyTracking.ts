@@ -17,4 +17,7 @@ export type DailyTracking = {
   CUSTOM_FORMATTED: string | null;
   KAM_FORMATTED: string | null;
   MSA_FORMATTED: string | null;
+  ULT_DOC_114: string | null,
+  ULT_DOC_114_FORMATTED: string | null;
+  PROVIDER: string | null,
 };

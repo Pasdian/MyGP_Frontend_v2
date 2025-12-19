@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/useAuth';
+import { COMPANY } from '@/lib/companies/companies';
 
 export function MyGPDeaCombo({
   value,
@@ -36,7 +37,9 @@ export function MyGPDeaCombo({
 
   // Assuming user.complete_user.user.companies is an array of objects with CVE_IMP
   const userCompanies = user?.complete_user?.user?.companies || [];
-  const isAAP = userCompanies.some((company) => company.CVE_IMP === '004108');
+  const isAAP = userCompanies.some(
+    (company) => company.CVE_IMP === COMPANY.AGENCIA_ADUANAL_PASCAL_SC
+  );
   // Extract CVE_IMP values (e.g., ["123", "456"])
   const companyIds = userCompanies.map((c) => c.CVE_IMP);
   // If admin, skip filtering — otherwise, filter by companyIds

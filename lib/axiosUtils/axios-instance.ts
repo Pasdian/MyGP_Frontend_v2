@@ -18,10 +18,6 @@ export const GPClient = axios.create({
 export const axiosFetcher = (url: string) =>
   GPClient.get(url).then((res) => res.data);
 
-export const axiosBlobFetcher = (url: string) =>
-  GPClient.get(url, { responseType: "blob" }).then((res) => {
-    return new Blob([res.data], { type: res.data.type });
-  });
 
 export const axiosImageFetcher = async (url: string): Promise<string> => {
   const res = await GPClient.get(url, { responseType: "blob" });

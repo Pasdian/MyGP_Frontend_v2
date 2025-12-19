@@ -21,6 +21,7 @@ import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import MyGPCalendar from '../MyGPUI/Datepickers/MyGPCalendar';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
+import { COMPANY } from '@/lib/companies/companies';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -32,7 +33,7 @@ export function SiteHeader() {
     (state) => state
   );
 
-  const { user } = useAuth();
+  const { user, hasCompany } = useAuth();
 
   const rawUserCompanies = React.useMemo(() => {
     return user?.complete_user?.user?.companies ?? [];
@@ -40,12 +41,15 @@ export function SiteHeader() {
 
   // Exclude 004108 from user companies globally
   const userCompanies = React.useMemo(
-    () => rawUserCompanies.filter((c: getAllCompanies) => String(c.CVE_IMP) !== '004108'),
+    () =>
+      rawUserCompanies.filter(
+        (c: getAllCompanies) => String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
+      ),
     [rawUserCompanies]
   );
 
   // Define AAP: user has 004108 originally, not after exclusion
-  const isAAP = rawUserCompanies.some((company) => String(company.CVE_IMP) === '004108');
+  const isAAP = hasCompany(COMPANY.AGENCIA_ADUANAL_PASCAL_SC);
 
   const hasExpediente = (file?.filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
 
@@ -78,9 +82,11 @@ export function SiteHeader() {
       const hasSelection = companySelect && companySelect.length > 0;
       const base = hasSelection
         ? companies.filter(
-            (c) => companySelect.includes(String(c.CVE_IMP)) && String(c.CVE_IMP) !== '004108'
+            (c) =>
+              companySelect.includes(String(c.CVE_IMP)) &&
+              String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
           )
-        : companies.filter((c) => String(c.CVE_IMP) !== '004108');
+        : companies.filter((c) => String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC);
 
       return base.map((c) => ({
         value: String(c.CVE_IMP),
@@ -92,7 +98,11 @@ export function SiteHeader() {
     const userCves = userCompanies.map((c: getAllCompanies) => String(c.CVE_IMP));
 
     return companies
-      .filter((c) => userCves.includes(String(c.CVE_IMP)) && String(c.CVE_IMP) !== '004108')
+      .filter(
+        (c) =>
+          userCves.includes(String(c.CVE_IMP)) &&
+          String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
+      )
       .map((c) => ({
         value: String(c.CVE_IMP),
         label: c.NOM_IMP,

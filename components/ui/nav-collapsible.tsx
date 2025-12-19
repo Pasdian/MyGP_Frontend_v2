@@ -13,7 +13,7 @@ import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import { NavItem } from '@/types/nav/navItem';
-import { BookPlusIcon, Container } from 'lucide-react';
+import { BookPlusIcon, Container, SheetIcon } from 'lucide-react';
 import { PERM, type Permission } from '@/lib/modules/permissions';
 
 type NavItemDef = NavItem & {
@@ -69,6 +69,12 @@ const nav: NavGroupDef[] = [
         url: '/mygp/operaciones/referencias',
         requires: [PERM.OPERACIONES_MODIFICAR_REFERENCIAS],
         icon: BookPlusIcon,
+      },
+            {
+        title: 'Reportes',
+        url: '/mygp/operaciones/reportes',
+        requires: [PERM.OPERACIONES_REPORTES],
+        icon: SheetIcon,
       },
     ],
   },

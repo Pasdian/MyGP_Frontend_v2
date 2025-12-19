@@ -18,3 +18,5 @@ export function getCustomKeyByRef(reference: string) {
 
   return custom ? custom.key : null;
 }
+
+export const customsMap = Object.fromEntries(customs.map(c => [c.key, c.name]));

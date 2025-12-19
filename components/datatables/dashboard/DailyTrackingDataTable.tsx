@@ -11,6 +11,7 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
+  VisibilityState,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -23,7 +24,7 @@ import {
 import React from 'react';
 import TablePagination from '../pagination/TablePagination';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sheet } from 'lucide-react';
+import { FilterIcon, Loader2, Sheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { dailyTrackingColumns } from '@/lib/columns/dailyTrackingColumns';
 import DailyTrackingDataTableFilter from '../filters/DailyTrackingDataTableFilter';
@@ -31,6 +32,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { DailyTrackingContext } from '@/contexts/DailyTrackingContext';
 import TablePageSize from '../pageSize/TablePageSize';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+const COLUMN_VIS_KEY = 'dailyTracking:columnVisibility:v1';
 
 export function DailyTrackingDataTable({
   metaState,
@@ -57,6 +70,15 @@ export function DailyTrackingDataTable({
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const raw = window.localStorage.getItem(COLUMN_VIS_KEY);
+      return raw ? (JSON.parse(raw) as VisibilityState) : {};
+    } catch {
+      return {};
+    }
+  });
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const filteredData = React.useMemo(() => {
@@ -101,9 +123,18 @@ export function DailyTrackingDataTable({
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     sortDescFirst: true,
-    state: { columnFilters, pagination, sorting },
+    state: { columnFilters, pagination, sorting, columnVisibility },
+    onColumnVisibilityChange: setColumnVisibility,
     autoResetPageIndex: false,
   });
+
+  React.useEffect(() => {
+    try {
+      window.localStorage.setItem(COLUMN_VIS_KEY, JSON.stringify(columnVisibility));
+    } catch {
+      // ignore
+    }
+  }, [columnVisibility]);
 
   async function convertToCsv() {
     setIsConvertingToCsv(true);
@@ -163,32 +194,116 @@ export function DailyTrackingDataTable({
       setIsConvertingToCsv(false);
     }
   }
+  const hiddenCount = table
+    .getAllLeafColumns()
+    .filter((col) => col.getCanHide() && !col.getIsVisible()).length;
+
   if (isDailyTrackingLoading) return <MyGPSpinner />;
 
   return (
     <div>
       <h1 className="mb-4 text-2xl font-bold tracking-tight">Seguimiento Diario</h1>
-      <div className="flex space-x-1 mb-4">
-        {filteredData.length > 0 && (
-          <Button
-            className="bg-green-500 font-bold hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
-            onClick={() => convertToCsv()}
-          >
-            <div>
-              {isConvertingToCsv ? (
-                <div className="flex space-x-2 items-center">
-                  <Loader2 className="animate-spin" />
-                  <p>Cargando...</p>
-                </div>
-              ) : (
-                <div className="flex space-x-2 items-center">
-                  <Sheet className="mr-2 h-4 w-4" />
-                  <p> Exportar Tabla a CSV</p>
-                </div>
-              )}
-            </div>
-          </Button>
-        )}
+      <div className="flex space-x-2 mb-4">
+        <div>
+          {filteredData.length > 0 && (
+            <Button
+              className="bg-green-500 font-bold hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
+              onClick={() => convertToCsv()}
+            >
+              <div>
+                {isConvertingToCsv ? (
+                  <div className="flex space-x-2 items-center">
+                    <Loader2 className="animate-spin" />
+                    <p>Cargando...</p>
+                  </div>
+                ) : (
+                  <div className="flex space-x-2 items-center">
+                    <Sheet className="mr-2 h-4 w-4" />
+                    <p> Exportar Tabla a CSV</p>
+                  </div>
+                )}
+              </div>
+            </Button>
+          )}
+        </div>
+        <div>
+          <DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-[220px] justify-between gap-2 font-medium">
+                  <div className="flex items-center gap-2">
+                    <FilterIcon className="h-4 w-4" />
+                    <span>Filtrar columnas</span>
+                    {hiddenCount > 0 && (
+                      <Badge variant="default" className="ml-1 px-2 py-0.5 text-xs">
+                        {hiddenCount}
+                      </Badge>
+                    )}
+                  </div>
+                  <ChevronDown className="h-4 w-4 opacity-80" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="start" className="w-64">
+                <DropdownMenuLabel>Mostrar/Ocultar</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {table
+                  .getAllLeafColumns()
+                  .filter((col) => col.getCanHide())
+                  .map((column) => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(checked) => column.toggleVisibility(!!checked)}
+                      onSelect={(e) => e.preventDefault()}
+                    >
+                      {column.columnDef.meta?.label ?? column.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+
+                <DropdownMenuSeparator />
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => table.resetColumnVisibility()}
+                >
+                  Restablecer
+                </Button>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenuContent align="start" className="w-64">
+              <DropdownMenuLabel>Mostrar/Ocultar</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+
+              {table
+                .getAllLeafColumns()
+                .filter((col) => col.getCanHide())
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(checked) => column.toggleVisibility(!!checked)}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {column.columnDef.meta?.label ?? column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+
+              <DropdownMenuSeparator />
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => table.resetColumnVisibility()}
+              >
+                Restablecer
+              </Button>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <Table>
         <TableHeader>
@@ -228,7 +343,10 @@ export function DailyTrackingDataTable({
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={dailyTrackingColumns.length} className="h-24 text-center">
+              <TableCell
+                colSpan={table.getVisibleLeafColumns().length}
+                className="h-24 text-center"
+              >
                 <div className="flex justify-center">
                   <p>Sin resultados...</p>
                 </div>

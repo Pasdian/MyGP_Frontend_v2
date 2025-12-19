@@ -16,17 +16,14 @@ type UseDailyTrackingParams = {
 export function useDailyTracking(params?: UseDailyTrackingParams) {
   const { fechaEntradaRange, MSARange } = params ?? {};
 
-  const today = new Date();
-  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-  const initialFecEntrada = fechaEntradaRange?.from ?? lastMonthStart;
-  const finalFecEntrada = fechaEntradaRange?.to ?? currentMonthEnd;
-
   const queryParams = new URLSearchParams();
 
-  queryParams.set('initialFecEntrada', formatLocalDate(initialFecEntrada) ?? '');
-  queryParams.set('finalFecEntrada', formatLocalDate(finalFecEntrada) ?? '');
+  if (fechaEntradaRange?.from) {
+    queryParams.set('initialFecEntrada', formatLocalDate(fechaEntradaRange.from) ?? '');
+  }
+  if (fechaEntradaRange?.to) {
+    queryParams.set('finalFecEntrada', formatLocalDate(fechaEntradaRange.to) ?? '');
+  }
 
   if (MSARange?.from) {
     queryParams.set('initialMSA', formatLocalDate(MSARange.from) ?? '');
@@ -35,7 +32,8 @@ export function useDailyTracking(params?: UseDailyTrackingParams) {
     queryParams.set('finalMSA', formatLocalDate(MSARange.to) ?? '');
   }
 
-  const key = `/api/daily-tracking/get-daily-tracking?${queryParams.toString()}`;
+  const qs = queryParams.toString();
+  const key = `/api/daily-tracking/get-daily-tracking${qs ? `?${qs}` : ''}`;
 
   const { data, error, isLoading } = useSWR<DailyTracking[]>(key, axiosFetcher);
 
