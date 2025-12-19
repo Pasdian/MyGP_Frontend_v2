@@ -30,11 +30,10 @@ function getDefaultDashboardRanges(): {
   MSARange: DateRange | undefined;
 } {
   const today = new Date();
-  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const lastMonthSameDay = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
 
   return {
-    fechaEntradaRange: { from: lastMonthStart, to: currentMonthEnd },
+    fechaEntradaRange: { from: lastMonthSameDay, to: today },
     MSARange: undefined,
   };
 }

@@ -140,44 +140,70 @@ export function DailyTrackingDataTable({
     setIsConvertingToCsv(true);
 
     try {
-      // Format fields the same way you did before
-      const formattedData = filteredData.map((item) => ({
-        Referencia: item.NUM_REFE,
-        Cliente: item.CLIENT_NAME,
-        'Fecha de Entrada': item.ENTRY_DATE_FORMATTED || item.ENTRY_DATE,
-        MSA: item.MSA_FORMATTED,
-        'Dias de Despacho': item.CUSTOM_CLEARANCE_DAYS,
-        'Etapa Actual': item.CURRENT_PHASE,
-        Aduana: item.CUSTOM_FORMATTED,
-        Ejecutivo: item.KAM,
-        Estatus: item.STATUS,
-        'Modificado en': item.MODIFIED_AT_FORMATTED,
-      }));
+      // Export filtered + sorted rows (NOT paginated)
+      const rows = table.getSortedRowModel().rows;
 
-      // Build CSV string
-      const headers = Object.keys(formattedData[0] || {}).join(',');
-      const rows = formattedData
-        .map((row) =>
-          Object.values(row)
-            .map((value) => {
-              if (value == null) return '';
-              const v = String(value);
-              if (v.includes(',') || v.includes('"') || v.includes('\n')) {
-                return `"${v.replace(/"/g, '""')}"`;
-              }
-              return v;
-            })
-            .join(',')
-        )
-        .join('\n');
+      // Export only visible leaf columns (respect your column visibility UI)
+      const exportableColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible());
 
-      const csvString = `${headers}\n${rows}`;
+      // Header labels (use meta.label when available)
+      const headers = exportableColumns.map((col) => (col.columnDef.meta as any)?.label ?? col.id);
 
-      // Create downloadable CSV file
+      const getExportValue = (row: (typeof rows)[number], columnId: string) => {
+        const o = row.original as any;
+
+        // Prefer the formatted values you show in the UI
+        switch (columnId) {
+          case 'NUM_REFE':
+            return o.NUM_REFE ?? '';
+          case 'CLIENT_NAME':
+            return o.CLIENT_NAME ?? '';
+          case 'ENTRY_DATE':
+            return o.ENTRY_DATE_FORMATTED ?? o.ENTRY_DATE ?? '';
+          case 'MSA':
+            return o.MSA_FORMATTED ?? o.MSA ?? '';
+          case 'ULT_DOC_114_FORMATTED':
+            return o.ULT_DOC_114_FORMATTED ?? '';
+          case 'PROVIDER':
+            return o.PROVIDER ?? '';
+          case 'CUSTOM_CLEARANCE_DAYS':
+            return o.CUSTOM_CLEARANCE_DAYS ?? '';
+          case 'CURRENT_PHASE':
+            return o.CURRENT_PHASE ?? '';
+          case 'CUSTOM_FORMATTED':
+            return o.CUSTOM_FORMATTED ?? '';
+          case 'KAM_FORMATTED':
+            return o.KAM ?? o.KAM_FORMATTED ?? '';
+          case 'STATUS':
+            return o.STATUS ?? '';
+          case 'MODIFIED_AT_FORMATTED':
+            return o.MODIFIED_AT_FORMATTED ?? '';
+          default:
+            // Fallback to TanStack's value getter for any other columns
+            return row.getValue(columnId) ?? '';
+        }
+      };
+
+      const escapeCsv = (value: unknown) => {
+        if (value == null) return '';
+        const v = String(value);
+        if (v.includes(',') || v.includes('"') || v.includes('\n') || v.includes('\r')) {
+          return `"${v.replace(/"/g, '""')}"`;
+        }
+        return v;
+      };
+
+      const csvRows = rows.map((row) =>
+        exportableColumns.map((col) => escapeCsv(getExportValue(row, col.id))).join(',')
+      );
+
+      // Add BOM for Excel UTF-8 compatibility
+      const csvString = `\ufeff${headers.join(',')}\n${csvRows.join('\n')}`;
+
       const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
 
-      const filename = `seguimiento-diario-${Date.now()}.csv`;
+      const filename = `seguimiento-diario-${new Date().toISOString().slice(0, 10)}.csv`;
 
       const link = document.createElement('a');
       link.href = url;
@@ -188,12 +214,13 @@ export function DailyTrackingDataTable({
       window.URL.revokeObjectURL(url);
 
       toast.success('CSV generado correctamente');
-    } catch {
+    } catch (e) {
       toast.error('Ocurrió un error al generar el CSV');
     } finally {
       setIsConvertingToCsv(false);
     }
   }
+
   const hiddenCount = table
     .getAllLeafColumns()
     .filter((col) => col.getCanHide() && !col.getIsVisible()).length;
