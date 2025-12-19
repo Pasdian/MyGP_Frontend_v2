@@ -41,7 +41,7 @@ export default function Reportes() {
     };
   });
 
-  const { data } = useSWR(
+  const { data, isLoading } = useSWR(
     dateRange.fechaEntradaRange &&
       `/api/companies/report/${COMPANY.ODW_ELEKTRIK_MEXICO}?initialDate=${
         dateRange.fechaEntradaRange.from?.toISOString().split('T')[0]
@@ -220,40 +220,48 @@ export default function Reportes() {
         {(hasCompany(COMPANY.AGENCIA_ADUANAL_PASCAL_SC) ||
           hasCompany(COMPANY.ODW_ELEKTRIK_MEXICO)) && (
           <div className="font-bold">
-            <p>ODW ELEKTRIK MÉXICO</p>
+            <p className="text-xl">ODW ELEKTRIK MÉXICO</p>
 
             <div className="mt-2">
-              {Array.isArray(data) && data.length > 0 && (
-                <Button
-                  className="bg-green-500 font-bold hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
-                  onClick={convertToCsv}
-                  disabled={isConvertingToCsv}
-                >
-                  {isConvertingToCsv ? (
-                    <div className="flex space-x-2 items-center">
-                      <Loader2 className="animate-spin" />
-                      <p>Cargando...</p>
-                    </div>
-                  ) : (
-                    <div className="flex space-x-2 items-center">
-                      <Sheet className="mr-2 h-4 w-4" />
-                      <p>Exportar Tabla a CSV</p>
-                    </div>
-                  )}
-                </Button>
+              {isLoading ? (
+                <div className="flex space-x-2 items-center text-sm font-normal">
+                  <Loader2 className="animate-spin" />
+                  <p>Cargando datos...</p>
+                </div>
+              ) : (
+                Array.isArray(data) &&
+                data.length > 0 && (
+                  <Button
+                    className="bg-green-500 font-bold hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
+                    onClick={convertToCsv}
+                    disabled={isConvertingToCsv || isLoading}
+                  >
+                    {isConvertingToCsv ? (
+                      <div className="flex space-x-2 items-center">
+                        <Loader2 className="animate-spin" />
+                        <p>Cargando...</p>
+                      </div>
+                    ) : (
+                      <div className="flex space-x-2 items-center">
+                        <Sheet className="mr-2 h-4 w-4" />
+                        <p>Exportar Tabla a CSV</p>
+                      </div>
+                    )}
+                  </Button>
+                )
               )}
             </div>
 
-            {/* Field description table (shadcn) */}
+            {/* Field description table */}
             <div className="mt-4 mb-3 font-normal text-sm">
               <p className="mb-2">Este reporte incluye las siguientes columnas:</p>
 
-              <div className="max-h-[320px] overflow-auto rounded-md border">
+              <div className="max-h-[500px] overflow-auto rounded-md border">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background">
                     <TableRow>
-                      <TableHead className="w-[260px]">Campo</TableHead>
-                      <TableHead>Descripción</TableHead>
+                      <TableHead className="font-bold w-[260px]">Campo</TableHead>
+                      <TableHead className="font-bold">Descripción</TableHead>
                     </TableRow>
                   </TableHeader>
 
