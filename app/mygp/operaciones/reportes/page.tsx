@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { COMPANY } from '@/lib/companies/companies';
-import { Loader2, Sheet } from 'lucide-react';
+import { ChevronDown, Loader2, Sheet } from 'lucide-react';
 import React from 'react';
 import { DateRange } from 'react-day-picker';
 import useSWR from 'swr';
@@ -20,19 +20,25 @@ import {
 } from '@/components/ui/table';
 import { customsMap } from '@/lib/customs/customs';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Card } from '@/components/ui/card';
+
 export default function Reportes() {
   const { hasCompany } = useAuth();
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
 
   const [dateRange, setDateRange] = React.useState<{
     fechaEntradaRange: DateRange | undefined;
   }>(() => {
     const now = new Date();
 
-    // today (normalized)
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    // same day, previous month
     const oneMonthAgo = new Date(today);
     oneMonthAgo.setMonth(today.getMonth() - 1);
 
@@ -49,7 +55,6 @@ export default function Reportes() {
     axiosFetcher
   );
 
-  // Option 3: fields shown to user (also used to drive CSV ordering + labels)
   const reportFieldDescriptions: Array<{ field: string; description: string }> = [
     { field: 'REFERENCIA', description: 'Referencia del pedimento' },
     { field: 'FECHA_PAGO', description: 'Fecha de pago del pedimento' },
@@ -106,14 +111,11 @@ export default function Reportes() {
     { field: 'PO', description: 'Orden de compra (si aplica)' },
   ];
 
-  // Map API field -> human-readable CSV column header
-  // Using the description as the human-readable label (Option 3)
   const csvColumnLabels: Record<string, string> = React.useMemo(
     () => Object.fromEntries(reportFieldDescriptions.map((x) => [x.field, x.description])),
     [reportFieldDescriptions]
   );
 
-  // Hide internal/binary fields from CSV (e.g. IDENTIFICADORES_PARTIDAS_BIN)
   const shouldIncludeFieldInCsv = (key: string) => !key.endsWith('_BIN');
 
   const convertToCsv = async () => {
@@ -123,9 +125,6 @@ export default function Reportes() {
       const rows: Array<Record<string, unknown>> = Array.isArray(data) ? data : [];
       if (rows.length === 0) return;
 
-      // Build stable CSV column order:
-      // 1) fields in reportFieldDescriptions that actually exist in data
-      // 2) any extra fields returned by API (excluding *_BIN), sorted
       const desiredOrder = reportFieldDescriptions.map((x) => x.field);
 
       const keysFromData = new Set<string>();
@@ -147,24 +146,19 @@ export default function Reportes() {
 
         let s = String(value);
 
-        // Map ADUANA code → name
         if (field === 'ADUANA') {
           s = customsMap[s] ?? s;
         }
 
-        // ISO date → dd/mm/yyyy
         if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
           const [y, m, d] = s.split('T')[0].split('-');
           s = `${d}/${m}/${y}`;
         }
 
-        // Normalize newlines
         s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-        // Escape quotes
         if (s.includes('"')) s = s.replace(/"/g, '""');
 
-        // Wrap if needed
         if (/[",\n]/.test(s)) s = `"${s}"`;
 
         return s;
@@ -172,13 +166,8 @@ export default function Reportes() {
 
       const csvLines: string[] = [];
 
-      // Human readable headers
-      csvLines.push(
-        headerKeys
-          .map((key) => escapeCsv(csvColumnLabels[key] || key)) // description first
-          .join(',')
-      );
-      // Rows
+      csvLines.push(headerKeys.map((key) => escapeCsv(csvColumnLabels[key] || key)).join(','));
+
       for (const r of rows) {
         csvLines.push(headerKeys.map((k) => escapeCsv((r as any)[k], k)).join(','));
       }
@@ -204,6 +193,11 @@ export default function Reportes() {
     }
   };
 
+  const canSee =
+    hasCompany(COMPANY.AGENCIA_ADUANAL_PASCAL_SC) || hasCompany(COMPANY.ODW_ELEKTRIK_MEXICO);
+
+  const canExport = Array.isArray(data) && data.length > 0;
+
   return (
     <div>
       <p className="font-semibold text-2xl mb-4">Reportes</p>
@@ -217,65 +211,71 @@ export default function Reportes() {
       </div>
 
       <div>
-        {(hasCompany(COMPANY.AGENCIA_ADUANAL_PASCAL_SC) ||
-          hasCompany(COMPANY.ODW_ELEKTRIK_MEXICO)) && (
+        {canSee && (
           <div className="font-bold">
-            <p className="text-xl">ODW ELEKTRIK MÉXICO</p>
+            <Card className="w-full cursor-pointer select-none" onClick={() => setOpen((v) => !v)}>
+              <div className="flex items-center justify-between gap-4 p-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <p className="text-xl font-bold truncate">Reporte #1 - ODW ELEKTRIK MÉXICO</p>
 
-            <div className="mt-2">
-              {isLoading ? (
-                <div className="flex space-x-2 items-center text-sm font-normal">
-                  <Loader2 className="animate-spin" />
-                  <p>Cargando datos...</p>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  />
                 </div>
-              ) : (
-                Array.isArray(data) &&
-                data.length > 0 && (
-                  <Button
-                    className="bg-green-500 font-bold hover:bg-green-700 hover:text-white cursor-pointer text-white w-[200px]"
-                    onClick={convertToCsv}
-                    disabled={isConvertingToCsv || isLoading}
-                  >
-                    {isConvertingToCsv ? (
-                      <div className="flex space-x-2 items-center">
-                        <Loader2 className="animate-spin" />
-                        <p>Cargando...</p>
-                      </div>
-                    ) : (
-                      <div className="flex space-x-2 items-center">
-                        <Sheet className="mr-2 h-4 w-4" />
-                        <p>Exportar Tabla a CSV</p>
-                      </div>
-                    )}
-                  </Button>
-                )
-              )}
-            </div>
 
-            {/* Field description table */}
-            <div className="mt-4 mb-3 font-normal text-sm">
-              <p className="mb-2">Este reporte incluye las siguientes columnas:</p>
-
-              <div className="max-h-[500px] overflow-auto rounded-md border">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-background">
-                    <TableRow>
-                      <TableHead className="font-bold w-[260px]">Campo</TableHead>
-                      <TableHead className="font-bold">Descripción</TableHead>
-                    </TableRow>
-                  </TableHeader>
-
-                  <TableBody>
-                    {reportFieldDescriptions.map((x) => (
-                      <TableRow key={x.field}>
-                        <TableCell className="font-semibold whitespace-nowrap">{x.field}</TableCell>
-                        <TableCell>{x.description}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <Button
+                  className="bg-green-500 font-bold hover:bg-green-700 text-white w-[200px]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    convertToCsv();
+                  }}
+                  disabled={!canExport || isConvertingToCsv || isLoading}
+                >
+                  {isLoading || isConvertingToCsv ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Cargando...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Sheet className="h-4 w-4" />
+                      <span>Exportar Tabla a CSV</span>
+                    </div>
+                  )}
+                </Button>
               </div>
-            </div>
+
+              {open && (
+                <div className="px-4 pb-4 pt-0">
+                  <div className="font-normal text-sm">
+                    <p className="mb-2">Este reporte incluye las siguientes columnas:</p>
+
+                    <div className="max-h-[500px] overflow-auto rounded-md border">
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-background">
+                          <TableRow>
+                            <TableHead className="font-bold w-[260px]">Campo</TableHead>
+                            <TableHead className="font-bold">Descripción</TableHead>
+                          </TableRow>
+                        </TableHeader>
+
+                        <TableBody>
+                          {reportFieldDescriptions.map((x) => (
+                            <TableRow key={x.field}>
+                              <TableCell className="font-semibold whitespace-nowrap">
+                                {x.field}
+                              </TableCell>
+                              <TableCell className="font-normal">{x.description}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
           </div>
         )}
       </div>
