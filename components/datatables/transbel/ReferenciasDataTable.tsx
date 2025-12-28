@@ -4,6 +4,7 @@ import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
@@ -22,6 +23,7 @@ import TablePageSize from '../pageSize/TablePageSize';
 import TablePagination from '../pagination/TablePagination';
 import React from 'react';
 import { operationRefsColumns } from '@/lib/columns/operationRefsColumns';
+import ModifyReferenciasFilter from '../filters/ModifyReferenciasFilter';
 
 export function ReferenciasDataTable() {
   const { refs, isLoading } = useAllTransbelRefs();
@@ -35,6 +37,7 @@ export function ReferenciasDataTable() {
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
     getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     state: { columnFilters, pagination },
     autoResetPageIndex: false,
   });
@@ -49,10 +52,15 @@ export function ReferenciasDataTable() {
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead key={header.id} colSpan={header.colSpan}>
+                    {header.isPlaceholder ? null : (
+                      <div>
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getCanFilter() ? (
+                          <ModifyReferenciasFilter column={header.column} />
+                        ) : null}
+                      </div>
+                    )}
                   </TableHead>
                 );
               })}

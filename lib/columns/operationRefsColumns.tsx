@@ -5,6 +5,7 @@ import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
 import { TransbelRef } from "@/types/transbel/TransbelRef";
 import { MyGPButtonWarning } from "@/components/MyGPUI/Buttons/MyGPButtonWarning";
 import { useRouter } from "next/navigation";
+import { IconPencil } from "@tabler/icons-react";
 
 const fuzzyFilter = createFuzzyFilter<TransbelRef>();
 
@@ -39,14 +40,14 @@ export const operationRefsColumns: ColumnDef<TransbelRef>[] = [
     },
   },
   {
-    accessorKey: "ADU_DESP",
+    accessorKey: "ADU_DESP_FORMATTED",
     header: "Aduana",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.ADU_DESP) {
         return <div className="flex justify-center w-full">---</div>;
       }
-      return <p className="text-center">{row.original.ADU_DESP}</p>;
+      return <p className="text-center">{row.original.ADU_DESP_FORMATTED}</p>;
     },
   },
   {
@@ -62,42 +63,28 @@ export const operationRefsColumns: ColumnDef<TransbelRef>[] = [
     },
   },
   {
-    accessorKey: "FEC_ENTR",
+    accessorKey: "FEC_ENTR_FORMATTED",
     header: "Fecha de Entrega",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      const FEC_ENTR = row.original.FEC_ENTR;
+      const FEC_ENTR = row.original.FEC_ENTR_FORMATTED;
       if (!FEC_ENTR) {
         return <div className="flex justify-center w-full">---</div>;
       }
 
-      const formatted = new Intl.DateTimeFormat("es-MX", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
-        timeZone: "America/Mexico_City",
-      }).format(new Date(FEC_ENTR));
-
-      return <p className="text-center">{formatted}</p>;
+      return <p className="text-center">{FEC_ENTR}</p>;
     },
   },
   {
-    accessorKey: "FEC_PAGO",
+    accessorKey: "FEC_PAGO_FORMATTED",
     header: "Fecha de Entrega",
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      const FEC_PAGO = row.original.FEC_PAGO;
+      const FEC_PAGO = row.original.FEC_PAGO_FORMATTED;
       if (!FEC_PAGO) {
         return <div className="flex justify-center w-full">---</div>;
       }
-      const formatted = new Intl.DateTimeFormat("es-MX", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
-        timeZone: "America/Mexico_City",
-      }).format(new Date(FEC_PAGO));
-
-      return <p className="text-center">{formatted}</p>;
+      return <p className="text-center">{FEC_PAGO}</p>;
     },
   },
   {
@@ -158,10 +145,11 @@ function RefRedirect({
       className="w-32"
       onClick={() =>
         router.push(
-          `/mygp/operaciones/referencias/${NUM_REFE}?ADU_DESP=${ADU_DESP}&PAT_AGEN=${PAT_AGEN}`
+          `/mygp/operaciones/referencias/${NUM_REFE}?ADU_DESP=${ADU_DESP}&PAT_AGEN=${PAT_AGEN}`,
         )
       }
     >
+      <IconPencil />
       <p className="text-center">{NUM_REFE}</p>
     </MyGPButtonWarning>
   );

@@ -8,11 +8,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-
 import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
@@ -23,6 +23,7 @@ import TablePagination from '../pagination/TablePagination';
 import { embarqueColumns } from '@/lib/columns/embarqueColumns';
 import { useEmbarque } from '@/hooks/useEmbarque/useEmbarque';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
+import EmbarqueDataTableFilter from '../filters/EmbarqueDataTableFilter';
 
 export default function EmbarqueDataTable() {
   const { embarque, isLoading } = useEmbarque();
@@ -35,12 +36,13 @@ export default function EmbarqueDataTable() {
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     state: { columnFilters, pagination },
     autoResetPageIndex: false,
   });
 
-  if(isLoading) return <MyGPSpinner/>
+  if (isLoading) return <MyGPSpinner />;
 
   return (
     <div className="overflow-hidden rounded-md border">
@@ -50,10 +52,15 @@ export default function EmbarqueDataTable() {
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead key={header.id} colSpan={header.colSpan}>
+                    {header.isPlaceholder ? null : (
+                      <div>
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getCanFilter() ? (
+                          <EmbarqueDataTableFilter column={header.column} />
+                        ) : null}
+                      </div>
+                    )}
                   </TableHead>
                 );
               })}

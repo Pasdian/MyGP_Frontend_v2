@@ -10,16 +10,21 @@ const fuzzyFilter = createFuzzyFilter<Embarque>();
 
 export const embarqueColumns: ColumnDef<Embarque>[] = [
   {
-    id: "actions",
-    header: () => <div className="text-center w-full">Acciones</div>,
+    accessorKey: "REF",
+    header: () => <div className="text-center w-full">Referencia</div>,
+    filterFn: fuzzyFilter,
     cell: ({ row }) => {
+      if (!row.original.REF) {
+        return <div className="text-center w-full">---</div>;
+      }
+
       return (
         <div className="flex justify-center">
           <MyGPDialog
             trigger={
-              <MyGPButtonWarning>
+              <MyGPButtonWarning className="w-[160px]">
                 <PencilIcon />
-                Modificar
+                {row.original.REF}
               </MyGPButtonWarning>
             }
           >
@@ -36,17 +41,6 @@ export const embarqueColumns: ColumnDef<Embarque>[] = [
     },
   },
   {
-    accessorKey: "REF",
-    header: () => <div className="text-center w-full">Referencia</div>,
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.REF) {
-        return <div className="text-center w-full">---</div>;
-      }
-      return <p className="text-center">{row.original.REF}</p>;
-    },
-  },
-  {
     accessorKey: "PEDIMENTO",
     header: () => <div className="text-center w-full">Pedimento</div>,
     filterFn: fuzzyFilter,
@@ -58,21 +52,15 @@ export const embarqueColumns: ColumnDef<Embarque>[] = [
     },
   },
   {
-    accessorKey: "FECHA_ENTRADA",
+    accessorKey: "FECHA_ENTRADA_FORMATTED",
     header: () => <div className="text-center w-full">Fecha de Entrada</div>,
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      const FECHA_ENTRADA = row.original.FECHA_ENTRADA;
+      const FECHA_ENTRADA = row.original.FECHA_ENTRADA_FORMATTED;
       if (!FECHA_ENTRADA) {
         return <div className="text-center w-full">---</div>;
       }
-      const formatted = new Intl.DateTimeFormat("es-MX", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
-        timeZone: "America/Mexico_City",
-      }).format(new Date(FECHA_ENTRADA));
-      return <p className="text-center">{formatted}</p>;
+      return <p className="text-center">{FECHA_ENTRADA}</p>;
     },
   },
   {
