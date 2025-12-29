@@ -9,7 +9,7 @@ import { PERM } from '@/lib/modules/permissions';
 
 export default function NUM_REFE() {
   return (
-    <PermissionGuard requiredPermissions={[PERM.OPERACIONES_MODIFICAR_REFERENCIAS]}>
+    <PermissionGuard requiredPermissions={[PERM.OPERACIONES_MODIFICAR_ETAPAS]}>
       <NumRefeParamsProvider>
         <Wrapper />
       </NumRefeParamsProvider>

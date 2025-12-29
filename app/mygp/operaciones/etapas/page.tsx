@@ -7,9 +7,9 @@ import { PERM } from '@/lib/modules/permissions';
 
 export default function Referencias() {
   return (
-    <PermissionGuard requiredPermissions={[PERM.OPERACIONES_MODIFICAR_REFERENCIAS]}>
+    <PermissionGuard requiredPermissions={[PERM.OPERACIONES_MODIFICAR_ETAPAS]}>
       <AllTransbelRefsProvider>
-        <p className="font-bold text-xl mb-4">Modificar Referencias</p>
+        <p className="font-bold text-xl mb-4">Modificar Etapas</p>
         <ReferenciasDataTable />
       </AllTransbelRefsProvider>
     </PermissionGuard>

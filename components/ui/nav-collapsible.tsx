@@ -65,12 +65,12 @@ const nav: NavGroupDef[] = [
     title: 'Operaciones',
     items: [
       {
-        title: 'Referencias',
-        url: '/mygp/operaciones/referencias',
-        requires: [PERM.OPERACIONES_MODIFICAR_REFERENCIAS],
+        title: 'Etapas',
+        url: '/mygp/operaciones/etapas',
+        requires: [PERM.OPERACIONES_MODIFICAR_ETAPAS],
         icon: BookPlusIcon,
       },
-            {
+      {
         title: 'Reportes',
         url: '/mygp/operaciones/reportes',
         requires: [PERM.OPERACIONES_REPORTES],

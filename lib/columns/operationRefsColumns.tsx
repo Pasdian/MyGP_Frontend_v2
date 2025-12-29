@@ -145,7 +145,7 @@ function RefRedirect({
       className="w-32"
       onClick={() =>
         router.push(
-          `/mygp/operaciones/referencias/${NUM_REFE}?ADU_DESP=${ADU_DESP}&PAT_AGEN=${PAT_AGEN}`,
+          `/mygp/operaciones/etapas/${NUM_REFE}?ADU_DESP=${ADU_DESP}&PAT_AGEN=${PAT_AGEN}`,
         )
       }
     >
