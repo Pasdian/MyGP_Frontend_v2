@@ -18,23 +18,55 @@ import {
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toYMD } from '@/lib/utilityFunctions/toYMD';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
-import useSWR from 'swr'
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance'
-import { Progress } from "@/components/ui/progress"
+import useSWR from 'swr';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { Progress } from '@/components/ui/progress';
+
+export function toYMD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
 
 export default function CargueManual() {
   const [isSendingToApi, setIsSendingToApi] = React.useState(false);
   const [taskId, setTaskId] = React.useState('');
-  const { data: taskData } = useSWR(taskId ? `/tasks/${taskId}`: null, axiosFetcher, {
-    refreshInterval: 1000
-  })
-  const taskState = taskData?.state;
-  const taskInfoMessage = taskData?.info.message;
-  const showProgress = taskId && ["PENDING", "STARTED", "PROGRESS", "RETRY"].includes(taskState);
+
+  const RUNNING_STATES = ['PENDING', 'STARTED', 'PROGRESS', 'RETRY'] as const;
+  const TERMINAL_STATES = [
+    'SUCCESS',
+    'FAILURE',
+    'REVOKED',
+    'MOUNT_MISSING',
+    'CARGUE_NOT_FOUND',
+  ] as const;
+  const ERROR_STATES = ['MOUNT_MISSING', 'CARGUE_NOT_FOUND'] as const;
+
+  const { data: taskData } = useSWR(
+    taskId ? `/tasks/${taskId}` : null,
+    axiosFetcher,
+    {
+      refreshInterval: (latestData) => {
+        if (!taskId) return 0;
+        const state = latestData?.state ?? '';
+        const done = TERMINAL_STATES.includes(state as any);
+        return done ? 0 : 1000;
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  const taskState = taskData?.state || '';
+  const showProgress = !!taskId && RUNNING_STATES.includes(taskState as any);
+
+  const isErrorState = ERROR_STATES.includes(taskState as any);
+  const errorMessage =
+    taskData?.info?.message || 'Ocurrió un error al procesar el cargue';
 
   const schema = z.object({
     date: z.date({
@@ -62,36 +94,42 @@ export default function CargueManual() {
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     form.reset();
+
     const lines = data.referenciasTextArea
       .split('\n')
       .map((s: string) => s.trim())
       .filter(Boolean);
+
     try {
       setIsSendingToApi(true);
+
       const payload = {
-        date: data.date,
+        date: toYMD(data.date), // send "YYYY-MM-DD"
         payload: lines,
         suffix: data.suffix,
       };
-      const res = await GPClient.post<{task_id: string}>('/transbel/uploadCargues', payload);
 
-      toast.success("Iniciando cargue...");
-      setTaskId(res.data.task_id)
-      setIsSendingToApi(false);
+      const res = await GPClient.post<{ task_id: string }>(
+        '/transbel/uploadCargues',
+        payload
+      );
+
+      toast.success('Iniciando cargue...');
+      setTaskId(res.data.task_id);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        const message = err.response?.data?.message || err.message || 'Ocurrió un error';
+        const message =
+          err.response?.data?.message || err.message || 'Ocurrió un error';
         toast.error(message);
-        setIsSendingToApi(false);
       } else {
         toast.error('Ocurrió un error inesperado');
-        setIsSendingToApi(false);
       }
+    } finally {
       setIsSendingToApi(false);
     }
   };
 
-  const filename = `${form.watch('date').toLocaleDateString('en-CA', { timezone: 'America/Mexico_City' }).split('T')[0].replaceAll("-", "") || ''}${form.watch('suffix')}`;
+  const filename = `${toYMD(form.watch('date')).replaceAll('-', '')}${form.watch('suffix') || ''}`;
 
   return (
     <PermissionGuard requiredPermissions={[PERM.TRANSBEL_CARGUE_MANUAL]}>
@@ -116,6 +154,7 @@ export default function CargueManual() {
               )}
             />
           </div>
+
           <div className="mb-4">
             <FormField
               control={form.control}
@@ -169,23 +208,31 @@ export default function CargueManual() {
               .filter(Boolean).length || 0}
           </p>
 
-          {showProgress ? (
+
+
+          {showProgress && (
             <div>
               <p>Estado: {taskData?.info?.message}</p>
               <Progress value={taskData?.info?.current ?? 0} className="w-[60%]" />
             </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <MyGPButtonSubmit isSubmitting={isSendingToApi}>
-                <SendIcon className="mr-3" />
-                Enviar Cargue
-              </MyGPButtonSubmit>
+          )}
 
-              {taskState === "MOUNT_MISSING" && (
-                <p className="text-red-600 text-sm">
-                  Estado: {taskInfoMessage ?? "Error al subir el cargue"}
-                </p>
-              )}
+          {isErrorState && (
+            <div className="rounded-md border border-red-300 bg-red-50 p-3 text-red-700">
+              <p className="font-semibold">Error</p>
+              <p className="text-sm">Estado: {taskState}</p>
+              <p className="text-sm">{errorMessage}</p>
+            </div>
+          )}
+
+          {!showProgress && !isErrorState && (
+            <div className="flex flex-col gap-2">
+              <div>
+                <MyGPButtonSubmit isSubmitting={isSendingToApi}>
+                  <SendIcon className="mr-3" />
+                  Enviar Cargue
+                </MyGPButtonSubmit>
+              </div>
             </div>
           )}
         </form>
