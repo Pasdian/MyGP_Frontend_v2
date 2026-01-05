@@ -22,10 +22,19 @@ import { toYMD } from '@/lib/utilityFunctions/toYMD';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
+import useSWR from 'swr'
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance'
+import { Progress } from "@/components/ui/progress"
 
 export default function CargueManual() {
   const [isSendingToApi, setIsSendingToApi] = React.useState(false);
-  const [formattedDate, setFormattedDate] = React.useState('');
+  const [taskId, setTaskId] = React.useState('');
+  const { data: taskData } = useSWR(taskId ? `/tasks/${taskId}`: null, axiosFetcher, {
+    refreshInterval: 1000
+  })
+  const taskState = taskData?.state;
+  const taskInfoMessage = taskData?.info.message;
+  const showProgress = taskId && ["PENDING", "STARTED", "PROGRESS", "RETRY"].includes(taskState);
 
   const schema = z.object({
     date: z.date({
@@ -60,13 +69,14 @@ export default function CargueManual() {
     try {
       setIsSendingToApi(true);
       const payload = {
-        date: formattedDate,
+        date: data.date,
         payload: lines,
         suffix: data.suffix,
       };
-      const res = await GPClient.post('/transbel/uploadCargues', payload);
+      const res = await GPClient.post<{task_id: string}>('/transbel/uploadCargues', payload);
 
-      toast.success(res.data.message || 'Enviado correctamente a la API');
+      toast.success("Iniciando cargue...");
+      setTaskId(res.data.task_id)
       setIsSendingToApi(false);
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -81,12 +91,7 @@ export default function CargueManual() {
     }
   };
 
-  const dateYMD = toYMD(form.watch('date'));
-  const filename = `${dateYMD?.replace(/-/g, '') || ''}${form.watch('suffix')}`;
-
-  React.useEffect(() => {
-    setFormattedDate(dateYMD || '');
-  }, [dateYMD]);
+  const filename = `${form.watch('date').toLocaleDateString('en-CA', { timezone: 'America/Mexico_City' }).split('T')[0].replaceAll("-", "") || ''}${form.watch('suffix')}`;
 
   return (
     <PermissionGuard requiredPermissions={[PERM.TRANSBEL_CARGUE_MANUAL]}>
@@ -164,10 +169,25 @@ export default function CargueManual() {
               .filter(Boolean).length || 0}
           </p>
 
-          <MyGPButtonSubmit isSubmitting={isSendingToApi}>
-            <SendIcon className="mr-3" />
-            Enviar Cargue
-          </MyGPButtonSubmit>
+          {showProgress ? (
+            <div>
+              <p>Estado: {taskData?.info?.message}</p>
+              <Progress value={taskData?.info?.current ?? 0} className="w-[60%]" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <MyGPButtonSubmit isSubmitting={isSendingToApi}>
+                <SendIcon className="mr-3" />
+                Enviar Cargue
+              </MyGPButtonSubmit>
+
+              {taskState === "MOUNT_MISSING" && (
+                <p className="text-red-600 text-sm">
+                  Estado: {taskInfoMessage ?? "Error al subir el cargue"}
+                </p>
+              )}
+            </div>
+          )}
         </form>
       </Form>
     </PermissionGuard>
