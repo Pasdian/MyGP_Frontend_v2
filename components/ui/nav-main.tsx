@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Album } from 'lucide-react'
 
 const activeItemClass = 'rounded-none bg-gray-200 hover:bg-gray-300 font-bold cursor-pointer';
 const inactiveItemClass = 'font-bold cursor-pointer';
@@ -32,17 +33,30 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           ) : (
-            <Link href="/mygp/dashboard">
-              <SidebarMenuItem className="flex items-center gap-2">
-                <SidebarMenuButton
-                  tooltip="Quick Create"
-                  className={pathname == '/mygp/dashboard' ? activeItemClass : inactiveItemClass}
-                >
-                  <IconDashboard />
-                  <span>Dashboard</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </Link>
+            <div>
+              <Link href="/mygp/dashboard">
+                <SidebarMenuItem className="flex items-center gap-2">
+                  <SidebarMenuButton
+                    tooltip="Quick Create"
+                    className={pathname == '/mygp/dashboard' ? activeItemClass : inactiveItemClass}
+                  >
+                    <IconDashboard />
+                    <span>Dashboard</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Link>
+              <Link href="/mygp/dep">
+                <SidebarMenuItem className="flex items-center gap-2">
+                  <SidebarMenuButton
+                    tooltip="Quick Create"
+                    className={pathname == '/mygp/dep' ? activeItemClass : inactiveItemClass}
+                  >
+                    <Album />
+                    <span>DEP</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Link>
+            </div>
           )}
           <Link href="/mygp/dea">
             <SidebarMenuItem className="flex items-center gap-2">

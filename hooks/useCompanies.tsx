@@ -14,11 +14,7 @@ export function useCompanies(enabled = true) {
   // Only fetch when enabled
   const key = enabled ? DEFAULT_URL : null;
 
-  const { data, error, isLoading } = useSWR<Company[]>(key, axiosFetcher, {
-    revalidateOnFocus: false, // avoids refetching when tab gains focus
-    revalidateOnReconnect: false,
-    dedupingInterval: 30_000, // 30s SWR memory cache
-  });
+  const { data, error, isLoading } = useSWR<Company[]>(key, axiosFetcher);
 
   return {
     rows: data ?? [],
