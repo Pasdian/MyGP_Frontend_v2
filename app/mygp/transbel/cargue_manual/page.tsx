@@ -24,6 +24,20 @@ import { PERM } from '@/lib/modules/permissions';
 import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { Progress } from '@/components/ui/progress';
+import { MyGPButtonDanger } from '@/components/MyGPUI/Buttons/MyGPButtonDanger'
+
+const STATE_LABEL: Record<string, string> = {
+	PENDING: 'En cola',
+	STARTED: 'Iniciando',
+	PROGRESS: 'Procesando',
+	RETRY: 'Reintentando',
+	SUCCESS: 'Completado',
+	FAILURE: 'Falló',
+	REVOKED: 'Cancelado',
+	ERROR_MOUNT_MISSING: 'Error de montaje',
+	ERROR_CARGUE_NOT_FOUND: 'Cargue no encontrado',
+	ERROR_BUSINESS_DATE_HOLIDAY: 'Fecha no hábil',
+};
 
 export function toYMD(date: Date): string {
   const year = date.getFullYear();
@@ -42,10 +56,11 @@ export default function CargueManual() {
     'SUCCESS',
     'FAILURE',
     'REVOKED',
-    'MOUNT_MISSING',
-    'CARGUE_NOT_FOUND',
+    'ERROR_MOUNT_MISSING',
+    'ERROR_CARGUE_NOT_FOUND',
+    'ERROR_BUSINESS_DATE_HOLIDAY',
   ] as const;
-  const ERROR_STATES = ['MOUNT_MISSING', 'CARGUE_NOT_FOUND'] as const;
+  const ERROR_STATES = ['ERROR_BUSINESS_DATE_HOLIDAY', 'ERROR_MOUNT_MISSING', 'ERROR_CARGUE_NOT_FOUND'] as const;
 
   const { data: taskData } = useSWR(
     taskId ? `/tasks/${taskId}` : null,
@@ -62,10 +77,10 @@ export default function CargueManual() {
   );
 
   const taskState = taskData?.state || '';
-  const showProgress = !!taskId && RUNNING_STATES.includes(taskState as any);
+  const stateLabel = STATE_LABEL[taskState] ?? taskState ?? '-'
 
   const isErrorState = ERROR_STATES.includes(taskState as any);
-  const errorMessage =
+  const infoMessage =
     taskData?.info?.message || 'Ocurrió un error al procesar el cargue';
 
   const schema = z.object({
@@ -93,8 +108,6 @@ export default function CargueManual() {
   });
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
-    form.reset();
-
     const lines = data.referenciasTextArea
       .split('\n')
       .map((s: string) => s.trim())
@@ -116,6 +129,13 @@ export default function CargueManual() {
 
       toast.success('Iniciando cargue...');
       setTaskId(res.data.task_id);
+      
+      form.reset({
+        date: data.date,
+        referenciasTextArea: '',
+        suffix: ''
+      })
+
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const message =
@@ -126,6 +146,19 @@ export default function CargueManual() {
       }
     } finally {
       setIsSendingToApi(false);
+    }
+  };
+
+  const cancelTask = async () => {
+    try {
+      const res = await GPClient.post(`/tasks/cancel/${taskId}`);
+
+      if (res?.status === 200) {
+        toast.info("Tarea cancelada con éxito");
+				setTaskId('')
+      }
+    } catch (error) {
+      toast.error("Error al cancelar la tarea");
     }
   };
 
@@ -209,31 +242,46 @@ export default function CargueManual() {
           </p>
 
 
+          {taskId && (
+            <div className="rounded-md border p-3">
+              <p className="font-bold text-sm">Estado: <span>{stateLabel}</span></p>
+              <p className="text-sm">
+                {taskData?.info?.message || 'Sin información adicional'}
+              </p>
 
-          {showProgress && (
-            <div>
-              <p>Estado: {taskData?.info?.message}</p>
-              <Progress value={taskData?.info?.current ?? 0} className="w-[60%]" />
-            </div>
-          )}
+              {typeof taskData?.info?.current === 'number' && (
+                <Progress value={taskData.info.current} className="w-[60%]" />
+              )}
 
-          {isErrorState && (
-            <div className="rounded-md border border-red-300 bg-red-50 p-3 text-red-700">
-              <p className="font-semibold">Error</p>
-              <p className="text-sm">Estado: {taskState}</p>
-              <p className="text-sm">{errorMessage}</p>
-            </div>
-          )}
+              <div className="mt-2 flex gap-2">
+                {taskState !== 'SUCCESS' &&
+                  taskState !== 'FAILURE' &&
+                  taskState !== 'REVOKED' && (
+                    <MyGPButtonDanger onClick={() => {
+                      cancelTask()
+                    }}>
+                      Cancelar
+                    </MyGPButtonDanger>
+                  )}
 
-          {!showProgress && !isErrorState && (
-            <div className="flex flex-col gap-2">
-              <div>
-                <MyGPButtonSubmit isSubmitting={isSendingToApi}>
-                  <SendIcon className="mr-3" />
-                  Enviar Cargue
-                </MyGPButtonSubmit>
+                {(taskState === 'SUCCESS' ||
+                  taskState === 'FAILURE' ||
+                  taskState === 'REVOKED') && (
+                  <MyGPButtonSubmit
+                    isSubmitting={false}
+                    onClick={() => setTaskId('')}
+                  >
+                    Nuevo cargue
+                  </MyGPButtonSubmit>
+                )}
               </div>
             </div>
+          )}
+          {!taskId && (
+            <MyGPButtonSubmit isSubmitting={isSendingToApi}>
+              <SendIcon className="mr-3" />
+                Enviar Cargue
+            </MyGPButtonSubmit>
           )}
         </form>
       </Form>
