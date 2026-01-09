@@ -149,9 +149,6 @@ export function SiteHeader() {
               setCompanySelect={setCompanySelect}
             />
           )}
-          {client.reference && (
-            <ManifestacionDialog className="h-5 text-xs w-[200px]" key={client.reference} />
-          )}
           <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
             {client.reference && (
               <PreviosDialog key={client.reference} className="text-xs h-5 w-[150px]" />

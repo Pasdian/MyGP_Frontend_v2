@@ -29,7 +29,7 @@ export function useClientFile(
     }
 
     const controller = new AbortController();
-    const fetchUrl = `/dea/getFileContent?source=/GESTION/${client}/${reference}/${currentFolder}/${filename}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`;
+    const fetchUrl = `/dea/getFileContent?source=/GESTION/${client}/${reference}/${currentFolder}/${filename}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}&_ts=${String(Date.now())}`;
 
     setIsLoading(true);
     setError(null);

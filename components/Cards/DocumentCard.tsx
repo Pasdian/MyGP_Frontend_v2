@@ -43,6 +43,8 @@ export default function DocumentCard({
     url.searchParams.set('source', path);
     url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
 
+    url.searchParams.set('_ts', String(Date.now())); // Invalidate cache
+
     const a = document.createElement('a');
     a.href = url.toString();
     a.download = path;
@@ -58,6 +60,8 @@ export default function DocumentCard({
     const url = new URL('/dea/zip', window.location.origin);
     url.searchParams.set('source', path);
     url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
+
+    url.searchParams.set('_ts', String(Date.now())); // Invalidate cache
 
     const a = document.createElement('a');
     a.href = url.toString();

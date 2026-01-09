@@ -7,7 +7,7 @@ import React from 'react'
 
 export default function DEP(){
   const [client, setClient] = React.useState('')
-  const {rows: companies, isLoading: isCompaniesLoading} = useCompanies()
+  const {rows: companies, loading: isCompaniesLoading} = useCompanies()
 
   const companiesOptions = React.useMemo(() => {
     return companies.map(company => ({

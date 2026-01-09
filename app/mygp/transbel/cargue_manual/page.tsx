@@ -37,6 +37,7 @@ const STATE_LABEL: Record<string, string> = {
 	ERROR_MOUNT_MISSING: 'Error de montaje',
 	ERROR_CARGUE_NOT_FOUND: 'Cargue no encontrado',
 	ERROR_BUSINESS_DATE_HOLIDAY: 'Fecha no hábil',
+  ERROR_PDF_NOT_FOUND: 'No se encontró el pdf'
 };
 
 export function toYMD(date: Date): string {
@@ -59,8 +60,9 @@ export default function CargueManual() {
     'ERROR_MOUNT_MISSING',
     'ERROR_CARGUE_NOT_FOUND',
     'ERROR_BUSINESS_DATE_HOLIDAY',
+    'ERROR_PDF_NOT_FOUND'
   ] as const;
-  const ERROR_STATES = ['ERROR_BUSINESS_DATE_HOLIDAY', 'ERROR_MOUNT_MISSING', 'ERROR_CARGUE_NOT_FOUND'] as const;
+  const ERROR_STATES = ['ERROR_BUSINESS_DATE_HOLIDAY', 'ERROR_MOUNT_MISSING', 'ERROR_CARGUE_NOT_FOUND', 'ERROR_PDF_NOT_FOUND'] as const;
 
   const { data: taskData } = useSWR(
     taskId ? `/tasks/${taskId}` : null,
