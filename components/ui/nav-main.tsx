@@ -45,7 +45,7 @@ export function NavMain() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </Link>
-              <Link href="/mygp/dep">
+              {/* <Link href="/mygp/dep">
                 <SidebarMenuItem className="flex items-center gap-2">
                   <SidebarMenuButton
                     tooltip="Quick Create"
@@ -55,8 +55,8 @@ export function NavMain() {
                     <span>DEP</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </Link>
-            </div>
+              </Link> */ }
+            </div> 
           )}
           <Link href="/mygp/dea">
             <SidebarMenuItem className="flex items-center gap-2">
