@@ -47,7 +47,7 @@ export default function Dashboard() {
   }>(() => getDefaultDashboardRanges());
 
   const [metaState, setMetaState] = React.useState({
-    kamValue: '',
+    casaId: '',
     customValue: '',
     clientValue: '',
     currentPhaseValue: '',
@@ -56,9 +56,9 @@ export default function Dashboard() {
 
   const { data: meta } = useSWR<
     | {
-        kam: string[];
+        kam: { KAM: string; CASA_ID: string }[];
         customs: string[];
-        phases: string[];
+        phases: { CURRENT_PHASE: string; CURRENT_PHASE_CODE: string }[];
         clients: { CVE_IMPO: string; CLIENT_NAME: string }[];
       }
     | undefined
@@ -73,8 +73,8 @@ export default function Dashboard() {
   const kamsOptions = React.useMemo(
     () =>
       meta?.kam?.map((item) => ({
-        value: item,
-        label: item,
+        value: item.CASA_ID,
+        label: item.KAM,
       })) || [],
     [meta]
   );
@@ -103,8 +103,8 @@ export default function Dashboard() {
   const phasesOptions = React.useMemo(
     () =>
       meta?.phases?.map((phase) => ({
-        value: phase,
-        label: phase,
+        value: phase.CURRENT_PHASE_CODE,
+        label: phase.CURRENT_PHASE,
       })) || [],
     [meta]
   );
@@ -128,11 +128,12 @@ export default function Dashboard() {
             <>
               <PermissionGuard requiredPermissions={[PERM.DASHBOARD_TRAFICO_ADMIN]}>
                 <MyGPCombo
-                  value={metaState.kamValue}
-                  setValue={(newValue) => setMetaState((prev) => ({ ...prev, kamValue: newValue }))}
+                  value={metaState.casaId}
+                  setValue={(newValue) => setMetaState((prev) => ({ ...prev, casaId: newValue }))}
                   label="Ejecutivo"
                   options={kamsOptions}
                   placeholder="Selecciona un ejecutivo"
+                  showValue
                 />
               </PermissionGuard>
 
@@ -165,6 +166,7 @@ export default function Dashboard() {
                 label="Etapa Actual"
                 placeholder="Selecciona la etapa actual"
                 options={phasesOptions}
+                showValue
               />
 
               <div className="flex items-end h-full w-full">
@@ -172,7 +174,7 @@ export default function Dashboard() {
                   className="cursor-pointer h-9 px-3 w-[150px]"
                   onClick={() => {
                     setMetaState({
-                      kamValue: '',
+                      casaId: '',
                       clientValue: '',
                       customValue: '',
                       currentPhaseValue: '',

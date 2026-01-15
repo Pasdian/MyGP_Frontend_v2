@@ -49,7 +49,7 @@ export function DailyTrackingDataTable({
   metaState,
 }: {
   metaState: {
-    kamValue: string;
+    casaId: string;
     customValue: string;
     clientValue: string;
     currentPhaseValue: string;
@@ -84,13 +84,13 @@ export function DailyTrackingDataTable({
   const filteredData = React.useMemo(() => {
     if (!Array.isArray(dailyTrackingData) || dailyTrackingData.length === 0) return [];
 
-    const { tabValue, kamValue, customValue, currentPhaseValue, clientValue } = metaState ?? {};
+    const { tabValue, casaId, customValue, currentPhaseValue, clientValue } = metaState ?? {};
 
     const result = dailyTrackingData.filter((item) => {
-      if (currentPhaseValue && item.CURRENT_PHASE !== currentPhaseValue) return false;
+      if (currentPhaseValue && item.CURRENT_PHASE_CODE !== currentPhaseValue) return false;
       if (tabValue === 'open' && item.MSA) return false; // skip if MSA is not empty
       if (tabValue === 'closed' && !item.MSA) return false; // skip if MSA is empty
-      if (kamValue && item.KAM !== kamValue) return false;
+      if (casaId && item.CASA_ID !== casaId) return false;
       if (customValue && item.CUSTOM !== customValue) return false;
       if (clientValue && item.CVE_IMPO !== clientValue) return false;
 
@@ -127,14 +127,6 @@ export function DailyTrackingDataTable({
     onColumnVisibilityChange: setColumnVisibility,
     autoResetPageIndex: false,
   });
-
-  React.useEffect(() => {
-    try {
-      window.localStorage.setItem(COLUMN_VIS_KEY, JSON.stringify(columnVisibility));
-    } catch {
-      // ignore
-    }
-  }, [columnVisibility]);
 
   async function convertToCsv() {
     setIsConvertingToCsv(true);
@@ -224,6 +216,18 @@ export function DailyTrackingDataTable({
   const hiddenCount = table
     .getAllLeafColumns()
     .filter((col) => col.getCanHide() && !col.getIsVisible()).length;
+
+  React.useEffect(() => {
+    try {
+      window.localStorage.setItem(COLUMN_VIS_KEY, JSON.stringify(columnVisibility));
+    } catch {
+      // ignore
+    }
+  }, [columnVisibility]);
+
+  React.useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [metaState]);
 
   if (isDailyTrackingLoading) return <MyGPSpinner />;
 

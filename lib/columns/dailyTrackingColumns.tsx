@@ -5,7 +5,6 @@ import { DailyTracking } from "@/types/dashboard/tracking/dailyTracking";
 
 import { Button } from "@/components/ui/button";
 import DailyTrackingModifyStatus from "@/components/buttons/dashboard/DailyTrackingModifyStatus";
-import React from "react";
 import HoverPopover from "@/components/HoverPopover/HoverPopover";
 
 const fuzzyFilter = createFuzzyFilter<DailyTracking>();
@@ -21,6 +20,37 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     cell: ({ row }) => <DailyTrackingModifyStatus row={row} />,
   },
   {
+    accessorKey: "NUM_PEDI",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted(); // "asc" | "desc" | false
+
+      const Icon =
+        isSorted === "asc"
+          ? ArrowUp
+          : isSorted === "desc"
+            ? ArrowDown
+            : ArrowUpDown;
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(isSorted === "asc");
+          }}
+        >
+          Número de Pedimento
+          <Icon className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    meta: {
+      label: "Número de Pedimento",
+    },
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => (
+      <HoverPopover text={row.original.NUM_PEDI} className="text-center" />
+    ),
+  },
+  {
     accessorKey: "CLIENT_NAME",
     header: "Cliente",
     meta: {
@@ -28,11 +58,7 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
-      <HoverPopover
-        text={row.original.CLIENT_NAME}
-        className="text-center truncate overflow-hidden whitespace-nowrap"
-        maxWidthClass="max-w-[150px]"
-      />
+      <HoverPopover text={row.original.CLIENT_NAME} className="text-center" />
     ),
   },
   {
@@ -47,8 +73,8 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
         isSorted === "asc"
           ? ArrowUp
           : isSorted === "desc"
-          ? ArrowDown
-          : ArrowUpDown;
+            ? ArrowDown
+            : ArrowUpDown;
       return (
         <Button
           variant="ghost"
@@ -79,8 +105,8 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
         isSorted === "asc"
           ? ArrowUp
           : isSorted === "desc"
-          ? ArrowDown
-          : ArrowUpDown;
+            ? ArrowDown
+            : ArrowUpDown;
       return (
         <Button
           variant="ghost"
@@ -110,8 +136,8 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
         isSorted === "asc"
           ? ArrowUp
           : isSorted === "desc"
-          ? ArrowDown
-          : ArrowUpDown;
+            ? ArrowDown
+            : ArrowUpDown;
       return (
         <Button
           variant="ghost"
@@ -141,7 +167,7 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     cell: ({ row }) => (
       <HoverPopover
         text={row.original.PROVIDER}
-        className="text-center truncate overflow-hidden whitespace-nowrap"
+        className="text-center"
         maxWidthClass="max-w-[200px]"
       />
     ),
@@ -158,8 +184,8 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
         isSorted === "asc"
           ? ArrowUp
           : isSorted === "desc"
-          ? ArrowDown
-          : ArrowUpDown;
+            ? ArrowDown
+            : ArrowUpDown;
       return (
         <Button
           variant="ghost"
@@ -189,7 +215,22 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     cell: ({ row }) => (
       <HoverPopover
         text={row.original.CURRENT_PHASE}
-        className="text-center truncate overflow-hidden whitespace-nowrap"
+        className="text-center"
+        maxWidthClass="max-w-[200px]"
+      />
+    ),
+  },
+  {
+    accessorKey: "FEC_ETAP_FORMATTED",
+    header: "Fecha Etapa",
+    meta: {
+      label: "Fecha Etapa",
+    },
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => (
+      <HoverPopover
+        text={row.original.FEC_ETAP_FORMATTED}
+        className="text-center"
         maxWidthClass="max-w-[200px]"
       />
     ),
@@ -202,7 +243,9 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     header: "Aduana",
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
-      <p className="text-center">{row.original.CUSTOM_FORMATTED || "--"}</p>
+      <p className="text-center self-start">
+        {row.original.CUSTOM_FORMATTED || "--"}
+      </p>
     ),
   },
   {
@@ -213,11 +256,7 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     },
     filterFn: fuzzyFilter,
     cell: ({ row }) => (
-      <HoverPopover
-        text={row.original.KAM}
-        className="text-center truncate overflow-hidden whitespace-nowrap"
-        maxWidthClass="max-w-[150px]"
-      />
+      <HoverPopover text={row.original.KAM} className="text-center" />
     ),
   },
   {

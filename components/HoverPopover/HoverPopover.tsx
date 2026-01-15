@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 type HoverPopoverProps = {
@@ -8,6 +7,7 @@ type HoverPopoverProps = {
   contentClassName?: string;
   maxWidthClass?: string;
   fallback?: string;
+  heightClassName?: string; // add
 };
 
 export default function HoverPopover({
@@ -16,6 +16,7 @@ export default function HoverPopover({
   contentClassName = '',
   maxWidthClass = 'max-w-[200px]',
   fallback = '--',
+  heightClassName = 'h-14',
 }: HoverPopoverProps) {
   const value = text?.trim() ?? '';
   const display = value || fallback;
@@ -28,12 +29,10 @@ export default function HoverPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div
-          className={['w-full cursor-default', maxWidthClass, className].join(' ')}
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
-        >
-          {display}
+        <div className={['w-full cursor-default flex items-center h-14'].join(' ')}>
+          <div className={[maxWidthClass, 'w-full truncate text-center', className].join(' ')}>
+            {display}
+          </div>
         </div>
       </PopoverTrigger>
 
