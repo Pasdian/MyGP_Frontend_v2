@@ -23,7 +23,7 @@ export function NavMain() {
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          {pathname === '/mygp/dea' ? (
+          {pathname === '/mygp/dea' && (
             <Link href="/mygp/dashboard">
               <SidebarMenuItem className="flex items-center gap-2">
                 <SidebarMenuButton tooltip="Quick Create" className="font-bold cursor-pointer">
@@ -32,36 +32,24 @@ export function NavMain() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </Link>
-          ) : (
-            <div>
-              <Link href="/mygp/dashboard">
-                <SidebarMenuItem className="flex items-center gap-2">
-                  <SidebarMenuButton
-                    tooltip="Quick Create"
-                    className={pathname == '/mygp/dashboard' ? activeItemClass : inactiveItemClass}
-                  >
-                    <IconDashboard />
-                    <span>Dashboard</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Link>
-              <Link href="/mygp/dep">
-                <SidebarMenuItem className="flex items-center gap-2">
-                  <SidebarMenuButton
-                    tooltip="Quick Create"
-                    className={pathname == '/mygp/dep' ? activeItemClass : inactiveItemClass}
-                  >
-                    <Album />
-                    <span>DEP</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Link>
-            </div> 
+          )}
+          {pathname !== '/mygp/dea' && (
+            <Link href="/mygp/dashboard">
+              <SidebarMenuItem className="flex items-center gap-2">
+                <SidebarMenuButton
+                  tooltip="Dashboard Operativo"
+                  className={pathname == '/mygp/dashboard' ? activeItemClass : inactiveItemClass}
+                >
+                  <IconDashboard />
+                  <span>Dashboard</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </Link>
           )}
           <Link href="/mygp/dea">
             <SidebarMenuItem className="flex items-center gap-2">
               <SidebarMenuButton
-                tooltip="Quick Create"
+                tooltip="DEA"
                 className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
               >
                 <IconAddressBook />
@@ -69,6 +57,19 @@ export function NavMain() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </Link>
+          {pathname !== '/mygp/dea' && (
+            <Link href="/mygp/expediente-digital-cliente">
+              <SidebarMenuItem className="flex items-center gap-2">
+                <SidebarMenuButton
+                  tooltip="Expediente Digital Cliente"
+                  className={pathname == '/mygp/expediente-digital-cliente' ? activeItemClass : inactiveItemClass}
+                >
+                  <Album />
+                  <span>Exp. Digital Cliente</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </Link>
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
