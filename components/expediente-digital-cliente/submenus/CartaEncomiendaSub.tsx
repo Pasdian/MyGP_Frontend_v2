@@ -7,46 +7,69 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
-import {
-  createPdfSchema,
-  expiryDateSchema,
-} from '@/components/expediente-digital-cliente/schemas/utilSchema';
+import { createPdfSchema } from '@/components/expediente-digital-cliente/schemas/utilSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Field, FieldGroup } from '@/components/ui/field';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
-import { Download } from 'lucide-react';
-import axios from 'axios';
 import { DownloadFormato } from '../DownloadFormato';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { toast } from 'sonner';
+
+const RENAME_MAP: Record<string, string> = {
+  cartaEncomienda3901: 'CARTA_ENCOMIENDA_3901',
+  cartaEncomienda3072: 'CARTA_ENCOMIENDA_3072',
+  avisoPrivacidad: 'AVISO_PRIVACIDAD',
+};
 
 export function CartaEncomiendaSub() {
+  const { cliente } = useCliente();
+
   const formSchema = z.object({
     cartaEncomienda3901: createPdfSchema(2_000_000),
-    cartaEncomienda3901Exp: expiryDateSchema,
 
     cartaEncomienda3072: createPdfSchema(2_000_000),
-    cartaEncomienda3072Exp: expiryDateSchema,
 
     avisoPrivacidad: createPdfSchema(2_000_000),
-    avisoPrivacidadExp: expiryDateSchema,
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const path = `/${cliente}/${PATHS.DOCUMENTOS_AREA_COMERCIAL.base}/${PATHS.DOCUMENTOS_AREA_COMERCIAL.subfolders.CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD}`;
+
+      const fileKeys = ['cartaEncomienda3901', 'cartaEncomienda3072', 'avisoPrivacidad'] as const;
+
+      for (const fieldName of fileKeys) {
+        const file = data[fieldName];
+        if (!file) continue;
+
+        const rename = RENAME_MAP[fieldName] ?? fieldName;
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('file', file);
+        formData.append('rename', rename);
+
+        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+      }
+
+      toast.message('Se subieron los archivos correctamente');
+      form.reset(data);
+    } catch (error) {
+      console.error(error);
+      toast.message('Error al subir los archivos');
+    }
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       cartaEncomienda3901: undefined,
-      cartaEncomienda3901Exp: '',
-
       cartaEncomienda3072: undefined,
-      cartaEncomienda3072Exp: '',
-
       avisoPrivacidad: undefined,
-      avisoPrivacidadExp: '',
     },
   });
 

@@ -15,16 +15,57 @@ import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
 import { DownloadFormato } from '../DownloadFormato';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { toast } from 'sonner';
+import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+
+const RENAME_MAP: Record<string, string> = {
+  cuestionarioLavadoTerrorismo: 'CUESTIONARIO_PREVENCION_LAVADO_Y_TERRORISMO',
+  altaClientes: 'ALTA_CLIENTES',
+  listaClinton: 'LISTA_CLINTON',
+};
 
 export function DocumentosComplementariosMain() {
+  const { cliente } = useCliente();
+
   const formSchema = z.object({
     cuestionarioLavadoTerrorismo: createPdfSchema(2_000_000),
     altaClientes: createPdfSchema(2_000_000),
     listaClinton: createPdfSchema(2_000_000),
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      if (!cliente) {
+        toast.message('Selecciona un cliente antes de subir archivos');
+        return;
+      }
+
+      const path = `/${cliente}/${PATHS.DOCUMENTOS_COMPLEMENTARIOS.base}`;
+
+      const fileKeys = ['cuestionarioLavadoTerrorismo', 'altaClientes', 'listaClinton'] as const;
+
+      for (const fieldName of fileKeys) {
+        const file = data[fieldName];
+        if (!file) continue;
+
+        const rename = RENAME_MAP[fieldName] ?? fieldName;
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('file', file);
+        formData.append('rename', rename);
+
+        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+      }
+
+      toast.message('Se subieron los archivos correctamente');
+      form.reset(data);
+    } catch (error) {
+      console.error(error);
+      toast.message('Error al subir los archivos');
+    }
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,7 +97,7 @@ export function DocumentosComplementariosMain() {
 
                       <FileController
                         form={form}
-                        fieldLabel="Cuestionario de Prevención de Lavado de Activos y Financiarión de Terrorismo:"
+                        fieldLabel="Cuestionario de Prevención de Lavado de Activos y Financiación de Terrorismo:"
                         controllerName="cuestionarioLavadoTerrorismo"
                         accept=".pdf"
                         buttonText="Seleccionar .pdf"

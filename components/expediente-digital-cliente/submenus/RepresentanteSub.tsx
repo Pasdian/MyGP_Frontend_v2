@@ -24,8 +24,18 @@ import { FileController } from '@/components/expediente-digital-cliente/form-con
 import { ExpiraEnController } from '@/components/expediente-digital-cliente/form-controllers/ExpiraEnController';
 
 import * as z from 'zod/v4';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { toast } from 'sonner';
+
+const RENAME_MAP: Record<string, string> = {
+  ine: 'INE',
+};
 
 export function RepresentanteSub() {
+  const { cliente } = useCliente();
+
   const formSchema = z.object({
     nombre: z
       .string({ message: 'Ingresa el nombre' })
@@ -65,8 +75,28 @@ export function RepresentanteSub() {
     ineExp: expiryDateSchema,
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_REPRESENTANTE_LEGAL}`;
+
+      const file = data.ine;
+      if (file) {
+        const rename = RENAME_MAP.ine ?? 'ine';
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('file', file);
+        formData.append('rename', rename);
+
+        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+      }
+
+      toast.message('Se subió el INE correctamente');
+      form.reset(data);
+    } catch (error) {
+      console.error(error);
+      toast.message('Error al subir el INE');
+    }
   };
 
   const form = useForm<z.infer<typeof formSchema>>({

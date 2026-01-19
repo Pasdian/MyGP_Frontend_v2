@@ -13,15 +13,52 @@ import { Field, FieldGroup } from '@/components/ui/field';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { toast } from 'sonner';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
+import { Eye } from 'lucide-react';
+import { ShowFile } from '../buttons/ShowFile';
+
+const RENAME_MAP: Record<string, string> = {
+  actaConstitutiva: 'ACTA_CONSTITUTIVA',
+  poderNotarial: 'PODER_NOTARIAL',
+};
 
 export function DocumentosImportadorSub() {
+  const { cliente } = useCliente();
+
   const formSchema = z.object({
     actaConstitutiva: createPdfSchema(30_000_000),
     poderNotarial: createPdfSchema(30_000_000),
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DOCUMENTOS_IMPORTADOR}`;
+
+      const entries = Object.entries(data) as Array<[string, File | undefined]>;
+
+      for (const [fieldName, file] of entries) {
+        if (!file) continue;
+
+        const rename = RENAME_MAP[fieldName] ?? fieldName;
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('file', file);
+        formData.append('rename', rename); // backend keeps .pdf if omitted
+
+        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+      }
+
+      toast.message('Se subieron los archivos correctamente');
+      form.reset(data);
+    } catch (error) {
+      console.error(error);
+      toast.message('Error al subir los archivos');
+    }
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,7 +80,10 @@ export function DocumentosImportadorSub() {
             <CardContent>
               <form id="form-documentos-importador" onSubmit={form.handleSubmit(onSubmit)}>
                 <FieldGroup>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  <div className="grid grid-cols-[auto_1fr] gap-6 mb-4">
+                    <ShowFile
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DOCUMENTOS_IMPORTADOR}/ACTA_CONSTITUTIVA.pdf`}
+                    />
                     <FileController
                       form={form}
                       fieldLabel="Acta Constitutiva:"
@@ -51,6 +91,9 @@ export function DocumentosImportadorSub() {
                       accept=".pdf"
                       buttonText="Seleccionar .pdf"
                     />
+
+                    {/* <ShowFile /> */}
+
                     <FileController
                       form={form}
                       fieldLabel="Poder Notarial:"

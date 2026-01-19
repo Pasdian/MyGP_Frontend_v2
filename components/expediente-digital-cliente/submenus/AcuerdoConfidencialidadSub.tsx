@@ -13,19 +13,57 @@ import { Field, FieldGroup } from '@/components/ui/field';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
-import { Download } from 'lucide-react';
 import { DownloadFormato } from '../DownloadFormato';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { toast } from 'sonner';
+
+const RENAME_MAP: Record<string, string> = {
+  acuerdoConfidencialidad: 'ACUERDO_CONFIDENCIALIDAD',
+  acuerdoSocioComercial: 'ACUERDO_SOCIO_COMERCIAL',
+};
 
 export function AcuerdoConfidencialidadSub() {
+  const { cliente } = useCliente();
+
   const formSchema = z.object({
     acuerdoConfidencialidad: createPdfSchema(2_000_000),
     acuerdoSocioComercial: createPdfSchema(2_000_000),
   });
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
-  };
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      if (!cliente) {
+        toast.message('Selecciona un cliente antes de subir archivos');
+        return;
+      }
 
+      const path = `/${cliente}/${PATHS.DOCUMENTOS_AREA_COMERCIAL.base}/${PATHS.DOCUMENTOS_AREA_COMERCIAL.subfolders.ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL}`;
+
+      const fileKeys = ['acuerdoConfidencialidad', 'acuerdoSocioComercial'] as const;
+
+      for (const fieldName of fileKeys) {
+        const file = data[fieldName];
+        if (!file) continue;
+
+        const rename = RENAME_MAP[fieldName] ?? fieldName;
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('file', file);
+        formData.append('rename', rename);
+
+        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+      }
+
+      toast.message('Se subieron los archivos correctamente');
+      form.reset(data);
+    } catch (error) {
+      console.error(error);
+      toast.message('Error al subir los archivos');
+    }
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

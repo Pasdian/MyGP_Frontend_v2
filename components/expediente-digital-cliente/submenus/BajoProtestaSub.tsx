@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Field, FieldError, FieldGroup } from '@/components/ui/field';
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
@@ -22,8 +22,16 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
-import { ExpiraEnController } from '@/components/expediente-digital-cliente/form-controllers/ExpiraEnController';
 import { DownloadFormato } from '../DownloadFormato';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { toast } from 'sonner';
+import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+
+const RENAME_MAP: Record<keyof z.infer<typeof formSchema>, string> = {
+  usuarioSolicitoOperacion: 'MANIFIESTO_BAJO_PROTESTA_USUARIO_SOLICITO_OPERACION',
+  agenteAduanalVerificoUsuarios: 'MANIFIESTO_BAJO_PROTESTA_AGENTE_ADUANAL_VERIFICO_USUARIOS',
+};
 
 const formSchema = z
   .object({
@@ -53,13 +61,6 @@ const formSchema = z
           message: 'Adjunta el archivo en PDF.',
         });
       }
-      if (!val.usuarioSolicitoOperacion.fileExp) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['usuarioSolicitoOperacion', 'fileExp'],
-          message: 'Selecciona la fecha de vencimiento.',
-        });
-      }
     }
 
     if (!val.agenteAduanalVerificoUsuarios.isChecked) {
@@ -76,22 +77,17 @@ const formSchema = z
           message: 'Adjunta el archivo en PDF.',
         });
       }
-      if (!val.agenteAduanalVerificoUsuarios.fileExp) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['agenteAduanalVerificoUsuarios', 'fileExp'],
-          message: 'Selecciona la fecha de vencimiento.',
-        });
-      }
     }
   });
 
 export function BajoProtestaSub() {
+  const { cliente } = useCliente();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      usuarioSolicitoOperacion: { isChecked: false, file: undefined, fileExp: '' },
-      agenteAduanalVerificoUsuarios: { isChecked: false, file: undefined, fileExp: '' },
+      usuarioSolicitoOperacion: { isChecked: false, file: undefined },
+      agenteAduanalVerificoUsuarios: { isChecked: false, file: undefined },
     },
   });
 
@@ -105,8 +101,33 @@ export function BajoProtestaSub() {
     form.formState.errors.agenteAduanalVerificoUsuarios?.isChecked ??
     form.formState.errors.agenteAduanalVerificoUsuarios?.fileExp;
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.MANIFIESTO_BAJO_PROTESTA}`;
+
+      const sections = Object.keys(RENAME_MAP) as Array<keyof typeof RENAME_MAP>;
+
+      for (const section of sections) {
+        const value = data[section];
+
+        if (!value.isChecked || !value.file) continue;
+
+        const rename = RENAME_MAP[section];
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('file', value.file);
+        formData.append('rename', rename);
+
+        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+      }
+
+      toast.message('Se subieron los manifiestos correctamente');
+      form.reset(data);
+    } catch (error) {
+      console.error(error);
+      toast.message('Error al subir los manifiestos');
+    }
   };
 
   return (

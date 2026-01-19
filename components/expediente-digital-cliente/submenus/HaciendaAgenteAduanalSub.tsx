@@ -18,12 +18,49 @@ import * as z from 'zod/v4';
 
 import { haciendaSchema } from '@/components/expediente-digital-cliente/schemas/utilSchema';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
+import { toast } from 'sonner';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+
+const RENAME_MAP: Record<string, string> = {
+  certificado: 'CERTIFICADO_SAT',
+  efirma: 'EFIRMA_SAT',
+  constancia: 'CONSTANCIA_SITUACION_FISCAL_SAT',
+};
 
 export function HaciendaAgenteAduanalSub() {
+  const { cliente } = useCliente();
+
   const formSchema = z.object(haciendaSchema);
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_HACIENDA_AGENTE_ADUANAL}`;
+
+      const fileKeys = ['certificado', 'efirma', 'constancia'] as const;
+
+      for (const fieldName of fileKeys) {
+        const file = data[fieldName];
+        if (!file) continue;
+
+        const rename = RENAME_MAP[fieldName] ?? fieldName;
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('file', file);
+        formData.append('rename', rename);
+
+        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+      }
+
+      // If you also want to save RFC, send it to a different endpoint or include it in another request
+      toast.message('Se subieron los archivos correctamente');
+      form.reset(data);
+    } catch (error) {
+      console.error(error);
+      toast.message('Error al subir los archivos');
+    }
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
