@@ -19,25 +19,27 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { customsMap } from '@/lib/customs/customs';
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { Card } from '@/components/ui/card';
+
+type ReportConfig = {
+  id: string;
+  title: string;
+  canSee: boolean;
+  companyReportCode: string; // e.g. `${COMPANY.ODW_ELEKTRIK_MEXICO}_IMPO`
+  prefix: string; // filename middle part: IMPO/EXPO/etc
+};
+
+function toYMD(d?: Date) {
+  return d ? d.toISOString().split('T')[0] : undefined;
+}
 
 export default function Reportes() {
   const { hasCompany } = useAuth();
-  const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
 
   const [dateRange, setDateRange] = React.useState<{
     fechaEntradaRange: DateRange | undefined;
   }>(() => {
     const now = new Date();
-
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const oneMonthAgo = new Date(today);
     oneMonthAgo.setMonth(today.getMonth() - 1);
@@ -46,14 +48,6 @@ export default function Reportes() {
       fechaEntradaRange: { from: oneMonthAgo, to: today },
     };
   });
-
-  const { data, isLoading } = useSWR(
-    dateRange.fechaEntradaRange &&
-      `/api/companies/report/${COMPANY.ODW_ELEKTRIK_MEXICO}?initialDate=${
-        dateRange.fechaEntradaRange.from?.toISOString().split('T')[0]
-      }&finalDate=${dateRange.fechaEntradaRange.to?.toISOString().split('T')[0]}`,
-    axiosFetcher
-  );
 
   const reportFieldDescriptions: Array<{ field: string; description: string }> = [
     { field: 'REFERENCIA', description: 'Referencia del pedimento' },
@@ -118,10 +112,32 @@ export default function Reportes() {
 
   const shouldIncludeFieldInCsv = (key: string) => !key.endsWith('_BIN');
 
-  const convertToCsv = async () => {
-    try {
-      setIsConvertingToCsv(true);
+  const escapeCsv = React.useCallback((value: unknown, field?: string) => {
+    if (value === null || value === undefined) return '';
 
+    let s = String(value);
+
+    if (field === 'ADUANA') {
+      s = customsMap[s] ?? s;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+      const [y, m, d] = s.split('T')[0].split('-');
+      s = `${d}/${m}/${y}`;
+    }
+
+    s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    if (s.includes('"')) s = s.replace(/"/g, '""');
+
+    if (/[",\n]/.test(s)) s = `"${s}"`;
+
+    return s;
+  }, []);
+
+  const convertToCsv = React.useCallback(
+    async (args: { data: unknown; filenamePrefix: string }) => {
+      const { data, filenamePrefix } = args;
       const rows: Array<Record<string, unknown>> = Array.isArray(data) ? data : [];
       if (rows.length === 0) return;
 
@@ -141,31 +157,7 @@ export default function Reportes() {
 
       headerKeys.push(...extras);
 
-      const escapeCsv = (value: unknown, field?: string) => {
-        if (value === null || value === undefined) return '';
-
-        let s = String(value);
-
-        if (field === 'ADUANA') {
-          s = customsMap[s] ?? s;
-        }
-
-        if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
-          const [y, m, d] = s.split('T')[0].split('-');
-          s = `${d}/${m}/${y}`;
-        }
-
-        s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-        if (s.includes('"')) s = s.replace(/"/g, '""');
-
-        if (/[",\n]/.test(s)) s = `"${s}"`;
-
-        return s;
-      };
-
       const csvLines: string[] = [];
-
       csvLines.push(headerKeys.map((key) => escapeCsv(csvColumnLabels[key] || key)).join(','));
 
       for (const r of rows) {
@@ -173,13 +165,12 @@ export default function Reportes() {
       }
 
       const csvContent = csvLines.join('\n');
-
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
 
-      const from = dateRange.fechaEntradaRange?.from?.toISOString().split('T')[0] ?? 'NA';
-      const to = dateRange.fechaEntradaRange?.to?.toISOString().split('T')[0] ?? 'NA';
-      const filename = `ODW_ELEKTRIK_MEXICO_${from}_a_${to}.csv`;
+      const from = toYMD(dateRange.fechaEntradaRange?.from) ?? 'NA';
+      const to = toYMD(dateRange.fechaEntradaRange?.to) ?? 'NA';
+      const filename = `${filenamePrefix}_${from}_a_${to}.csv`;
 
       const link = document.createElement('a');
       link.href = url;
@@ -188,15 +179,57 @@ export default function Reportes() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } finally {
-      setIsConvertingToCsv(false);
-    }
-  };
+    },
+    [csvColumnLabels, dateRange.fechaEntradaRange, escapeCsv, reportFieldDescriptions]
+  );
 
-  const canSee =
+  const canSeeODW =
     hasCompany(COMPANY.AGENCIA_ADUANAL_PASCAL_SC) || hasCompany(COMPANY.ODW_ELEKTRIK_MEXICO);
 
-  const canExport = Array.isArray(data) && data.length > 0;
+  const initialDate = toYMD(dateRange.fechaEntradaRange?.from);
+  const finalDate = toYMD(dateRange.fechaEntradaRange?.to);
+
+  const reports: ReportConfig[] = React.useMemo(
+    () => [
+      {
+        id: 'odw-impo',
+        title: 'ODW ELEKTRIK MÉXICO - Importación',
+        canSee: canSeeODW,
+        companyReportCode: `${COMPANY.ODW_ELEKTRIK_MEXICO}_IMPO`,
+        prefix: 'ODW_ELEKTRIK_MEXICO_IMPO',
+      },
+      {
+        id: 'odw-expo',
+        title: 'ODW ELEKTRIK MÉXICO - Exportación',
+        canSee: canSeeODW,
+        companyReportCode: `${COMPANY.ODW_ELEKTRIK_MEXICO}_EXPO`,
+        prefix: 'ODW_ELEKTRIK_MEXICO_EXPO',
+      },
+      // Add more reports here...
+    ],
+    [canSeeODW]
+  );
+
+  // Per-report open state
+  const [openMap, setOpenMap] = React.useState<Record<string, boolean>>({});
+  const toggleOpen = React.useCallback((id: string) => {
+    setOpenMap((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  // Per-report converting state
+  const [convertingMap, setConvertingMap] = React.useState<Record<string, boolean>>({});
+
+  // SWR for each report (map)
+  const swrByReport = reports.map((r) => {
+    const key =
+      r.canSee && initialDate && finalDate
+        ? `/api/companies/report/${r.companyReportCode}?initialDate=${initialDate}&finalDate=${finalDate}`
+        : null;
+
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const swr = useSWR(key, axiosFetcher);
+    return { report: r, ...swr };
+  });
 
   return (
     <div>
@@ -210,74 +243,91 @@ export default function Reportes() {
         />
       </div>
 
-      <div>
-        {canSee && (
-          <div className="font-bold">
-            <Card className="w-full cursor-pointer select-none" onClick={() => setOpen((v) => !v)}>
-              <div className="flex items-center justify-between gap-4 p-4">
-                <div className="flex min-w-0 items-center gap-3">
-                  <p className="text-xl font-bold truncate">Reporte #1 - ODW ELEKTRIK MÉXICO</p>
+      <div className="space-y-3">
+        {swrByReport
+          .filter((x) => x.report.canSee)
+          .map(({ report, data, isLoading }) => {
+            const isOpen = !!openMap[report.id];
+            const isConverting = !!convertingMap[report.id];
+            const canExport = Array.isArray(data) && data.length > 0;
 
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
-                    aria-hidden="true"
-                  />
+            return (
+              <Card
+                key={report.id}
+                className="w-full cursor-pointer select-none"
+                onClick={() => toggleOpen(report.id)}
+              >
+                <div className="flex items-center justify-between gap-4 p-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <p className="text-xl font-bold truncate">{report.title}</p>
+
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 transition-transform ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </div>
+
+                  <Button
+                    className="bg-green-500 font-bold hover:bg-green-700 text-white w-[200px]"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        setConvertingMap((prev) => ({ ...prev, [report.id]: true }));
+                        await convertToCsv({ data, filenamePrefix: report.prefix });
+                      } finally {
+                        setConvertingMap((prev) => ({ ...prev, [report.id]: false }));
+                      }
+                    }}
+                    disabled={!canExport || isConverting || isLoading}
+                  >
+                    {isLoading || isConverting ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Cargando...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Sheet className="h-4 w-4" />
+                        <span>Descargar CSV</span>
+                      </div>
+                    )}
+                  </Button>
                 </div>
 
-                <Button
-                  className="bg-green-500 font-bold hover:bg-green-700 text-white w-[200px]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    convertToCsv();
-                  }}
-                  disabled={!canExport || isConvertingToCsv || isLoading}
-                >
-                  {isLoading || isConvertingToCsv ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Cargando...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Sheet className="h-4 w-4" />
-                      <span>Exportar Tabla a CSV</span>
-                    </div>
-                  )}
-                </Button>
-              </div>
+                {isOpen && (
+                  <div className="px-4 pb-4 pt-0">
+                    <div className="font-normal text-sm">
+                      <p className="mb-2">Este reporte incluye las siguientes columnas:</p>
 
-              {open && (
-                <div className="px-4 pb-4 pt-0">
-                  <div className="font-normal text-sm">
-                    <p className="mb-2">Este reporte incluye las siguientes columnas:</p>
-
-                    <div className="max-h-[500px] overflow-auto rounded-md border">
-                      <Table>
-                        <TableHeader className="sticky top-0 bg-background">
-                          <TableRow>
-                            <TableHead className="font-bold w-[260px]">Campo</TableHead>
-                            <TableHead className="font-bold">Descripción</TableHead>
-                          </TableRow>
-                        </TableHeader>
-
-                        <TableBody>
-                          {reportFieldDescriptions.map((x) => (
-                            <TableRow key={x.field}>
-                              <TableCell className="font-semibold whitespace-nowrap">
-                                {x.field}
-                              </TableCell>
-                              <TableCell className="font-normal">{x.description}</TableCell>
+                      <div className="max-h-[500px] overflow-auto rounded-md border">
+                        <Table>
+                          <TableHeader className="sticky top-0 bg-background">
+                            <TableRow>
+                              <TableHead className="font-bold w-[260px]">Campo</TableHead>
+                              <TableHead className="font-bold">Descripción</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+
+                          <TableBody>
+                            {reportFieldDescriptions.map((x) => (
+                              <TableRow key={x.field}>
+                                <TableCell className="font-semibold whitespace-nowrap">
+                                  {x.field}
+                                </TableCell>
+                                <TableCell className="font-normal">{x.description}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </Card>
-          </div>
-        )}
+                )}
+              </Card>
+            );
+          })}
       </div>
     </div>
   );
