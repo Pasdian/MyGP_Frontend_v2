@@ -17,17 +17,20 @@ import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext
 import { PATHS } from '@/lib/expediente-digital-cliente/paths';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
-import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
-import { Eye } from 'lucide-react';
 import { ShowFile } from '../buttons/ShowFile';
+import { RENAMES } from '@/lib/expediente-digital-cliente/renames';
+import React from 'react';
 
 const RENAME_MAP: Record<string, string> = {
-  actaConstitutiva: 'ACTA_CONSTITUTIVA',
-  poderNotarial: 'PODER_NOTARIAL',
+  actaConstitutiva:
+    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DOCUMENTOS_IMPORTADOR.ACTA_CONSTITUTIVA,
+  poderNotarial: RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DOCUMENTOS_IMPORTADOR.PODER_NOTARIAL,
 };
 
 export function DocumentosImportadorSub() {
   const { cliente } = useCliente();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [accordionOpen, setAccordionOpen] = React.useState(false);
 
   const formSchema = z.object({
     actaConstitutiva: createPdfSchema(30_000_000),
@@ -36,6 +39,7 @@ export function DocumentosImportadorSub() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
+      setIsSubmitting(true);
       const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DOCUMENTOS_IMPORTADOR}`;
 
       const entries = Object.entries(data) as Array<[string, File | undefined]>;
@@ -48,16 +52,18 @@ export function DocumentosImportadorSub() {
         const formData = new FormData();
         formData.append('path', path);
         formData.append('file', file);
-        formData.append('rename', rename); // backend keeps .pdf if omitted
+        formData.append('rename', rename);
 
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
       }
 
-      toast.message('Se subieron los archivos correctamente');
+      toast.info('Se subieron los archivos correctamente');
       form.reset(data);
+      setIsSubmitting(false);
     } catch (error) {
+      setIsSubmitting(false);
       console.error(error);
-      toast.message('Error al subir los archivos');
+      toast.error('Error al subir los archivos');
     }
   };
 
@@ -70,11 +76,18 @@ export function DocumentosImportadorSub() {
   });
 
   return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="item-2 text-white">
-      <AccordionItem value="item-2" className="ml-4">
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full"
+      value={accordionOpen ? 'documentos-importador-sub' : ''}
+      onValueChange={(val) => setAccordionOpen(val === 'documentos-importador-sub')}
+    >
+      <AccordionItem value="documentos-importador-sub" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white px-2 [&>svg]:text-white">
           Documentos del Importador
         </AccordionTrigger>
+
         <AccordionContent>
           <Card className="w-full">
             <CardContent>
@@ -82,7 +95,8 @@ export function DocumentosImportadorSub() {
                 <FieldGroup>
                   <div className="grid grid-cols-[auto_1fr] gap-6 mb-4">
                     <ShowFile
-                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DOCUMENTOS_IMPORTADOR}/ACTA_CONSTITUTIVA.pdf`}
+                      shouldFetch={accordionOpen}
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DOCUMENTOS_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DOCUMENTOS_IMPORTADOR.ACTA_CONSTITUTIVA}.pdf`}
                     />
                     <FileController
                       form={form}
@@ -92,8 +106,10 @@ export function DocumentosImportadorSub() {
                       buttonText="Seleccionar .pdf"
                     />
 
-                    {/* <ShowFile /> */}
-
+                    <ShowFile
+                      shouldFetch={accordionOpen}
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DOCUMENTOS_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DOCUMENTOS_IMPORTADOR.PODER_NOTARIAL}.pdf`}
+                    />
                     <FileController
                       form={form}
                       fieldLabel="Poder Notarial:"
@@ -105,10 +121,11 @@ export function DocumentosImportadorSub() {
                 </FieldGroup>
               </form>
             </CardContent>
+
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
                 <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
-                <MyGPButtonSubmit form="form-documentos-importador">
+                <MyGPButtonSubmit form="form-documentos-importador" isSubmitting={isSubmitting}>
                   Guardar Cambios
                 </MyGPButtonSubmit>
               </Field>

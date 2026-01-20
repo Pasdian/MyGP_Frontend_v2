@@ -22,15 +22,21 @@ import { PATHS } from '@/lib/expediente-digital-cliente/paths';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
+import { RENAMES } from '@/lib/expediente-digital-cliente/renames';
+import { ShowFile } from '../buttons/ShowFile';
+import React from 'react';
 
 const RENAME_MAP: Record<string, string> = {
-  certificado: 'CERTIFICADO_SAT',
-  efirma: 'EFIRMA_SAT',
-  constancia: 'CONSTANCIA_SITUACION_FISCAL_SAT',
+  certificado: RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_HACIENDA_IMPORTADOR.CERTIFICADO_SAT,
+  efirma: RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_HACIENDA_IMPORTADOR.EFIRMA_SAT,
+  constancia:
+    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_HACIENDA_IMPORTADOR
+      .CONSTANCIA_SITUACION_FISCAL_SAT,
 };
 
 export function DatosHaciendaImportadorSub() {
   const { cliente } = useCliente();
+  const [accordionOpen, setAccordionOpen] = React.useState(false);
 
   const formSchema = z.object(haciendaSchema);
 
@@ -74,8 +80,15 @@ export function DatosHaciendaImportadorSub() {
   });
 
   return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="item-2 text-white">
-      <AccordionItem value="item-2" className="ml-4">
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full"
+      value={accordionOpen ? 'datos-hacienda-importador' : ''}
+      onValueChange={(val) => setAccordionOpen(val === 'datos-hacienda-importador')}
+    >
+      {' '}
+      <AccordionItem value="datos-hacienda-importador" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white px-2 [&>svg]:text-white">
           Datos de Hacienda del Importador
         </AccordionTrigger>
@@ -118,7 +131,13 @@ export function DatosHaciendaImportadorSub() {
                       accept=".key"
                       buttonText="Seleccionar .key"
                     />
-
+                    <ShowFile
+                      shouldFetch={accordionOpen}
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${
+                        RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_HACIENDA_IMPORTADOR
+                          .CONSTANCIA_SITUACION_FISCAL_SAT
+                      }.pdf`}
+                    />
                     <FileController
                       form={form}
                       fieldLabel="Constancia de Situación Fiscal:"

@@ -1,3 +1,4 @@
+'use client';
 import {
   Accordion,
   AccordionContent,
@@ -26,13 +27,42 @@ import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext
 import { PATHS } from '@/lib/expediente-digital-cliente/paths';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { ShowFile } from '../buttons/ShowFile';
+import React from 'react';
+import { RENAMES } from '@/lib/expediente-digital-cliente/renames';
 
 const RENAME_MAP: Record<string, string> = {
-  comprobanteDomicilio: 'COMPROBANTE_DE_DOMICILIO',
-  fotosDomicilioFiscal: 'FOTOS_DOMICILIO_FISCAL',
-  acreditacionLegalInmueble: 'ACREDITACION_LEGAL_INMUEBLE',
-  fotosLugarActividades: 'FOTOS_LUGAR_ACTIVIDADES',
+  comprobanteDomicilio:
+    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.COMPROBANTE_DE_DOMICILIO,
+  fotosDomicilioFiscal:
+    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_DOMICILIO_FISCAL,
+  fotosAcreditacionLegalInmueble:
+    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR
+      .FOTOS_ACREDITACION_LEGAL_INMUEBLE,
+  fotosLugarActividades:
+    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_LUGAR_ACTIVIDADES,
 };
+
+const PDF_MERGE_FIELDS = new Set([
+  'fotosDomicilioFiscal',
+  'fotosAcreditacionLegalInmueble',
+  'fotosLugarActividades',
+]);
+async function uploadMergedImagesAsPdf(params: {
+  basePath: string;
+  rename: string;
+  files: File[];
+}) {
+  const formData = new FormData();
+  formData.append('path', params.basePath);
+  formData.append('rename', params.rename);
+
+  for (const f of params.files) {
+    formData.append('files', f); // backend expects List[UploadFile] named "files"
+  }
+
+  await GPClient.post('/expediente-digital-cliente/mergeImagesToPdf', formData);
+}
 
 function formatBytes(bytes: number) {
   if (bytes === 0) return '0 B';
@@ -42,19 +72,26 @@ function formatBytes(bytes: number) {
   return `${(bytes / Math.pow(k, i)).toFixed(i === 0 ? 0 : 1)} ${sizes[i]}`;
 }
 
+function fileToArray(value: File | File[] | undefined): File[] {
+  return Array.isArray(value) ? value.filter(Boolean) : value ? [value] : [];
+}
+
 export function DatosContactoSub() {
   const { cliente } = useCliente();
+  const [accordionOpen, setAccordionOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const formSchema = z.object({
     comprobanteDomicilio: createPdfSchema(2_000_000),
     fotosDomicilioFiscal: createImagesSchema(2_000_000, 10),
-    acreditacionLegalInmueble: createImagesSchema(2_000_000, 30),
+    fotosAcreditacionLegalInmueble: createImagesSchema(2_000_000, 30),
     fotosLugarActividades: createImagesSchema(2_000_000, 30),
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}`;
+      setIsSubmitting(true);
+      const basePath = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}`;
 
       const entries = Object.entries(data) as Array<[string, File | File[] | undefined]>;
 
@@ -63,18 +100,31 @@ export function DatosContactoSub() {
 
         const baseRename = RENAME_MAP[fieldName] ?? fieldName;
 
-        const files = Array.isArray(value) ? value : [value];
+        // Send images to backend to merge into ONE PDF
+        if (PDF_MERGE_FIELDS.has(fieldName)) {
+          const files = fileToArray(value);
+          if (files.length === 0) continue;
+
+          await uploadMergedImagesAsPdf({
+            basePath,
+            rename: baseRename, // backend writes `${rename}.pdf`
+            files,
+          });
+
+          continue;
+        }
+
+        // Default behavior (single pdf upload)
+        const files = fileToArray(value);
 
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           if (!file) continue;
 
           const formData = new FormData();
-          formData.append('path', path);
+          formData.append('path', basePath);
           formData.append('file', file);
 
-          // backend preserves extension if rename has no ".pdf/.png/.jpg"
-          // add index to avoid overwriting
           const rename = files.length > 1 ? `${baseRename}_${i + 1}` : baseRename;
           formData.append('rename', rename);
 
@@ -82,28 +132,36 @@ export function DatosContactoSub() {
         }
       }
 
-      toast.message('Se subieron los archivos correctamente');
+      toast.info('Se subieron los archivos correctamente');
       form.reset(data);
+      setIsSubmitting(false);
     } catch (error) {
+      setIsSubmitting(false);
+
       console.error(error);
-      toast.message('Error al subir los archivos');
+      toast.error('Error al subir los archivos');
     }
   };
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       comprobanteDomicilio: undefined,
 
       fotosDomicilioFiscal: [],
-      acreditacionLegalInmueble: [],
+      fotosAcreditacionLegalInmueble: [],
       fotosLugarActividades: [],
     },
   });
 
   return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="item-2 text-white">
-      <AccordionItem value="item-2" className="ml-4">
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full"
+      value={accordionOpen ? 'datos-contacto-sub' : ''}
+      onValueChange={(val) => setAccordionOpen(val === 'datos-contacto-sub')}
+    >
+      <AccordionItem value="datos-contacto-sub" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white pl-2 [&>svg]:text-white">
           Datos de Contacto del Importador
         </AccordionTrigger>
@@ -112,7 +170,11 @@ export function DatosContactoSub() {
             <CardContent>
               <form id="form-datos-contacto" onSubmit={form.handleSubmit(onSubmit)}>
                 <FieldGroup>
-                  <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="grid grid-cols-[auto_1fr] gap-2 mb-4">
+                    <ShowFile
+                      shouldFetch={accordionOpen}
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.COMPROBANTE_DE_DOMICILIO}.pdf`}
+                    />
                     <FileController
                       form={form}
                       fieldLabel="Comprobante de Domicilio:"
@@ -120,9 +182,12 @@ export function DatosContactoSub() {
                       accept=".pdf"
                       buttonText="Seleccionar .pdf"
                     />
-
+                    <ShowFile
+                      shouldFetch={accordionOpen}
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_ACREDITACION_LEGAL_INMUEBLE}.pdf`}
+                    />
                     <Controller
-                      name="acreditacionLegalInmueble"
+                      name="fotosAcreditacionLegalInmueble"
                       control={form.control}
                       render={({ field, fieldState }) => {
                         const files: File[] = Array.isArray(field.value) ? field.value : [];
@@ -209,7 +274,10 @@ export function DatosContactoSub() {
                         );
                       }}
                     />
-
+                    <ShowFile
+                      shouldFetch={accordionOpen}
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_DOMICILIO_FISCAL}.pdf`}
+                    />
                     <Controller
                       name="fotosDomicilioFiscal"
                       control={form.control}
@@ -297,7 +365,10 @@ export function DatosContactoSub() {
                         );
                       }}
                     />
-
+                    <ShowFile
+                      shouldFetch={accordionOpen}
+                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_LUGAR_ACTIVIDADES}.pdf`}
+                    />
                     <Controller
                       name="fotosLugarActividades"
                       control={form.control}
@@ -388,7 +459,9 @@ export function DatosContactoSub() {
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
                 <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
-                <MyGPButtonSubmit form="form-datos-contacto">Guardar Cambios</MyGPButtonSubmit>
+                <MyGPButtonSubmit form="form-datos-contacto" isSubmitting={isSubmitting}>
+                  Guardar Cambios
+                </MyGPButtonSubmit>
               </Field>
             </CardFooter>
           </Card>
