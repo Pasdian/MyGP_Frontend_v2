@@ -12,7 +12,9 @@ export const createPdfSchema = (maxSize: number) =>
     .file({ message: 'Por favor ingresa un PDF' })
     .min(10_000, 'El archivo debe de ser de mínimo 10 KB')
     .max(maxSize, `El archivo debe de ser de máximo ${maxSize / 1_000_000} MB`)
-    .mime('application/pdf', { message: 'Solo se aceptan archivos PDF' });
+    .mime(['application/pdf', 'image/png', 'image/jpeg'], {
+      message: 'Solo se aceptan archivos .pdf .png .jpeg',
+    });
 
 // expiry date schema
 export const expiryDateSchema = z

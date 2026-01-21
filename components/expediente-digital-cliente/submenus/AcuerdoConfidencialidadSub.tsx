@@ -129,8 +129,8 @@ export function AcuerdoConfidencialidadSub() {
                         form={form}
                         fieldLabel="Acuerdo Confidencialidad:"
                         controllerName="acuerdoConfidencialidad"
-                        buttonText="Seleccionar .pdf"
-                        accept=".pdf"
+                        buttonText="Selecciona .pdf .png .jpeg"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -140,8 +140,8 @@ export function AcuerdoConfidencialidadSub() {
                         form={form}
                         fieldLabel="Acuerdo de Colaboración Socio Comercial"
                         controllerName="acuerdoSocioComercial"
-                        buttonText="Seleccionar .pdf"
-                        accept=".pdf"
+                        buttonText="Selecciona .pdf .png .jpeg"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                   </div>

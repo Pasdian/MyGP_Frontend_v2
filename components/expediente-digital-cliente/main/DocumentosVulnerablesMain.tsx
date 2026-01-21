@@ -181,7 +181,7 @@ export function DocumentosVulnerablesMain() {
                         form={form}
                         fieldLabel="Formato Actividad Vulnerable (3901):"
                         controllerName="formatoActividadVulnerable3901"
-                        accept=".pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -194,7 +194,7 @@ export function DocumentosVulnerablesMain() {
                         form={form}
                         fieldLabel="Formato Actividad Vulnerable (3072):"
                         controllerName="formatoActividadVulnerable3072"
-                        accept=".pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -207,6 +207,7 @@ export function DocumentosVulnerablesMain() {
                         form={form}
                         fieldLabel="Formato de Dueño Beneficiario 3901"
                         controllerName="formatoDuenioBeneficiario3901"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -219,6 +220,7 @@ export function DocumentosVulnerablesMain() {
                         form={form}
                         fieldLabel="Formato de Dueño Beneficiario 3072"
                         controllerName="formatoDuenioBeneficiario3072"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -228,7 +230,8 @@ export function DocumentosVulnerablesMain() {
                         form={form}
                         fieldLabel="Constancia LFPIORPI en Hoja Membretada 3901"
                         controllerName="constanciaHojaMembretada3901"
-                        buttonText="Seleccionar .pdf"
+                        buttonText="Selecciona .pdf .png .jpeg"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -238,7 +241,8 @@ export function DocumentosVulnerablesMain() {
                         form={form}
                         fieldLabel="Constancia LFPIORPI en Hoja Membretada 3072"
                         controllerName="constanciaHojaMembretada3072"
-                        buttonText="Seleccionar .pdf"
+                        buttonText="Selecciona .pdf .png .jpeg"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                   </div>

@@ -211,8 +211,8 @@ export function BajoProtestaSub() {
                         form={form}
                         fieldLabel="Manifiesto bajo protesta de decir verdad del usuario que solicitó la operación:"
                         controllerName="usuarioSolicitoOperacion.file"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
 
@@ -251,8 +251,8 @@ export function BajoProtestaSub() {
                           form={form}
                           fieldLabel="Manifiesto bajo protesta de decir verdad en el que el Agente Aduanal señale que verificó a los usuarios"
                           controllerName="agenteAduanalVerificoUsuarios.file"
-                          accept=".pdf"
-                          buttonText="Seleccionar .pdf"
+                          accept={['application/pdf', 'image/png', 'image/jpeg']}
+                          buttonText="Selecciona .pdf .png .jpeg"
                         />
 
                         <div className="text-sm text-muted-foreground leading-snug">

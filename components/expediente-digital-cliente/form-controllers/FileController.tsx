@@ -16,11 +16,12 @@ export function FileController<TFieldValues extends FieldValues>({
   form: UseFormReturn<TFieldValues>;
   fieldLabel: string;
   controllerName: Path<TFieldValues>;
-  accept?: string;
+  accept?: string | string[];
   buttonText?: string;
   showFileName?: boolean;
   showError?: boolean;
 }) {
+  const acceptValue = typeof accept === 'string' ? accept : accept?.join(',');
   return (
     <Controller
       name={controllerName}
@@ -42,7 +43,7 @@ export function FileController<TFieldValues extends FieldValues>({
             <input
               ref={inputRef}
               type="file"
-              accept={accept}
+              accept={acceptValue}
               className="hidden"
               onBlur={field.onBlur}
               onChange={(e) => {

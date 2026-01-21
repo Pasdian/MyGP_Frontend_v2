@@ -125,7 +125,8 @@ export function TarifasComercialSub() {
                         form={form}
                         fieldLabel="Tarifa Autorizada (deberá entregarse en original)"
                         controllerName="tarifaAutorizada"
-                        buttonText="Seleccionar .pdf"
+                        buttonText="Selecciona .pdf .png .jpeg"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -135,7 +136,7 @@ export function TarifasComercialSub() {
                         form={form}
                         fieldLabel="Tarifa de Preclasificación (en caso de aplicar)"
                         controllerName="tarifaPreclasificacion"
-                        accept=".pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -145,7 +146,7 @@ export function TarifasComercialSub() {
                         form={form}
                         fieldLabel="Tarifa de Americana (en caso de aplicar)"
                         controllerName="tarifaAmericana"
-                        accept=".pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                   </div>

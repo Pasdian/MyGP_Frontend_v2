@@ -1,16 +1,25 @@
-type Doc = {
+type DocTemplate = {
   filename: string;
   size: number;
 };
 
-// A folder can have docs and can also have children folders (recursively).
+type Doc = DocTemplate & {
+  category: number;
+};
+
+type FolderNodeTemplate = {
+  name: string;
+  docs?: Record<string, DocTemplate>;
+  children?: Record<string, FolderNodeTemplate>;
+};
+
 type FolderNode = {
   name: string;
   docs?: Record<string, Doc>;
   children?: Record<string, FolderNode>;
 };
 
-export const FOLDERFILESTRUCT: Record<string, FolderNode> = {
+export const FOLDERFILESTRUCT_TEMPLATE = {
   DOCUMENTOS_IMPORTADOR_EXPORTADOR: {
     name: "Documentos del Importador y_o Exportador",
     children: {
@@ -21,7 +30,10 @@ export const FOLDERFILESTRUCT: Record<string, FolderNode> = {
             filename: "ACTA_CONSTITUTIVA.pdf",
             size: 30_000_000,
           },
-          PODER_NOTARIAL: { filename: "PODER_NOTARIAL.pdf", size: 30_000_000 },
+          PODER_NOTARIAL: {
+            filename: "PODER_NOTARIAL.pdf",
+            size: 30_000_000,
+          },
         },
       },
       DATOS_CONTACTO_DEL_IMPORTADOR: {
@@ -202,4 +214,39 @@ export const FOLDERFILESTRUCT: Record<string, FolderNode> = {
       },
     },
   },
-} as const;
+} satisfies Record<string, FolderNodeTemplate>;
+
+function assignCategories(
+  tree: Record<string, FolderNodeTemplate>,
+  start = 1,
+): Record<string, FolderNode> {
+  let counter = start;
+
+  const walk = (node: FolderNodeTemplate): FolderNode => {
+    const docs = node.docs
+      ? Object.fromEntries(
+          Object.entries(node.docs).map(([key, doc]) => [
+            key,
+            { ...doc, category: counter++ },
+          ]),
+        )
+      : undefined;
+
+    const children = node.children
+      ? Object.fromEntries(
+          Object.entries(node.children).map(([key, child]) => [
+            key,
+            walk(child),
+          ]),
+        )
+      : undefined;
+
+    return { ...node, docs, children };
+  };
+
+  return Object.fromEntries(
+    Object.entries(tree).map(([key, node]) => [key, walk(node)]),
+  );
+}
+
+export const FOLDERFILESTRUCT = assignCategories(FOLDERFILESTRUCT_TEMPLATE);

@@ -134,7 +134,7 @@ export function CartaEncomiendaSub() {
                         form={form}
                         fieldLabel="Carta Encomienda Patente 3901:"
                         controllerName="cartaEncomienda3901"
-                        accept=".pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -146,7 +146,7 @@ export function CartaEncomiendaSub() {
                         form={form}
                         fieldLabel="Carta Encomienda Patente 3072:"
                         controllerName="cartaEncomienda3072"
-                        buttonText="Seleccionar .pdf"
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -158,8 +158,8 @@ export function CartaEncomiendaSub() {
                         form={form}
                         fieldLabel="Aviso de Privacidad:"
                         controllerName="avisoPrivacidad"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
                   </div>

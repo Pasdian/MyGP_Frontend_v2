@@ -130,8 +130,8 @@ export function DocumentosComplementariosMain() {
                         form={form}
                         fieldLabel="Cuestionario de Prevención de Lavado de Activos y Financiación de Terrorismo:"
                         controllerName="cuestionarioLavadoTerrorismo"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -141,8 +141,8 @@ export function DocumentosComplementariosMain() {
                         form={form}
                         fieldLabel="Alta de Clientes:"
                         controllerName="altaClientes"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -162,8 +162,8 @@ export function DocumentosComplementariosMain() {
                         form={form}
                         fieldLabel="Lista Clinton:"
                         controllerName="listaClinton"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
                   </div>

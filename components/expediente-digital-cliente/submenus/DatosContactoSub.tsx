@@ -208,8 +208,8 @@ export function DatosContactoSub() {
                       form={form}
                       fieldLabel="Comprobante de Domicilio:"
                       controllerName="comprobanteDomicilio"
-                      accept=".pdf"
-                      buttonText="Seleccionar .pdf"
+                      accept={['application/pdf', 'image/png', 'image/jpeg']}
+                      buttonText="Selecciona .pdf .png .jpeg"
                     />
                     <ShowFile shouldFetch={accordionOpen} path={fotosAcreditacionPath} />
 

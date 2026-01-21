@@ -358,8 +358,8 @@ export function RepresentanteSub() {
                         form={form}
                         fieldLabel="INE:"
                         controllerName="ine"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
 
                       <ExpiraEnController form={form} controllerName="ineExp" />

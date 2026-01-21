@@ -169,8 +169,8 @@ export function AcreditacionSub() {
                         form={form}
                         fieldLabel="Opinión de Cumplimiento de Obligaciones Fiscales (mes en curso):"
                         controllerName="obligacionesFiscales"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
 
@@ -179,8 +179,8 @@ export function AcreditacionSub() {
                       form={form}
                       fieldLabel="Datos Bancarios en Hoja Membretada:"
                       controllerName="datosBancarios"
-                      accept=".pdf"
-                      buttonText="Seleccionar .pdf"
+                      accept={['application/pdf', 'image/png', 'image/jpeg']}
+                      buttonText="Selecciona .pdf .png .jpeg"
                     />
                     <ExpiraEnController form={form} controllerName="datosBancariosExp" />
 
@@ -189,7 +189,7 @@ export function AcreditacionSub() {
                       form={form}
                       fieldLabel="Generación del Encargo Conferido A.A. José Antonio Pascal Calvillo (no aplica en exportación):"
                       controllerName="conferidoJosePascal"
-                      accept=".pdf"
+                      accept={['application/pdf', 'image/png', 'image/jpeg']}
                     />
                     <ExpiraEnController form={form} controllerName="conferidoJosePascalExp" />
 
@@ -198,7 +198,8 @@ export function AcreditacionSub() {
                       form={form}
                       fieldLabel="Generación del Encargo Conferido A.A. Marco Bremer García (no aplica en exportación):"
                       controllerName="conferidoMarcoBremer"
-                      buttonText="Seleccionar .pdf"
+                      buttonText="Selecciona .pdf .png .jpeg"
+                      accept={['application/pdf', 'image/png', 'image/jpeg']}
                     />
                     <ExpiraEnController form={form} controllerName="conferidoMarcoBremerExp" />
                   </div>

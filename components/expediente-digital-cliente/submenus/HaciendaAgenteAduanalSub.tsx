@@ -179,8 +179,8 @@ export function HaciendaAgenteAduanalSub() {
                             form={form}
                             fieldLabel="Constancia de Situación Fiscal:"
                             controllerName="constancia"
-                            accept=".pdf"
-                            buttonText="Seleccionar .pdf"
+                            accept={['application/pdf', 'image/png', 'image/jpeg']}
+                            buttonText="Selecciona .pdf .png .jpeg"
                           />
                         </div>
                       </div>
