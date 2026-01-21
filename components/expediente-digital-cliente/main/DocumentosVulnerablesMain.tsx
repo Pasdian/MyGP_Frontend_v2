@@ -18,48 +18,87 @@ import { DownloadFormato } from '../DownloadFormato';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
-import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import React from 'react';
+import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
+
+const _documentosVulnerables = FOLDERFILESTRUCT.DOCUMENTOS_ACTIVIDAD_VULNERABLE;
+
+if (!_documentosVulnerables?.docs) {
+  throw new Error('Missing DOCUMENTOS_ACTIVIDAD_VULNERABLE docs');
+}
 
 const RENAME_MAP: Record<string, string> = {
-  formatoActividadVulnerable3901: 'FORMATO_ACTIVIDAD_VULNERABLE_3901',
-  formatoActividadVulnerable3072: 'FORMATO_ACTIVIDAD_VULNERABLE_3901',
+  formatoActividadVulnerable3901:
+    _documentosVulnerables.docs.FORMATO_ACTIVIDAD_VULNERABLE_3901.filename,
+  formatoActividadVulnerable3072:
+    _documentosVulnerables.docs.FORMATO_ACTIVIDAD_VULNERABLE_3072.filename,
 
-  formatoDuenioBeneficiario3901: 'FORMATO_DUEÑO_BENEFICIARIO_3901',
-  formatoDuenioBeneficiario3072: 'FORMATO_DUEÑO_BENEFICIARIO_3072',
+  formatoDuenioBeneficiario3901:
+    _documentosVulnerables.docs.FORMATO_DUEÑO_BENEFICIARIO_3901.filename,
+  formatoDuenioBeneficiario3072:
+    _documentosVulnerables.docs.FORMATO_DUEÑO_BENEFICIARIO_3072.filename,
 
-  constanciaHojaMembretada3091: 'LFPIORPI_HOJA_MEMBRETADA_3901',
-  constanciaHojaMembretada3072: 'LFPIORPI_HOJA_MEMBRETADA_3072',
+  constanciaHojaMembretada3901: _documentosVulnerables.docs.LFPIORPI_HOJA_MEMBRETADA_3901.filename,
+  constanciaHojaMembretada3072: _documentosVulnerables.docs.LFPIORPI_HOJA_MEMBRETADA_3072.filename,
 };
 
 export function DocumentosVulnerablesMain() {
   const { cliente } = useCliente();
+  const [accordionOpen, setAccordionOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const DOCUMENTOS_ACTIVIDAD_VULNERABLE = FOLDERFILESTRUCT.DOCUMENTOS_ACTIVIDAD_VULNERABLE;
+  const DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS = DOCUMENTOS_ACTIVIDAD_VULNERABLE?.docs;
+
+  const basePath = `/${cliente}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE.name}`;
+
+  const formatoActividadVulnerable3901Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3901.filename}`;
+  const formatoActividadVulnerable3072Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3072.filename}`;
+
+  const formatodueñoBeneficiario3901Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_DUEÑO_BENEFICIARIO_3901.filename}`;
+  const formatodueñoBeneficiario3072Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_DUEÑO_BENEFICIARIO_3072.filename}`;
+
+  const lfpiorpi3901Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.LFPIORPI_HOJA_MEMBRETADA_3901.filename}`;
+  const lfpiorpi3072Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.LFPIORPI_HOJA_MEMBRETADA_3072.filename}`;
 
   const formSchema = z.object({
-    formatoActividadVulnerable3901: createPdfSchema(2_000_000),
-    formatoActividadVulnerable3072: createPdfSchema(2_000_000),
+    formatoActividadVulnerable3901: createPdfSchema(
+      DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3901.size || 2_000_000
+    ),
+    formatoActividadVulnerable3072: createPdfSchema(
+      DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3072.size || 2_000_000
+    ),
 
-    formatoDuenioBeneficiario3901: createPdfSchema(2_000_000),
-    formatoDuenioBeneficiario3072: createPdfSchema(2_000_000),
+    formatoDuenioBeneficiario3901: createPdfSchema(
+      DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_DUEÑO_BENEFICIARIO_3901.size || 2_000_000
+    ),
+    formatoDuenioBeneficiario3072: createPdfSchema(
+      DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_DUEÑO_BENEFICIARIO_3072.size || 2_000_000
+    ),
 
-    constanciaHojaMembretada3091: createPdfSchema(2_000_000),
-    constanciaHojaMembretada3072: createPdfSchema(2_000_000),
+    constanciaHojaMembretada3901: createPdfSchema(
+      DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.LFPIORPI_HOJA_MEMBRETADA_3901.size || 2_000_000
+    ),
+    constanciaHojaMembretada3072: createPdfSchema(
+      DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.LFPIORPI_HOJA_MEMBRETADA_3072.size || 2_000_000
+    ),
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
+      setIsSubmitting(true);
       if (!cliente) {
         toast.message('Selecciona un cliente antes de subir archivos');
         return;
       }
-
-      const path = `/${cliente}/${PATHS.DOCUMENTOS_ACTIVIDAD_VULNERABLE.base}`;
 
       const fileKeys = [
         'formatoActividadVulnerable3901',
         'formatoActividadVulnerable3072',
         'formatoDuenioBeneficiario3901',
         'formatoDuenioBeneficiario3072',
-        'constanciaHojaMembretada3091',
+        'constanciaHojaMembretada3901',
         'constanciaHojaMembretada3072',
       ] as const;
 
@@ -70,7 +109,7 @@ export function DocumentosVulnerablesMain() {
         const rename = RENAME_MAP[fieldName] ?? fieldName;
 
         const formData = new FormData();
-        formData.append('path', path);
+        formData.append('path', basePath);
         formData.append('file', file);
         formData.append('rename', rename);
 
@@ -78,8 +117,20 @@ export function DocumentosVulnerablesMain() {
       }
 
       toast.message('Se subieron los archivos correctamente');
+      await Promise.all([
+        revalidateFileExists(formatoActividadVulnerable3901Path),
+        revalidateFileExists(formatoActividadVulnerable3072Path),
+
+        revalidateFileExists(formatodueñoBeneficiario3901Path),
+        revalidateFileExists(formatodueñoBeneficiario3072Path),
+
+        revalidateFileExists(lfpiorpi3901Path),
+        revalidateFileExists(lfpiorpi3072Path),
+      ]);
       form.reset(data);
+      setIsSubmitting(false);
     } catch (error) {
+      setIsSubmitting(false);
       console.error(error);
       toast.message('Error al subir los archivos');
     }
@@ -94,14 +145,20 @@ export function DocumentosVulnerablesMain() {
       formatoDuenioBeneficiario3901: undefined,
       formatoDuenioBeneficiario3072: undefined,
 
-      constanciaHojaMembretada3091: undefined,
+      constanciaHojaMembretada3901: undefined,
       constanciaHojaMembretada3072: undefined,
     },
   });
 
   return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="item-1 text-white">
-      <AccordionItem value="item-1">
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full"
+      value={accordionOpen ? 'documentos-vulnerables' : ''}
+      onValueChange={(val) => setAccordionOpen(val === 'documentos-vulnerables')}
+    >
+      <AccordionItem value="documentos-vulnerables">
         <AccordionTrigger className="bg-yellow-600 text-white px-2 [&>svg]:text-white mb-2">
           <div className="grid grid-cols-[auto_1fr] gap-2 place-items-center">
             <FileIcon size={18} />
@@ -115,18 +172,24 @@ export function DocumentosVulnerablesMain() {
                 <FieldGroup>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                     <div className="flex gap-2">
+                      <ShowFile
+                        shouldFetch={accordionOpen}
+                        path={formatoActividadVulnerable3901Path}
+                      />
                       <DownloadFormato doc="FORMATO_ACTIVIDAD_VULNERABLE_3901" />
-
                       <FileController
                         form={form}
-                        fieldLabel="Formato Actividad Vulnerable (3091):"
+                        fieldLabel="Formato Actividad Vulnerable (3901):"
                         controllerName="formatoActividadVulnerable3901"
                         accept=".pdf"
                       />
                     </div>
                     <div className="flex gap-2">
+                      <ShowFile
+                        shouldFetch={accordionOpen}
+                        path={formatoActividadVulnerable3072Path}
+                      />
                       <DownloadFormato doc="FORMATO_ACTIVIDAD_VULNERABLE_3072" />
-
                       <FileController
                         form={form}
                         fieldLabel="Formato Actividad Vulnerable (3072):"
@@ -135,8 +198,11 @@ export function DocumentosVulnerablesMain() {
                       />
                     </div>
                     <div className="flex gap-2">
+                      <ShowFile
+                        shouldFetch={accordionOpen}
+                        path={formatodueñoBeneficiario3901Path}
+                      />
                       <DownloadFormato doc="FORMATO_DUENIO_BENEFICIARIO_3901" />
-
                       <FileController
                         form={form}
                         fieldLabel="Formato de Dueño Beneficiario 3901"
@@ -144,8 +210,11 @@ export function DocumentosVulnerablesMain() {
                       />
                     </div>
                     <div className="flex gap-2">
+                      <ShowFile
+                        shouldFetch={accordionOpen}
+                        path={formatodueñoBeneficiario3072Path}
+                      />
                       <DownloadFormato doc="FORMATO_DUENIO_BENEFICIARIO_3072" />
-
                       <FileController
                         form={form}
                         fieldLabel="Formato de Dueño Beneficiario 3072"
@@ -153,18 +222,18 @@ export function DocumentosVulnerablesMain() {
                       />
                     </div>
                     <div className="flex gap-2">
+                      <ShowFile shouldFetch={accordionOpen} path={lfpiorpi3901Path} />
                       <DownloadFormato doc="LFPIORPI_3901" />
-
                       <FileController
                         form={form}
                         fieldLabel="Constancia LFPIORPI en Hoja Membretada 3901"
-                        controllerName="constanciaHojaMembretada3091"
+                        controllerName="constanciaHojaMembretada3901"
                         buttonText="Seleccionar .pdf"
                       />
                     </div>
                     <div className="flex gap-2">
+                      <ShowFile shouldFetch={accordionOpen} path={lfpiorpi3072Path} />
                       <DownloadFormato doc="LFPIORPI_3072" />
-
                       <FileController
                         form={form}
                         fieldLabel="Constancia LFPIORPI en Hoja Membretada 3072"
@@ -179,7 +248,7 @@ export function DocumentosVulnerablesMain() {
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
                 <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
-                <MyGPButtonSubmit form="form-actividad-vulnerable">
+                <MyGPButtonSubmit form="form-actividad-vulnerable" isSubmitting={isSubmitting}>
                   Guardar Cambios
                 </MyGPButtonSubmit>
               </Field>

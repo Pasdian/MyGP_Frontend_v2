@@ -24,38 +24,41 @@ export const expiryDateSchema = z
     return !isBefore(selected, oneMonthFromToday); // >= allowed
   }, 'Debe ser por lo menos un mes a partir de hoy');
 
-// hacienda Schema
-export const haciendaSchema = {
-  rfc: z.string().max(13, { error: 'El RFC es de máximo 13 caracteres' }).min(1, 'Ingresa un RFC'),
+export const buildHaciendaSchema = (certSize: number, efirmaSize: number, constanciaSize: number) =>
+  z.object({
+    rfc: z
+      .string()
+      .max(13, { error: 'El RFC es de máximo 13 caracteres' })
+      .min(1, 'Ingresa un RFC'),
 
-  certificado: z
-    .file({ message: 'Por favor ingresa un PDF' })
-    .max(2_000_000, 'El certificado debe ser máximo de 2MB')
-    .mime(
-      ['application/x-x509-ca-cert', 'application/pkix-cert', 'application/octet-stream'],
-      'El certificado debe ser un archivo .cer válido'
-    )
-    .refine(
-      (file) => file.name.toLowerCase().endsWith('.cer'),
-      'El certificado debe tener extensión .cer'
-    ),
+    certificado: z
+      .file({ message: 'Por favor ingresa un PDF' })
+      .max(certSize, 'El certificado debe ser máximo de 2MB')
+      .mime(
+        ['application/x-x509-ca-cert', 'application/pkix-cert', 'application/octet-stream'],
+        'El certificado debe ser un archivo .cer válido'
+      )
+      .refine(
+        (file) => file.name.toLowerCase().endsWith('.cer'),
+        'El certificado debe tener extensión .cer'
+      ),
 
-  efirma: z
-    .file({ message: 'Por favor ingresa un PDF' })
-    .max(2_000_000, 'La e-firma debe ser máximo de 2MB')
-    .mime(
-      [
-        'application/vnd.apple.keynote',
-        'application/octet-stream',
-        'application/x-pem-file',
-        'application/pkcs8',
-      ],
-      'La e-firma debe ser un archivo .key válido'
-    )
-    .refine(
-      (file) => file.name.toLowerCase().endsWith('.key'),
-      'La e-firma debe tener extensión .key'
-    ),
+    efirma: z
+      .file({ message: 'Por favor ingresa un PDF' })
+      .max(efirmaSize, 'La e-firma debe ser máximo de 2MB')
+      .mime(
+        [
+          'application/vnd.apple.keynote',
+          'application/octet-stream',
+          'application/x-pem-file',
+          'application/pkcs8',
+        ],
+        'La e-firma debe ser un archivo .key válido'
+      )
+      .refine(
+        (file) => file.name.toLowerCase().endsWith('.key'),
+        'La e-firma debe tener extensión .key'
+      ),
 
-  constancia: createPdfSchema(5_000_000),
-};
+    constancia: createPdfSchema(constanciaSize),
+  });

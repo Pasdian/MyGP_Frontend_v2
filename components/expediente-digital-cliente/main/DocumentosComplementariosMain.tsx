@@ -6,7 +6,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Download, FileIcon } from 'lucide-react';
+import { FileIcon, LinkIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { createPdfSchema } from '@/components/expediente-digital-cliente/schemas/utilSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,21 +18,43 @@ import { DownloadFormato } from '../DownloadFormato';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
-import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import React from 'react';
+import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
+
+const _documentosComplementarios = FOLDERFILESTRUCT.DOCUMENTOS_COMPLEMENTARIOS;
+
+if (!_documentosComplementarios?.docs) {
+  throw new Error('Missing DOCUMENTOS_COMPLEMENTARIOS docs');
+}
 
 const RENAME_MAP: Record<string, string> = {
-  cuestionarioLavadoTerrorismo: 'CUESTIONARIO_PREVENCION_LAVADO_Y_TERRORISMO',
-  altaClientes: 'ALTA_CLIENTES',
-  listaClinton: 'LISTA_CLINTON',
+  cuestionarioLavadoTerrorismo:
+    _documentosComplementarios.docs.CUESTIONARIO_PREVENCION_LAVADO_ACTIVOS.filename,
+  altaClientes: _documentosComplementarios.docs.ALTA_CLIENTES.filename,
+  listaClinton: _documentosComplementarios.docs.LISTA_CLINTON.filename,
 };
 
 export function DocumentosComplementariosMain() {
   const { cliente } = useCliente();
+  const [accordionOpen, setAccordionOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const DOCUMENTOS_COMPLEMENTARIOS = FOLDERFILESTRUCT.DOCUMENTOS_COMPLEMENTARIOS;
+  const DOCUMENTOS_COMPLEMENTARIOS_DOCS = DOCUMENTOS_COMPLEMENTARIOS?.docs;
+
+  const basePath = `/${cliente}/${DOCUMENTOS_COMPLEMENTARIOS.name}`;
+
+  const cuestionarioPath = `${basePath}/${DOCUMENTOS_COMPLEMENTARIOS_DOCS?.CUESTIONARIO_PREVENCION_LAVADO_ACTIVOS.filename}`;
+  const altaClientesPath = `${basePath}/${DOCUMENTOS_COMPLEMENTARIOS_DOCS?.ALTA_CLIENTES.filename}`;
+  const listaClintonPath = `${basePath}/${DOCUMENTOS_COMPLEMENTARIOS_DOCS?.LISTA_CLINTON.filename}`;
 
   const formSchema = z.object({
-    cuestionarioLavadoTerrorismo: createPdfSchema(2_000_000),
-    altaClientes: createPdfSchema(2_000_000),
-    listaClinton: createPdfSchema(2_000_000),
+    cuestionarioLavadoTerrorismo: createPdfSchema(
+      DOCUMENTOS_COMPLEMENTARIOS_DOCS?.CUESTIONARIO_PREVENCION_LAVADO_ACTIVOS.size || 2_000_000
+    ),
+    altaClientes: createPdfSchema(DOCUMENTOS_COMPLEMENTARIOS_DOCS?.ALTA_CLIENTES.size || 2_000_000),
+    listaClinton: createPdfSchema(DOCUMENTOS_COMPLEMENTARIOS_DOCS?.LISTA_CLINTON.size || 2_000_000),
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -41,8 +63,6 @@ export function DocumentosComplementariosMain() {
         toast.message('Selecciona un cliente antes de subir archivos');
         return;
       }
-
-      const path = `/${cliente}/${PATHS.DOCUMENTOS_COMPLEMENTARIOS.base}`;
 
       const fileKeys = ['cuestionarioLavadoTerrorismo', 'altaClientes', 'listaClinton'] as const;
 
@@ -53,7 +73,7 @@ export function DocumentosComplementariosMain() {
         const rename = RENAME_MAP[fieldName] ?? fieldName;
 
         const formData = new FormData();
-        formData.append('path', path);
+        formData.append('path', basePath);
         formData.append('file', file);
         formData.append('rename', rename);
 
@@ -61,6 +81,11 @@ export function DocumentosComplementariosMain() {
       }
 
       toast.message('Se subieron los archivos correctamente');
+      await Promise.all([
+        revalidateFileExists(cuestionarioPath),
+        revalidateFileExists(altaClientesPath),
+        revalidateFileExists(listaClintonPath),
+      ]);
       form.reset(data);
     } catch (error) {
       console.error(error);
@@ -78,8 +103,14 @@ export function DocumentosComplementariosMain() {
   });
 
   return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="item-1 text-white">
-      <AccordionItem value="item-1">
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full"
+      value={accordionOpen ? 'documentos-complementarios' : ''}
+      onValueChange={(val) => setAccordionOpen(val === 'documentos-complementarios')}
+    >
+      <AccordionItem value="documentos-complementarios">
         <AccordionTrigger className="bg-green-700 text-white px-2 [&>svg]:text-white mb-2">
           <div className="grid grid-cols-[auto_1fr] gap-2 place-items-center">
             <FileIcon size={18} />
@@ -93,8 +124,8 @@ export function DocumentosComplementariosMain() {
                 <FieldGroup>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                     <div className="flex gap-2">
+                      <ShowFile shouldFetch={accordionOpen} path={cuestionarioPath} />
                       <DownloadFormato doc="CUESTIONARIO_PREVENCION_LAVADO_TERRORISMO" />
-
                       <FileController
                         form={form}
                         fieldLabel="Cuestionario de Prevención de Lavado de Activos y Financiación de Terrorismo:"
@@ -104,8 +135,8 @@ export function DocumentosComplementariosMain() {
                       />
                     </div>
                     <div className="flex gap-2">
+                      <ShowFile shouldFetch={accordionOpen} path={altaClientesPath} />
                       <DownloadFormato doc="ALTA_CLIENTES" />
-
                       <FileController
                         form={form}
                         fieldLabel="Alta de Clientes:"
@@ -115,7 +146,8 @@ export function DocumentosComplementariosMain() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Download
+                      <ShowFile shouldFetch={accordionOpen} path={listaClintonPath} />
+                      <LinkIcon
                         size={20}
                         className="cursor-pointer"
                         onClick={() => {
@@ -126,7 +158,6 @@ export function DocumentosComplementariosMain() {
                           );
                         }}
                       />
-
                       <FileController
                         form={form}
                         fieldLabel="Lista Clinton:"

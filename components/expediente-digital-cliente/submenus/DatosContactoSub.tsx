@@ -24,23 +24,24 @@ import { FileController } from '@/components/expediente-digital-cliente/form-con
 
 import * as z from 'zod/v4';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { ShowFile } from '../buttons/ShowFile';
+import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
 import React from 'react';
-import { RENAMES } from '@/lib/expediente-digital-cliente/renames';
+
+const _datosContacto =
+  FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_CONTACTO_DEL_IMPORTADOR;
+
+if (!_datosContacto?.docs) {
+  throw new Error('Missing DATOS_CONTACTO_DEL_IMPORTADOR docs');
+}
 
 const RENAME_MAP: Record<string, string> = {
-  comprobanteDomicilio:
-    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.COMPROBANTE_DE_DOMICILIO,
-  fotosDomicilioFiscal:
-    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_DOMICILIO_FISCAL,
-  fotosAcreditacionLegalInmueble:
-    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR
-      .FOTOS_ACREDITACION_LEGAL_INMUEBLE,
-  fotosLugarActividades:
-    RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_LUGAR_ACTIVIDADES,
+  comprobanteDomicilio: _datosContacto.docs.COMPROBANTE_DE_DOMICILIO.filename,
+  fotosDomicilioFiscal: _datosContacto.docs.FOTOS_DOMICILIO_FISCAL.filename,
+  fotosAcreditacionLegalInmueble: _datosContacto.docs.FOTOS_ACREDITACION_LEGAL_INMUEBLE.filename,
+  fotosLugarActividades: _datosContacto.docs.FOTOS_LUGAR_ACTIVIDADES.filename,
 };
 
 const PDF_MERGE_FIELDS = new Set([
@@ -81,17 +82,40 @@ export function DatosContactoSub() {
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  const DOCUMENTOS_IMPORTADOR_EXPORTADOR = FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR;
+  const DATOS_CONTACTO_DEL_IMPORTADOR =
+    DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_CONTACTO_DEL_IMPORTADOR;
+  const DATOS_CONTACTO_DEL_IMPORTADOR_DOCS =
+    DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_CONTACTO_DEL_IMPORTADOR.docs;
+
+  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_CONTACTO_DEL_IMPORTADOR?.name}`;
+
+  const comprobantePath = `${basePath}/${DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.COMPROBANTE_DE_DOMICILIO.filename}`;
+  const fotosAcreditacionPath = `${basePath}/${DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_ACREDITACION_LEGAL_INMUEBLE.filename}`;
+  const fotosDomicilioFiscalPath = `${basePath}/${DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_DOMICILIO_FISCAL.filename}`;
+  const fotosLugarActividadesPath = `${basePath}/${DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_LUGAR_ACTIVIDADES.filename}`;
+
   const formSchema = z.object({
-    comprobanteDomicilio: createPdfSchema(2_000_000),
-    fotosDomicilioFiscal: createImagesSchema(2_000_000, 10),
-    fotosAcreditacionLegalInmueble: createImagesSchema(2_000_000, 30),
-    fotosLugarActividades: createImagesSchema(2_000_000, 30),
+    comprobanteDomicilio: createPdfSchema(
+      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.COMPROBANTE_DE_DOMICILIO?.size || 2_000_000
+    ),
+    fotosDomicilioFiscal: createImagesSchema(
+      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_DOMICILIO_FISCAL?.size || 2_000_000,
+      10
+    ),
+    fotosAcreditacionLegalInmueble: createImagesSchema(
+      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_ACREDITACION_LEGAL_INMUEBLE?.size || 2_000_000,
+      30
+    ),
+    fotosLugarActividades: createImagesSchema(
+      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_LUGAR_ACTIVIDADES?.size || 2_000_000,
+      30
+    ),
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      const basePath = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}`;
 
       const entries = Object.entries(data) as Array<[string, File | File[] | undefined]>;
 
@@ -133,6 +157,13 @@ export function DatosContactoSub() {
       }
 
       toast.info('Se subieron los archivos correctamente');
+      await Promise.all([
+        revalidateFileExists(comprobantePath),
+        revalidateFileExists(fotosAcreditacionPath),
+        revalidateFileExists(fotosDomicilioFiscalPath),
+        revalidateFileExists(fotosLugarActividadesPath),
+      ]);
+
       form.reset(data);
       setIsSubmitting(false);
     } catch (error) {
@@ -171,10 +202,8 @@ export function DatosContactoSub() {
               <form id="form-datos-contacto" onSubmit={form.handleSubmit(onSubmit)}>
                 <FieldGroup>
                   <div className="grid grid-cols-[auto_1fr] gap-2 mb-4">
-                    <ShowFile
-                      shouldFetch={accordionOpen}
-                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.COMPROBANTE_DE_DOMICILIO}.pdf`}
-                    />
+                    <ShowFile shouldFetch={accordionOpen} path={comprobantePath} />
+
                     <FileController
                       form={form}
                       fieldLabel="Comprobante de Domicilio:"
@@ -182,10 +211,8 @@ export function DatosContactoSub() {
                       accept=".pdf"
                       buttonText="Seleccionar .pdf"
                     />
-                    <ShowFile
-                      shouldFetch={accordionOpen}
-                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_ACREDITACION_LEGAL_INMUEBLE}.pdf`}
-                    />
+                    <ShowFile shouldFetch={accordionOpen} path={fotosAcreditacionPath} />
+
                     <Controller
                       name="fotosAcreditacionLegalInmueble"
                       control={form.control}
@@ -274,10 +301,8 @@ export function DatosContactoSub() {
                         );
                       }}
                     />
-                    <ShowFile
-                      shouldFetch={accordionOpen}
-                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_DOMICILIO_FISCAL}.pdf`}
-                    />
+                    <ShowFile shouldFetch={accordionOpen} path={fotosDomicilioFiscalPath} />
+
                     <Controller
                       name="fotosDomicilioFiscal"
                       control={form.control}
@@ -365,10 +390,8 @@ export function DatosContactoSub() {
                         );
                       }}
                     />
-                    <ShowFile
-                      shouldFetch={accordionOpen}
-                      path={`/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_CONTACTO_DEL_IMPORTADOR}/${RENAMES.DOCUMENTOS_IMPORTADOR_EXPORTADOR.DATOS_CONTACTO_DEL_IMPORTADOR.FOTOS_LUGAR_ACTIVIDADES}.pdf`}
-                    />
+                    <ShowFile shouldFetch={accordionOpen} path={fotosLugarActividadesPath} />
+
                     <Controller
                       name="fotosLugarActividades"
                       control={form.control}

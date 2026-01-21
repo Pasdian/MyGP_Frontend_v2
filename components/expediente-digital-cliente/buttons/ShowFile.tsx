@@ -1,11 +1,21 @@
+// ShowFile.tsx
 import * as React from 'react';
+import useSWR, { mutate } from 'swr';
 import { Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 
 type ShowFileProps = {
   path?: string;
   shouldFetch?: boolean;
+  className?: string;
 };
+
+type FileExistsKey = readonly ['file-exists', string];
+type FileExistsSWRKey = FileExistsKey | null;
+
+export const fileExistsKey = (path?: string, shouldFetch: boolean = true): FileExistsSWRKey =>
+  shouldFetch && path ? ['file-exists', path] : null;
 
 function openPopup(): Window | null {
   const popup = window.open(
@@ -32,124 +42,112 @@ function openPopup(): Window | null {
   return popup;
 }
 
-function buildNoCacheUrl(path: string) {
+function buildFileUrl(path: string) {
   const qs = new URLSearchParams({
     path,
-    api_key: '91940ba1-ec71-4d4d-bd14-bbde49ce50cc',
     _ts: String(Date.now()),
   });
+
   return `/expediente-digital-cliente/getFile?${qs.toString()}`;
 }
 
-async function checkExists(url: string, signal: AbortSignal): Promise<boolean> {
+async function checkExistsWithAxios(url: string, signal?: AbortSignal): Promise<boolean> {
   try {
-    const head = await fetch(url, {
+    const head = await GPClient.request({
+      url,
       method: 'HEAD',
-      credentials: 'include',
-      cache: 'no-store',
+      signal,
+      validateStatus: () => true,
       headers: {
         'Cache-Control': 'no-cache',
         Pragma: 'no-cache',
       },
-      signal,
     });
 
-    if (head.ok) return true;
+    if (head.status >= 200 && head.status < 300) return true;
     if (head.status !== 405 && head.status !== 501) return false;
-  } catch (e) {
-    if ((e as any)?.name === 'AbortError') return false;
+  } catch (e: any) {
+    if (e?.name === 'CanceledError' || e?.name === 'AbortError') return false;
   }
 
   try {
-    const range = await fetch(url, {
+    const range = await GPClient.request({
+      url,
       method: 'GET',
-      credentials: 'include',
-      cache: 'no-store',
+      signal,
+      validateStatus: () => true,
       headers: {
         Range: 'bytes=0-0',
         'Cache-Control': 'no-cache',
         Pragma: 'no-cache',
       },
-      signal,
     });
 
     return range.status === 200 || range.status === 206;
-  } catch (e) {
-    if ((e as any)?.name === 'AbortError') return false;
+  } catch (e: any) {
+    if (e?.name === 'CanceledError' || e?.name === 'AbortError') return false;
     return false;
   }
 }
 
-export function ShowFile({ path, shouldFetch = true }: ShowFileProps) {
-  const [available, setAvailable] = React.useState<boolean | null>(null);
-  const [checking, setChecking] = React.useState(false);
+function useFileAvailability(path?: string, shouldFetch: boolean = true) {
+  const key = fileExistsKey(path, shouldFetch);
 
-  React.useEffect(() => {
-    const controller = new AbortController();
-
-    if (!shouldFetch) {
-      setAvailable(null);
-      setChecking(false);
-      return () => controller.abort();
+  const { data, isLoading } = useSWR<boolean>(
+    key,
+    async (k) => {
+      const [, p] = k as FileExistsKey;
+      const controller = new AbortController();
+      const url = buildFileUrl(p);
+      return checkExistsWithAxios(url, controller.signal);
+    },
+    {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
     }
+  );
 
-    if (!path) {
-      setAvailable(false);
-      setChecking(false);
-      return () => controller.abort();
-    }
+  return {
+    available: key ? data : null,
+    checking: Boolean(key) && isLoading,
+  };
+}
 
-    setAvailable(null);
-    setChecking(true);
+export function revalidateFileExists(path?: string) {
+  if (!path) return;
+  return mutate(['file-exists', path] as const);
+}
 
-    const url = buildNoCacheUrl(path);
-
-    (async () => {
-      try {
-        const ok = await checkExists(url, controller.signal);
-        setAvailable(ok);
-      } finally {
-        setChecking(false);
-      }
-    })();
-
-    return () => controller.abort();
-  }, [path, shouldFetch]);
+export function ShowFile({ path, shouldFetch = true, className }: ShowFileProps) {
+  const { available, checking } = useFileAvailability(path, shouldFetch);
 
   const spawnWindow = React.useCallback(async () => {
     if (!path) return;
 
-    const url = buildNoCacheUrl(path);
+    const url = buildFileUrl(path);
 
-    let res: Response;
+    let popup: Window | null = null;
+    let blobUrl: string | null = null;
+
     try {
-      res = await fetch(url, {
-        credentials: 'include',
-        cache: 'no-store',
+      const res = await GPClient.get(url, {
+        responseType: 'blob',
         headers: {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',
         },
       });
-    } catch (e) {
-      console.error(e);
-      return;
-    }
 
-    if (!res.ok) return;
+      popup = openPopup();
+      if (!popup) return;
 
-    const popup = openPopup();
-    if (!popup) return;
-
-    let blobUrl: string | null = null;
-
-    try {
-      const contentType = res.headers.get('content-type') || '';
-      const blob = await res.blob();
+      const contentType = String(res.headers?.['content-type'] || '');
+      const blob: Blob = res.data;
 
       if (contentType.includes('text/html')) {
+        const html = await blob.text();
         popup.document.open();
-        popup.document.write(await blob.text());
+        popup.document.write(html);
         popup.document.close();
         return;
       }
@@ -161,7 +159,7 @@ export function ShowFile({ path, shouldFetch = true }: ShowFileProps) {
       popup.location.replace(blobUrl);
 
       const timer = window.setInterval(() => {
-        if (popup.closed && blobUrl) {
+        if (popup && popup.closed && blobUrl) {
           clearInterval(timer);
           URL.revokeObjectURL(blobUrl);
         }
@@ -170,37 +168,29 @@ export function ShowFile({ path, shouldFetch = true }: ShowFileProps) {
       console.error(e);
       if (blobUrl) URL.revokeObjectURL(blobUrl);
       try {
-        popup.close();
+        popup?.close();
       } catch {}
     }
   }, [path]);
 
-  // Keep layout: always occupy the first grid column
-  if (!shouldFetch) {
-    return <div className="h-8 w-8 shrink-0" aria-hidden="true" />;
-  }
-
-  if (checking) {
-    return (
-      <div className="h-8 w-8 shrink-0 flex items-center justify-center" aria-hidden="true">
-        <Loader2 className="h-4 w-4 animate-spin" />
-      </div>
-    );
-  }
-
-  if (available !== true) {
-    return <div className="h-8 w-8 shrink-0" aria-hidden="true" />;
-  }
-
   return (
-    <Button
-      type="button"
-      onClick={spawnWindow}
-      className="bg-blue-500 hover:bg-blue-600 h-8 w-8 p-0 flex items-center justify-center shrink-0"
-      aria-label="Open file"
-      title="Open file"
-    >
-      <Eye className="h-4 w-4" />
-    </Button>
+    <div className={`h-8 w-8 flex items-center justify-center shrink-0 ${className ?? ''}`}>
+      {!shouldFetch ? null : checking ? (
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+      ) : available === true ? (
+        <Button
+          type="button"
+          onClick={spawnWindow}
+          className="bg-blue-500 hover:bg-blue-600 h-8 w-8 p-0 flex items-center justify-center"
+          aria-label="Abrir archivo"
+          title="Abrir archivo"
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      ) : null}
+    </div>
   );
+}
+export function ShowFileSlot({ className }: { className?: string }) {
+  return <div className={`h-8 w-8 shrink-0 ${className ?? ''}`} aria-hidden="true" />;
 }

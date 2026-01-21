@@ -25,24 +25,32 @@ import { FileController } from '@/components/expediente-digital-cliente/form-con
 import { DownloadFormato } from '../DownloadFormato';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
-import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import React from 'react';
+import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
 
-const RENAME_MAP: Record<keyof z.infer<typeof formSchema>, string> = {
-  usuarioSolicitoOperacion: 'MANIFIESTO_BAJO_PROTESTA_USUARIO_SOLICITO_OPERACION',
-  agenteAduanalVerificoUsuarios: 'MANIFIESTO_BAJO_PROTESTA_AGENTE_ADUANAL_VERIFICO_USUARIOS',
-};
+const _manifiestoBajoProtesta =
+  FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.MANIFIESTO_BAJO_PROTESTA;
+
+if (!_manifiestoBajoProtesta?.docs) {
+  throw new Error('Missing MANIFIESTO_BAJO_PROTESTA docs');
+}
 
 const formSchema = z
   .object({
     usuarioSolicitoOperacion: z.object({
       isChecked: z.boolean(),
-      file: createPdfSchema(2_000_000).optional(),
+      file: createPdfSchema(
+        _manifiestoBajoProtesta.docs?.USUARIO_SOLICITO_OPERACION?.size || 2_000_000
+      ).optional(),
       fileExp: expiryDateSchema.optional(),
     }),
     agenteAduanalVerificoUsuarios: z.object({
       isChecked: z.boolean(),
-      file: createPdfSchema(2_000_000).optional(),
+      file: createPdfSchema(
+        _manifiestoBajoProtesta.docs?.AGENTE_ADUANAL_VERIFICO_USUARIOS?.size || 2_000_000
+      ).optional(),
       fileExp: expiryDateSchema.optional(),
     }),
   })
@@ -80,10 +88,31 @@ const formSchema = z
     }
   });
 
+const RENAME_MAP: Record<keyof z.infer<typeof formSchema>, string> = {
+  usuarioSolicitoOperacion: _manifiestoBajoProtesta.docs.USUARIO_SOLICITO_OPERACION.filename,
+  agenteAduanalVerificoUsuarios:
+    _manifiestoBajoProtesta.docs.AGENTE_ADUANAL_VERIFICO_USUARIOS.filename,
+};
+
+type FormValues = z.infer<typeof formSchema>;
+
 export function BajoProtestaSub() {
   const { cliente } = useCliente();
+  const [accordionOpen, setAccordionOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const DOCUMENTOS_IMPORTADOR_EXPORTADOR = FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR;
+  const MANIFIESTO_BAJO_PROTESTA =
+    DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.MANIFIESTO_BAJO_PROTESTA;
+
+  const MANIFIESTO_BAJO_PROTESTA_DOCS = MANIFIESTO_BAJO_PROTESTA?.docs;
+
+  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${MANIFIESTO_BAJO_PROTESTA?.name}`;
+
+  const usuarioSolicitoOperacionPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.USUARIO_SOLICITO_OPERACION.filename}`;
+  const agenteAduanalVerificoUsuariosPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.AGENTE_ADUANAL_VERIFICO_USUARIOS.filename}`;
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       usuarioSolicitoOperacion: { isChecked: false, file: undefined },
@@ -101,38 +130,48 @@ export function BajoProtestaSub() {
     form.formState.errors.agenteAduanalVerificoUsuarios?.isChecked ??
     form.formState.errors.agenteAduanalVerificoUsuarios?.fileExp;
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: FormValues) => {
     try {
-      const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.MANIFIESTO_BAJO_PROTESTA}`;
-
+      setIsSubmitting(true);
       const sections = Object.keys(RENAME_MAP) as Array<keyof typeof RENAME_MAP>;
 
       for (const section of sections) {
         const value = data[section];
-
         if (!value.isChecked || !value.file) continue;
 
-        const rename = RENAME_MAP[section];
-
         const formData = new FormData();
-        formData.append('path', path);
+        formData.append('path', basePath);
         formData.append('file', value.file);
-        formData.append('rename', rename);
+        formData.append('rename', RENAME_MAP[section]);
 
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
       }
 
       toast.message('Se subieron los manifiestos correctamente');
+
+      await Promise.all([
+        revalidateFileExists(usuarioSolicitoOperacionPath),
+        revalidateFileExists(agenteAduanalVerificoUsuariosPath),
+      ]);
+
       form.reset(data);
+      setIsSubmitting(false);
     } catch (error) {
+      setIsSubmitting(false);
       console.error(error);
       toast.message('Error al subir los manifiestos');
     }
   };
 
   return (
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="item-2" className="ml-4">
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full"
+      value={accordionOpen ? 'manifiesto-bajo-protesta' : ''}
+      onValueChange={(val) => setAccordionOpen(val === 'manifiesto-bajo-protesta')}
+    >
+      <AccordionItem value="manifiesto-bajo-protesta" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white px-2 [&>svg]:text-white">
           Manifiesto Bajo Protesta
         </AccordionTrigger>
@@ -142,74 +181,87 @@ export function BajoProtestaSub() {
             <CardContent>
               <form id="form-manifiesto-bajo-protesta" onSubmit={form.handleSubmit(onSubmit)}>
                 <FieldGroup>
-                  <div className="grid grid-cols-[1rem_1fr_auto] gap-x-4 gap-y-3 items-start">
-                    <Controller
-                      name="usuarioSolicitoOperacion.isChecked"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field
-                          data-invalid={fieldState.invalid}
-                          className="flex items-start justify-center pt-2"
-                        >
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(v) => field.onChange(!!v)}
-                            aria-invalid={fieldState.invalid}
-                            className="h-4 w-4"
-                          />
-                          <DownloadFormato doc="MANIFIESTO_USUARIO_SOLICITO_OPERACION" />
-                        </Field>
-                      )}
-                    />
+                  <div className="space-y-3">
+                    {/* Row 1 */}
+                    <div className="grid grid-cols-[2rem_auto_1fr] gap-x-4 items-start">
+                      <div className="pt-2 flex justify-center">
+                        <ShowFile shouldFetch={accordionOpen} path={usuarioSolicitoOperacionPath} />
+                      </div>
 
-                    <FileController
-                      form={form}
-                      fieldLabel="Manifiesto bajo protesta de decir verdad del usuario que solicitó la operación:"
-                      controllerName="usuarioSolicitoOperacion.file"
-                      accept=".pdf"
-                      buttonText="Seleccionar .pdf"
-                    />
+                      <Controller
+                        name="usuarioSolicitoOperacion.isChecked"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="w-auto inline-flex items-start gap-2 pt-2"
+                          >
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={(v) => field.onChange(!!v)}
+                              aria-invalid={fieldState.invalid}
+                              className="h-4 w-4 shrink-0"
+                            />
+                            <DownloadFormato doc="MANIFIESTO_USUARIO_SOLICITO_OPERACION" />
+                          </Field>
+                        )}
+                      />
 
-                    <div className="col-span-3 justify-self-start">
-                      {usuarioError && <FieldError errors={[usuarioError]} />}
-                    </div>
-
-                    <Controller
-                      name="agenteAduanalVerificoUsuarios.isChecked"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field
-                          data-invalid={fieldState.invalid}
-                          className="flex items-start justify-center pt-2"
-                        >
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(v) => field.onChange(!!v)}
-                            aria-invalid={fieldState.invalid}
-                            className="h-4 w-4"
-                          />
-                          <DownloadFormato doc="MANIFIESTO_AGENTE_VERIFICO_USUARIO" />
-                        </Field>
-                      )}
-                    />
-
-                    <div className="col-start-2 col-span-2">
                       <FileController
                         form={form}
-                        fieldLabel="Manifiesto bajo protesta de decir verdad en el que el Agente Aduanal señale que verificó a los usuarios"
-                        controllerName="agenteAduanalVerificoUsuarios.file"
+                        fieldLabel="Manifiesto bajo protesta de decir verdad del usuario que solicitó la operación:"
+                        controllerName="usuarioSolicitoOperacion.file"
                         accept=".pdf"
                         buttonText="Seleccionar .pdf"
                       />
                     </div>
 
-                    <div className="col-start-2 col-span-2 -mt-1 text-sm text-muted-foreground leading-snug">
-                      Artículos 49 Bis fracción X, 69, 69 B y 69 B-Bis del CFF
+                    {usuarioError ? <FieldError errors={[usuarioError]} /> : null}
+
+                    {/* Row 2 */}
+                    <div className="grid grid-cols-[2rem_auto_1fr] gap-x-4 items-start">
+                      <div className="pt-2 flex justify-center">
+                        <ShowFile
+                          shouldFetch={accordionOpen}
+                          path={agenteAduanalVerificoUsuariosPath}
+                        />
+                      </div>
+
+                      <Controller
+                        name="agenteAduanalVerificoUsuarios.isChecked"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="w-auto inline-flex items-start gap-2 pt-2"
+                          >
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={(v) => field.onChange(!!v)}
+                              aria-invalid={fieldState.invalid}
+                              className="h-4 w-4 shrink-0"
+                            />
+                            <DownloadFormato doc="MANIFIESTO_AGENTE_VERIFICO_USUARIO" />
+                          </Field>
+                        )}
+                      />
+
+                      <div className="space-y-1">
+                        <FileController
+                          form={form}
+                          fieldLabel="Manifiesto bajo protesta de decir verdad en el que el Agente Aduanal señale que verificó a los usuarios"
+                          controllerName="agenteAduanalVerificoUsuarios.file"
+                          accept=".pdf"
+                          buttonText="Seleccionar .pdf"
+                        />
+
+                        <div className="text-sm text-muted-foreground leading-snug">
+                          Artículos 49 Bis fracción X, 69, 69 B y 69 B-Bis del CFF
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="col-span-3 justify-self-start">
-                      {agenteError && <FieldError errors={[agenteError]} />}
-                    </div>
+                    {agenteError ? <FieldError errors={[agenteError]} /> : null}
                   </div>
                 </FieldGroup>
               </form>
@@ -218,7 +270,7 @@ export function BajoProtestaSub() {
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
                 <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
-                <MyGPButtonSubmit form="form-manifiesto-bajo-protesta">
+                <MyGPButtonSubmit form="form-manifiesto-bajo-protesta" isSubmitting={isSubmitting}>
                   Guardar Cambios
                 </MyGPButtonSubmit>
               </Field>

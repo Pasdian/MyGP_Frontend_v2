@@ -25,16 +25,36 @@ import { ExpiraEnController } from '@/components/expediente-digital-cliente/form
 
 import * as z from 'zod/v4';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { PATHS } from '@/lib/expediente-digital-cliente/paths';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
+import { revalidateFileExists, ShowFile, ShowFileSlot } from '../buttons/ShowFile';
+import React from 'react';
+
+const _documentosRepresentanteLegal =
+  FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL;
+
+if (!_documentosRepresentanteLegal?.docs) {
+  throw new Error('Missing DOCUMENTOS_REPRESENTANTE_LEGAL docs');
+}
 
 const RENAME_MAP: Record<string, string> = {
-  ine: 'INE',
+  ine: _documentosRepresentanteLegal.docs.INE.filename,
 };
 
 export function RepresentanteSub() {
   const { cliente } = useCliente();
+  const [accordionOpen, setAccordionOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const DOCUMENTOS_IMPORTADOR_EXPORTADOR = FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR;
+  const DOCUMENTOS_REPRESENTANTE_LEGAL =
+    DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL;
+  const DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS =
+    DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL.docs;
+
+  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_REPRESENTANTE_LEGAL?.name}`;
+  const inePath = `${basePath}/${DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE.filename}`;
 
   const formSchema = z.object({
     nombre: z
@@ -71,31 +91,35 @@ export function RepresentanteSub() {
       })
       .length(10, { message: 'El teléfono debe de ser igual a 10 caracteres' }),
 
-    ine: createPdfSchema(2_000_000),
+    ine: createPdfSchema(DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE?.size || 2_000_000),
     ineExp: expiryDateSchema,
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      const path = `/${cliente}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.base}/${PATHS.DOCUMENTOS_IMPORTADOR_EXPORTADOR.subfolders.DATOS_REPRESENTANTE_LEGAL}`;
-
+      setIsSubmitting(true);
       const file = data.ine;
       if (file) {
         const rename = RENAME_MAP.ine ?? 'ine';
 
         const formData = new FormData();
-        formData.append('path', path);
+        formData.append('path', basePath);
         formData.append('file', file);
         formData.append('rename', rename);
 
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
       }
 
-      toast.message('Se subió el INE correctamente');
+      toast.info('Se subió el INE correctamente');
+      if (data.ine) {
+        await revalidateFileExists(inePath);
+      }
       form.reset(data);
+      setIsSubmitting(false);
     } catch (error) {
+      setIsSubmitting(false);
       console.error(error);
-      toast.message('Error al subir el INE');
+      toast.error('Error al subir el INE');
     }
   };
 
@@ -118,8 +142,15 @@ export function RepresentanteSub() {
   });
 
   return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="item-2 text-white">
-      <AccordionItem value="item-2" className="ml-4">
+    <Accordion
+      type="single"
+      collapsible
+      className="w-full"
+      value={accordionOpen ? 'datos-representante-legal' : ''}
+      onValueChange={(val) => setAccordionOpen(val === 'datos-representante-legal')}
+    >
+      {' '}
+      <AccordionItem value="datos-representante-legal" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white pl-2 [&>svg]:text-white">
           Datos del Representante Legal
         </AccordionTrigger>
@@ -129,23 +160,29 @@ export function RepresentanteSub() {
               <form id="form-datos-representante" onSubmit={form.handleSubmit(onSubmit)}>
                 <FieldGroup>
                   <div className="grid grid-cols-2 gap-2 mb-4">
-                    <Controller
-                      name="nombre"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
-                          <FieldLabel htmlFor="nombre">Nombre:</FieldLabel>
-                          <Input
-                            {...field}
-                            id="nombre"
-                            placeholder="Ingresa un nombre..."
-                            className="mb-2"
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
+                    <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                      <ShowFileSlot />
+                      <Controller
+                        name="nombre"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="grid grid-rows-2 gap-0 w-full min-w-0"
+                          >
+                            <FieldLabel htmlFor="nombre">Nombre:</FieldLabel>
+                            <Input
+                              {...field}
+                              id="nombre"
+                              placeholder="Ingresa un nombre..."
+                              className="mb-2"
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
 
                     <Controller
                       name="apellido1"
@@ -165,23 +202,29 @@ export function RepresentanteSub() {
                       )}
                     />
 
-                    <Controller
-                      name="apellido2"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
-                          <FieldLabel htmlFor="apellido2">Segundo Apellido:</FieldLabel>
-                          <Input
-                            {...field}
-                            id="apellido2"
-                            placeholder="Ingresa un apellido..."
-                            className="mb-2"
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
+                    <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                      <ShowFileSlot />
+                      <Controller
+                        name="apellido2"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="grid grid-rows-2 gap-0 w-full min-w-0"
+                          >
+                            <FieldLabel htmlFor="apellido2">Segundo Apellido:</FieldLabel>
+                            <Input
+                              {...field}
+                              id="apellido2"
+                              placeholder="Ingresa un apellido..."
+                              className="mb-2"
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
 
                     <Controller
                       name="rfc"
@@ -201,24 +244,29 @@ export function RepresentanteSub() {
                       )}
                     />
 
-                    <Controller
-                      name="curp"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
-                          <FieldLabel htmlFor="curp">CURP:</FieldLabel>
-                          <Input
-                            {...field}
-                            id="curp"
-                            placeholder="Ingresa el CURP..."
-                            className="mb-2"
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
+                    <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                      <ShowFileSlot />
+                      <Controller
+                        name="curp"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="grid grid-rows-2 gap-0 w-full min-w-0"
+                          >
+                            <FieldLabel htmlFor="curp">CURP:</FieldLabel>
+                            <Input
+                              {...field}
+                              id="curp"
+                              placeholder="Ingresa el CURP..."
+                              className="mb-2"
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
                     <Controller
                       name="direccion"
                       control={form.control}
@@ -237,23 +285,29 @@ export function RepresentanteSub() {
                       )}
                     />
 
-                    <Controller
-                      name="correoElectronico"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
-                          <FieldLabel htmlFor="email">Correo Electrónico:</FieldLabel>
-                          <Input
-                            {...field}
-                            id="email"
-                            className="mb-2"
-                            placeholder="ejemplo@gmail.com"
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
+                    <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                      <ShowFileSlot />
+                      <Controller
+                        name="correoElectronico"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="grid grid-rows-2 gap-0 w-full min-w-0"
+                          >
+                            <FieldLabel htmlFor="email">Correo Electrónico:</FieldLabel>
+                            <Input
+                              {...field}
+                              id="email"
+                              className="mb-2"
+                              placeholder="ejemplo@gmail.com"
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
 
                     <Controller
                       name="numeroOficina"
@@ -273,37 +327,43 @@ export function RepresentanteSub() {
                       )}
                     />
 
-                    <Controller
-                      name="telefonoRepresentanteLegal"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field
-                          data-invalid={fieldState.invalid}
-                          className="grid grid-rows-2 gap-0 col-span-2"
-                        >
-                          <FieldLabel htmlFor="telefono-representante-legal">
-                            Teléfono del Representante Legal:
-                          </FieldLabel>
-                          <Input
-                            {...field}
-                            id="movil-representante-legal"
-                            placeholder="5512345678"
-                            className="mb-2"
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-                    <FileController
-                      form={form}
-                      fieldLabel="INE:"
-                      controllerName="ine"
-                      accept=".pdf"
-                      buttonText="Seleccionar .pdf"
-                    />
+                    <div className="col-span-2 grid grid-cols-[auto_1fr] gap-2 items-start">
+                      <ShowFileSlot />
+                      <Controller
+                        name="telefonoRepresentanteLegal"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="grid grid-rows-2 gap-0 w-full min-w-0"
+                          >
+                            <FieldLabel htmlFor="telefono-representante-legal">
+                              Teléfono del Representante Legal:
+                            </FieldLabel>
+                            <Input
+                              {...field}
+                              id="movil-representante-legal"
+                              placeholder="5512345678"
+                              className="mb-2"
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-[auto_1fr_1fr] col-span-2 gap-2 place-items-center">
+                      <ShowFile shouldFetch={accordionOpen} path={inePath} />
+                      <FileController
+                        form={form}
+                        fieldLabel="INE:"
+                        controllerName="ine"
+                        accept=".pdf"
+                        buttonText="Seleccionar .pdf"
+                      />
 
-                    <ExpiraEnController form={form} controllerName="ineExp" />
+                      <ExpiraEnController form={form} controllerName="ineExp" />
+                    </div>
                   </div>
                 </FieldGroup>
               </form>
@@ -311,7 +371,9 @@ export function RepresentanteSub() {
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
                 <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
-                <MyGPButtonSubmit form="form-datos-representante">Guardar Cambios</MyGPButtonSubmit>
+                <MyGPButtonSubmit form="form-datos-representante" isSubmitting={isSubmitting}>
+                  Guardar Cambios
+                </MyGPButtonSubmit>
               </Field>
             </CardFooter>
           </Card>
