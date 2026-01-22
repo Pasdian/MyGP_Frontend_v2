@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
 import React from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 const _datosContacto =
   FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_CONTACTO_DEL_IMPORTADOR;
@@ -79,6 +80,8 @@ function fileToArray(value: File | File[] | undefined): File[] {
 
 export function DatosContactoSub() {
   const { cliente } = useCliente();
+  const { getCasaUsername } = useAuth();
+
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -96,51 +99,160 @@ export function DatosContactoSub() {
   const fotosLugarActividadesPath = `${basePath}/${DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_LUGAR_ACTIVIDADES.filename}`;
 
   const formSchema = z.object({
-    comprobanteDomicilio: createPdfSchema(
-      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.COMPROBANTE_DE_DOMICILIO?.size || 2_000_000
-    ),
-    fotosDomicilioFiscal: createImagesSchema(
-      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_DOMICILIO_FISCAL?.size || 2_000_000,
-      10
-    ),
-    fotosAcreditacionLegalInmueble: createImagesSchema(
-      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_ACREDITACION_LEGAL_INMUEBLE?.size || 2_000_000,
-      30
-    ),
-    fotosLugarActividades: createImagesSchema(
-      DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_LUGAR_ACTIVIDADES?.size || 2_000_000,
-      30
-    ),
+    comprobanteDomicilio: z.object({
+      file: createPdfSchema(
+        DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.COMPROBANTE_DE_DOMICILIO?.size || 2_000_000
+      ),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
+
+    fotosDomicilioFiscal: z.object({
+      files: createImagesSchema(
+        DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_DOMICILIO_FISCAL?.size || 2_000_000,
+        10
+      ),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
+    fotosAcreditacionLegalInmueble: z.object({
+      files: createImagesSchema(
+        DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_ACREDITACION_LEGAL_INMUEBLE?.size || 2_000_000,
+        30
+      ),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
+    fotosLugarActividades: z.object({
+      files: createImagesSchema(
+        DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_LUGAR_ACTIVIDADES?.size || 2_000_000,
+        30
+      ),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
+  });
+
+  const defaultValues = React.useMemo(() => {
+    const docs = DATOS_CONTACTO_DEL_IMPORTADOR_DOCS!;
+    return {
+      comprobanteDomicilio: {
+        file: undefined,
+        category: docs.COMPROBANTE_DE_DOMICILIO.category,
+        filename: docs.COMPROBANTE_DE_DOMICILIO.filename || 'COMPROBANTE_DE_DOMICILIO.pdf',
+        filepath: comprobantePath,
+      },
+      fotosDomicilioFiscal: {
+        files: [],
+        category: docs.FOTOS_DOMICILIO_FISCAL.category,
+        filename: docs.FOTOS_DOMICILIO_FISCAL.filename || 'FOTOS_DOMICILIO_FISCAL.pdf',
+        filepath: fotosDomicilioFiscalPath,
+      },
+      fotosAcreditacionLegalInmueble: {
+        files: [],
+        category: docs.FOTOS_ACREDITACION_LEGAL_INMUEBLE.category,
+        filename:
+          docs.FOTOS_ACREDITACION_LEGAL_INMUEBLE.filename ||
+          'FOTOS_ACREDITACION_LEGAL_INMUEBLE.pdf',
+        filepath: fotosAcreditacionPath,
+      },
+      fotosLugarActividades: {
+        files: [],
+        category: docs.FOTOS_LUGAR_ACTIVIDADES.category,
+        filename: docs.FOTOS_LUGAR_ACTIVIDADES.filename || 'FOTOS_LUGAR_ACTIVIDADES.pdf',
+        filepath: fotosLugarActividadesPath,
+      },
+    };
+  }, [
+    DATOS_CONTACTO_DEL_IMPORTADOR_DOCS,
+    comprobantePath,
+    fotosDomicilioFiscalPath,
+    fotosAcreditacionPath,
+    fotosLugarActividadesPath,
+  ]);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues,
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
 
-      const entries = Object.entries(data) as Array<[string, File | File[] | undefined]>;
+      type FormDataType = z.infer<typeof formSchema>;
+      type Entry = [keyof FormDataType, FormDataType[keyof FormDataType]];
+      const entries = Object.entries(data) as Entry[];
 
-      for (const [fieldName, value] of entries) {
-        if (!value) continue;
+      const pickFiles = (v: Entry[1]): File | File[] | undefined => {
+        if (v && typeof v === 'object' && 'files' in v) return v.files as File[];
+        if (v && typeof v === 'object' && 'file' in v) return v.file as File | undefined;
+        return undefined;
+      };
 
+      const getMeta = (fieldName: string) => {
+        const docs = DATOS_CONTACTO_DEL_IMPORTADOR_DOCS;
+
+        const doc =
+          fieldName === 'comprobanteDomicilio'
+            ? docs?.COMPROBANTE_DE_DOMICILIO
+            : fieldName === 'fotosDomicilioFiscal'
+              ? docs?.FOTOS_DOMICILIO_FISCAL
+              : fieldName === 'fotosAcreditacionLegalInmueble'
+                ? docs?.FOTOS_ACREDITACION_LEGAL_INMUEBLE
+                : fieldName === 'fotosLugarActividades'
+                  ? docs?.FOTOS_LUGAR_ACTIVIDADES
+                  : undefined;
+
+        return {
+          filename: doc?.filename ?? RENAME_MAP[fieldName] ?? fieldName,
+          category: (doc as any)?.category ?? 0,
+          filepath: basePath,
+        };
+      };
+
+      const today = new Date().toISOString().split('T')[0];
+
+      for (const [fieldNameKey, value] of entries) {
+        const fieldName = String(fieldNameKey);
         const baseRename = RENAME_MAP[fieldName] ?? fieldName;
 
-        // Send images to backend to merge into ONE PDF
-        if (PDF_MERGE_FIELDS.has(fieldName)) {
-          const files = fileToArray(value);
-          if (files.length === 0) continue;
+        const picked = pickFiles(value);
+        const files = fileToArray(picked);
+        if (files.length === 0) continue;
 
+        const meta = getMeta(fieldName);
+
+        // Merge images into ONE PDF
+        if (PDF_MERGE_FIELDS.has(fieldName)) {
           await uploadMergedImagesAsPdf({
             basePath,
             rename: baseRename, // backend writes `${rename}.pdf`
             files,
           });
 
+          const insertRecordPayload = {
+            filename: meta.filename, // use struct filename (usually ends in .pdf)
+            file_date: today,
+            filepath: meta.filepath,
+            client_id: cliente.split(' ')[0],
+            file_category: meta.category,
+            is_valid: 1,
+            status: 0,
+            comment: '',
+            expiration_date: null,
+            uploaded_by: getCasaUsername() || 'MYGP',
+          };
+
+          await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
           continue;
         }
 
-        // Default behavior (single pdf upload)
-        const files = fileToArray(value);
-
+        // Single upload (Comprobante)
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           if (!file) continue;
@@ -152,7 +264,23 @@ export function DatosContactoSub() {
           const rename = files.length > 1 ? `${baseRename}_${i + 1}` : baseRename;
           formData.append('rename', rename);
 
+          const insertRecordPayload = {
+            filename: meta.filename,
+            file_date: file?.lastModified
+              ? new Date(file.lastModified).toISOString().split('T')[0]
+              : today,
+            filepath: meta.filepath,
+            client_id: cliente.split(' ')[0],
+            file_category: meta.category,
+            is_valid: 1,
+            status: 0,
+            comment: '',
+            expiration_date: null,
+            uploaded_by: getCasaUsername() || 'MYGP',
+          };
+
           await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+          await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
         }
       }
 
@@ -164,25 +292,23 @@ export function DatosContactoSub() {
         revalidateFileExists(fotosLugarActividadesPath),
       ]);
 
-      form.reset(data);
+      form.reset({
+        comprobanteDomicilio: { ...form.getValues('comprobanteDomicilio'), file: undefined },
+        fotosDomicilioFiscal: { ...form.getValues('fotosDomicilioFiscal'), files: [] },
+        fotosAcreditacionLegalInmueble: {
+          ...form.getValues('fotosAcreditacionLegalInmueble'),
+          files: [],
+        },
+
+        fotosLugarActividades: { ...form.getValues('fotosLugarActividades'), files: [] },
+      });
       setIsSubmitting(false);
     } catch (error) {
       setIsSubmitting(false);
-
       console.error(error);
       toast.error('Error al subir los archivos');
     }
   };
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      comprobanteDomicilio: undefined,
-
-      fotosDomicilioFiscal: [],
-      fotosAcreditacionLegalInmueble: [],
-      fotosLugarActividades: [],
-    },
-  });
 
   return (
     <Accordion
@@ -207,14 +333,14 @@ export function DatosContactoSub() {
                     <FileController
                       form={form}
                       fieldLabel="Comprobante de Domicilio:"
-                      controllerName="comprobanteDomicilio"
+                      controllerName="comprobanteDomicilio.file"
                       accept={['application/pdf', 'image/png', 'image/jpeg']}
                       buttonText="Selecciona .pdf .png .jpeg"
                     />
                     <ShowFile shouldFetch={accordionOpen} path={fotosAcreditacionPath} />
 
                     <Controller
-                      name="fotosAcreditacionLegalInmueble"
+                      name="fotosAcreditacionLegalInmueble.files"
                       control={form.control}
                       render={({ field, fieldState }) => {
                         const files: File[] = Array.isArray(field.value) ? field.value : [];
@@ -304,7 +430,7 @@ export function DatosContactoSub() {
                     <ShowFile shouldFetch={accordionOpen} path={fotosDomicilioFiscalPath} />
 
                     <Controller
-                      name="fotosDomicilioFiscal"
+                      name="fotosDomicilioFiscal.files"
                       control={form.control}
                       render={({ field, fieldState }) => {
                         const files: File[] = Array.isArray(field.value) ? field.value : [];
@@ -393,7 +519,7 @@ export function DatosContactoSub() {
                     <ShowFile shouldFetch={accordionOpen} path={fotosLugarActividadesPath} />
 
                     <Controller
-                      name="fotosLugarActividades"
+                      name="fotosLugarActividades.files"
                       control={form.control}
                       render={({ field, fieldState }) => {
                         const files: File[] = Array.isArray(field.value) ? field.value : [];
@@ -481,7 +607,31 @@ export function DatosContactoSub() {
             </CardContent>
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
-                <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
+                <MyGPButtonGhost
+                  onClick={() =>
+                    form.reset({
+                      comprobanteDomicilio: {
+                        ...form.getValues('comprobanteDomicilio'),
+                        file: undefined,
+                      },
+                      fotosDomicilioFiscal: {
+                        ...form.getValues('fotosDomicilioFiscal'),
+                        files: [],
+                      },
+                      fotosAcreditacionLegalInmueble: {
+                        ...form.getValues('fotosAcreditacionLegalInmueble'),
+                        files: [],
+                      },
+
+                      fotosLugarActividades: {
+                        ...form.getValues('fotosLugarActividades'),
+                        files: [],
+                      },
+                    })
+                  }
+                >
+                  Reiniciar
+                </MyGPButtonGhost>
                 <MyGPButtonSubmit form="form-datos-contacto" isSubmitting={isSubmitting}>
                   Guardar Cambios
                 </MyGPButtonSubmit>

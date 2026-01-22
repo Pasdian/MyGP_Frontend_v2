@@ -20,6 +20,7 @@ import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
 import { ShowFile, revalidateFileExists } from '../buttons/ShowFile';
 import { createPdfSchema } from '@/components/expediente-digital-cliente/schemas/utilSchema';
+import { useAuth } from '@/hooks/useAuth';
 
 const documentosImportador =
   FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_IMPORTADOR;
@@ -35,6 +36,7 @@ const RENAME_MAP: Record<string, string> = {
 
 export function DocumentosImportadorSub() {
   const { cliente } = useCliente();
+  const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [accordionOpen, setAccordionOpen] = React.useState(false);
 
@@ -50,45 +52,96 @@ export function DocumentosImportadorSub() {
   const poderPath = `${basePath}/${DOCUMENTOS_IMPORTADOR_DOCS?.PODER_NOTARIAL.filename}`;
 
   const formSchema = z.object({
-    actaConstitutiva: createPdfSchema(
-      DOCUMENTOS_IMPORTADOR_DOCS?.ACTA_CONSTITUTIVA?.size || 2_000_000
-    ),
-    poderNotarial: createPdfSchema(DOCUMENTOS_IMPORTADOR_DOCS?.PODER_NOTARIAL?.size || 2_000_000),
+    actaConstitutiva: z.object({
+      file: createPdfSchema(DOCUMENTOS_IMPORTADOR_DOCS?.ACTA_CONSTITUTIVA?.size || 2_000_000),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
+    poderNotarial: z.object({
+      file: createPdfSchema(DOCUMENTOS_IMPORTADOR_DOCS?.PODER_NOTARIAL?.size || 2_000_000),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
   });
+
+  const defaultValues = React.useMemo(() => {
+    const docs = DOCUMENTOS_IMPORTADOR_DOCS!;
+
+    return {
+      actaConstitutiva: {
+        file: undefined,
+        category: docs.ACTA_CONSTITUTIVA.category,
+        filename: docs.ACTA_CONSTITUTIVA.filename || 'ACTA_CONSTITUTIVA.pdf',
+        filepath: actaPath,
+      },
+      poderNotarial: {
+        file: undefined,
+        category: docs.PODER_NOTARIAL.category,
+        filename: docs.PODER_NOTARIAL.filename || 'PODER_NOTARIAL.pdf',
+        filepath: poderPath,
+      },
+    };
+  }, [DOCUMENTOS_IMPORTADOR_DOCS, actaPath, poderPath]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      actaConstitutiva: undefined,
-      poderNotarial: undefined,
-    },
+    defaultValues: defaultValues,
   });
+
+  const resetForm = () => {
+    form.reset({
+      actaConstitutiva: { ...form.getValues('actaConstitutiva'), file: undefined },
+      poderNotarial: { ...form.getValues('poderNotarial'), file: undefined },
+    });
+  };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
 
-      const entries = Object.entries(data) as Array<[string, File | undefined]>;
+      const entries = Object.entries(data) as Array<
+        [
+          keyof typeof data,
+          { file?: File; category?: number; filepath?: string; filename?: string },
+        ]
+      >;
 
-      for (const [fieldName, file] of entries) {
+      for (const [fieldName, value] of entries) {
+        const file = value?.file;
         if (!file) continue;
 
-        const rename = RENAME_MAP[fieldName] ?? fieldName;
+        const rename = RENAME_MAP[fieldName as string] ?? String(fieldName);
 
         const formData = new FormData();
         formData.append('path', basePath);
         formData.append('file', file);
         formData.append('rename', rename);
 
+        const insertRecordPayload = {
+          filename: value.filename,
+          file_date: value.file
+            ? new Date(value.file.lastModified).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
+          filepath: value.filepath,
+          client_id: cliente.split(' ')[0],
+          file_category: value.category,
+          is_valid: 1,
+          status: 0,
+          comment: '',
+          expiration_date: null,
+          uploaded_by: getCasaUsername() || 'MYGP',
+        };
+
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
       }
 
       toast.info('Se subieron los archivos correctamente');
+      resetForm();
 
-      // revalidate SWR so the eye icon updates immediately
       await Promise.all([revalidateFileExists(actaPath), revalidateFileExists(poderPath)]);
-
-      form.reset(data);
     } catch (error) {
       console.error(error);
       toast.error('Error al subir los archivos');
@@ -121,9 +174,9 @@ export function DocumentosImportadorSub() {
                       <FileController
                         form={form}
                         fieldLabel="Acta Constitutiva:"
-                        controllerName="actaConstitutiva"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        controllerName="actaConstitutiva.file"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
 
@@ -132,9 +185,9 @@ export function DocumentosImportadorSub() {
                       <FileController
                         form={form}
                         fieldLabel="Poder Notarial:"
-                        controllerName="poderNotarial"
-                        accept=".pdf"
-                        buttonText="Seleccionar .pdf"
+                        controllerName="poderNotarial.file"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
+                        buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
                   </div>
@@ -144,7 +197,7 @@ export function DocumentosImportadorSub() {
 
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
-                <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
+                <MyGPButtonGhost onClick={() => resetForm()}>Reiniciar</MyGPButtonGhost>
                 <MyGPButtonSubmit form="form-documentos-importador" isSubmitting={isSubmitting}>
                   Guardar Cambios
                 </MyGPButtonSubmit>

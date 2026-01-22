@@ -30,6 +30,8 @@ import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
 import { revalidateFileExists, ShowFile, ShowFileSlot } from '../buttons/ShowFile';
 import React from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { Separator } from '@/components/ui/separator';
 
 const _documentosRepresentanteLegal =
   FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL;
@@ -44,6 +46,8 @@ const RENAME_MAP: Record<string, string> = {
 
 export function RepresentanteSub() {
   const { cliente } = useCliente();
+  const { getCasaUsername } = useAuth();
+
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -74,10 +78,30 @@ export function RepresentanteSub() {
       .string({ message: 'Ingresa el curp' })
       .min(1, 'Ingresa el CURP')
       .max(18, 'Máximo 18 caracteres'),
-    direccion: z
+    address_1: z
       .string({ message: 'Ingresa una dirección' })
       .min(1, 'Ingresa la dirección')
-      .max(300, { message: 'Máximo 300 caracteres' }),
+      .max(100, { message: 'Máximo 100 caracteres' }),
+    neighbourhood: z
+      .string({ message: 'Ingresa una colonia' })
+      .min(1, 'Ingresa la colonia')
+      .max(100, { message: 'Máximo 100 caracteres' }),
+    municipality: z
+      .string({ message: 'Ingresa un municipio' })
+      .min(1, 'Ingresa la municipio')
+      .max(100, { message: 'Máximo 100 caracteres' }),
+    city: z
+      .string({ message: 'Ingresa una ciudad' })
+      .min(1, 'Ingresa la ciudad')
+      .max(100, { message: 'Máximo 100 caracteres' }),
+    state: z
+      .string({ message: 'Ingresa una ciudad' })
+      .min(1, 'Ingresa la ciudad')
+      .max(100, { message: 'Máximo 100 caracteres' }),
+    postal_code: z
+      .string({ message: 'Ingresa una ciudad' })
+      .min(1, 'Ingresa la ciudad')
+      .max(100, { message: 'Máximo 100 caracteres' }),
     correoElectronico: z
       .email({
         pattern: z.regexes.email,
@@ -91,41 +115,93 @@ export function RepresentanteSub() {
       })
       .length(10, { message: 'El teléfono debe de ser igual a 10 caracteres' }),
 
-    ine: createPdfSchema(DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE?.size || 2_000_000),
+    ine: z.object({
+      file: createPdfSchema(DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE?.size || 2_000_000),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
     ineExp: expiryDateSchema,
   });
+
+  const resetForm = () => {
+    form.reset({
+      nombre: '',
+      apellido1: '',
+      apellido2: '',
+      rfc: '',
+      curp: '',
+      address_1: '',
+      neighbourhood: '',
+      municipality: '',
+      city: '',
+      state: '',
+      postal_code: '',
+      correoElectronico: '',
+      numeroOficina: '',
+      telefonoRepresentanteLegal: '',
+      ineExp: '',
+      ine: { ...form.getValues('ine'), file: undefined },
+    });
+  };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      const file = data.ine;
-      if (file) {
-        const rename = RENAME_MAP.ine ?? 'ine';
+
+      const entries = Object.entries(data) as Array<
+        [
+          keyof typeof data,
+          { file?: File; category?: number; filepath?: string; filename?: string },
+        ]
+      >;
+
+      for (const [fieldName, value] of entries) {
+        const file = value?.file;
+        if (!file) continue;
+
+        const rename = RENAME_MAP[fieldName as string] ?? String(fieldName);
 
         const formData = new FormData();
         formData.append('path', basePath);
         formData.append('file', file);
         formData.append('rename', rename);
 
+        const insertRecordPayload = {
+          filename: value.filename,
+          file_date: value.file
+            ? new Date(value.file.lastModified).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
+          filepath: value.filepath,
+          client_id: cliente.split(' ')[0],
+          file_category: value.category,
+          is_valid: 1,
+          status: 0,
+          comment: '',
+          expiration_date: data.ineExp,
+          uploaded_by: getCasaUsername() || 'MYGP',
+        };
+
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
       }
 
-      toast.info('Se subió el INE correctamente');
-      if (data.ine) {
-        await revalidateFileExists(inePath);
-      }
-      form.reset(data);
-      setIsSubmitting(false);
+      toast.info('Se subieron los archivos correctamente');
+      resetForm();
+
+      await Promise.all([revalidateFileExists(inePath)]);
     } catch (error) {
-      setIsSubmitting(false);
       console.error(error);
-      toast.error('Error al subir el INE');
+      toast.error('Error al subir los archivos');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  const defaultValues = React.useMemo(() => {
+    const docs = DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS!;
+
+    return {
       nombre: '',
       apellido1: '',
       apellido2: '',
@@ -135,10 +211,19 @@ export function RepresentanteSub() {
       correoElectronico: '',
       numeroOficina: '',
       telefonoRepresentanteLegal: '',
-
-      ine: undefined,
       ineExp: '',
-    },
+      ine: {
+        file: undefined,
+        category: docs.INE.category,
+        filename: docs.INE.filename || 'INE.pdf',
+        filepath: inePath,
+      },
+    };
+  }, [DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS, inePath]);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues,
   });
 
   return (
@@ -149,7 +234,6 @@ export function RepresentanteSub() {
       value={accordionOpen ? 'datos-representante-legal' : ''}
       onValueChange={(val) => setAccordionOpen(val === 'datos-representante-legal')}
     >
-      {' '}
       <AccordionItem value="datos-representante-legal" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white pl-2 [&>svg]:text-white">
           Datos del Representante Legal
@@ -244,7 +328,7 @@ export function RepresentanteSub() {
                       )}
                     />
 
-                    <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
+                    <div className="grid grid-cols-[auto_1fr] gap-2 items-start col-span-2">
                       <ShowFileSlot />
                       <Controller
                         name="curp"
@@ -267,24 +351,143 @@ export function RepresentanteSub() {
                         )}
                       />
                     </div>
-                    <Controller
-                      name="direccion"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
-                          <FieldLabel htmlFor="direccion">Dirección:</FieldLabel>
-                          <Input
-                            {...field}
-                            id="direccion"
-                            placeholder="Ingresa la dirección..."
-                            className="mb-2"
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
+                    <div className="col-span-2 my-6">
+                      <Separator />
+                    </div>
+                    <div className="grid grid-cols-[auto_1fr] gap-2 items-start col-span-2">
+                      <ShowFileSlot />
 
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full min-w-0">
+                        <Controller
+                          name="address_1"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field
+                              data-invalid={fieldState.invalid}
+                              className="grid grid-rows-2 gap-0"
+                            >
+                              <FieldLabel htmlFor="address_1">Dirección principal:</FieldLabel>
+                              <Input
+                                {...field}
+                                id="address_1"
+                                placeholder="Calle y número (ej. Av. Reforma 123)"
+                                className="mb-2"
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+
+                        <Controller
+                          name="neighbourhood"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field
+                              data-invalid={fieldState.invalid}
+                              className="grid grid-rows-2 gap-0"
+                            >
+                              <FieldLabel htmlFor="neighbourhood">Colonia:</FieldLabel>
+                              <Input
+                                {...field}
+                                id="neighbourhood"
+                                placeholder="Ej. Juárez"
+                                className="mb-2"
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+
+                        <Controller
+                          name="postal_code"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field
+                              data-invalid={fieldState.invalid}
+                              className="grid grid-rows-2 gap-0"
+                            >
+                              <FieldLabel htmlFor="postal_code">Código postal:</FieldLabel>
+                              <Input
+                                {...field}
+                                id="postal_code"
+                                placeholder="Ej. 06600"
+                                className="mb-2"
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+
+                        <Controller
+                          name="city"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field
+                              data-invalid={fieldState.invalid}
+                              className="grid grid-rows-2 gap-0"
+                            >
+                              <FieldLabel htmlFor="city">Ciudad:</FieldLabel>
+                              <Input
+                                {...field}
+                                id="city"
+                                placeholder="Ej. Ciudad de México"
+                                className="mb-2"
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+
+                        <Controller
+                          name="municipality"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field
+                              data-invalid={fieldState.invalid}
+                              className="grid grid-rows-2 gap-0"
+                            >
+                              <FieldLabel htmlFor="municipality">Municipio/Alcaldía:</FieldLabel>
+                              <Input
+                                {...field}
+                                id="municipality"
+                                placeholder="Ej. Cuauhtémoc"
+                                className="mb-2"
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+
+                        <Controller
+                          name="state"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field
+                              data-invalid={fieldState.invalid}
+                              className="grid grid-rows-2 gap-0"
+                            >
+                              <FieldLabel htmlFor="state">Estado:</FieldLabel>
+                              <Input
+                                {...field}
+                                id="state"
+                                placeholder="Ej. CDMX"
+                                className="mb-2"
+                                aria-invalid={fieldState.invalid}
+                              />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-span-2 my-6">
+                      <Separator />
+                    </div>
                     <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
                       <ShowFileSlot />
                       <Controller
@@ -357,7 +560,7 @@ export function RepresentanteSub() {
                       <FileController
                         form={form}
                         fieldLabel="INE:"
-                        controllerName="ine"
+                        controllerName="ine.file"
                         accept={['application/pdf', 'image/png', 'image/jpeg']}
                         buttonText="Selecciona .pdf .png .jpeg"
                       />
@@ -370,7 +573,7 @@ export function RepresentanteSub() {
             </CardContent>
             <CardFooter className="flex items-end">
               <Field orientation="horizontal" className="justify-end">
-                <MyGPButtonGhost onClick={() => form.reset()}>Reiniciar</MyGPButtonGhost>
+                <MyGPButtonGhost onClick={() => resetForm()}>Reiniciar</MyGPButtonGhost>
                 <MyGPButtonSubmit form="form-datos-representante" isSubmitting={isSubmitting}>
                   Guardar Cambios
                 </MyGPButtonSubmit>
