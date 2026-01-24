@@ -47,7 +47,7 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function AcreditacionSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [accordionOpen, setAccordionOpen] = React.useState(false);
 
@@ -57,7 +57,7 @@ export function AcreditacionSub() {
 
   const DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS = DOCUMENTOS_ACREDITA_AGENTE_ADUANAL?.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL?.name}`;
 
   const obligacionesFiscalesPath = `${basePath}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES.filename}`;
   const datosBancariosPath = `${basePath}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.DATOS_BANCARIOS_HOJA_MEMBRETADA.filename}`;

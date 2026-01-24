@@ -4,16 +4,21 @@ import React from 'react';
 
 type ClienteContextType = {
   cliente: string;
-  setCliente: (value: string) => void;
+  casa_id: string;
+  setCliente: (label: string) => void;
+  setCasaId: (value: string) => void;
 };
 
 const ClienteContext = React.createContext<ClienteContextType | undefined>(undefined);
 
 export function ClienteProvider({ children }: { children: React.ReactNode }) {
   const [cliente, setCliente] = React.useState('');
+  const [casa_id, setCasaId] = React.useState('');
 
   return (
-    <ClienteContext.Provider value={{ cliente, setCliente }}>{children}</ClienteContext.Provider>
+    <ClienteContext.Provider value={{ cliente, casa_id, setCliente, setCasaId }}>
+      {children}
+    </ClienteContext.Provider>
   );
 }
 

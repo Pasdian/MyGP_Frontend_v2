@@ -35,7 +35,7 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function CartaEncomiendaSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -45,7 +45,7 @@ export function CartaEncomiendaSub() {
 
   const CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS = CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD?.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD?.name}`;
 
   const cartaEncomienda3901Path = `${basePath}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3901.filename}`;
   const cartaEncomienda3072Path = `${basePath}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3072.filename}`;

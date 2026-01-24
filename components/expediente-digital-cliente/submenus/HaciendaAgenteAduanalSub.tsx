@@ -39,7 +39,7 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function HaciendaAgenteAduanalSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -49,7 +49,7 @@ export function HaciendaAgenteAduanalSub() {
   const DATOS_HACIENDA_AGENTE_ADUANAL_DOCS =
     DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_HACIENDA_AGENTE_ADUANAL.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_HACIENDA_AGENTE_ADUANAL?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_HACIENDA_AGENTE_ADUANAL?.name}`;
   const constanciaPath = `${basePath}/${DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.CONSTANCIA_SITUACION_FISCAL_SAT.filename}`;
   const formSchema = buildHaciendaSchema(
     DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.CERTIFICADO_SAT?.size || 2_000_000,

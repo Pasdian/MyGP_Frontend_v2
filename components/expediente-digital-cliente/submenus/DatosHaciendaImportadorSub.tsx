@@ -40,7 +40,7 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function DatosHaciendaImportadorSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const { getCasaUsername } = useAuth();
 
   const [accordionOpen, setAccordionOpen] = React.useState(false);
@@ -52,7 +52,7 @@ export function DatosHaciendaImportadorSub() {
   const DATOS_HACIENDA_IMPORTADOR_DOCS =
     DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_HACIENDA_IMPORTADOR.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_HACIENDA_IMPORTADOR?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_HACIENDA_IMPORTADOR?.name}`;
 
   const certificadoPath = `${basePath}/${DATOS_HACIENDA_IMPORTADOR_DOCS?.CERTIFICADO_SAT.filename}`;
   const efirmaPath = `${basePath}/${DATOS_HACIENDA_IMPORTADOR_DOCS?.EFIRMA_SAT.filename}`;

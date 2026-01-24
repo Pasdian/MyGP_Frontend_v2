@@ -97,7 +97,7 @@ const RENAME_MAP: Record<keyof z.infer<typeof formSchema>, string> = {
 type FormValues = z.infer<typeof formSchema>;
 
 export function BajoProtestaSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -107,7 +107,7 @@ export function BajoProtestaSub() {
 
   const MANIFIESTO_BAJO_PROTESTA_DOCS = MANIFIESTO_BAJO_PROTESTA?.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${MANIFIESTO_BAJO_PROTESTA?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${MANIFIESTO_BAJO_PROTESTA?.name}`;
 
   const usuarioSolicitoOperacionPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.USUARIO_SOLICITO_OPERACION.filename}`;
   const agenteAduanalVerificoUsuariosPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.AGENTE_ADUANAL_VERIFICO_USUARIOS.filename}`;

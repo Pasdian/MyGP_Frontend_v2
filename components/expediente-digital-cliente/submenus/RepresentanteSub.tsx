@@ -32,6 +32,7 @@ import { revalidateFileExists, ShowFile, ShowFileSlot } from '../buttons/ShowFil
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Separator } from '@/components/ui/separator';
+import { buildRepresentanteSchema } from '../schemas/representanteSchema';
 
 const _documentosRepresentanteLegal =
   FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL;
@@ -45,8 +46,9 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function RepresentanteSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const { getCasaUsername } = useAuth();
+  const didHydrateRef = React.useRef(false);
 
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -57,72 +59,12 @@ export function RepresentanteSub() {
   const DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS =
     DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_REPRESENTANTE_LEGAL?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_REPRESENTANTE_LEGAL?.name}`;
   const inePath = `${basePath}/${DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE.filename}`;
 
-  const formSchema = z.object({
-    nombre: z
-      .string({ message: 'Ingresa el nombre' })
-      .min(1, 'Ingresa el nombre')
-      .max(100, 'Máximo 100 caracteres'),
-    apellido1: z
-      .string({ message: 'Ingresa el primer apellido' })
-      .min(1, 'Ingresa el primer apellido')
-      .max(100, 'Máximo 100 caracteres'),
-    apellido2: z.string('Ingresa el segundo apellido').max(100, 'Máximo 100 caracteres').optional(),
-    rfc: z
-      .string({ message: 'Ingresa un RFC' })
-      .max(13, { error: 'El RFC es de máximo 13 caracteres' })
-      .min(1, 'Ingresa un RFC'),
-    curp: z
-      .string({ message: 'Ingresa el curp' })
-      .min(1, 'Ingresa el CURP')
-      .max(18, 'Máximo 18 caracteres'),
-    address_1: z
-      .string({ message: 'Ingresa una dirección' })
-      .min(1, 'Ingresa la dirección')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    neighbourhood: z
-      .string({ message: 'Ingresa una colonia' })
-      .min(1, 'Ingresa la colonia')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    municipality: z
-      .string({ message: 'Ingresa un municipio' })
-      .min(1, 'Ingresa la municipio')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    city: z
-      .string({ message: 'Ingresa una ciudad' })
-      .min(1, 'Ingresa la ciudad')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    state: z
-      .string({ message: 'Ingresa una ciudad' })
-      .min(1, 'Ingresa la ciudad')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    postal_code: z
-      .string({ message: 'Ingresa una ciudad' })
-      .min(1, 'Ingresa la ciudad')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    correoElectronico: z
-      .email({
-        pattern: z.regexes.email,
-        error: 'El correo eléctronico es inválido',
-      })
-      .max(100, 'Máximo 100 caracteres'),
-    numeroOficina: z.string().min(1, { error: 'Ingresa un número de oficina' }),
-    telefonoRepresentanteLegal: z
-      .string({
-        message: 'Ingresa un número de teléfono',
-      })
-      .length(10, { message: 'El teléfono debe de ser igual a 10 caracteres' }),
-
-    ine: z.object({
-      file: createPdfSchema(DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE?.size || 2_000_000),
-      category: z.number(),
-      filepath: z.string(),
-      filename: z.string(),
-    }),
-    ineExp: expiryDateSchema,
-  });
+  const formSchema = buildRepresentanteSchema(
+    DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE?.size || 2_000_000
+  );
 
   const resetForm = () => {
     form.reset({
@@ -167,7 +109,7 @@ export function RepresentanteSub() {
         formData.append('file', file);
         formData.append('rename', rename);
 
-        const insertRecordPayload = {
+        const filePayload = {
           filename: value.filename,
           file_date: value.file
             ? new Date(value.file.lastModified).toISOString().split('T')[0]
@@ -175,15 +117,40 @@ export function RepresentanteSub() {
           filepath: value.filepath,
           client_id: cliente.split(' ')[0],
           file_category: value.category,
-          is_valid: 1,
+          is_valid: true,
           status: 0,
           comment: '',
           expiration_date: data.ineExp,
           uploaded_by: getCasaUsername() || 'MYGP',
         };
 
+        const legalRepPayload = {
+          name: data.nombre,
+          last_name: data.apellido1,
+          last_name_2: data.apellido2 || '',
+          curp: data.curp,
+          rfc: data.rfc,
+          is_valid: true,
+          phone: data.telefonoRepresentanteLegal,
+          email: data.correoElectronico,
+          created_by: getCasaUsername() || 'MYGP',
+          address: {
+            address_1: data.address_1,
+            neighbourhod: data.neighbourhood, // DB column is neighbourhod
+            municipality: data.municipality,
+            city: data.city,
+            state: data.state,
+            postal_code: data.postal_code,
+          },
+        };
+
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
-        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
+        await GPClient.post(
+          '/api/expediente-digital-cliente/legal-representative',
+          legalRepPayload
+        );
+
+        await GPClient.post('/api/expediente-digital-cliente', filePayload);
       }
 
       toast.info('Se subieron los archivos correctamente');
@@ -225,6 +192,62 @@ export function RepresentanteSub() {
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
+
+  React.useEffect(() => {
+    const hydrate = async () => {
+      if (!accordionOpen) return;
+      if (didHydrateRef.current) return;
+
+      try {
+        setIsSubmitting(true);
+
+        // cliente is already the client_id you want
+        const { data: rep } = await GPClient.get(
+          '/api/expediente-digital-cliente/legal-representative',
+          {
+            params: {
+              client_id: cliente,
+            },
+          }
+        );
+
+        const nextValues = {
+          ...form.getValues(),
+          nombre: rep?.name ?? '',
+          apellido1: rep?.last_name ?? '',
+          apellido2: rep?.last_name_2 ?? '',
+          rfc: rep?.rfc ?? '',
+          curp: rep?.curp ?? '',
+          correoElectronico: rep?.email ?? '',
+          telefonoRepresentanteLegal: rep?.phone ?? '',
+
+          address_1: rep?.address?.address_1 ?? '',
+          neighbourhood: rep?.address?.neighbourhod ?? '',
+          municipality: rep?.address?.municipality ?? '',
+          city: rep?.address?.city ?? '',
+          state: rep?.address?.state ?? '',
+          postal_code: rep?.address?.postal_code ?? '',
+        };
+
+        form.reset({
+          ...nextValues,
+          ine: {
+            ...form.getValues('ine'),
+            file: undefined,
+          },
+        });
+
+        didHydrateRef.current = true;
+      } catch (error) {
+        // 404 is OK when no data exists yet
+        console.error(error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    hydrate();
+  }, [accordionOpen, cliente, form]);
 
   return (
     <Accordion

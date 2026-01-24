@@ -79,7 +79,7 @@ function fileToArray(value: File | File[] | undefined): File[] {
 }
 
 export function DatosContactoSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const { getCasaUsername } = useAuth();
 
   const [accordionOpen, setAccordionOpen] = React.useState(false);
@@ -91,7 +91,7 @@ export function DatosContactoSub() {
   const DATOS_CONTACTO_DEL_IMPORTADOR_DOCS =
     DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_CONTACTO_DEL_IMPORTADOR.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_CONTACTO_DEL_IMPORTADOR?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_CONTACTO_DEL_IMPORTADOR?.name}`;
 
   const comprobantePath = `${basePath}/${DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.COMPROBANTE_DE_DOMICILIO.filename}`;
   const fotosAcreditacionPath = `${basePath}/${DATOS_CONTACTO_DEL_IMPORTADOR_DOCS?.FOTOS_ACREDITACION_LEGAL_INMUEBLE.filename}`;

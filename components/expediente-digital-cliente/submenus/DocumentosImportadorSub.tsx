@@ -35,7 +35,7 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function DocumentosImportadorSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [accordionOpen, setAccordionOpen] = React.useState(false);
@@ -46,7 +46,7 @@ export function DocumentosImportadorSub() {
   const DOCUMENTOS_IMPORTADOR_DOCS =
     FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_IMPORTADOR.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_IMPORTADOR?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_IMPORTADOR?.name}`;
 
   const actaPath = `${basePath}/${DOCUMENTOS_IMPORTADOR_DOCS?.ACTA_CONSTITUTIVA.filename}`;
   const poderPath = `${basePath}/${DOCUMENTOS_IMPORTADOR_DOCS?.PODER_NOTARIAL.filename}`;

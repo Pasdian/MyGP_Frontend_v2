@@ -44,14 +44,14 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function DocumentosVulnerablesMain() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const DOCUMENTOS_ACTIVIDAD_VULNERABLE = FOLDERFILESTRUCT.DOCUMENTOS_ACTIVIDAD_VULNERABLE;
   const DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS = DOCUMENTOS_ACTIVIDAD_VULNERABLE?.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE.name}`;
 
   const formatoActividadVulnerable3901Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3901.filename}`;
   const formatoActividadVulnerable3072Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3072.filename}`;

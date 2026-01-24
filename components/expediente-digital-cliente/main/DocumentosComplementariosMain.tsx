@@ -36,14 +36,14 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function DocumentosComplementariosMain() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const DOCUMENTOS_COMPLEMENTARIOS = FOLDERFILESTRUCT.DOCUMENTOS_COMPLEMENTARIOS;
   const DOCUMENTOS_COMPLEMENTARIOS_DOCS = DOCUMENTOS_COMPLEMENTARIOS?.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_COMPLEMENTARIOS.name}`;
+  const basePath = `/${casa_id} ${casa_id} ${cliente}/${DOCUMENTOS_COMPLEMENTARIOS.name}`;
 
   const cuestionarioPath = `${basePath}/${DOCUMENTOS_COMPLEMENTARIOS_DOCS?.CUESTIONARIO_PREVENCION_LAVADO_ACTIVOS.filename}`;
   const altaClientesPath = `${basePath}/${DOCUMENTOS_COMPLEMENTARIOS_DOCS?.ALTA_CLIENTES.filename}`;

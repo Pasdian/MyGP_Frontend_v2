@@ -34,7 +34,7 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function AcuerdoConfidencialidadSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -45,7 +45,7 @@ export function AcuerdoConfidencialidadSub() {
   const ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS =
     ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL?.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL?.name}`;
 
   const acuerdoConfidencialidadPath = `${basePath}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_CONFIDENCIALIDAD.filename}`;
   const acuerdoSocioComercialPath = `${basePath}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_SOCIO_COMERCIAL.filename}`;

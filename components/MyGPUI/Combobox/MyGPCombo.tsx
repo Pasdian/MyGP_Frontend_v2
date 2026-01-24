@@ -25,6 +25,7 @@ export function MyGPCombo({
   className,
   pickFirst,
   onSelect,
+  'aria-invalid': ariaInvalid,
   ...props
 }: {
   value: string;
@@ -39,6 +40,7 @@ export function MyGPCombo({
   className?: string;
   onSelect?: () => void;
   pickFirst?: boolean;
+  'aria-invalid'?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -62,8 +64,13 @@ export function MyGPCombo({
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-invalid={ariaInvalid}
             id={label}
-            className={cn('cursor-pointer flex justify-between items-center text-left', className)}
+            className={cn(
+              'cursor-pointer flex justify-between items-center text-left',
+              ariaInvalid && 'border-destructive focus-visible:ring-destructive',
+              className
+            )}
             {...props}
           >
             <span
@@ -111,13 +118,16 @@ export function MyGPCombo({
                       onSelect?.();
                     }}
                   >
-                    <div className="grid grid-cols-[auto_1fr] items-center min-w-0 gap-2">
+                    <div className="flex items-center min-w-0 gap-2 w-full">
                       {showValue && (
-                        <span className="text-xs text-muted-foreground truncate w-[70px]">
+                        <span className="text-xs text-muted-foreground shrink-0">
                           ({item.value})
                         </span>
                       )}
-                      <span className="text-xs font-semibold truncate">{item.label}</span>
+
+                      <span className="text-xs font-semibold truncate min-w-0 flex-1">
+                        {item.label}
+                      </span>
                     </div>
 
                     <Check

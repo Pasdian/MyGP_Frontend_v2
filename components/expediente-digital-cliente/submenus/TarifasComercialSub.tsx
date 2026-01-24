@@ -34,7 +34,7 @@ const RENAME_MAP: Record<string, string> = {
 };
 
 export function TarifasComercialSub() {
-  const { cliente } = useCliente();
+  const { casa_id, cliente } = useCliente();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -43,7 +43,7 @@ export function TarifasComercialSub() {
 
   const TARIFAS_DOCS = TARIFAS?.docs;
 
-  const basePath = `/${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${TARIFAS?.name}`;
+  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${TARIFAS?.name}`;
 
   const tarifaAutorizadaPath = `${basePath}/${TARIFAS_DOCS?.TARIFA_AUTORIZADA.filename}`;
   const tarifaPreclasificacionPath = `${basePath}/${TARIFAS_DOCS?.TARIFA_PRECLASIFICACION.filename}`;
