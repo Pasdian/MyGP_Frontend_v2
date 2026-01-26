@@ -52,60 +52,126 @@ export function CartaEncomiendaSub() {
   const avisoPrivacidadPath = `${basePath}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.AVISO_PRIVACIDAD.filename}`;
 
   const formSchema = z.object({
-    cartaEncomienda3901: createPdfSchema(
-      CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3901?.size || 2_000_000
-    ),
+    cartaEncomienda3901: z.object({
+      file: createPdfSchema(
+        CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3901?.size || 2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
 
-    cartaEncomienda3072: createPdfSchema(
-      CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3072?.size || 2_000_000
-    ),
+    cartaEncomienda3072: z.object({
+      file: createPdfSchema(
+        CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3072?.size || 2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
 
-    avisoPrivacidad: createPdfSchema(
-      CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.AVISO_PRIVACIDAD?.size || 2_000_000
-    ),
+    avisoPrivacidad: z.object({
+      file: createPdfSchema(
+        CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.AVISO_PRIVACIDAD?.size || 2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
   });
-
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: FormValues) => {
     try {
       setIsSubmitting(true);
+
       const fileKeys = ['cartaEncomienda3901', 'cartaEncomienda3072', 'avisoPrivacidad'] as const;
 
       for (const fieldName of fileKeys) {
-        const file = data[fieldName];
-        if (!file) continue;
+        const fileObj = data[fieldName]; // { file, category, filepath, filename }
+        const realFile = fileObj?.file;
+        if (!realFile) continue;
 
-        const rename = RENAME_MAP[fieldName] ?? fieldName;
+        const rename = RENAME_MAP[fieldName];
 
         const formData = new FormData();
         formData.append('path', basePath);
-        formData.append('file', file);
+        formData.append('file', realFile);
         formData.append('rename', rename);
 
+        const insertRecordPayload = {
+          filename: fileObj.filename,
+          file_date: new Date(realFile.lastModified).toISOString().split('T')[0],
+          filepath: fileObj.filepath,
+          client_id: casa_id,
+          file_category: fileObj.category,
+          is_valid: true,
+          status: 0,
+          comment: '',
+          expiration_date: null,
+          uploaded_by: 'MYGP',
+        };
+
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
       }
 
       toast.info('Se subieron los archivos correctamente');
+
       await Promise.all([
         revalidateFileExists(cartaEncomienda3901Path),
         revalidateFileExists(cartaEncomienda3072Path),
         revalidateFileExists(avisoPrivacidadPath),
       ]);
-      form.reset(data);
-      setIsSubmitting(false);
+
+      // keep metadata, clear chosen files only (like others)
+      form.reset({
+        ...form.getValues(),
+        cartaEncomienda3901: { ...form.getValues('cartaEncomienda3901'), file: undefined },
+        cartaEncomienda3072: { ...form.getValues('cartaEncomienda3072'), file: undefined },
+        avisoPrivacidad: { ...form.getValues('avisoPrivacidad'), file: undefined },
+      });
     } catch (error) {
-      setIsSubmitting(false);
       console.error(error);
       toast.error('Error al subir los archivos');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  type FormValues = z.infer<typeof formSchema>;
+
+  const defaultValues = React.useMemo<FormValues>(() => {
+    const docs = CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS!;
+
+    return {
+      cartaEncomienda3901: {
+        file: undefined,
+        category: docs.CARTA_ENCOMIENDA_3901.category,
+        filename: docs.CARTA_ENCOMIENDA_3901.filename || 'CARTA_ENCOMIENDA_3901.pdf',
+        filepath: cartaEncomienda3901Path,
+      },
+      cartaEncomienda3072: {
+        file: undefined,
+        category: docs.CARTA_ENCOMIENDA_3072.category,
+        filename: docs.CARTA_ENCOMIENDA_3072.filename || 'CARTA_ENCOMIENDA_3072.pdf',
+        filepath: cartaEncomienda3072Path,
+      },
+      avisoPrivacidad: {
+        file: undefined,
+        category: docs.AVISO_PRIVACIDAD.category,
+        filename: docs.AVISO_PRIVACIDAD.filename || 'AVISO_PRIVACIDAD.pdf',
+        filepath: avisoPrivacidadPath,
+      },
+    };
+  }, [
+    CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS,
+    cartaEncomienda3901Path,
+    cartaEncomienda3072Path,
+    avisoPrivacidadPath,
+  ]);
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      cartaEncomienda3901: undefined,
-      cartaEncomienda3072: undefined,
-      avisoPrivacidad: undefined,
-    },
+    defaultValues,
   });
 
   return (
@@ -133,7 +199,7 @@ export function CartaEncomiendaSub() {
                       <FileController
                         form={form}
                         fieldLabel="Carta Encomienda Patente 3901:"
-                        controllerName="cartaEncomienda3901"
+                        controllerName="cartaEncomienda3901.file"
                         accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
                     </div>
@@ -145,7 +211,8 @@ export function CartaEncomiendaSub() {
                       <FileController
                         form={form}
                         fieldLabel="Carta Encomienda Patente 3072:"
-                        controllerName="cartaEncomienda3072"
+                        controllerName="cartaEncomienda3072.file"
+                        accept={['application/pdf', 'image/png', 'image/jpeg']}
                         buttonText="Selecciona .pdf .png .jpeg"
                       />
                     </div>
@@ -157,7 +224,7 @@ export function CartaEncomiendaSub() {
                       <FileController
                         form={form}
                         fieldLabel="Aviso de Privacidad:"
-                        controllerName="avisoPrivacidad"
+                        controllerName="avisoPrivacidad.file"
                         accept={['application/pdf', 'image/png', 'image/jpeg']}
                         buttonText="Selecciona .pdf .png .jpeg"
                       />

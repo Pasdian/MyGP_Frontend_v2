@@ -11,7 +11,9 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Album } from 'lucide-react'
+import { Album } from 'lucide-react';
+import PermissionGuard from '../PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
 const activeItemClass = 'rounded-none bg-gray-200 hover:bg-gray-300 font-bold cursor-pointer';
 const inactiveItemClass = 'font-bold cursor-pointer';
@@ -58,17 +60,23 @@ export function NavMain() {
             </SidebarMenuItem>
           </Link>
           {pathname !== '/mygp/dea' && (
-            <Link href="/mygp/expediente-digital-cliente">
-              <SidebarMenuItem className="flex items-center gap-2">
-                <SidebarMenuButton
-                  tooltip="Expediente Digital Cliente"
-                  className={pathname == '/mygp/expediente-digital-cliente' ? activeItemClass : inactiveItemClass}
-                >
-                  <Album />
-                  <span>Exp. Digital Cliente</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </Link>
+            <PermissionGuard requiredPermissions={[PERM.EXPEDIENTE_DIGITAL_CLIENTE]}>
+              <Link href="/mygp/expediente-digital-cliente">
+                <SidebarMenuItem className="flex items-center gap-2">
+                  <SidebarMenuButton
+                    tooltip="Expediente Digital Cliente"
+                    className={
+                      pathname == '/mygp/expediente-digital-cliente'
+                        ? activeItemClass
+                        : inactiveItemClass
+                    }
+                  >
+                    <Album />
+                    <span>Exp. Digital Cliente</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Link>
+            </PermissionGuard>
           )}
         </SidebarMenu>
       </SidebarGroupContent>

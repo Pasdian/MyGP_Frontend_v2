@@ -28,11 +28,6 @@ export const expiryDateSchema = z
 
 export const buildHaciendaSchema = (certSize: number, efirmaSize: number, constanciaSize: number) =>
   z.object({
-    rfc: z
-      .string()
-      .max(13, { error: 'El RFC es de máximo 13 caracteres' })
-      .min(1, 'Ingresa un RFC'),
-
     certificado: z.object({
       file: z
         .file({ message: 'Por favor ingresa un PDF' })

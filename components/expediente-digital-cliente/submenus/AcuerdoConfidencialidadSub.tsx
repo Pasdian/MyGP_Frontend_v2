@@ -51,17 +51,31 @@ export function AcuerdoConfidencialidadSub() {
   const acuerdoSocioComercialPath = `${basePath}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_SOCIO_COMERCIAL.filename}`;
 
   const formSchema = z.object({
-    acuerdoConfidencialidad: createPdfSchema(
-      ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_CONFIDENCIALIDAD?.size || 2_000_000
-    ),
-    acuerdoSocioComercial: createPdfSchema(
-      ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_SOCIO_COMERCIAL?.size || 2_000_000
-    ),
+    acuerdoConfidencialidad: z.object({
+      file: createPdfSchema(
+        ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_CONFIDENCIALIDAD?.size || 2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
+
+    acuerdoSocioComercial: z.object({
+      file: createPdfSchema(
+        ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_SOCIO_COMERCIAL?.size || 2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
   });
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  type FormValues = z.infer<typeof formSchema>;
+
+  const onSubmit = async (data: FormValues) => {
     try {
       setIsSubmitting(true);
+
       if (!cliente) {
         toast.message('Selecciona un cliente antes de subir archivos');
         return;
@@ -70,39 +84,85 @@ export function AcuerdoConfidencialidadSub() {
       const fileKeys = ['acuerdoConfidencialidad', 'acuerdoSocioComercial'] as const;
 
       for (const fieldName of fileKeys) {
-        const file = data[fieldName];
-        if (!file) continue;
+        const fileObj = data[fieldName]; // { file, category, filepath, filename }
+        const realFile = fileObj?.file;
+        if (!realFile) continue;
 
-        const rename = RENAME_MAP[fieldName] ?? fieldName;
+        const rename = RENAME_MAP[fieldName];
 
         const formData = new FormData();
         formData.append('path', basePath);
-        formData.append('file', file);
+        formData.append('file', realFile);
         formData.append('rename', rename);
 
+        const insertRecordPayload = {
+          filename: fileObj.filename,
+          file_date: new Date(realFile.lastModified).toISOString().split('T')[0],
+          filepath: fileObj.filepath,
+          client_id: casa_id,
+          file_category: fileObj.category,
+          is_valid: true,
+          status: 0,
+          comment: '',
+          expiration_date: null,
+          uploaded_by: 'MYGP',
+        };
+
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
       }
 
       toast.message('Se subieron los archivos correctamente');
+
       await Promise.all([
         revalidateFileExists(acuerdoConfidencialidadPath),
         revalidateFileExists(acuerdoSocioComercialPath),
       ]);
-      form.reset(data);
-      setIsSubmitting(false);
+
+      resetForm();
     } catch (error) {
-      setIsSubmitting(false);
       console.error(error);
       toast.message('Error al subir los archivos');
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  const form = useForm<z.infer<typeof formSchema>>({
+
+  const defaultValues = React.useMemo<FormValues>(() => {
+    const docs = ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS!;
+
+    return {
+      acuerdoConfidencialidad: {
+        file: undefined,
+        category: docs.ACUERDO_CONFIDENCIALIDAD.category,
+        filename: docs.ACUERDO_CONFIDENCIALIDAD.filename || 'ACUERDO_CONFIDENCIALIDAD.pdf',
+        filepath: acuerdoConfidencialidadPath,
+      },
+      acuerdoSocioComercial: {
+        file: undefined,
+        category: docs.ACUERDO_SOCIO_COMERCIAL.category,
+        filename: docs.ACUERDO_SOCIO_COMERCIAL.filename || 'ACUERDO_SOCIO_COMERCIAL.pdf',
+        filepath: acuerdoSocioComercialPath,
+      },
+    };
+  }, [
+    ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS,
+    acuerdoConfidencialidadPath,
+    acuerdoSocioComercialPath,
+  ]);
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      acuerdoConfidencialidad: undefined,
-      acuerdoSocioComercial: undefined,
-    },
+    defaultValues,
   });
+
+  const resetForm = () => {
+    form.reset({
+      ...form.getValues(),
+      acuerdoConfidencialidad: { ...form.getValues('acuerdoConfidencialidad'), file: undefined },
+      acuerdoSocioComercial: { ...form.getValues('acuerdoSocioComercial'), file: undefined },
+    });
+  };
 
   return (
     <Accordion
@@ -128,7 +188,7 @@ export function AcuerdoConfidencialidadSub() {
                       <FileController
                         form={form}
                         fieldLabel="Acuerdo Confidencialidad:"
-                        controllerName="acuerdoConfidencialidad"
+                        controllerName="acuerdoConfidencialidad.file"
                         buttonText="Selecciona .pdf .png .jpeg"
                         accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />
@@ -139,7 +199,7 @@ export function AcuerdoConfidencialidadSub() {
                       <FileController
                         form={form}
                         fieldLabel="Acuerdo de Colaboración Socio Comercial"
-                        controllerName="acuerdoSocioComercial"
+                        controllerName="acuerdoSocioComercial.file"
                         buttonText="Selecciona .pdf .png .jpeg"
                         accept={['application/pdf', 'image/png', 'image/jpeg']}
                       />

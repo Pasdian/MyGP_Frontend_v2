@@ -96,7 +96,6 @@ export function DatosHaciendaImportadorSub() {
 
   const resetForm = () => {
     form.reset({
-      rfc: '',
       certificado: { ...form.getValues('certificado'), file: undefined },
       efirma: { ...form.getValues('efirma'), file: undefined },
       constancia: { ...form.getValues('constancia'), file: undefined },
@@ -177,32 +176,6 @@ export function DatosHaciendaImportadorSub() {
                 <FieldGroup>
                   <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
                     <div className="col-span-2 grid w-full gap-2">
-                      <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
-                        <ShowFileSlot />
-                        <div className="min-w-0 w-full">
-                          <Controller
-                            name="rfc"
-                            control={form.control}
-                            render={({ field, fieldState }) => (
-                              <Field
-                                data-invalid={fieldState.invalid}
-                                className="grid grid-rows-2 gap-0"
-                              >
-                                <FieldLabel htmlFor="email">RFC:</FieldLabel>
-                                <Input
-                                  {...field}
-                                  id="email"
-                                  placeholder="RFC123456789"
-                                  className="mb-2"
-                                  aria-invalid={fieldState.invalid}
-                                />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                              </Field>
-                            )}
-                          />
-                        </div>
-                      </div>
-
                       <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
                         <ShowFileSlot />
                         <div className="min-w-0 w-full">

@@ -15,11 +15,6 @@ import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field
 
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
-
-import {
-  createPdfSchema,
-  expiryDateSchema,
-} from '@/components/expediente-digital-cliente/schemas/utilSchema';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
 import { ExpiraEnController } from '@/components/expediente-digital-cliente/form-controllers/ExpiraEnController';
 
@@ -33,6 +28,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Separator } from '@/components/ui/separator';
 import { buildRepresentanteSchema } from '../schemas/representanteSchema';
+import { Loader2 } from 'lucide-react';
 
 const _documentosRepresentanteLegal =
   FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL;
@@ -48,6 +44,8 @@ const RENAME_MAP: Record<string, string> = {
 export function RepresentanteSub() {
   const { casa_id, cliente } = useCliente();
   const { getCasaUsername } = useAuth();
+  const [isHydrating, setIsHydrating] = React.useState(false);
+
   const didHydrateRef = React.useRef(false);
 
   const [accordionOpen, setAccordionOpen] = React.useState(false);
@@ -115,7 +113,7 @@ export function RepresentanteSub() {
             ? new Date(value.file.lastModified).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0],
           filepath: value.filepath,
-          client_id: cliente.split(' ')[0],
+          client_id: casa_id,
           file_category: value.category,
           is_valid: true,
           status: 0,
@@ -127,6 +125,7 @@ export function RepresentanteSub() {
         const legalRepPayload = {
           name: data.nombre,
           last_name: data.apellido1,
+          casa_id: casa_id,
           last_name_2: data.apellido2 || '',
           curp: data.curp,
           rfc: data.rfc,
@@ -136,7 +135,7 @@ export function RepresentanteSub() {
           created_by: getCasaUsername() || 'MYGP',
           address: {
             address_1: data.address_1,
-            neighbourhod: data.neighbourhood, // DB column is neighbourhod
+            neighbourhod: data.neighbourhood,
             municipality: data.municipality,
             city: data.city,
             state: data.state,
@@ -154,8 +153,6 @@ export function RepresentanteSub() {
       }
 
       toast.info('Se subieron los archivos correctamente');
-      resetForm();
-
       await Promise.all([revalidateFileExists(inePath)]);
     } catch (error) {
       console.error(error);
@@ -174,11 +171,19 @@ export function RepresentanteSub() {
       apellido2: '',
       rfc: '',
       curp: '',
-      direccion: '',
+
+      address_1: '',
+      neighbourhood: '',
+      municipality: '',
+      city: '',
+      state: '',
+      postal_code: '',
+
       correoElectronico: '',
       numeroOficina: '',
       telefonoRepresentanteLegal: '',
       ineExp: '',
+
       ine: {
         file: undefined,
         category: docs.INE.category,
@@ -199,20 +204,27 @@ export function RepresentanteSub() {
       if (didHydrateRef.current) return;
 
       try {
-        setIsSubmitting(true);
+        setIsHydrating(true);
 
-        // cliente is already the client_id you want
         const { data: rep } = await GPClient.get(
           '/api/expediente-digital-cliente/legal-representative',
-          {
-            params: {
-              client_id: cliente,
-            },
-          }
+          { params: { casa_id } }
         );
 
-        const nextValues = {
-          ...form.getValues(),
+        const addr = rep?.addressByIdAddress;
+
+        let lastIneFile = null;
+        try {
+          lastIneFile = await fetchLastFileByClientAndFilename(
+            casa_id,
+            DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS!.INE.filename
+          );
+        } catch (err: any) {
+          if (err?.response?.status !== 404) throw err;
+        }
+
+        // Hydrate form
+        form.reset({
           nombre: rep?.name ?? '',
           apellido1: rep?.last_name ?? '',
           apellido2: rep?.last_name_2 ?? '',
@@ -220,34 +232,48 @@ export function RepresentanteSub() {
           curp: rep?.curp ?? '',
           correoElectronico: rep?.email ?? '',
           telefonoRepresentanteLegal: rep?.phone ?? '',
+          numeroOficina: rep?.phone ?? '',
 
-          address_1: rep?.address?.address_1 ?? '',
-          neighbourhood: rep?.address?.neighbourhod ?? '',
-          municipality: rep?.address?.municipality ?? '',
-          city: rep?.address?.city ?? '',
-          state: rep?.address?.state ?? '',
-          postal_code: rep?.address?.postal_code ?? '',
-        };
+          address_1: addr?.address_1 ?? '',
+          neighbourhood: addr?.neighbourhod ?? '',
+          municipality: addr?.municipality ?? '',
+          city: addr?.city ?? '',
+          state: addr?.state ?? '',
+          postal_code: addr?.postal_code ?? '',
 
-        form.reset({
-          ...nextValues,
+          ineExp: lastIneFile?.expiration_date ?? '',
           ine: {
             ...form.getValues('ine'),
+            filepath: lastIneFile?.filepath ?? inePath,
+            filename: lastIneFile?.filename ?? DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS!.INE.filename,
             file: undefined,
           },
         });
 
         didHydrateRef.current = true;
-      } catch (error) {
-        // 404 is OK when no data exists yet
-        console.error(error);
+      } catch (error: any) {
+        if (error?.response?.status !== 404) {
+          console.error(error);
+          toast.error('Error al hidratar datos del representante');
+        }
       } finally {
-        setIsSubmitting(false);
+        setIsHydrating(false);
       }
     };
 
     hydrate();
-  }, [accordionOpen, cliente, form]);
+  }, [accordionOpen, casa_id, form, inePath, DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS]);
+
+  const fetchLastFileByClientAndFilename = async (clientId: string, filename: string) => {
+    const { data } = await GPClient.get('/api/expediente-digital-cliente/files/last', {
+      params: {
+        client_id: clientId,
+        filename,
+      },
+    });
+
+    return data;
+  };
 
   return (
     <Accordion
@@ -259,7 +285,13 @@ export function RepresentanteSub() {
     >
       <AccordionItem value="datos-representante-legal" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white pl-2 [&>svg]:text-white">
-          Datos del Representante Legal
+          <div className="flex items-center gap-2">
+            <span>Datos del Representante Legal</span>
+
+            {isHydrating && (
+              <Loader2 className="h-4 w-4 animate-spin text-white" aria-label="Cargando datos" />
+            )}
+          </div>
         </AccordionTrigger>
         <AccordionContent>
           <Card>

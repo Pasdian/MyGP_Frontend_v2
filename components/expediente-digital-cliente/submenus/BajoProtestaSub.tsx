@@ -29,6 +29,7 @@ import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStr
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import React from 'react';
 import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
+import { useAuth } from '@/hooks/useAuth';
 
 const _manifiestoBajoProtesta =
   FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.MANIFIESTO_BAJO_PROTESTA;
@@ -41,17 +42,25 @@ const formSchema = z
   .object({
     usuarioSolicitoOperacion: z.object({
       isChecked: z.boolean(),
-      file: createPdfSchema(
-        _manifiestoBajoProtesta.docs?.USUARIO_SOLICITO_OPERACION?.size || 2_000_000
-      ).optional(),
-      fileExp: expiryDateSchema.optional(),
+      file: z.object({
+        file: createPdfSchema(
+          _manifiestoBajoProtesta.docs?.USUARIO_SOLICITO_OPERACION?.size || 2_000_000
+        ).optional(),
+        category: z.number(),
+        filepath: z.string(),
+        filename: z.string(),
+      }),
     }),
     agenteAduanalVerificoUsuarios: z.object({
       isChecked: z.boolean(),
-      file: createPdfSchema(
-        _manifiestoBajoProtesta.docs?.AGENTE_ADUANAL_VERIFICO_USUARIOS?.size || 2_000_000
-      ).optional(),
-      fileExp: expiryDateSchema.optional(),
+      file: z.object({
+        file: createPdfSchema(
+          _manifiestoBajoProtesta.docs?.AGENTE_ADUANAL_VERIFICO_USUARIOS?.size || 2_000_000
+        ).optional(),
+        category: z.number(),
+        filepath: z.string(),
+        filename: z.string(),
+      }),
     }),
   })
   .superRefine((val, ctx) => {
@@ -62,10 +71,10 @@ const formSchema = z
         message: 'Debes marcar esta casilla.',
       });
     } else {
-      if (!val.usuarioSolicitoOperacion.file) {
+      if (!val.usuarioSolicitoOperacion.file?.file) {
         ctx.addIssue({
           code: 'custom',
-          path: ['usuarioSolicitoOperacion', 'file'],
+          path: ['usuarioSolicitoOperacion', 'file', 'file'],
           message: 'Adjunta el archivo en PDF.',
         });
       }
@@ -78,10 +87,10 @@ const formSchema = z
         message: 'Debes marcar esta casilla.',
       });
     } else {
-      if (!val.agenteAduanalVerificoUsuarios.file) {
+      if (!val.agenteAduanalVerificoUsuarios.file?.file) {
         ctx.addIssue({
           code: 'custom',
-          path: ['agenteAduanalVerificoUsuarios', 'file'],
+          path: ['agenteAduanalVerificoUsuarios', 'file', 'file'],
           message: 'Adjunta el archivo en PDF.',
         });
       }
@@ -98,6 +107,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function BajoProtestaSub() {
   const { casa_id, cliente } = useCliente();
+  const { getCasaUsername } = useAuth();
   const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -112,56 +122,120 @@ export function BajoProtestaSub() {
   const usuarioSolicitoOperacionPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.USUARIO_SOLICITO_OPERACION.filename}`;
   const agenteAduanalVerificoUsuariosPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.AGENTE_ADUANAL_VERIFICO_USUARIOS.filename}`;
 
+  const defaultValues = React.useMemo<FormValues>(() => {
+    const docs = MANIFIESTO_BAJO_PROTESTA_DOCS!;
+
+    return {
+      usuarioSolicitoOperacion: {
+        isChecked: false,
+        file: {
+          file: undefined,
+          category: docs.USUARIO_SOLICITO_OPERACION.category,
+          filename: docs.USUARIO_SOLICITO_OPERACION.filename || 'USUARIO_SOLICITO_OPERACION.pdf',
+          filepath: usuarioSolicitoOperacionPath,
+        },
+        fileExp: '',
+      },
+
+      agenteAduanalVerificoUsuarios: {
+        isChecked: false,
+        file: {
+          file: undefined,
+          category: docs.AGENTE_ADUANAL_VERIFICO_USUARIOS.category,
+          filename:
+            docs.AGENTE_ADUANAL_VERIFICO_USUARIOS.filename ||
+            'AGENTE_ADUANAL_VERIFICO_USUARIOS.pdf',
+          filepath: agenteAduanalVerificoUsuariosPath,
+        },
+        fileExp: '',
+      },
+    };
+  }, [
+    MANIFIESTO_BAJO_PROTESTA_DOCS,
+    usuarioSolicitoOperacionPath,
+    agenteAduanalVerificoUsuariosPath,
+  ]);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      usuarioSolicitoOperacion: { isChecked: false, file: undefined },
-      agenteAduanalVerificoUsuarios: { isChecked: false, file: undefined },
-    },
+    defaultValues: defaultValues,
   });
 
   const usuarioError =
     form.formState.errors.usuarioSolicitoOperacion?.file ??
-    form.formState.errors.usuarioSolicitoOperacion?.isChecked ??
-    form.formState.errors.usuarioSolicitoOperacion?.fileExp;
+    form.formState.errors.usuarioSolicitoOperacion?.isChecked;
 
   const agenteError =
     form.formState.errors.agenteAduanalVerificoUsuarios?.file ??
-    form.formState.errors.agenteAduanalVerificoUsuarios?.isChecked ??
-    form.formState.errors.agenteAduanalVerificoUsuarios?.fileExp;
+    form.formState.errors.agenteAduanalVerificoUsuarios?.isChecked;
 
-  const onSubmit = async (data: FormValues) => {
+  const resetForm = () => {
+    form.reset({
+      ...form.getValues(),
+      usuarioSolicitoOperacion: {
+        ...form.getValues('usuarioSolicitoOperacion'),
+        file: { ...form.getValues('usuarioSolicitoOperacion').file, file: undefined },
+      },
+      agenteAduanalVerificoUsuarios: {
+        ...form.getValues('agenteAduanalVerificoUsuarios'),
+        file: { ...form.getValues('agenteAduanalVerificoUsuarios').file, file: undefined },
+      },
+    });
+  };
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      const sections = Object.keys(RENAME_MAP) as Array<keyof typeof RENAME_MAP>;
 
-      for (const section of sections) {
-        const value = data[section];
-        if (!value.isChecked || !value.file) continue;
+      const fileKeys = ['usuarioSolicitoOperacion', 'agenteAduanalVerificoUsuarios'] as const;
+
+      for (const fieldName of fileKeys) {
+        const value = data[fieldName];
+
+        const fileObj = value.file; // { file, category, filepath, filename }
+        const realFile = fileObj?.file; // File | undefined
+        if (!value.isChecked || !realFile) continue;
+
+        const rename = RENAME_MAP[fieldName];
 
         const formData = new FormData();
         formData.append('path', basePath);
-        formData.append('file', value.file);
-        formData.append('rename', RENAME_MAP[section]);
+        formData.append('file', realFile);
+        formData.append('rename', rename);
+
+        const insertRecordPayload = {
+          filename: fileObj.filename,
+          file_date: new Date(realFile.lastModified).toISOString().split('T')[0],
+          filepath: fileObj.filepath,
+          client_id: casa_id, // use casa_id if that’s your client_id
+          file_category: fileObj.category,
+          is_valid: true,
+          status: 0,
+          comment: '',
+          expiration_date: null,
+          uploaded_by: getCasaUsername() || 'MYGP',
+        };
 
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
       }
 
-      toast.message('Se subieron los manifiestos correctamente');
+      toast.info('Se subieron los archivos correctamente');
+      resetForm();
 
       await Promise.all([
         revalidateFileExists(usuarioSolicitoOperacionPath),
         revalidateFileExists(agenteAduanalVerificoUsuariosPath),
       ]);
-
-      form.reset(data);
-      setIsSubmitting(false);
     } catch (error) {
-      setIsSubmitting(false);
       console.error(error);
-      toast.message('Error al subir los manifiestos');
+      toast.error('Error al subir los archivos');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  console.log(form.formState.errors);
 
   return (
     <Accordion
@@ -210,7 +284,7 @@ export function BajoProtestaSub() {
                       <FileController
                         form={form}
                         fieldLabel="Manifiesto bajo protesta de decir verdad del usuario que solicitó la operación:"
-                        controllerName="usuarioSolicitoOperacion.file"
+                        controllerName="usuarioSolicitoOperacion.file.file"
                         accept={['application/pdf', 'image/png', 'image/jpeg']}
                         buttonText="Selecciona .pdf .png .jpeg"
                       />
@@ -250,7 +324,7 @@ export function BajoProtestaSub() {
                         <FileController
                           form={form}
                           fieldLabel="Manifiesto bajo protesta de decir verdad en el que el Agente Aduanal señale que verificó a los usuarios"
-                          controllerName="agenteAduanalVerificoUsuarios.file"
+                          controllerName="agenteAduanalVerificoUsuarios.file.file"
                           accept={['application/pdf', 'image/png', 'image/jpeg']}
                           buttonText="Selecciona .pdf .png .jpeg"
                         />

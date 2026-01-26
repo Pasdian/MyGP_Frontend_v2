@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
+import { Loader2 } from 'lucide-react';
 
 const _documentosAcreditaAgente =
   FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_ACREDITA_AGENTE_ADUANAL;
@@ -36,7 +37,10 @@ if (!_documentosAcreditaAgente?.docs) {
   throw new Error('Missing DOCUMENTOS_ACREDITA_AGENTE_ADUANAL docs');
 }
 
-const RENAME_MAP: Record<string, string> = {
+const RENAME_MAP: Record<
+  'obligacionesFiscales' | 'datosBancarios' | 'conferidoJosePascal' | 'conferidoMarcoBremer',
+  string
+> = {
   obligacionesFiscales:
     _documentosAcreditaAgente.docs.OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES.filename,
   datosBancarios: _documentosAcreditaAgente.docs.DATOS_BANCARIOS_HOJA_MEMBRETADA.filename,
@@ -50,6 +54,8 @@ export function AcreditacionSub() {
   const { casa_id, cliente } = useCliente();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [accordionOpen, setAccordionOpen] = React.useState(false);
+  const [isHydrating, setIsHydrating] = React.useState(false);
+  const didHydrateRef = React.useRef(false);
 
   const DOCUMENTOS_IMPORTADOR_EXPORTADOR = FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR;
   const DOCUMENTOS_ACREDITA_AGENTE_ADUANAL =
@@ -65,28 +71,58 @@ export function AcreditacionSub() {
   const conferidoMarcoBremerPath = `${basePath}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.ENCARGO_CONFERIDO_MARCO_BREMER_GARCIA.filename}`;
 
   const formSchema = z.object({
-    obligacionesFiscales: createPdfSchema(
-      DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES?.size ||
-        2_000_000
-    ),
+    obligacionesFiscales: z.object({
+      file: createPdfSchema(
+        DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES?.size ||
+          2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
 
-    datosBancarios: createPdfSchema(
-      DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.DATOS_BANCARIOS_HOJA_MEMBRETADA?.size || 2_000_000
-    ),
+    datosBancarios: z.object({
+      file: createPdfSchema(
+        DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.DATOS_BANCARIOS_HOJA_MEMBRETADA?.size || 2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
     datosBancariosExp: expiryDateSchema,
 
-    conferidoJosePascal: createPdfSchema(
-      DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.ENCARGO_CONFERIDO_JOSE_ANTONIO_PASCAL_CALVILLO
-        ?.size || 2_000_000
-    ),
+    conferidoJosePascal: z.object({
+      file: createPdfSchema(
+        DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.ENCARGO_CONFERIDO_JOSE_ANTONIO_PASCAL_CALVILLO
+          ?.size || 2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
     conferidoJosePascalExp: expiryDateSchema,
 
-    conferidoMarcoBremer: createPdfSchema(
-      DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.ENCARGO_CONFERIDO_MARCO_BREMER_GARCIA?.size ||
-        2_000_000
-    ),
+    conferidoMarcoBremer: z.object({
+      file: createPdfSchema(
+        DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.ENCARGO_CONFERIDO_MARCO_BREMER_GARCIA?.size ||
+          2_000_000
+      ).optional(),
+      category: z.number(),
+      filepath: z.string(),
+      filename: z.string(),
+    }),
     conferidoMarcoBremerExp: expiryDateSchema,
   });
+
+  const resetForm = () => {
+    form.reset({
+      ...form.getValues(),
+      obligacionesFiscales: { ...form.getValues('obligacionesFiscales'), file: undefined },
+      datosBancarios: { ...form.getValues('datosBancarios'), file: undefined },
+      conferidoJosePascal: { ...form.getValues('conferidoJosePascal'), file: undefined },
+      conferidoMarcoBremer: { ...form.getValues('conferidoMarcoBremer'), file: undefined },
+    });
+  };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
@@ -100,50 +136,176 @@ export function AcreditacionSub() {
       ] as const;
 
       for (const fieldName of fileKeys) {
-        const file = data[fieldName];
-        if (!file) continue;
+        const fileObj = data[fieldName]; // { file, category, filepath, filename }
+        const realFile = fileObj?.file; // File | undefined
+        if (!realFile) continue;
 
-        const rename = RENAME_MAP[fieldName] ?? fieldName;
+        const rename = RENAME_MAP[fieldName];
 
         const formData = new FormData();
         formData.append('path', basePath);
-        formData.append('file', file);
+        formData.append('file', realFile);
         formData.append('rename', rename);
 
+        // pick matching expiration_date
+        const expiration_date =
+          fieldName === 'datosBancarios'
+            ? (data.datosBancariosExp ?? null)
+            : fieldName === 'conferidoJosePascal'
+              ? (data.conferidoJosePascalExp ?? null)
+              : fieldName === 'conferidoMarcoBremer'
+                ? (data.conferidoMarcoBremerExp ?? null)
+                : null;
+
+        const insertRecordPayload = {
+          filename: fileObj.filename,
+          file_date: new Date(realFile.lastModified).toISOString().split('T')[0],
+          filepath: fileObj.filepath,
+          client_id: casa_id,
+          file_category: fileObj.category,
+          is_valid: true,
+          status: 0,
+          comment: '',
+          expiration_date,
+          uploaded_by: 'MYGP', // or your user
+        };
+
         await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
+        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
       }
 
       toast.info('Se subieron los archivos correctamente');
+
       await Promise.all([
         revalidateFileExists(obligacionesFiscalesPath),
         revalidateFileExists(datosBancariosPath),
         revalidateFileExists(conferidoJosePascalPath),
         revalidateFileExists(conferidoMarcoBremerPath),
       ]);
-      form.reset(data);
-      setIsSubmitting(false);
     } catch (error) {
-      setIsSubmitting(false);
       console.error(error);
       toast.error('Error al subir los archivos');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      obligacionesFiscales: undefined,
+  const defaultValues = React.useMemo<z.infer<typeof formSchema>>(() => {
+    const docs = DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS!;
 
-      datosBancarios: undefined,
+    return {
+      obligacionesFiscales: {
+        file: undefined,
+        category: docs.OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES.category,
+        filename:
+          docs.OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES.filename ||
+          'OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES.pdf',
+        filepath: obligacionesFiscalesPath,
+      },
+
+      datosBancarios: {
+        file: undefined,
+        category: docs.DATOS_BANCARIOS_HOJA_MEMBRETADA.category,
+        filename:
+          docs.DATOS_BANCARIOS_HOJA_MEMBRETADA.filename || 'DATOS_BANCARIOS_HOJA_MEMBRETADA.pdf',
+        filepath: datosBancariosPath,
+      },
       datosBancariosExp: '',
 
-      conferidoJosePascal: undefined,
+      conferidoJosePascal: {
+        file: undefined,
+        category: docs.ENCARGO_CONFERIDO_JOSE_ANTONIO_PASCAL_CALVILLO.category,
+        filename:
+          docs.ENCARGO_CONFERIDO_JOSE_ANTONIO_PASCAL_CALVILLO.filename ||
+          'ENCARGO_CONFERIDO_JOSE_ANTONIO_PASCAL_CALVILLO.pdf',
+        filepath: conferidoJosePascalPath,
+      },
       conferidoJosePascalExp: '',
 
-      conferidoMarcoBremer: undefined,
+      conferidoMarcoBremer: {
+        file: undefined,
+        category: docs.ENCARGO_CONFERIDO_MARCO_BREMER_GARCIA.category,
+        filename:
+          docs.ENCARGO_CONFERIDO_MARCO_BREMER_GARCIA.filename ||
+          'ENCARGO_CONFERIDO_MARCO_BREMER_GARCIA.pdf',
+        filepath: conferidoMarcoBremerPath,
+      },
       conferidoMarcoBremerExp: '',
-    },
+    };
+  }, [
+    DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS,
+    obligacionesFiscalesPath,
+    datosBancariosPath,
+    conferidoJosePascalPath,
+    conferidoMarcoBremerPath,
+  ]);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
   });
+
+  const fetchLastFileByClientAndFilename = React.useCallback(
+    async (clientId: string, filename: string) => {
+      const { data } = await GPClient.get('/api/expediente-digital-cliente/files/last', {
+        params: { client_id: clientId, filename },
+      });
+      return data as { expiration_date?: string | null };
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    const hydrateDates = async () => {
+      if (!accordionOpen) return;
+      if (didHydrateRef.current) return;
+
+      try {
+        setIsHydrating(true);
+
+        const docs = DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS!;
+        const clientId = casa_id;
+
+        const [banc, jose, marco] = await Promise.allSettled([
+          fetchLastFileByClientAndFilename(clientId, docs.DATOS_BANCARIOS_HOJA_MEMBRETADA.filename),
+          fetchLastFileByClientAndFilename(
+            clientId,
+            docs.ENCARGO_CONFERIDO_JOSE_ANTONIO_PASCAL_CALVILLO.filename
+          ),
+          fetchLastFileByClientAndFilename(
+            clientId,
+            docs.ENCARGO_CONFERIDO_MARCO_BREMER_GARCIA.filename
+          ),
+        ]);
+
+        const bancDate = banc.status === 'fulfilled' ? (banc.value?.expiration_date ?? '') : '';
+        const joseDate = jose.status === 'fulfilled' ? (jose.value?.expiration_date ?? '') : '';
+        const marcoDate = marco.status === 'fulfilled' ? (marco.value?.expiration_date ?? '') : '';
+
+        form.reset({
+          ...form.getValues(), // keep any already-selected files in UI
+          datosBancariosExp: bancDate,
+          conferidoJosePascalExp: joseDate,
+          conferidoMarcoBremerExp: marcoDate,
+        });
+
+        didHydrateRef.current = true;
+      } catch (err: any) {
+        console.error(err);
+        toast.error('Error al cargar fechas de documentos');
+      } finally {
+        setIsHydrating(false);
+      }
+    };
+
+    hydrateDates();
+  }, [
+    accordionOpen,
+    casa_id,
+    form,
+    fetchLastFileByClientAndFilename,
+    DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS,
+  ]);
 
   return (
     <Accordion
@@ -155,8 +317,15 @@ export function AcreditacionSub() {
     >
       <AccordionItem value="acreditacion" className="ml-4">
         <AccordionTrigger className="bg-blue-500 text-white px-2 [&>svg]:text-white">
-          Documentos que acredita el Agente Aduanal
+          <div className="flex items-center gap-2">
+            <span> Documentos que acredita el Agente Aduanal</span>
+
+            {isHydrating && (
+              <Loader2 className="h-4 w-4 animate-spin text-white" aria-label="Cargando datos" />
+            )}
+          </div>
         </AccordionTrigger>
+
         <AccordionContent>
           <Card className="w-full px-4">
             <CardContent>
@@ -168,7 +337,7 @@ export function AcreditacionSub() {
                       <FileController
                         form={form}
                         fieldLabel="Opinión de Cumplimiento de Obligaciones Fiscales (mes en curso):"
-                        controllerName="obligacionesFiscales"
+                        controllerName="obligacionesFiscales.file"
                         accept={['application/pdf', 'image/png', 'image/jpeg']}
                         buttonText="Selecciona .pdf .png .jpeg"
                       />
@@ -178,7 +347,7 @@ export function AcreditacionSub() {
                     <FileController
                       form={form}
                       fieldLabel="Datos Bancarios en Hoja Membretada:"
-                      controllerName="datosBancarios"
+                      controllerName="datosBancarios.file"
                       accept={['application/pdf', 'image/png', 'image/jpeg']}
                       buttonText="Selecciona .pdf .png .jpeg"
                     />
@@ -188,7 +357,7 @@ export function AcreditacionSub() {
                     <FileController
                       form={form}
                       fieldLabel="Generación del Encargo Conferido A.A. José Antonio Pascal Calvillo (no aplica en exportación):"
-                      controllerName="conferidoJosePascal"
+                      controllerName="conferidoJosePascal.file"
                       accept={['application/pdf', 'image/png', 'image/jpeg']}
                     />
                     <ExpiraEnController form={form} controllerName="conferidoJosePascalExp" />
@@ -197,7 +366,7 @@ export function AcreditacionSub() {
                     <FileController
                       form={form}
                       fieldLabel="Generación del Encargo Conferido A.A. Marco Bremer García (no aplica en exportación):"
-                      controllerName="conferidoMarcoBremer"
+                      controllerName="conferidoMarcoBremer.file"
                       buttonText="Selecciona .pdf .png .jpeg"
                       accept={['application/pdf', 'image/png', 'image/jpeg']}
                     />

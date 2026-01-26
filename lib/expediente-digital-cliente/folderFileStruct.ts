@@ -60,10 +60,16 @@ export const FOLDERFILESTRUCT_TEMPLATE = {
       DATOS_HACIENDA_IMPORTADOR: {
         name: "Datos de Hacienda del Importador",
         docs: {
-          CERTIFICADO_SAT: { filename: "CERTIFICADO_SAT.cer", size: 5_000_000 },
-          EFIRMA_SAT: { filename: "EFIRMA_SAT.key", size: 5_000_000 },
+          CERTIFICADO_SAT: {
+            filename: "CERTIFICADO_SAT_IMPORTADOR.cer",
+            size: 5_000_000,
+          },
+          EFIRMA_SAT: {
+            filename: "EFIRMA_SAT_IMPORTADOR.key",
+            size: 5_000_000,
+          },
           CONSTANCIA_SITUACION_FISCAL_SAT: {
-            filename: "CONSTANCIA_SITUACION_FISCAL_SAT.pdf",
+            filename: "CONSTANCIA_SITUACION_FISCAL_SAT_IMPORTADOR.pdf",
             size: 5_000_000,
           },
         },
@@ -109,10 +115,13 @@ export const FOLDERFILESTRUCT_TEMPLATE = {
       DATOS_HACIENDA_AGENTE_ADUANAL: {
         name: "Datos de Hacienda del Agente Aduanal",
         docs: {
-          CERTIFICADO_SAT: { filename: "CERTIFICADO_SAT.cer", size: 5_000_000 },
-          EFIRMA_SAT: { filename: "EFIRMA_SAT.key", size: 5_000_000 },
+          CERTIFICADO_SAT: {
+            filename: "CERTIFICADO_SAT_AGENTE.cer",
+            size: 5_000_000,
+          },
+          EFIRMA_SAT: { filename: "EFIRMA_SAT_AGENTE.key", size: 5_000_000 },
           CONSTANCIA_SITUACION_FISCAL_SAT: {
-            filename: "CONSTANCIA_SITUACION_FISCAL_SAT.pdf",
+            filename: "CONSTANCIA_SITUACION_FISCAL_SAT_AGENTE.pdf",
             size: 5_000_000,
           },
         },

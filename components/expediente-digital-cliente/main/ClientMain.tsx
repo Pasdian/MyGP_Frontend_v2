@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/accordion';
 import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 
-import { FileIcon } from 'lucide-react';
+import { FileIcon, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Controller, useForm } from 'react-hook-form';
@@ -18,6 +18,8 @@ import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import React from 'react';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import { toast } from 'sonner';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 
 export function ClientMain({
   setShowDocuments,
@@ -27,6 +29,8 @@ export function ClientMain({
   const { cliente, casa_id, setCasaId, setCliente } = useCliente();
   const [collapseAccordion, setCollapseAccordion] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isHydrating, setIsHydrating] = React.useState(false);
+
   const { rows: companies } = useCompanies();
 
   const formSchema = z.object({
@@ -112,10 +116,99 @@ export function ClientMain({
     { value: 'F', label: 'Persona física' },
   ];
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
-    setShowDocuments(true);
-    setCollapseAccordion(true);
+  React.useEffect(() => {
+    const hydrateClient = async () => {
+      if (!casa_id || !casa_id.trim()) return;
+
+      try {
+        setIsHydrating(true);
+
+        setIsSubmitting(true);
+
+        const resp = await GPClient.get('/api/expediente-digital-cliente/client', {
+          params: { casa_id },
+        });
+
+        const c = resp.data;
+        const addr = c?.address;
+
+        form.reset({
+          casa_id: casa_id,
+          legal_type: c?.legal_type ?? '',
+          rfc: c?.rfc ?? '',
+          address_1: addr?.address_1 ?? '',
+          neighbourhood: addr?.neighbourhod ?? '',
+          municipality: addr?.municipality ?? '',
+          city: addr?.city ?? '',
+          state: addr?.state ?? '',
+          postal_code: addr?.postal_code ?? '',
+        });
+        setShowDocuments(true);
+        setCollapseAccordion(true);
+      } catch (err: any) {
+        // 404 = aún no hay registro en BD, dejamos campos vacíos (pero mantenemos casa_id)
+        if (err?.response?.status === 404) {
+          form.reset({
+            casa_id: casa_id,
+            legal_type: '',
+            rfc: '',
+            address_1: '',
+            neighbourhood: '',
+            municipality: '',
+            city: '',
+            state: '',
+            postal_code: '',
+          });
+          return;
+        }
+
+        console.error(err);
+        toast.error(err?.message ?? 'Error al consultar cliente');
+      } finally {
+        setIsHydrating(false);
+
+        setIsSubmitting(false);
+      }
+    };
+
+    hydrateClient();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [casa_id]);
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      setIsSubmitting(true);
+
+      const payload = {
+        casa_id: data.casa_id,
+        legal_type: data.legal_type,
+        rfc: data.rfc,
+        legal_name: cliente ?? '',
+        address: {
+          address_1: data.address_1,
+          neighbourhod: data.neighbourhood,
+          municipality: data.municipality,
+          city: data.city,
+          state: data.state,
+          postal_code: data.postal_code,
+        },
+      };
+
+      const resp = await GPClient.post('/api/expediente-digital-cliente/client', payload);
+
+      if (resp.status !== 200) {
+        toast.error('Error al guardar cliente');
+        return;
+      }
+      toast.info('Se subieron los datos correctamente');
+      setShowDocuments(true);
+      setCollapseAccordion(true);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message ?? 'Error inesperado');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -130,9 +223,16 @@ export function ClientMain({
     >
       <AccordionItem value="client-main">
         <AccordionTrigger className="bg-blue-700 text-white px-2 [&>svg]:text-white mb-2">
-          <div className="grid grid-cols-[auto_1fr] gap-2 place-items-center">
-            <FileIcon size={18} />
-            <p>Expediente Digital</p>
+          <div className="flex items-center gap-2">
+            <div className="grid grid-cols-[auto_1fr] gap-2 place-items-center">
+              <FileIcon size={18} />
+              <p className="font-bold">
+                {cliente ? `Expediente Digital - ${cliente}` : 'Expediente Digital'}
+              </p>
+            </div>
+            {isHydrating && (
+              <Loader2 className="h-4 w-4 animate-spin text-white" aria-label="Cargando datos" />
+            )}
           </div>
         </AccordionTrigger>
         <AccordionContent className="flex flex-col gap-2 text-balance">
