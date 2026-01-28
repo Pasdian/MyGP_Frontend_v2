@@ -41,16 +41,40 @@ export default function HoverPopover({
     closeTimerRef.current = window.setTimeout(() => setOpen(false), 80);
   };
 
+  const closeNow = () => {
+    clearCloseTimer();
+    setOpen(false);
+  };
+
   React.useEffect(() => {
     return () => clearCloseTimer();
   }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const onWheel = () => closeNow();
+    const onTouchMove = () => closeNow();
+    const onScroll = () => closeNow();
+
+    // passive so scrolling remains smooth
+    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [open]);
 
   if (!value) {
     return <p className={['text-center', className].join(' ')}>{display}</p>;
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <div
           className={['w-full cursor-default flex items-center', heightClassName].join(' ')}
@@ -67,6 +91,8 @@ export default function HoverPopover({
         className={['max-w-sm break-words', contentClassName].join(' ')}
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
+        onWheel={closeNow}
+        onTouchMove={closeNow}
       >
         {value}
       </PopoverContent>
