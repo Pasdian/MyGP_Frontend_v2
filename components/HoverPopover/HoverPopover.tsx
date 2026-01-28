@@ -7,7 +7,7 @@ type HoverPopoverProps = {
   contentClassName?: string;
   maxWidthClass?: string;
   fallback?: string;
-  heightClassName?: string; // add
+  heightClassName?: string;
 };
 
 export default function HoverPopover({
@@ -20,7 +20,30 @@ export default function HoverPopover({
 }: HoverPopoverProps) {
   const value = text?.trim() ?? '';
   const display = value || fallback;
+
   const [open, setOpen] = React.useState(false);
+  const closeTimerRef = React.useRef<number | null>(null);
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const handleEnter = () => {
+    clearCloseTimer();
+    setOpen(true);
+  };
+
+  const handleLeave = () => {
+    clearCloseTimer();
+    closeTimerRef.current = window.setTimeout(() => setOpen(false), 80);
+  };
+
+  React.useEffect(() => {
+    return () => clearCloseTimer();
+  }, []);
 
   if (!value) {
     return <p className={['text-center', className].join(' ')}>{display}</p>;
@@ -29,7 +52,11 @@ export default function HoverPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className={['w-full cursor-default flex items-center h-14'].join(' ')}>
+        <div
+          className={['w-full cursor-default flex items-center', heightClassName].join(' ')}
+          onMouseEnter={handleEnter}
+          onMouseLeave={handleLeave}
+        >
           <div className={[maxWidthClass, 'w-full truncate text-center', className].join(' ')}>
             {display}
           </div>
@@ -38,8 +65,8 @@ export default function HoverPopover({
 
       <PopoverContent
         className={['max-w-sm break-words', contentClassName].join(' ')}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        onMouseEnter={handleEnter}
+        onMouseLeave={handleLeave}
       >
         {value}
       </PopoverContent>

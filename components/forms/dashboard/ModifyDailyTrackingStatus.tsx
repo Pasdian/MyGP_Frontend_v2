@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { statusOptions } from '@/lib/statusOptions/statusOptions';
+import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
 
 const posthogEvent =
   dashboardModuleEvents.find((e) => e.alias === 'DASHBOARD_MODIFY_OP')?.eventName || '';
@@ -165,29 +166,24 @@ export default function ModifyDailyTrackingStatusForm({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Estatus</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                  disabled={!selectedCategory}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona un estatus" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {selectedCategory &&
-                      statusOptions[selectedCategory as keyof typeof statusOptions]?.map(
-                        (status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
+                <MyGPCombo
+                  label="Estatus"
+                  placeholder="Selecciona un estatus"
+                  value={field.value || ''}
+                  setValue={field.onChange}
+                  options={
+                    selectedCategory
+                      ? statusOptions[selectedCategory as keyof typeof statusOptions].map(
+                          (status) => ({
+                            value: status,
+                            label: status,
+                          })
                         )
-                      )}
-                  </SelectContent>
-                </Select>
+                      : []
+                  }
+                  aria-invalid={!!form.formState.errors.status}
+                  className={!selectedCategory ? 'opacity-50 pointer-events-none' : undefined}
+                />
                 <FormMessage />
               </FormItem>
             )}
