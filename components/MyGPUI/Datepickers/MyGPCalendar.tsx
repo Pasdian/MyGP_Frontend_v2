@@ -57,6 +57,13 @@ export default function MyGPCalendar({
     return { from: oneYearAgo, to: today };
   };
 
+  const getLastFiveYears = () => {
+    const today = new Date();
+    const fiveYearsAgo = new Date(today);
+    fiveYearsAgo.setFullYear(today.getFullYear() - 5);
+    return { from: fiveYearsAgo, to: today };
+  };
+
   const formatDate = (date: Date | undefined) => {
     if (!date) return '';
     return date.toLocaleDateString('es-MX', {
@@ -139,7 +146,13 @@ export default function MyGPCalendar({
               >
                 Último Año
               </Button>
-
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
+                onClick={() => handlePresetClick(getLastFiveYears())}
+              >
+                Últimos 5 Años
+              </Button>
               <div className="pt-1 border-t mt-1">
                 <p className="text-[10px] text-slate-500 mb-0.5 px-1">Personalizado</p>
                 <Button
