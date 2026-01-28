@@ -95,7 +95,7 @@ function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
               <tr key={key}>
                 <td className="px-2 py-1 border-b whitespace-nowrap">{op.REFERENCIA}</td>
                 <td className="px-2 py-1 border-b whitespace-normal break-words">
-                  {op.NEW_STATUS}
+                  {op.OLD_STATUS}
                 </td>
                 <td className="px-2 py-1 border-b whitespace-normal break-words">
                   {op.NEW_STATUS}
