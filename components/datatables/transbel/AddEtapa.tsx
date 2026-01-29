@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { useNumRefeParams } from '@/app/providers/NumRefeParamsProvider';
 import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
 import { IconPlus } from '@tabler/icons-react';
-import { EtapasCombobox } from '@/components/MyGPUI/Combobox/EtapasCombobox';
+import { EtapasMyGPCombo } from '@/components/MyGPUI/Combobox/EtapasMyGPCombo';
 import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { SaveIcon } from 'lucide-react';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
@@ -94,7 +94,7 @@ export function AñadirEtapa() {
               <FormItem>
                 <FormLabel>Selecciona una etapa</FormLabel>
                 <FormControl>
-                  <EtapasCombobox
+                  <EtapasMyGPCombo
                     ADU_DESP={ADU_DESP || ''}
                     PAT_AGEN={PAT_AGEN || ''}
                     value={field.value}

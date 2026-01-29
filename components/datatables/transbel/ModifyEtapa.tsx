@@ -17,13 +17,13 @@ import { useNumRefeParams } from '@/app/providers/NumRefeParamsProvider';
 import { MyGPDialog } from '@/components/MyGPUI/Dialogs/MyGPDialog';
 import { MyGPButtonWarning } from '@/components/MyGPUI/Buttons/MyGPButtonWarning';
 import { IconPencil } from '@tabler/icons-react';
-import { EtapasCombobox } from '@/components/MyGPUI/Combobox/EtapasCombobox';
 import MyGPDatePicker from '@/components/MyGPUI/Datepickers/MyGPDatePicker';
 import { SaveIcon } from 'lucide-react';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { toast } from 'sonner';
 import { normalizeSqlDate } from '@/lib/utilityFunctions/normalizeSqlDate';
 import { useEtapas } from '@/hooks/useEtapas/useEtapas';
+import { EtapasMyGPCombo } from '@/components/MyGPUI/Combobox/EtapasMyGPCombo';
 
 const modifyEtapaSchema = z.object({
   etapa: z.string({ required_error: 'Selecciona una etapa' }).min(1, 'Selecciona una etapa'),
@@ -101,7 +101,7 @@ export function ModifyEtapa({ CVE_ETAP, FEC_ETAP, OBS_ETAP }: ModifyEtapaProps) 
               <FormItem>
                 <FormLabel>Selecciona una etapa</FormLabel>
                 <FormControl>
-                  <EtapasCombobox
+                  <EtapasMyGPCombo
                     ADU_DESP={ADU_DESP || ''}
                     PAT_AGEN={PAT_AGEN || ''}
                     value={field.value}

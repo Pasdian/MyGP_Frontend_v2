@@ -83,7 +83,7 @@ export function MyGPCombo({
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="p-0 w-[350px] max-h-[300px] overflow-y-hidden">
+        <PopoverContent portalled={false} className="p-0 w-[350px]">
           <Command
             // return 0 to hide; >0 to show (higher = higher rank)
             filter={(value, search) => {
