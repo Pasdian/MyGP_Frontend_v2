@@ -655,16 +655,14 @@ export function OperacionesDespachadasChart() {
                             <div className="mt-2 flex flex-col gap-2">
                               {clientKeys.map((cve, idx) => {
                                 const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
-                                const trendKey = cve === 'ALL' ? 'TREND_ALL' : `TREND_${cve}`;
                                 const name = clientLabel(cve, clientsMap);
                                 const color = colorForIndex(idx);
 
                                 const val = Number((p as any)[cliKey] ?? 0);
-                                const tr = Number((p as any)[trendKey] ?? 0);
 
                                 return (
                                   <div key={cliKey} className="flex flex-col gap-1">
-                                    {/* <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center justify-between gap-4">
                                       <div className="flex items-center gap-2">
                                         <span
                                           className="h-2.5 w-2.5 rounded-sm"
@@ -673,39 +671,10 @@ export function OperacionesDespachadasChart() {
                                         <span className="text-muted-foreground">{name}</span>
                                       </div>
                                       <span className="font-medium">{val.toLocaleString()}</span>
-                                    </div> */}
-
-                                    <div className="flex items-center justify-between gap-4">
-                                      <div className="flex items-center gap-2">
-                                        <span
-                                          className="h-2.5 w-2.5 rounded-sm"
-                                          style={{
-                                            backgroundImage: `repeating-linear-gradient(to right, ${color} 0 5px, transparent 5px 8px)`,
-                                            backgroundColor: 'transparent',
-                                            border: `1px solid ${color}`,
-                                          }}
-                                        />
-                                        <span className="text-muted-foreground">{`Tendencia (${name})`}</span>
-                                      </div>
-                                      <span className="font-medium">{tr.toLocaleString()}</span>
                                     </div>
                                   </div>
                                 );
                               })}
-
-                              <div className="mt-1 flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2">
-                                  <span
-                                    className="h-2.5 w-2.5 rounded-sm"
-                                    style={{ backgroundColor: '#ff2600', opacity: 0.7 }}
-                                  />
-                                  <span className="text-muted-foreground">Tendencia (total)</span>
-                                </div>
-
-                                <span className="font-medium">
-                                  {Number(p.TREND_TOTAL ?? 0).toLocaleString()}
-                                </span>
-                              </div>
                             </div>
                           </div>
                         );
@@ -742,8 +711,8 @@ export function OperacionesDespachadasChart() {
                           stroke={color}
                           strokeOpacity={0.35}
                           strokeWidth={2}
-                          dot={{ r: 2 }}
-                          activeDot={{ r: 4 }}
+                          dot={false}
+                          activeDot={false}
                           isAnimationActive={false}
                           strokeDasharray="6 4"
                         />
@@ -756,8 +725,8 @@ export function OperacionesDespachadasChart() {
                       stroke="#ff2600"
                       strokeOpacity={0.7}
                       strokeWidth={2}
-                      dot={{ r: 3 }}
-                      activeDot={{ r: 5 }}
+                      dot={false}
+                      activeDot={false}
                       isAnimationActive={false}
                     />
                   </ComposedChart>

@@ -279,9 +279,13 @@ export default function OperacionesPorAduanaChart() {
                         cx="50%"
                         cy="50%"
                         outerRadius={150}
-                        label={(entry) =>
-                          `${chartConfig[entry.CUSTOMS]?.label ?? entry.CUSTOMS}: ${entry.OPERATIONS}`
-                        }
+                        label={({ CUSTOMS, OPERATIONS }) => {
+                          const pct =
+                            totalOperations > 0 ? (OPERATIONS / totalOperations) * 100 : 0;
+                          const name = chartConfig[CUSTOMS]?.label ?? CUSTOMS;
+
+                          return `${name}: ${OPERATIONS.toLocaleString()} (${pct.toFixed(1)}%)`;
+                        }}
                       >
                         {chartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
