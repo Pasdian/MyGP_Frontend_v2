@@ -64,6 +64,13 @@ export default function MyGPCalendar({
     return { from: fiveYearsAgo, to: today };
   };
 
+  const getLastTenYears = () => {
+    const today = new Date();
+    const tenYearsAgo = new Date(today);
+    tenYearsAgo.setFullYear(today.getFullYear() - 10);
+    return { from: tenYearsAgo, to: today };
+  };
+
   const formatDate = (date: Date | undefined) => {
     if (!date) return '';
     return date.toLocaleDateString('es-MX', {
@@ -153,6 +160,13 @@ export default function MyGPCalendar({
               >
                 Últimos 5 Años
               </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
+                onClick={() => handlePresetClick(getLastTenYears())}
+              >
+                Últimos 10 Años
+              </Button>
               <div className="pt-1 border-t mt-1">
                 <p className="text-[10px] text-slate-500 mb-0.5 px-1">Personalizado</p>
                 <Button
@@ -179,12 +193,8 @@ export default function MyGPCalendar({
           </div>
 
           <div className="border-t p-4 flex justify-end gap-2">
-            <MyGPButtonGhost size="sm" onClick={handleCancel}>
-              Cancelar
-            </MyGPButtonGhost>
-            <MyGPButtonPrimary size="sm" onClick={handleApply}>
-              Aplicar
-            </MyGPButtonPrimary>
+            <MyGPButtonGhost onClick={handleCancel}>Cancelar</MyGPButtonGhost>
+            <MyGPButtonPrimary onClick={handleApply}>Aplicar</MyGPButtonPrimary>
           </div>
         </PopoverContent>
       </Popover>
