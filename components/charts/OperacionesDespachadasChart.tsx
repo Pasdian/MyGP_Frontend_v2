@@ -277,7 +277,6 @@ export function OperacionesDespachadasChart() {
   }, [companies]);
 
   const isWeeklyBuckets = granularity === 'week';
-  console.log(clientsMap);
   return (
     <div className="h-full w-full">
       <div className="grid grid-cols-1 gap-4">
