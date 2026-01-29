@@ -3,7 +3,7 @@
 import React from 'react';
 import useSWR from 'swr';
 import { TrendingUp } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { startOfDay, format, addDays } from 'date-fns';
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -267,45 +267,28 @@ export default function OperacionesPorAduanaChart() {
           <CardContent className="flex flex-1 items-center justify-center">
             {from && to ? (
               chartData.length > 0 ? (
-                <ChartContainer
-                  config={chartConfig}
-                  className="mx-auto w-full md:h-[420px] overflow-x-auto"
-                >
-                  <BarChart
-                    data={chartData}
-                    layout="vertical"
-                    margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
-                  >
-                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                <ChartContainer config={chartConfig} className="mx-auto w-full md:h-[420px]">
+                  <ResponsiveContainer width="100%" height={420}>
+                    <PieChart>
+                      <ChartTooltip content={<ChartTooltipContent nameKey="OPERATIONS" />} />
 
-                    <XAxis
-                      type="number"
-                      tickLine={false}
-                      axisLine={false}
-                      allowDecimals={false}
-                      label={{
-                        value: 'Operaciones',
-                        position: 'insideBottom',
-                        offset: -5,
-                      }}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="CUSTOMS"
-                      tickLine={false}
-                      axisLine={false}
-                      width={140}
-                      tickFormatter={(value) => chartConfig[value]?.label ?? value}
-                      label={{
-                        value: 'Aduana',
-                        angle: -90,
-                        position: 'insideLeft',
-                      }}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent nameKey="OPERATIONS" />} />
-
-                    <Bar dataKey="OPERATIONS" radius={[0, 6, 6, 0]} />
-                  </BarChart>
+                      <Pie
+                        data={chartData}
+                        dataKey="OPERATIONS"
+                        nameKey="CUSTOMS"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={150}
+                        label={(entry) =>
+                          `${chartConfig[entry.CUSTOMS]?.label ?? entry.CUSTOMS}: ${entry.OPERATIONS}`
+                        }
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
                 </ChartContainer>
               ) : (
                 <div className="text-sm text-muted-foreground">No hay datos para mostrar.</div>
