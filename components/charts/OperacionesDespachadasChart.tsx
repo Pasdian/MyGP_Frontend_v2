@@ -3,7 +3,17 @@
 import React from 'react';
 import useSWR from 'swr';
 import { TrendingUp } from 'lucide-react';
-import { CartesianGrid, Line, Area, XAxis, YAxis, ComposedChart } from 'recharts';
+import {
+  CartesianGrid,
+  Line,
+  Area,
+  XAxis,
+  YAxis,
+  ComposedChart,
+  Tooltip,
+  ReferenceLine,
+  Customized,
+} from 'recharts';
 import { startOfDay, format, addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
@@ -173,7 +183,7 @@ function addLinearRegression(
   const sumXY = pts.reduce((a, p) => a + p.x * p.y, 0);
 
   const denom = n * sumXX - sumX * sumX;
-  const slope = denom === 0 ? 0 : (n * sumXY - sumX * sumY) / denom; // y per ms
+  const slope = denom === 0 ? 0 : (n * sumXY - sumX * sumY) / denom;
   const intercept = (sumY - slope * sumX) / n;
 
   const meanY = sumY / n;
@@ -257,7 +267,6 @@ function mergeSeriesToChartData(seriesByClient: MultiClientResponse, clientKeys:
 
   const dates = Array.from(allDates).sort((a, b) => parseISO(a).getTime() - parseISO(b).getTime());
 
-  // Base combined points: one value series per client (CLI_*)
   const combined: ChartPointMulti[] = dates.map((d) => {
     const p: ChartPointMulti = { PERIOD_START: d, TREND_TOTAL: 0 } as ChartPointMulti;
     for (const c of clientKeys) {
@@ -267,7 +276,6 @@ function mergeSeriesToChartData(seriesByClient: MultiClientResponse, clientKeys:
     return p;
   });
 
-  // Total series for total trend
   const totalSeries: OperacionesDespachadasRow[] = combined.map((p) => {
     const total = clientKeys.reduce((acc, c) => {
       const cliKey = c === 'ALL' ? 'CLI_ALL' : `CLI_${c}`;
@@ -278,22 +286,16 @@ function mergeSeriesToChartData(seriesByClient: MultiClientResponse, clientKeys:
 
   const { series: totalWithTrend } = addLinearRegression(totalSeries, 1);
 
-  // Client trend series: TREND_<client> for each client
   const clientTrendByKey: Record<string, { PERIOD_START: string; TREND: number }[]> = {};
   for (const c of clientKeys) {
-    const cliKey = c === 'ALL' ? 'CLI_ALL' : `CLI_${c}`;
     const rowsForClient: OperacionesDespachadasRow[] = dates.map((d) => ({
       PERIOD_START: d,
       TOTAL: Number(perClientMaps.get(c)?.get(d) ?? 0) || 0,
     }));
     const { series } = addLinearRegression(rowsForClient, 1);
-    clientTrendByKey[cliKey] = series.map((s) => ({
-      PERIOD_START: s.PERIOD_START,
-      TREND: s.TREND,
-    }));
+    clientTrendByKey[c] = series.map((s) => ({ PERIOD_START: s.PERIOD_START, TREND: s.TREND }));
   }
 
-  // Merge trend values into combined points
   const out: ChartPointMulti[] = combined.map((p, i) => {
     const next = {
       ...p,
@@ -301,9 +303,8 @@ function mergeSeriesToChartData(seriesByClient: MultiClientResponse, clientKeys:
     } as ChartPointMulti;
 
     for (const c of clientKeys) {
-      const cliKey = c === 'ALL' ? 'CLI_ALL' : `CLI_${c}`;
-      const trendKey = cliKey === 'CLI_ALL' ? 'TREND_ALL' : `TREND_${c}`;
-      next[trendKey] = clientTrendByKey[cliKey]?.[i]?.TREND ?? 0;
+      const trendKey = c === 'ALL' ? 'TREND_ALL' : `TREND_${c}`;
+      next[trendKey] = clientTrendByKey[c]?.[i]?.TREND ?? 0;
     }
 
     return next;
@@ -336,6 +337,50 @@ function colorForIndex(i: number) {
   return PALETTE[i % PALETTE.length];
 }
 
+function CrosshairLayer(props: any) {
+  const coord = props?.coord;
+  const offset = props?.offset;
+
+  if (!coord || typeof coord.x !== 'number' || typeof coord.y !== 'number' || !offset) return null;
+
+  const xLeft = offset.left;
+  const xRight = offset.left + offset.width;
+  const yTop = offset.top;
+  const yBottom = offset.top + offset.height;
+
+  const x = coord.x;
+  const y = coord.y;
+
+  // Clamp into plot area so it doesn’t disappear at the edges
+  const cx = Math.max(xLeft, Math.min(xRight, x));
+  const cy = Math.max(yTop, Math.min(yBottom, y));
+
+  return (
+    <g>
+      <line
+        x1={cx}
+        y1={yTop}
+        x2={cx}
+        y2={yBottom}
+        stroke="rgba(100, 116, 139, 0.65)"
+        strokeWidth={1}
+        strokeDasharray="6 4"
+        pointerEvents="none"
+      />
+      <line
+        x1={xLeft}
+        y1={cy}
+        x2={xRight}
+        y2={cy}
+        stroke="rgba(100, 116, 139, 0.65)"
+        strokeWidth={1}
+        strokeDasharray="6 4"
+        pointerEvents="none"
+      />
+    </g>
+  );
+}
+
 export function OperacionesDespachadasChart() {
   const [preset, setPreset] = React.useState<PresetKey>('last3Months');
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
@@ -345,6 +390,10 @@ export function OperacionesDespachadasChart() {
   const [viewAs, setViewAs] = React.useState<ViewAs>('day');
   const [clientNumbers, setClientNumbers] = React.useState<string[]>([]);
   const [clientsMap, setClientsMap] = React.useState<ClientsMap>({});
+
+  const coordRef = React.useRef<{ x: number; y: number } | null>(null);
+  const rafRef = React.useRef<number | null>(null);
+  const [, forcePaint] = React.useState(0);
 
   React.useEffect(() => {
     getClientsMap().then(setClientsMap);
@@ -616,9 +665,31 @@ export function OperacionesDespachadasChart() {
             {hasRange && hasData ? (
               <ChartContainer config={dynamicChartConfig} className="mx-auto h-[420px] w-full">
                 <ComposedChart
-                  accessibilityLayer
                   data={chartData}
                   margin={{ left: 12, right: 28, top: 8, bottom: 8 }}
+                  onMouseMove={(state: any) => {
+                    const c = state?.activeCoordinate;
+
+                    if (!c || typeof c.x !== 'number' || typeof c.y !== 'number') {
+                      coordRef.current = null;
+                      forcePaint((n) => n + 1);
+                      return;
+                    }
+
+                    coordRef.current = { x: c.x, y: c.y };
+
+                    // Throttle paints to animation frames (prevents “rerender spam”)
+                    if (rafRef.current == null) {
+                      rafRef.current = window.requestAnimationFrame(() => {
+                        rafRef.current = null;
+                        forcePaint((n) => n + 1);
+                      });
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    coordRef.current = null;
+                    forcePaint((n) => n + 1);
+                  }}
                 >
                   <CartesianGrid vertical={false} />
 
@@ -649,7 +720,61 @@ export function OperacionesDespachadasChart() {
                     tickFormatter={(v) => Number(v).toLocaleString()}
                   />
 
-                  <ChartTooltip
+                  {clientKeys.map((cve, idx) => {
+                    const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
+                    const color = colorForIndex(idx);
+
+                    return (
+                      <Area
+                        key={cliKey}
+                        type="monotone"
+                        dataKey={cliKey}
+                        stroke={color}
+                        fill={color}
+                        fillOpacity={0.25}
+                        strokeWidth={2}
+                        dot={{ r: 2 }}
+                        activeDot={{ r: 4 }}
+                        isAnimationActive={false} // IMPORTANT: prevents “replay” on hover
+                      />
+                    );
+                  })}
+
+                  {clientKeys.map((cve, idx) => {
+                    const trendKey = cve === 'ALL' ? 'TREND_ALL' : `TREND_${cve}`;
+                    const color = colorForIndex(idx);
+
+                    return (
+                      <Line
+                        key={trendKey}
+                        dataKey={trendKey}
+                        type="linear"
+                        stroke={color}
+                        strokeOpacity={0.25}
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={false}
+                        isAnimationActive={false}
+                        strokeDasharray="6 4"
+                      />
+                    );
+                  })}
+
+                  <Line
+                    dataKey="TREND_TOTAL"
+                    type="linear"
+                    stroke="#ff2600"
+                    strokeOpacity={0.25}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={false}
+                    isAnimationActive={false}
+                  />
+
+                  <Tooltip
+                    shared
+                    isAnimationActive={false}
+                    cursor={false}
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;
 
@@ -665,7 +790,6 @@ export function OperacionesDespachadasChart() {
                               const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
                               const name = clientLabel(cve, clientsMap);
                               const color = colorForIndex(idx);
-
                               const val = Number((p as any)[cliKey] ?? 0);
 
                               return (
@@ -689,54 +813,10 @@ export function OperacionesDespachadasChart() {
                     }}
                   />
 
-                  {clientKeys.map((cve, idx) => {
-                    const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
-                    const color = colorForIndex(idx);
-
-                    return (
-                      <Area
-                        key={cliKey}
-                        type="monotone"
-                        dataKey={cliKey}
-                        stroke={color}
-                        fill={color}
-                        fillOpacity={0.15}
-                        strokeWidth={2}
-                        dot={{ r: 2 }}
-                        activeDot={{ r: 4 }}
-                      />
-                    );
-                  })}
-
-                  {clientKeys.map((cve, idx) => {
-                    const trendKey = cve === 'ALL' ? 'TREND_ALL' : `TREND_${cve}`;
-                    const color = colorForIndex(idx);
-
-                    return (
-                      <Line
-                        key={trendKey}
-                        dataKey={trendKey}
-                        type="linear"
-                        stroke={color}
-                        strokeOpacity={0.35}
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={false}
-                        isAnimationActive={false}
-                        strokeDasharray="6 4"
-                      />
-                    );
-                  })}
-
-                  <Line
-                    dataKey="TREND_TOTAL"
-                    type="linear"
-                    stroke="#ff2600"
-                    strokeOpacity={0.7}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={false}
-                    isAnimationActive={false}
+                  <Customized
+                    component={(p: any) => (
+                      <CrosshairLayer coord={coordRef.current} offset={p?.offset} />
+                    )}
                   />
                 </ComposedChart>
               </ChartContainer>
