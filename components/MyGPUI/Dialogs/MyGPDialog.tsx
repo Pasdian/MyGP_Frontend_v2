@@ -31,17 +31,16 @@ export function MyGPDialog({
         className="
           max-w-[80vw] sm:max-w-[900px]
           w-full
-          overflow-visible
+          max-h-[80vh]
+          overflow-y-auto
         "
       >
-        <div className="max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{title || ''}</DialogTitle>
-            {description && <DialogDescription>{description}</DialogDescription>}
-          </DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{title || ''}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
+        </DialogHeader>
 
-          <div className="w-full">{children}</div>
-        </div>
+        <div className="w-full">{children}</div>
       </DialogContent>
     </Dialog>
   );
