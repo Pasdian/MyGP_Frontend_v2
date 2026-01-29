@@ -87,7 +87,7 @@ export default function Dashboard() {
     customValue: '',
     clientValue: '',
     currentPhaseValue: '',
-    tabValue: 'all' as TabValue,
+    tabValue: 'open' as TabValue,
   });
 
   const { data: meta } = useSWR<
@@ -258,7 +258,7 @@ export default function Dashboard() {
           <Card className="mb-8 p-4">
             <div className="w-[300px]">
               <MyGPTabs
-                defaultValue="all"
+                defaultValue="open"
                 tabs={[
                   { value: 'all', label: 'Todas' },
                   { value: 'open', label: 'Abiertas' },

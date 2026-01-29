@@ -23,6 +23,7 @@ export function MyGPCombo({
   showValue,
   placeholder,
   className,
+  popoverContentClassName,
   pickFirst,
   onSelect,
   'aria-invalid': ariaInvalid,
@@ -38,13 +39,13 @@ export function MyGPCombo({
   showValue?: boolean;
   placeholder?: string;
   className?: string;
+  popoverContentClassName?: string;
   onSelect?: () => void;
   pickFirst?: boolean;
   'aria-invalid'?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
 
-  // Only auto-select first if pickFirst is true
   React.useEffect(() => {
     if (pickFirst && !value && options.length > 0) {
       setValue(options[0].value);
@@ -58,6 +59,7 @@ export function MyGPCombo({
           {label}
         </Label>
       )}
+
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -83,9 +85,10 @@ export function MyGPCombo({
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent className="p-0 w-[350px] max-h-[300px] overflow-y-hidden">
+        <PopoverContent
+          className={cn('p-0 w-[350px] max-h-[300px] overflow-y-hidden', popoverContentClassName)}
+        >
           <Command
-            // return 0 to hide; >0 to show (higher = higher rank)
             filter={(value, search) => {
               const v = value
                 .toLowerCase()
@@ -97,13 +100,11 @@ export function MyGPCombo({
                 .replace(/\p{Diacritic}/gu, '');
 
               if (!s) return 1;
-              // tweak scoring as needed
               if (v.startsWith(s)) return 3;
               if (v.includes(s)) return 2;
               return 0;
             }}
           >
-            {' '}
             <CommandInput placeholder={label} className="h-9" />
             <CommandList>
               <CommandEmpty>No se encontraron elementos.</CommandEmpty>
@@ -111,7 +112,7 @@ export function MyGPCombo({
                 {options?.map((item) => (
                   <CommandItem
                     key={item.value}
-                    value={`${item.label} ${item.value}`} // searchable by both
+                    value={`${item.label} ${item.value}`}
                     onSelect={() => {
                       setValue(item.value === value ? '' : item.value);
                       setOpen(false);
@@ -124,7 +125,6 @@ export function MyGPCombo({
                           ({item.value})
                         </span>
                       )}
-
                       <span className="text-xs font-semibold truncate min-w-0 flex-1">
                         {item.label}
                       </span>

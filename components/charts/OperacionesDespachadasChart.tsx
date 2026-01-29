@@ -394,7 +394,11 @@ export function OperacionesDespachadasChart() {
     return buildSWRKeyMulti({ granularity, from, to, clients: selectedClients });
   }, [from, to, granularity, selectedClients]);
 
-  const { data: seriesByClient } = useSWR<MultiClientResponse>(
+  const {
+    data: seriesByClient,
+    error,
+    isLoading,
+  } = useSWR<MultiClientResponse>(
     swrKey,
     () => fetchMultiClientSeries({ from, to, granularity, clients: selectedClients }),
     { revalidateOnFocus: false }
@@ -468,6 +472,11 @@ export function OperacionesDespachadasChart() {
 
     return cfg satisfies ChartConfig;
   }, [clientKeys, clientsMap]);
+
+  const hasRange = Boolean(from && to);
+  const hasData = chartData.length > 0;
+
+  const showNoData = hasRange && !isLoading && !error && !!seriesByClient && !hasData;
 
   return (
     <div className="h-full w-full">
@@ -604,141 +613,136 @@ export function OperacionesDespachadasChart() {
           </CardHeader>
 
           <CardContent className="flex flex-1 items-center justify-center">
-            {from && to ? (
-              chartData.length > 0 ? (
-                <ChartContainer config={dynamicChartConfig} className="mx-auto h-[420px] w-full">
-                  <ComposedChart
-                    accessibilityLayer
-                    data={chartData}
-                    margin={{ left: 12, right: 28, top: 8, bottom: 8 }}
-                  >
-                    <CartesianGrid vertical={false} />
+            {hasRange && hasData ? (
+              <ChartContainer config={dynamicChartConfig} className="mx-auto h-[420px] w-full">
+                <ComposedChart
+                  accessibilityLayer
+                  data={chartData}
+                  margin={{ left: 12, right: 28, top: 8, bottom: 8 }}
+                >
+                  <CartesianGrid vertical={false} />
 
-                    {!hideXAxis && (
-                      <XAxis
-                        dataKey="PERIOD_START"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        interval={tickInterval}
-                        padding={{ left: 8, right: 14 }}
-                        angle={isWeeklyBuckets ? -35 : 0}
-                        textAnchor={isWeeklyBuckets ? 'end' : 'middle'}
-                        {...(isWeeklyBuckets ? { height: 50 } : {})}
-                        tickFormatter={(v) => {
-                          const s = String(v);
-                          if (granularity === 'week') return formatWeekTick(s);
-                          return formatBucketLabel(s, granularity);
-                        }}
-                      />
-                    )}
-
-                    <YAxis
+                  {!hideXAxis && (
+                    <XAxis
+                      dataKey="PERIOD_START"
                       tickLine={false}
                       axisLine={false}
                       tickMargin={8}
-                      allowDecimals={false}
-                      tickFormatter={(v) => Number(v).toLocaleString()}
-                    />
-
-                    <ChartTooltip
-                      content={({ active, payload }) => {
-                        if (!active || !payload?.length) return null;
-
-                        const p = payload[0].payload as ChartPointMulti;
-                        const label = formatBucketLabel(p.PERIOD_START, granularity);
-
-                        return (
-                          <div className="rounded-md border bg-background px-3 py-2 text-sm shadow">
-                            <div className="font-medium">{label}</div>
-
-                            <div className="mt-2 flex flex-col gap-2">
-                              {clientKeys.map((cve, idx) => {
-                                const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
-                                const name = clientLabel(cve, clientsMap);
-                                const color = colorForIndex(idx);
-
-                                const val = Number((p as any)[cliKey] ?? 0);
-
-                                return (
-                                  <div key={cliKey} className="flex flex-col gap-1">
-                                    <div className="flex items-center justify-between gap-4">
-                                      <div className="flex items-center gap-2">
-                                        <span
-                                          className="h-2.5 w-2.5 rounded-sm"
-                                          style={{ backgroundColor: color }}
-                                        />
-                                        <span className="text-muted-foreground">{name}</span>
-                                      </div>
-                                      <span className="font-medium">{val.toLocaleString()}</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
+                      interval={tickInterval}
+                      padding={{ left: 8, right: 14 }}
+                      angle={isWeeklyBuckets ? -35 : 0}
+                      textAnchor={isWeeklyBuckets ? 'end' : 'middle'}
+                      {...(isWeeklyBuckets ? { height: 50 } : {})}
+                      tickFormatter={(v) => {
+                        const s = String(v);
+                        if (granularity === 'week') return formatWeekTick(s);
+                        return formatBucketLabel(s, granularity);
                       }}
                     />
-                    {clientKeys.map((cve, idx) => {
-                      const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
-                      const color = colorForIndex(idx);
+                  )}
+
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    allowDecimals={false}
+                    tickFormatter={(v) => Number(v).toLocaleString()}
+                  />
+
+                  <ChartTooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+
+                      const p = payload[0].payload as ChartPointMulti;
+                      const label = formatBucketLabel(p.PERIOD_START, granularity);
 
                       return (
-                        <Area
-                          key={cliKey}
-                          type="monotone"
-                          dataKey={cliKey}
-                          stroke={color}
-                          fill={color}
-                          fillOpacity={0.15}
-                          strokeWidth={2}
-                          dot={{ r: 2 }}
-                          activeDot={{ r: 4 }}
-                        />
+                        <div className="rounded-md border bg-background px-3 py-2 text-sm shadow">
+                          <div className="font-medium">{label}</div>
+
+                          <div className="mt-2 flex flex-col gap-2">
+                            {clientKeys.map((cve, idx) => {
+                              const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
+                              const name = clientLabel(cve, clientsMap);
+                              const color = colorForIndex(idx);
+
+                              const val = Number((p as any)[cliKey] ?? 0);
+
+                              return (
+                                <div key={cliKey} className="flex flex-col gap-1">
+                                  <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className="h-2.5 w-2.5 rounded-sm"
+                                        style={{ backgroundColor: color }}
+                                      />
+                                      <span className="text-muted-foreground">{name}</span>
+                                    </div>
+                                    <span className="font-medium">{val.toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       );
-                    })}
+                    }}
+                  />
 
-                    {clientKeys.map((cve, idx) => {
-                      const trendKey = cve === 'ALL' ? 'TREND_ALL' : `TREND_${cve}`;
-                      const color = colorForIndex(idx);
+                  {clientKeys.map((cve, idx) => {
+                    const cliKey = cve === 'ALL' ? 'CLI_ALL' : `CLI_${cve}`;
+                    const color = colorForIndex(idx);
 
-                      return (
-                        <Line
-                          key={trendKey}
-                          dataKey={trendKey}
-                          type="linear"
-                          stroke={color}
-                          strokeOpacity={0.35}
-                          strokeWidth={2}
-                          dot={false}
-                          activeDot={false}
-                          isAnimationActive={false}
-                          strokeDasharray="6 4"
-                        />
-                      );
-                    })}
+                    return (
+                      <Area
+                        key={cliKey}
+                        type="monotone"
+                        dataKey={cliKey}
+                        stroke={color}
+                        fill={color}
+                        fillOpacity={0.15}
+                        strokeWidth={2}
+                        dot={{ r: 2 }}
+                        activeDot={{ r: 4 }}
+                      />
+                    );
+                  })}
 
-                    <Line
-                      dataKey="TREND_TOTAL"
-                      type="linear"
-                      stroke="#ff2600"
-                      strokeOpacity={0.7}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={false}
-                      isAnimationActive={false}
-                    />
-                  </ComposedChart>
-                </ChartContainer>
-              ) : (
-                <div className="text-sm text-muted-foreground">No hay datos para mostrar.</div>
-              )
-            ) : (
-              <div className="text-sm text-muted-foreground">
-                Selecciona un período para visualizar.
-              </div>
-            )}
+                  {clientKeys.map((cve, idx) => {
+                    const trendKey = cve === 'ALL' ? 'TREND_ALL' : `TREND_${cve}`;
+                    const color = colorForIndex(idx);
+
+                    return (
+                      <Line
+                        key={trendKey}
+                        dataKey={trendKey}
+                        type="linear"
+                        stroke={color}
+                        strokeOpacity={0.35}
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={false}
+                        isAnimationActive={false}
+                        strokeDasharray="6 4"
+                      />
+                    );
+                  })}
+
+                  <Line
+                    dataKey="TREND_TOTAL"
+                    type="linear"
+                    stroke="#ff2600"
+                    strokeOpacity={0.7}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={false}
+                    isAnimationActive={false}
+                  />
+                </ComposedChart>
+              </ChartContainer>
+            ) : showNoData ? (
+              <div className="text-sm text-muted-foreground">No hay datos para mostrar.</div>
+            ) : null}
           </CardContent>
 
           <CardFooter className="flex-col gap-2 text-sm">

@@ -1,13 +1,7 @@
 // hooks/useRefsByClient.ts
 import useSWR from 'swr';
-import axios from 'axios';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-
-export type RefRecord = {
-  NUM_REFE: string;
-  ADU_DESP: string;
-  FOLDER_HAS_CONTENT: boolean;
-};
+import { getRefsByClient } from '@/types/casa/getRefsByClient';
 
 // Convert date to YYYY-MM-DD in local time
 const toYMDLocal = (d: Date) => d.toISOString().slice(0, 10);
@@ -38,7 +32,7 @@ export function useRefsByClient(client: string | null, initialDate?: Date, final
   // SWR key — only fetch if client provided
   const key = hasParams ? `/dea/getRefsByClient?${params.toString()}` : null;
 
-  const { data, error, isLoading, mutate } = useSWR<{ refs: RefRecord[] }>(key, axiosFetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ refs: getRefsByClient[] }>(key, axiosFetcher);
 
   return {
     refs: Array.isArray(data?.refs) ? data.refs : [],

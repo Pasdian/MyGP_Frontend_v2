@@ -71,6 +71,13 @@ export default function MyGPCalendar({
     return { from: tenYearsAgo, to: today };
   };
 
+  const getLast500Years = () => {
+    const today = new Date();
+    const twoHundredYearsAgo = new Date(today);
+    twoHundredYearsAgo.setFullYear(today.getFullYear() - 500);
+    return { from: twoHundredYearsAgo, to: today };
+  };
+
   const formatDate = (date: Date | undefined) => {
     if (!date) return '';
     return date.toLocaleDateString('es-MX', {
@@ -166,6 +173,13 @@ export default function MyGPCalendar({
                 onClick={() => handlePresetClick(getLastTenYears())}
               >
                 Últimos 10 Años
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
+                onClick={() => handlePresetClick(getLast500Years())}
+              >
+                Histórico
               </Button>
               <div className="pt-1 border-t mt-1">
                 <p className="text-[10px] text-slate-500 mb-0.5 px-1">Personalizado</p>

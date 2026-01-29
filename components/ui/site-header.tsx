@@ -12,7 +12,6 @@ import { deaModuleEvents } from '@/lib/posthog/events';
 import { Loader2, RocketIcon } from 'lucide-react';
 import useSWRMutation from 'swr/mutation';
 import { useCompanies } from '@/hooks/useCompanies';
-import { ManifestacionDialog } from '../Dialogs/ManifestacionDialog';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import DEAFilterCompanyDriver from '../driver/DEAFilterCompanyDriver';
@@ -138,7 +137,8 @@ export function SiteHeader() {
             }}
             value={client.number}
             onSelect={() => resetFileState()}
-            className="h-5 text-xs w-[230px]"
+            className="h-5 text-xs w-[300px]"
+            popoverContentClassName="w-[600px]"
             placeholder="Selecciona un cliente"
             showValue
             pickFirst

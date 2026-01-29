@@ -98,8 +98,11 @@ export default function OperacionesPorAduanaChart() {
     return `/api/bi/getOperationsDistributionByCustoms?${params.toString()}`;
   }, [from, to, clientNumber]);
 
-  const { data: chartDataRaw } = useSWR<OperationsByCustomsRow[]>(swrKey, axiosFetcher);
-
+  const {
+    data: chartDataRaw,
+    error,
+    isLoading,
+  } = useSWR<OperationsByCustomsRow[]>(swrKey, axiosFetcher);
   const chartData: OperationsByCustomsRow[] = React.useMemo(() => {
     if (!Array.isArray(chartDataRaw)) return [];
     return chartDataRaw.map((r) => ({
@@ -134,6 +137,10 @@ export default function OperacionesPorAduanaChart() {
 
     return cfg;
   }, [chartData, maxOperationValue]);
+
+  const hasRange = Boolean(from && to);
+  const hasData = chartData.length > 0;
+  const showNoData = hasRange && !isLoading && !error && !hasData;
 
   return (
     <div className="h-full w-full">
@@ -265,43 +272,36 @@ export default function OperacionesPorAduanaChart() {
           </CardHeader>
 
           <CardContent className="flex flex-1 items-center justify-center">
-            {from && to ? (
-              chartData.length > 0 ? (
-                <ChartContainer config={chartConfig} className="mx-auto w-full md:h-[420px]">
-                  <ResponsiveContainer width="100%" height={420}>
-                    <PieChart>
-                      <ChartTooltip content={<ChartTooltipContent nameKey="OPERATIONS" />} />
-
-                      <Pie
-                        data={chartData}
-                        dataKey="OPERATIONS"
-                        nameKey="CUSTOMS"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={150}
-                        label={({ CUSTOMS, OPERATIONS }) => {
-                          const pct =
-                            totalOperations > 0 ? (OPERATIONS / totalOperations) * 100 : 0;
-                          const name = chartConfig[CUSTOMS]?.label ?? CUSTOMS;
-
-                          return `${name}: ${OPERATIONS.toLocaleString()} (${pct.toFixed(1)}%)`;
-                        }}
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              ) : (
-                <div className="text-sm text-muted-foreground">No hay datos para mostrar.</div>
-              )
-            ) : (
+            {hasRange && hasData ? (
+              <ChartContainer config={chartConfig} className="mx-auto w-full md:h-[420px]">
+                <ResponsiveContainer width="100%" height={420}>
+                  <PieChart>
+                    <ChartTooltip content={<ChartTooltipContent nameKey="OPERATIONS" />} />
+                    <Pie
+                      data={chartData}
+                      dataKey="OPERATIONS"
+                      nameKey="CUSTOMS"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={150}
+                      label={({ CUSTOMS, OPERATIONS }) => {
+                        const pct = totalOperations > 0 ? (OPERATIONS / totalOperations) * 100 : 0;
+                        const name = chartConfig[CUSTOMS]?.label ?? CUSTOMS;
+                        return `${name}: ${OPERATIONS.toLocaleString()} (${pct.toFixed(1)}%)`;
+                      }}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : showNoData ? (
               <div className="text-sm text-muted-foreground">
-                Selecciona un período para visualizar.
+                No hay datos para mostrar en el período seleccionado.
               </div>
-            )}
+            ) : null}
           </CardContent>
 
           <CardFooter className="flex-col gap-2 text-sm">
