@@ -40,7 +40,7 @@ export function ClientMain({
     .object({
       is_new: z.boolean(),
       casa_id: z.string().optional(),
-      client_name: z.string().optional(),
+      legal_name: z.string().optional(),
       legal_type: z
         .string({ message: 'Ingresa el tipo de cliente' })
         .min(1, 'Ingresa el tipo de cliente')
@@ -286,6 +286,7 @@ export function ClientMain({
                           <Button
                             type="button"
                             variant="outline"
+                            disabled={isGettingNextCasaId}
                             onClick={async () => {
                               field.onChange(true);
                               !casa_id && (await fetchNextCasaId());
@@ -351,6 +352,8 @@ export function ClientMain({
                                     placeholder="00000"
                                     className="mb-2"
                                     aria-invalid={fieldState.invalid}
+                                    disabled={isGettingNextCasaId}
+                                    aria-busy={isGettingNextCasaId}
                                   />
                                 </div>
                                 <div className="min-h-[20px]">
@@ -362,20 +365,20 @@ export function ClientMain({
                             )}
                           />
                           <Controller
-                            name="client_name"
+                            name="legal_name"
                             control={form.control}
                             render={({ field, fieldState }) => (
                               <Field
                                 data-invalid={fieldState.invalid}
                                 className="grid grid-rows-2 gap-0 w-full min-w-0"
                               >
-                                <FieldLabel htmlFor="client_name">
+                                <FieldLabel htmlFor="legal_name">
                                   Nombre del cliente nuevo:
                                 </FieldLabel>
 
                                 <Input
                                   {...field}
-                                  id="client_name"
+                                  id="legal_name"
                                   placeholder="Ej. Cliente S.A. de C.V."
                                   className="mb-2"
                                   aria-invalid={fieldState.invalid}
