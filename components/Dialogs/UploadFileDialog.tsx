@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,35 +7,70 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Carousel } from '../ui/carousel';
-import React from 'react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import UploadMultipartToServer from '../UploadMultipartToServer/UploadMultipartToServer';
+import UploadFile from '../UploadFiles/UploadFile';
+import { FolderKey } from '@/types/dea/getFilesByReferences';
 
 export default function UploadFileDialog({
-  onOpenChange,
+  setOpen,
   open,
   title,
-  folder,
+  currentFolder,
 }: {
-  onOpenChange: (open: boolean) => void;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   open: boolean;
   title: string;
-  folder: string;
+  currentFolder: FolderKey;
 }) {
-  const { clientNumber: client, reference, getFilesByReferenceKey } = useDEAStore((state) => state);
+  const { client, file, setFile } = useDEAStore((state) => state);
+
+  const [filename, setFilename] = React.useState('');
+  const [successfulUpload, setSuccessfulUpload] = React.useState(false);
+
+  // Update store safely after success (supports legacy + new shapes)
+  React.useEffect(() => {
+    if (successfulUpload && filename) {
+      // Ensure base structure exists
+      const base = file.filesByReference ?? { message: '', files: {} };
+      const files = base.files ?? {};
+
+      // Ensure folder exists
+      const selectedFolder = currentFolder || 'SIN_CLASIFICAR';
+      const currentFiles = files[selectedFolder] || [];
+
+      // Add new file if not already there
+      if (!currentFiles.includes(filename)) {
+        setFile({
+          ...file,
+          filesByReference: {
+            ...base,
+            files: {
+              ...files,
+              [currentFolder]: [...currentFiles, filename],
+            },
+          },
+        });
+      }
+
+      // Reset flags
+      setSuccessfulUpload(false);
+      setFilename('');
+    }
+  }, [successfulUpload, filename, currentFolder, file, setFile]);
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <Carousel>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Subir archivo - {folder}</DialogTitle>
-            <DialogDescription>Aquí podras subir un archivo a {title}</DialogDescription>
+            <DialogTitle>Subir archivo - {currentFolder}</DialogTitle>
+            <DialogDescription>Aquí podrás subir un archivo a {title}</DialogDescription>
           </DialogHeader>
+
           <div className="overflow-hidden">
-            <UploadMultipartToServer
-              apiEndpointPath={`/dea/uploadFiles/${client}/${reference}/${folder}`}
-              placeholder="Arrastra o da click aquí para subir archivos"
-              mutationKey={getFilesByReferenceKey}
+            <UploadFile
+              to={`/GESTION/${client.number}/${client.reference}/${currentFolder}`}
+              setFilename={setFilename}
+              setSuccess={setSuccessfulUpload}
             />
           </div>
         </DialogContent>

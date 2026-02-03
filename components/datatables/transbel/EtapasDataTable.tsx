@@ -1,0 +1,94 @@
+'use client';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import React from 'react';
+
+import TablePageSize from '../pageSize/TablePageSize';
+import TablePagination from '../pagination/TablePagination';
+import { etapasColumns } from '@/lib/columns/etapasColumns';
+import { useEtapas } from '@/hooks/useEtapas/useEtapas';
+import { etapas } from '@/lib/etapas/etapas';
+
+export default function EtapasDataTable() {
+  const { etapas: etapasData } = useEtapas();
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+
+  const etapasWithDesc = React.useMemo(
+    () =>
+      etapasData?.map((e) => ({
+        ...e,
+        DESC_ETAP: etapas.find((et) => et.CVE_ETAP == e.CVE_ETAP)?.DESC_ETAP || null,
+      })),
+    [etapasData]
+  );
+
+  const table = useReactTable({
+    data: etapasWithDesc || [],
+    columns: etapasColumns,
+    getCoreRowModel: getCoreRowModel(),
+    onPaginationChange: setPagination,
+    onColumnFiltersChange: setColumnFilters,
+    getPaginationRowModel: getPaginationRowModel(),
+    state: { columnFilters, pagination },
+    autoResetPageIndex: false,
+  });
+
+  return (
+    <div className="overflow-hidden rounded-md border">
+      <Table className="mb-4">
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={etapasColumns.length} className="h-24 text-center">
+                Sin resultados.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <div className="mb-4 w-full flex justify-end items-center gap-2">
+        <TablePageSize pagination={pagination} setPagination={setPagination} />
+        <TablePagination table={table} />
+      </div>
+    </div>
+  );
+}

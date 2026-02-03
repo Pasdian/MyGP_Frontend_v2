@@ -5,7 +5,13 @@ export type getFilesByReference = {
     '03-FISCALES': string[];
     '04-VUCEM': string[];
     '05-EXP-DIGITAL': string[];
-    SIN_CLASIFICAR: string[];
   };
   message: string;
 };
+
+export type FolderKey =
+  | '01-CTA-GASTOS'
+  | '02-EXPEDIENTE-ADUANAL'
+  | '03-FISCALES'
+  | '04-VUCEM'
+  | '05-EXP-DIGITAL';

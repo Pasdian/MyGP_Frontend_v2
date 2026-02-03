@@ -14,11 +14,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
-import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
 import { companyModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { CompanySchema } from '@/lib/schemas/admin-panel/companySchema';
 
 const posthogEvent =
   companyModuleEvents.find((e) => e.alias === 'COMPANY_ADD_COMPANY')?.eventName || '';
@@ -28,27 +27,24 @@ export default function AddCompanyForm({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
-
-  const form = useForm<z.infer<typeof companySchema>>({
-    resolver: zodResolver(companySchema),
+  const form = useForm<z.infer<typeof CompanySchema>>({
+    resolver: zodResolver(CompanySchema),
     mode: 'onChange',
     defaultValues: {
-      name: '',
-      casa_id: '',
+      NOM_IMP: '',
+      CVE_IMP: '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof companySchema>) {
+  async function onSubmit(data: z.infer<typeof CompanySchema>) {
     await GPClient.post(`/api/companies/createCompany`, {
-      name: data.name,
-      casa_id: data.casa_id,
+      NOM_IMP: data.NOM_IMP,
+      CVE_IMP: data.CVE_IMP,
     })
       .then((res) => {
         toast.success(res.data.message);
         posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
-        mutate('/api/companies/getAllCompanies');
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -61,7 +57,7 @@ export default function AddCompanyForm({
         <div className="grid gap-4">
           <FormField
             control={form.control}
-            name="name"
+            name="NOM_IMP"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nombre de la Compañia</FormLabel>
@@ -75,7 +71,7 @@ export default function AddCompanyForm({
 
           <FormField
             control={form.control}
-            name="casa_id"
+            name="CVE_IMP"
             render={({ field }) => (
               <FormItem className="mb-4">
                 <FormLabel>ID CASA</FormLabel>

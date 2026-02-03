@@ -1,0 +1,26 @@
+export type DailyTracking = {
+  NUM_REFE: string | null;
+  NUM_PEDI: string | null;
+  CVE_IMPO: string | null;
+  CLIENT_NAME: string | null;
+  ENTRY_DATE: string | null;
+  CUSTOM_CLEARANCE_DAYS: string | null;
+  CURRENT_PHASE_CODE: string | null;
+  CURRENT_PHASE: string | null;
+  FEC_ETAP: string | null;
+  FEC_ETAP_FORMATTED: string | null;
+  CUSTOM: string | null;
+  KAM: string | null;
+  STATUS: string | null;
+  MODIFIED_AT: string | null;
+  CASA_ID: string | null;
+  MSA: string | null;
+  ENTRY_DATE_FORMATTED: string | null;
+  MODIFIED_AT_FORMATTED: string | null;
+  CUSTOM_FORMATTED: string | null;
+  KAM_FORMATTED: string | null;
+  MSA_FORMATTED: string | null;
+  ULT_DOC_114: string | null;
+  ULT_DOC_114_FORMATTED: string | null;
+  PROVIDER: string | null;
+};

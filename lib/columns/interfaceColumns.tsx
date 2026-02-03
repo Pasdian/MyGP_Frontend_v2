@@ -1,278 +1,197 @@
 import { ColumnDef } from "@tanstack/react-table";
-
-import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 import InterfaceUpsertPhaseButton from "@/components/buttons/upsertPhase/InterfaceUpsertPhaseButton";
 import React from "react";
-import { isCurrentYear } from "../utilityFunctions/isCurrentYear";
 import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
-import { getFormattedDate } from "../utilityFunctions/getFormattedDate";
-import { businessDaysDiffWithHolidays } from "../utilityFunctions/businessDaysDiffWithHolidays";
 import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
+import { InterfaceContext } from "@/contexts/InterfaceContext";
+import { getRefsPendingCE } from "@/types/transbel/getRefsPendingCE";
 
 const fuzzyFilter = createFuzzyFilter<getRefsPendingCE>();
+type TabValue = "errors" | "pending" | "sent";
 
-export const interfaceColumns: ColumnDef<getRefsPendingCE>[] = [
-  {
-    accessorKey: "ACCIONES",
-    header: "Acciones",
-    cell: ({ row }) => {
-      return <InterfaceUpsertPhaseButton row={row} />;
-    },
-  },
-  {
-    accessorKey: "REFERENCIA",
-    header: "Referencia",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.REFERENCIA) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe un número de referencia"
-          />
-        );
-      }
+export const useInterfaceColumns = (): ColumnDef<getRefsPendingCE>[] => {
+  const { tabValue } = React.useContext(InterfaceContext) as {
+    tabValue: TabValue;
+  };
 
-      const trafficType = row.original.REFERENCIA.charAt(1);
+  const baseCols = React.useMemo<ColumnDef<getRefsPendingCE>[]>(
+    () => [
+      {
+        accessorKey: "REFERENCIA",
+        header: "Referencia",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => {
+          if (row.original.CE_138) {
+            return (
+              <p className="text-center">{row.original.REFERENCIA || "--"}</p>
+            );
+          }
+          if (row.original.has_business_days_error) {
+            return (
+              <ErrorTooltip
+                value={row.original.REFERENCIA || "--"}
+                errorMessage={
+                  row.original.BUSINESS_DAYS_ERROR_MSG || "Error desconocido"
+                }
+              />
+            );
+          }
+          return (
+            <p className="text-center">{row.original.REFERENCIA || "--"}</p>
+          );
+        },
+      },
+      {
+        accessorKey: "EE__GE",
+        header: "EE/GE",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => {
+          if (row.original.has_ee_ge_error) {
+            return (
+              <ErrorTooltip
+                value={row.original.EE__GE || "--"}
+                errorMessage={
+                  row.original.EE_GE_ERROR_MSG || "Error desconocido"
+                }
+              />
+            );
+          }
+          return <p className="text-center">{row.original.EE__GE || "--"}</p>;
+        },
+      },
+      {
+        accessorKey: "REVALIDACION_073_FORMATTED",
+        header: "Revalidación",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) =>
+          row.original.has_revalidacion_error ? (
+            <ErrorTooltip
+              value={row.original.REVALIDACION_073_FORMATTED || "--"}
+              errorMessage={
+                row.original.REVALIDACION_073_ERROR_MSG || "Error desconocido"
+              }
+            />
+          ) : (
+            <p className="text-center">
+              {row.original.REVALIDACION_073_FORMATTED || "--"}
+            </p>
+          ),
+      },
+      {
+        accessorKey: "ULTIMO_DOCUMENTO_114_FORMATTED",
+        header: "Último Documento",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) =>
+          row.original.has_ultimo_documento_error ? (
+            <ErrorTooltip
+              value={row.original.ULTIMO_DOCUMENTO_114_FORMATTED || "--"}
+              errorMessage={
+                row.original.ULTIMO_DOCUMENTO_114_ERROR_MSG ||
+                "Error desconocido"
+              }
+            />
+          ) : (
+            <p className="text-center">
+              {row.original.ULTIMO_DOCUMENTO_114_FORMATTED || "--"}
+            </p>
+          ),
+      },
+      {
+        accessorKey: "MSA_130_FORMATTED",
+        header: "MSA",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) =>
+          row.original.has_msa_error ? (
+            <ErrorTooltip
+              value={row.original.MSA_130_FORMATTED || "--"}
+              errorMessage={
+                row.original.MSA_130_ERROR_MSG || "Error desconocido"
+              }
+            />
+          ) : (
+            <p className="text-center">
+              {row.original.MSA_130_FORMATTED || "--"}
+            </p>
+          ),
+      },
+      {
+        accessorKey: "ENTREGA_TRANSPORTE_138_FORMATTED",
+        header: "Entrega Transporte",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) =>
+          row.original.has_entrega_transporte_error ? (
+            <ErrorTooltip
+              value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED || "--"}
+              errorMessage={
+                row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG ||
+                "Error desconocido"
+              }
+            />
+          ) : (
+            <p className="text-center">
+              {row.original.ENTREGA_TRANSPORTE_138_FORMATTED || "--"}
+            </p>
+          ),
+      },
+      {
+        accessorKey: "ENTREGA_CDP_140_FORMATTED",
+        header: "Entrega a CDP",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) =>
+          row.original.has_entrega_cdp_error ? (
+            <ErrorTooltip
+              value={row.original.ENTREGA_CDP_140_FORMATTED || "--"}
+              errorMessage={
+                row.original.ENTREGA_CDP_140_ERROR_MSG || "Error desconocido"
+              }
+            />
+          ) : (
+            <p className="text-center">
+              {row.original.ENTREGA_CDP_140_FORMATTED || "--"}
+            </p>
+          ),
+      },
+      {
+        accessorKey: "CE_138",
+        header: "CE 138",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => (
+          <p className="text-center">{row.original.CE_138 || "--"}</p>
+        ),
+      },
+      {
+        accessorKey: "CE_140",
+        header: "CE 140",
+        filterFn: fuzzyFilter,
+        cell: ({ row }) => (
+          <p className="text-center">{row.original.CE_140 || "--"}</p>
+        ),
+      },
+      {
+        accessorKey: "workato_created_at_FORMATTED",
+        header: "Fecha Último Envio",
+        cell: ({ row }) => (
+          <p className="text-center">
+            {row.original.workato_created_at_FORMATTED || "--"}
+          </p>
+        ),
+      },
+    ],
+    []
+  );
 
-      if (
-        row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        (trafficType == "A" ||
-          trafficType == "F" ||
-          trafficType == "T" ||
-          trafficType == "M" ||
-          trafficType == "V") &&
-        businessDaysDiffWithHolidays(
-          new Date(row.original.ULTIMO_DOCUMENTO_114),
-          new Date(row.original.ENTREGA_TRANSPORTE_138)
-        ) > 7
-      ) {
-        return (
-          <ErrorTooltip
-            value={row.original.REFERENCIA}
-            errorMessage="La diferencia entre la fecha de último documento y la entrega a transporte es mayor a 7 días para tráfico aéreo"
-          />
-        );
-      }
-      return <p className="text-center">{row.original.REFERENCIA}</p>;
-    },
-  },
-  {
-    accessorKey: "EE__GE",
-    header: "EE/GE",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.EE__GE) {
-        return <ErrorTooltip value="--" errorMessage="No existe EE/GE" />;
-      }
-      return row.original.EE__GE;
-    },
-  },
+  const accionesCol: ColumnDef<getRefsPendingCE> = React.useMemo(
+    () => ({
+      id: "ACCIONES",
+      header: "Acciones",
+      cell: ({ row }) => <InterfaceUpsertPhaseButton row={row} />,
+    }),
+    []
+  );
 
-  {
-    accessorKey: "REVALIDACION_073",
-    header: "Revalidación",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.REVALIDACION_073) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de revalidación"
-          />
-        );
-      }
-
-      if (!isCurrentYear(row.original.REVALIDACION_073)) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="El año de la fecha de revalidación no es del año en curso"
-          />
-        );
-      }
-
-      if (
-        row.original.ULTIMO_DOCUMENTO_114 &&
-        row.original.REVALIDACION_073 > row.original.ULTIMO_DOCUMENTO_114
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="La fecha de revalidación es mayor que la fecha de último documento"
-          />
-        );
-      } else if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.REVALIDACION_073 > row.original.ENTREGA_TRANSPORTE_138
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="La fecha de revalidación es mayor que la fecha de transporte"
-          />
-        );
-      } else if (
-        row.original.MSA_130 &&
-        row.original.REVALIDACION_073 > row.original.MSA_130
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.REVALIDACION_073)}
-            errorMessage="La fecha de revalidación es mayor que la fecha de transporte"
-          />
-        );
-      }
-      return (
-        <p className="text-center">
-          {getFormattedDate(row.original.REVALIDACION_073)}
-        </p>
-      );
-    },
-  },
-  {
-    accessorKey: "ULTIMO_DOCUMENTO_114",
-    header: "Último Documento",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.ULTIMO_DOCUMENTO_114) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de último documento"
-          />
-        );
-      }
-
-      if (!isCurrentYear(row.original.ULTIMO_DOCUMENTO_114)) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
-            errorMessage="El año de la fecha de último documento no es del año en curso"
-          />
-        );
-      }
-
-      if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ULTIMO_DOCUMENTO_114 > row.original.ENTREGA_TRANSPORTE_138
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
-            errorMessage="La fecha del último documento es mayor que la fecha de entrega de transporte"
-          />
-        );
-      } else if (
-        row.original.MSA_130 &&
-        row.original.ULTIMO_DOCUMENTO_114 > row.original.MSA_130
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
-            errorMessage="La fecha de último documento es mayor que MSA"
-          />
-        );
-      }
-      return (
-        <p className="text-center">
-          {getFormattedDate(row.original.ULTIMO_DOCUMENTO_114)}
-        </p>
-      );
-    },
-  },
-  {
-    accessorKey: "MSA_130",
-    header: "MSA",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.MSA_130) {
-        return (
-          <ErrorTooltip value="--" errorMessage="No existe una fecha de MSA" />
-        );
-      }
-
-      if (!isCurrentYear(row.original.MSA_130)) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.MSA_130)}
-            errorMessage="El año de la fecha de MSA no es del año en curso"
-          />
-        );
-      }
-
-      if (
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.MSA_130 !== row.original.ENTREGA_TRANSPORTE_138
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.MSA_130)}
-            errorMessage="MSA no es igual a la fecha de entrega de transporte"
-          />
-        );
-      } else if (
-        row.original.ENTREGA_CDP_140 &&
-        row.original.MSA_130 > row.original.ENTREGA_CDP_140
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.MSA_130)}
-            errorMessage="MSA es mayor que la fecha de entrega CDP"
-          />
-        );
-      }
-      return (
-        <p className="text-center">{getFormattedDate(row.original.MSA_130)}</p>
-      );
-    },
-  },
-  {
-    accessorKey: "ENTREGA_TRANSPORTE_138",
-    header: "Entrega Transporte",
-    filterFn: fuzzyFilter,
-    cell: ({ row }) => {
-      if (!row.original.ENTREGA_TRANSPORTE_138) {
-        return (
-          <ErrorTooltip
-            value="--"
-            errorMessage="No existe una fecha de entrega de transporte"
-          />
-        );
-      }
-
-      if (!isCurrentYear(row.original.ENTREGA_TRANSPORTE_138)) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage="El año de la fecha de último documento no es del año en curso"
-          />
-        );
-      }
-
-      if (
-        row.original.MSA_130 &&
-        row.original.ENTREGA_TRANSPORTE_138 &&
-        row.original.ENTREGA_TRANSPORTE_138 !== row.original.MSA_130
-      ) {
-        return (
-          <ErrorTooltip
-            value={getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-            errorMessage="La fecha de entrega de transporte no es igual a MSA"
-          />
-        );
-      }
-      return (
-        <p className="text-center">
-          {getFormattedDate(row.original.ENTREGA_TRANSPORTE_138)}
-        </p>
-      );
-    },
-  },
-  {
-    accessorKey: "CE_138",
-    header: "Código de Excepción 138",
-    filterFn: fuzzyFilter,
-  },
-];
+  // Show ACCIONES only on 'errors'
+  return React.useMemo(() => {
+    if (tabValue === "errors") return [accionesCol, ...baseCols];
+    return baseCols; // pending/sent → hidden
+  }, [tabValue, baseCols, accionesCol]);
+};

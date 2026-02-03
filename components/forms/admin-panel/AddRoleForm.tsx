@@ -14,7 +14,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { roleSchema } from '@/lib/schemas/admin-panel/roleSchema';
 import posthog from 'posthog-js';
@@ -27,8 +26,6 @@ export default function AddRoleForm({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
-
   const form = useForm<z.infer<typeof roleSchema>>({
     resolver: zodResolver(roleSchema),
     mode: 'onChange',
@@ -47,8 +44,6 @@ export default function AddRoleForm({
         toast.success(res.data.message);
         setIsOpen((opened) => !opened);
         posthog.capture(posthogEvent);
-        mutate('/api/users/getAllUsers');
-        mutate('/api/roles');
       })
       .catch((error) => {
         toast.error(error.response.data.message);

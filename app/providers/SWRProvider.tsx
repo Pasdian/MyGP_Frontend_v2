@@ -1,11 +1,16 @@
 'use client';
-import { SWRConfig } from 'swr';
 
-export function SWRProvider({ children }: { children: React.ReactNode }) {
+import { SWRConfig } from 'swr';
+import type { ReactNode } from 'react';
+
+export default function SWRProvider({ children }: { children: ReactNode }) {
   return (
     <SWRConfig
       value={{
-        revalidateOnFocus: false, // no refetch on tab focus
+        refreshInterval: 300000, // 5 minutes in milliseconds
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        shouldRetryOnError: true,
       }}
     >
       {children}

@@ -1,26 +1,26 @@
-import { AppSidebar } from '@/components/ui/app-sidebar';
-import { SiteHeader } from '@/components/ui/site-header';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import React from 'react';
+import { ReactNode } from 'react';
+import { redirect } from 'next/navigation';
+import MyGPFrame from './_frame';
+import AuthProvider from '@/components/AuthProvider/AuthProvider';
+import { getServerSession } from '@/lib/auth/getServerSession';
+import { VersionWatcherProvider } from '../providers/VersionWatcherProvider';
 
-export default function MyGPLayout({ children }: { children: React.ReactNode }) {
+type Props = {
+  children: ReactNode;
+};
+
+export default async function MyGPLayout({ children }: Props) {
+  const session = await getServerSession();
+
+  if (!session) {
+    redirect('/login');
+  }
+
   return (
-    <SidebarProvider
-      className="overflow-hidden"
-      style={
-        {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
-      <div className="w-dvw h-dvh max-w-dvw max-h-dvh overflow-y-scroll bg-white">
-        <SidebarInset className="w-full h-full">
-          <SiteHeader />
-          <div className="h-full p-6 overflow-y-scroll">{children}</div>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <AuthProvider initialUser={session} initialAccessToken={session.accessToken}>
+      <VersionWatcherProvider>
+        <MyGPFrame>{children}</MyGPFrame>
+      </VersionWatcherProvider>
+    </AuthProvider>
   );
 }

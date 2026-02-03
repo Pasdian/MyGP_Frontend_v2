@@ -1,17 +1,17 @@
 'use client';
 
+import React from 'react';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { AuthContext } from '@/contexts/AuthContext';
-import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
 import { toast } from 'sonner';
-import { LoginResponse } from '@/types/auth/login';
-import { jwtDecode } from 'jwt-decode';
+import { Me, AuthSession } from '@/types/auth/login';
 import posthog from 'posthog-js';
+import { User } from '@/types/user/user';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { Company } from '@/types/company/company';
 
-type JwtClaims = { exp?: number };
-
-const defaultUser: LoginResponse = {
+const defaultUser: AuthSession = {
   message: '',
   accessToken: '',
   complete_user: {
@@ -22,142 +22,218 @@ const defaultUser: LoginResponse = {
       email: '',
       mobile: '',
       status: '',
-      company_name: '',
-      company_uuid: '',
-      company_casa_id: '',
+      companies: [],
     },
     role: { uuid: '', name: '', description: '', permissions: [] },
     modules: [],
   },
 };
 
-function msUntilRefresh(token: string | null | undefined): number {
-  try {
-    if (!token) return 0;
-    const { exp } = jwtDecode<JwtClaims>(token);
-    if (!exp) return 0;
-    const expMs = exp * 1000;
-    const threshold = process.env.NODE_ENV === 'production' ? 2 * 60_000 : 10_000;
-    return Math.max(0, expMs - Date.now() - threshold);
-  } catch {
-    return 0;
-  }
+function safeIdentify(person: User) {
+  const { uuid, email, name } = person ?? {};
+  if (!uuid) return;
+
+  posthog.identify(uuid);
+
+  posthog.people.set({
+    $name: name ?? undefined,
+    $email: email ?? undefined,
+    version: process.env.NEXT_PUBLIC_RELEASE_VERSION,
+  });
 }
 
-export default function AuthProvider({ children }: { children: React.ReactNode }) {
+type AuthProviderProps = {
+  children: React.ReactNode;
+  initialUser: AuthSession | null;
+  initialAccessToken?: string | null;
+};
+
+type AuthState = {
+  user: AuthSession;
+  accessToken: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+};
+
+export default function AuthProvider({
+  children,
+  initialUser,
+  initialAccessToken,
+}: AuthProviderProps) {
   const router = useRouter();
-  const pathname = usePathname();
 
-  const [user, setUser] = React.useState<LoginResponse>(defaultUser);
-  const [accessToken, setAccessToken] = React.useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [authState, setAuthState] = React.useState<AuthState>({
+    user: initialUser ?? defaultUser,
+    accessToken: initialAccessToken ?? initialUser?.accessToken ?? null,
+    isAuthenticated: Boolean(initialUser),
+    isLoading: false,
+  });
 
-  // Try to refresh using HttpOnly cookie
+  const { user, accessToken, isAuthenticated, isLoading } = authState;
+
+  const setUser = (nextUser: AuthSession) => {
+    setAuthState((prev) => ({ ...prev, user: nextUser }));
+  };
+
+  const setAccessToken = (token: string | null) => {
+    setAuthState((prev) => ({ ...prev, accessToken: token }));
+  };
+
+  const setIsAuthenticated = (value: boolean) => {
+    setAuthState((prev) => ({ ...prev, isAuthenticated: value }));
+  };
+
+  const setIsLoading = (value: boolean) => {
+    setAuthState((prev) => ({ ...prev, isLoading: value }));
+  };
+
+  const roleName = user?.complete_user?.role?.name;
+  const permissions = React.useMemo(() => user?.complete_user?.role?.permissions ?? [], [user]);
+
+  const getCasaUsername = () => {
+    return user.complete_user.user.casa_user_name;
+  };
+
+  const hasRole = React.useCallback(
+    (role: string | string[]) => {
+      if (!roleName) return false;
+      if (Array.isArray(role)) {
+        return role.includes(roleName);
+      }
+      return roleName === role;
+    },
+    [roleName]
+  );
+
+  const hasPermission = React.useCallback(
+    (perm: string | string[]) => {
+      if (!permissions.length) return false;
+
+      if (Array.isArray(perm)) {
+        return permissions.some((p) => perm.includes(p.action as string));
+      }
+
+      return permissions.some((p) => (p.action as string) === perm);
+    },
+    [permissions]
+  );
+
+  const hasCompany = (companyCode: string): boolean => {
+    const companies = user.complete_user?.user?.companies as Company[] | undefined;
+    if (!Array.isArray(companies)) return false;
+
+    return companies.some((c) => c.CVE_IMP === companyCode);
+  };
+
+  // NEW: refresh that just calls /api/auth/me, no /refreshToken
   const refresh = React.useCallback(async () => {
+    setIsLoading(true);
     try {
-      // withCredentials is already true in GPClient, but keeping it explicit is fine:
-      const res = await GPClient.post('/api/auth/refreshToken', {}, { withCredentials: true });
-      setAccessToken(res.data.accessToken);
-      setUser(res.data);
-      setIsAuthenticated(true);
+      const meRes = await GPClient.get<Me>('/api/auth/me', {
+        withCredentials: true,
+      });
 
-      const person = res.data.complete_user.user;
-      posthog.identify(person.email, {
-        uuid: person.uuid,
-        company_id: person.company_uuid,
-      });
-      posthog.group('company', person.company_uuid || '', {
-        name: person.company_name,
-      });
+      const next: AuthSession = {
+        ...authState.user,
+        ...meRes.data,
+      };
+
+      setAuthState((prev) => ({
+        ...prev,
+        user: next,
+        isAuthenticated: true,
+        isLoading: false,
+      }));
+
+      const person = next.complete_user?.user;
+      if (person) safeIdentify(person);
+
       return true;
     } catch (error) {
-      console.error('Error refreshing token', error);
+      console.error('Error refreshing AuthSession via /api/auth/me', error);
+
+      posthog.reset();
+
+      setAuthState((prev) => ({
+        ...prev,
+        isAuthenticated: false,
+        accessToken: null,
+        user: defaultUser,
+        isLoading: false,
+      }));
+
+      router.replace('/login');
+
       return false;
     }
-  }, []);
+  }, [authState.user, router]);
 
-  // On mount / route change
   React.useEffect(() => {
-    let cancelled = false;
+    if (isAuthenticated && user?.complete_user?.user) {
+      safeIdentify(user.complete_user.user);
+    }
+  }, [isAuthenticated, user]);
 
-    (async () => {
-      // If user visits /login, still attempt refresh (HttpOnly cookie)
-      if (pathname === '/login') {
-        const ok = await refresh();
-        if (!cancelled && ok) {
-          router.replace('/mygp/dashboard'); // avoid back nav to /login
-          return;
-        }
-        if (!cancelled) setIsLoading(false);
-        return;
-      }
-
-      // Any other route needs a valid session
-      const ok = await refresh();
-      if (!cancelled && !ok) {
-        router.replace('/login');
-      }
-      if (!cancelled) setIsLoading(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname, refresh, router]);
-
-  // Schedule refresh before token expiry
+  // Periodically revalidate session via /api/auth/me
   React.useEffect(() => {
-    if (pathname === '/login' || !accessToken) return;
-    const delay = msUntilRefresh(accessToken);
-    const id = setTimeout(async () => {
-      const ok = await refresh();
-      if (!ok) router.replace('/login');
-    }, delay);
-    return () => clearTimeout(id);
-  }, [pathname, accessToken, refresh, router]);
+    if (!isAuthenticated) return;
 
-  async function login(data: { email: string; password: string }) {
-    return GPClient.post('/api/auth/login', data, { withCredentials: true })
-      .then((res: { data: LoginResponse }) => {
-        toast.success(res.data.message);
-        setAccessToken(res.data.accessToken);
-        setUser(res.data);
-        setIsAuthenticated(true);
-        const person = res.data.complete_user.user;
-        posthog.identify(person.email, {
-          uuid: person.uuid,
-          company_id: person.company_uuid,
-        });
-        posthog.group('company', person.company_uuid || '', {
-          name: person.company_name,
-        });
-        router.replace('/mygp/dashboard');
-      })
-      .catch((error) => {
-        toast.error(error.response?.data?.message || 'Login failed');
-      });
-  }
+    // Revalidate every 10 minutes (600000 ms)
+    const INTERVAL = 10 * 60 * 1000;
+
+    const id = setInterval(() => {
+      refresh(); // This now calls GET /api/auth/me
+    }, INTERVAL);
+
+    return () => clearInterval(id);
+  }, [isAuthenticated, refresh]);
 
   async function logout() {
-    return GPClient.post('/api/auth/logout', {}, { withCredentials: true })
-      .then((res) => {
-        toast.success(res.data.message);
-        setAccessToken(null);
-        setUser(defaultUser);
-        setIsAuthenticated(false);
-        router.replace('/login');
-      })
-      .catch((error) => {
-        toast.error(error.response?.data?.message || 'Logout failed');
-      });
-  }
+    try {
+      const res = await GPClient.post('/api/auth/logout', {}, { withCredentials: true });
 
-  if (isLoading) return null;
+      toast.success(res.data.message);
+
+      posthog.reset();
+      localStorage.removeItem('dea-external-link-tour');
+
+      setAuthState((prev) => ({
+        ...prev,
+        accessToken: null,
+        user: defaultUser,
+        isAuthenticated: false,
+      }));
+
+      router.replace('/login');
+    } catch (error: unknown) {
+      let message = 'Logout failed';
+
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message ?? message;
+      }
+
+      toast.error(message);
+    }
+  }
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, isLoading, isAuthenticated, logout, login, accessToken, refresh }}
+      value={{
+        user,
+        setUser,
+        isLoading,
+        isAuthenticated,
+        logout,
+        setAccessToken,
+        setIsAuthenticated,
+        accessToken,
+        safeIdentify,
+        refresh,
+        hasRole,
+        hasPermission,
+        getCasaUsername,
+        hasCompany,
+      }}
     >
       {children}
     </AuthContext.Provider>

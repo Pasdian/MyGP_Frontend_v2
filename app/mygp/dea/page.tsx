@@ -1,503 +1,284 @@
 'use client';
 
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import ClientsCombo from '@/components/comboboxes/ClientsCombo';
-import FinalDatePicker from '@/components/datepickers/FinalDatePicker';
-import InitialDatePicker from '@/components/datepickers/InitialDatePicker';
-import RoleGuard from '@/components/RoleGuard/RoleGuard';
 import { Card } from '@/components/ui/card';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
-import { axiosBlobFetcher, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { clientsData } from '@/lib/clients/clientsData';
-import { getFilesByReference } from '@/types/dea/getFilesByReferences';
 import React from 'react';
-import { toast } from 'sonner';
-import { mutate } from 'swr';
-import useSWR from 'swr';
 import DocumentCard from '@/components/Cards/DocumentCard';
-import PreviosDialog from '@/components/Dialogs/PreviosDialog';
-import { Button } from '@/components/ui/button';
-import useSWRMutation from 'swr/mutation';
-import { ExternalLink, LoaderCircle, RocketIcon } from 'lucide-react';
-import DEADraggableWindow from '@/components/Windows/DEADraggableWindow';
-import DEAFileVisualizer from '@/components/DEAVisualizer/DEAVisualizer';
-import { DEAWindowData } from '@/types/dea/deaFileVisualizerData';
-import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
-import { deaModuleEvents } from '@/lib/posthog/events';
-import posthog from 'posthog-js';
-import { useAuth } from '@/hooks/useAuth';
-import UploadMultipartToServer from '@/components/UploadMultipartToServer/UploadMultipartToServer';
 import Image from 'next/image';
-
-const cardHeaderClassName = 'h-full overflow-y-auto text-xs';
-const stickyClassName = 'sticky top-0 bg-blue-500 p-2 text-white flex justify-between items-center';
-const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
+import useFilesByRef from '@/hooks/useFilesByRef';
+import { useClientLogo } from '@/hooks/useClientLogo';
+import { useClientFile } from '@/hooks/useClientFile';
+import UploadFile from '@/components/UploadFiles/UploadFile';
+import DEAFloatingWindowDriver from '@/components/driver/DEAFloatingWindowDriver';
+import { Loader2Icon } from 'lucide-react';
 
 export default function DEA() {
-  const { user, isLoading: isAuthLoading } = useAuth();
-  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
-  const {
-    clientNumber: client,
-    reference,
-    setClientNumber,
-    initialDate,
-    finalDate,
-    setInitialDate,
-    setFinalDate,
-    pdfUrl,
-    setPdfUrl,
-    fileName,
-    setFile,
-    getFilesByReferenceKey,
-    resetDEAState,
-  } = useDEAStore((state) => state);
+  const { client, file, setFile } = useDEAStore((state) => state);
 
-  const [url, setUrl] = React.useState('');
-  const [clientName, setClientName] = React.useState('');
-  const [subfolder, setSubfolder] = React.useState('');
-  const [fileContent, setFileContent] = React.useState('');
-  const [subfolderLoading, setSubfolderLoading] = React.useState('');
-  const [windows, setWindows] = React.useState<DEAWindowData[]>([]);
-  const [nextId, setNextId] = React.useState(1);
-  const [logoUrl, setLogoUrl] = React.useState<string | null | undefined>(undefined);
-
-  const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
-    useSWRMutation(
-      client && reference && `/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
-      axiosFetcher
-    );
-
-  const { data: zipBlob } = useSWR(url, axiosBlobFetcher);
-
-  const {
-    data: filesByReference,
-    isValidating: isFilesByReferenceValidating,
-  }: { data: getFilesByReference; isLoading: boolean; isValidating: boolean } = useSWR(
-    getFilesByReferenceKey,
-    axiosFetcher
+  const { refs: filesByReference, isLoading: isFilesByRefLoading } = useFilesByRef(
+    client.reference,
+    client.number
   );
 
-  const files = React.useMemo(
-    () => filesByReference?.files ?? ({} as Record<string, string[]>),
-    [filesByReference]
-  );
-
-  // per-folder memos (stable array refs unless SWR data actually changes)
-  const filesCTA = React.useMemo(() => files['01-CTA-GASTOS'] ?? [], [files]);
-  const filesVUCEM = React.useMemo(() => files['04-VUCEM'] ?? [], [files]);
-  const filesExpAduanal = React.useMemo(() => files['02-EXPEDIENTE-ADUANAL'] ?? [], [files]);
-  const filesFiscales = React.useMemo(() => files['03-FISCALES'] ?? [], [files]);
-  const filesExpDigital = React.useMemo(() => files['05-EXP-DIGITAL'] ?? [], [files]);
-
-  // convenience booleans also memoized
-  const hasExpDigital = React.useMemo(() => filesExpDigital.length >= 1, [filesExpDigital]);
-
-  const { data: fileBlob, isLoading: isFileBlobLoading } = useSWR(
-    client &&
-      reference &&
-      subfolder &&
-      fileName &&
-      `/dea/getFileContent?filepath=${client}/${reference}/${subfolder}/${fileName}`,
-    axiosBlobFetcher
-  );
-
-  const {
-    data: logoBlob,
-    error: logoError,
-    isLoading: isLogoBlobLoading,
-  } = useSWR(client ? `/dea/getClientLogo/${client}` : null, axiosBlobFetcher, {
-    revalidateOnFocus: false,
-  });
-
-  // Sync DEA Client Number
   React.useEffect(() => {
-    function DEAAuthSync() {
-      let clientNum = '';
-      if (!isAuthLoading && user) {
-        if (isAdmin) {
-          clientNum = '000041';
-        } else {
-          clientNum = user.complete_user?.user?.company_casa_id ?? '';
-        }
-        setClientNumber(clientNum);
-        setClientName(clientsData.find(({ CVE_IMP }) => CVE_IMP == clientNum)?.NOM_IMP || '');
-      }
+    if (!isFilesByRefLoading && filesByReference) {
+      setFile({ filesByReference });
     }
-    DEAAuthSync();
-  }, [isAuthLoading, user, setClientNumber, isAdmin]);
+  }, [filesByReference, isFilesByRefLoading, setFile]);
 
-  // No state when user visits page
-  React.useEffect(() => resetDEAState(), [resetDEAState]);
+  const CTA = file.filesByReference?.files?.['01-CTA-GASTOS'] ?? [];
+  const ExpAduanal = file.filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
+  const Fiscales = file.filesByReference?.files?.['03-FISCALES'] ?? [];
+  const VUCEM = file.filesByReference?.files?.['04-VUCEM'] ?? [];
+  const ExpDigital = file.filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
 
-  // Effect for logo blob
+  const {
+    fileUrl,
+    contentType,
+    isLoading: isViewerContentLoading,
+  } = useClientFile(client.number, client.reference, file.folder, file.activeFile);
+
+  const isPdf = React.useMemo(() => {
+    const ct = contentType?.toLowerCase() ?? '';
+    const name = file.activeFile?.toLowerCase() ?? '';
+    return ct.includes('pdf') || name.endsWith('.pdf');
+  }, [contentType, file.activeFile]);
+
   React.useEffect(() => {
-    if (logoError) {
-      setLogoUrl(null);
+    if (!fileUrl) {
       return;
     }
-    if (!logoBlob) return;
 
-    if (logoBlob.type === 'image/png') {
-      const url = URL.createObjectURL(logoBlob);
-      setLogoUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setLogoUrl(null);
-    }
-  }, [logoBlob, logoError]);
-
-  // Effect for fileBlob
-  React.useEffect(() => {
-    async function parseBlob() {
-      if (!fileBlob) return;
-
-      if (fileBlob.type == 'application/pdf') {
-        setFileContent('');
-        const url = URL.createObjectURL(fileBlob);
-        setPdfUrl(url);
-
-        return () => URL.revokeObjectURL(url);
-      } else {
-        setPdfUrl('');
-        const text = await fileBlob.text();
-        setFileContent(text);
-      }
-    }
-    parseBlob();
-  }, [fileBlob, setPdfUrl]);
-
-  // Effect for zipBlob
-  React.useEffect(() => {
-    if (!zipBlob) return;
-    const downloadUrl = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = `${client}-${reference}-${subfolder}.zip`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setUrl('');
-    URL.revokeObjectURL(downloadUrl);
-
-    // Reset URL to allow re-download on next click
-    setUrl('');
-    setSubfolderLoading('');
-  }, [zipBlob, client, reference, subfolder]);
-
-  // Effect for date validation
-  React.useEffect(() => {
-    function validateDates() {
-      if (!initialDate || !user || isAuthLoading || !client) return;
-      if (!finalDate) {
-        toast.error('Selecciona una fecha de término');
-        return;
-      }
-
-      const today = new Date();
-      const start = new Date(initialDate);
-      const end = new Date(finalDate);
-
-      if (start > today) {
-        toast.error('La fecha de inicio no puede ser mayor a la fecha actual');
-        return;
-      }
-
-      if (end > today) {
-        toast.error('La fecha de término no puede ser mayor a la fecha actual');
-        return;
-      }
-
-      if (start >= end) {
-        toast.error('La fecha de inicio no puede ser mayor o igual que la fecha de término');
-        return;
-      }
-
-      mutate(getFilesByReferenceKey);
+    // PDFs are handled by iframe / new window; no need to fetch as text
+    if (isPdf) {
+      setFile({ textContent: null });
+      return;
     }
 
-    validateDates();
-  }, [initialDate, finalDate, client, reference, getFilesByReferenceKey, isAuthLoading, user]);
+    let cancelled = false;
 
-  const handleFileClick = (pdfUrl: string, fileContent: string, isLoading: boolean) => {
-    // Spawn at the center of the browser
-    const windowWidth = 760;
-    const windowHeight = 800;
+    (async () => {
+      try {
+        const res = await fetch(fileUrl);
+        const text = await res.text();
+        if (!cancelled) {
+          setFile({ textContent: text });
+        }
+      } catch (err) {
+        console.error('Error reading text content:', err);
+        if (!cancelled) {
+          setFile({ textContent: '⚠️ Error reading file contents' });
+        }
+      }
+    })();
 
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    const x = (viewportWidth - windowWidth) / 2;
-    const y = (viewportHeight - windowHeight) / 2;
-
-    const data = {
-      id: nextId,
-      title: fileName,
-      pdfUrl: pdfUrl,
-      content: fileContent,
-      isLoading: isLoading,
-      x: x,
-      y: y,
-      width: windowWidth,
-      height: windowHeight,
-      visible: true,
-      collapse: false,
+    return () => {
+      cancelled = true;
     };
+  }, [fileUrl, isPdf, setFile]);
 
-    const newData = {
-      ...data,
-      prev: data,
-    };
-    setWindows((prev) => [...prev, newData]);
-    setNextId((id) => id + 1);
+  const withPdfParams = (url?: string, { showToolbar = true } = {}) => {
+    if (!url) return '';
+
+    const hasHash = url.includes('#');
+    const sep = hasHash ? '&' : '#';
+    const toolbarParam = showToolbar ? 'toolbar=1' : 'toolbar=0';
+    return `${url}${sep}zoom=page-width&view=FitH&${toolbarParam}`;
   };
 
+  const spawnWindow = React.useCallback(() => {
+    if (!fileUrl) return;
+
+    const targetUrl = isPdf ? withPdfParams(fileUrl, { showToolbar: true }) : fileUrl;
+
+    const popup = window.open(
+      targetUrl,
+      '_blank',
+      [
+        'noopener=yes',
+        'noreferrer=yes',
+        'popup=yes',
+        'resizable=yes',
+        'scrollbars=yes',
+        'width=1100',
+        'height=800',
+      ].join(',')
+    );
+
+    if (!popup) {
+      console.warn('Popup blocked. Please allow popups for this site.');
+    }
+  }, [fileUrl, isPdf]);
+
   return (
-    <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
-      <div className="flex mb-5">
-        <div className="mr-5">
-          <InitialDatePicker
-            date={initialDate}
-            setDate={setInitialDate}
-            onSelect={() => {
-              setFile('');
-              setSubfolder('');
-              setPdfUrl('');
+    <>
+      {client.reference && client.number ? (
+        <div className="grid grid-cols-[20%_20%_60%] grid-rows-3 gap-2 h-full">
+          {/* Cuenta de Gastos */}
+          <DocumentCard
+            title="Cuenta de Gastos"
+            files={CTA}
+            currentFolder="01-CTA-GASTOS"
+            isLoading={isFilesByRefLoading}
+            onFileSelect={(item) => {
+              setFile({ activeFile: item, folder: '01-CTA-GASTOS' });
             }}
           />
-        </div>
-        <div className=" mr-5">
-          <FinalDatePicker
-            date={finalDate}
-            setDate={setFinalDate}
-            onSelect={() => {
-              setFile('');
-              setSubfolder('');
-              setPdfUrl('');
+
+          {/* COVES */}
+          <DocumentCard
+            title="COVES"
+            files={VUCEM}
+            isLoading={isFilesByRefLoading}
+            currentFolder="04-VUCEM"
+            onFileSelect={(item) => {
+              setFile({ activeFile: item, folder: '04-VUCEM' });
             }}
+            filterFn={(item) => item.includes('COVE') || item.includes('PSIM')}
           />
-        </div>
-        <div className="mr-5">
-          {isAdmin && (
-            <ClientsCombo
-              clientName={clientName}
-              setClientName={setClientName}
-              setClientNumber={setClientNumber}
-              onSelect={() => {
-                setFile('');
-                setSubfolder('');
-                setPdfUrl('');
-              }}
-            />
-          )}
-        </div>
-        <PermissionGuard allowedPermissions={['DEA_PREVIOS']}>
-          {filesByReference && reference && (
-            <div className="mt-5 mr-5">
-              <PreviosDialog key={reference} />
-            </div>
-          )}
-        </PermissionGuard>
-        <PermissionGuard allowedPermissions={['DEA_EXP_DIGITAL']}>
-          {filesByReference && reference && client && (
-            <Button
-              className="mt-5 bg-blue-500 hover:bg-blue-600 font-bold cursor-pointer"
-              onClick={async () => {
-                try {
-                  await triggerDigitalRecordGeneration();
-                  mutate(getFilesByReferenceKey);
-                  toast.success('Expediente digital generado exitosamente');
-                  posthog.capture(posthogEvent);
-                } catch (err) {
-                  console.error('Generation Failed', err);
-                }
-              }}
-              disabled={isDigitalRecordGenerationMutating || hasExpDigital}
-            >
-              {isDigitalRecordGenerationMutating ? (
-                <div className="flex items-center animate-pulse">
-                  <LoaderCircle className="animate-spin mr-2" />
-                  Generando
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  {(filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1 ? (
-                    <>
-                      <RocketIcon className="mr-2" /> Ya Existe un Expediente Digital
-                    </>
-                  ) : (
-                    <>
-                      <RocketIcon className="mr-2" /> Generar Expediente Digital
-                    </>
+
+          {/* VIEWER */}
+          <Card className="row-span-3 p-0">
+            <div className="grid grid-rows-[auto_1fr] h-full min-h-0">
+              <div className="bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center">
+                <p className="text-[13px] font-bold truncate">
+                  Visor de Archivos{file.activeFile ? ` - ${file.activeFile}` : ''}
+                </p>
+                <div className="flex items-center gap-2">
+                  {file.activeFile && fileUrl && (
+                    <DEAFloatingWindowDriver filename={file.activeFile} spawnWindow={spawnWindow} />
                   )}
                 </div>
-              )}
-            </Button>
-          )}
-        </PermissionGuard>
-      </div>
-      {reference && client && (
-        <div>
-          {isFilesByReferenceValidating && <TailwindSpinner />}
-          {!isFilesByReferenceValidating && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <DocumentCard
-                title="Cuenta de Gastos"
-                files={filesCTA}
-                folder="01-CTA-GASTOS"
-                isLoading={subfolderLoading === '01-CTA-GASTOS'}
-                onDownload={() => {
-                  setSubfolderLoading('01-CTA-GASTOS');
-                  setSubfolder('01-CTA-GASTOS');
-                  setUrl(`/dea/zip/${client}/${reference}/01-CTA-GASTOS`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('01-CTA-GASTOS');
-                }}
-                activeFile={fileName}
-              />
+              </div>
 
-              <DocumentCard
-                title="COVES"
-                files={filesVUCEM}
-                isLoading={subfolderLoading === '04-VUCEM-COVES'}
-                folder="04-VUCEM"
-                onDownload={() => {
-                  setSubfolderLoading('04-VUCEM-COVES');
-                  setSubfolder('04-VUCEM');
-                  setUrl(`/dea/zip/${client}/${reference}/04-VUCEM`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('04-VUCEM');
-                }}
-                activeFile={fileName}
-                filterFn={(item) => item.includes('COVE')}
-              />
-
-              <Card className="sm:col-span-2 row-span-3 py-0">
-                <div className={cardHeaderClassName}>
-                  <div className={stickyClassName}>
-                    <p className="font-bold">Visor de Archivos - {fileName}</p>
-                    {fileName && (
-                      <ExternalLink
-                        className="cursor-pointer"
-                        onClick={() => {
-                          handleFileClick(pdfUrl, fileContent, isFileBlobLoading);
-                        }}
-                      />
-                    )}
+              <div className="w-full h-full min-h-0 overflow-x-hidden">
+                {isViewerContentLoading ? (
+                  <div className="flex w-full h-full items-center justify-center text-gray-400">
+                    <Loader2Icon className="animate-spin" />
                   </div>
-                  <DEAFileVisualizer
-                    pdfUrl={pdfUrl}
-                    content={fileContent}
-                    isLoading={isFileBlobLoading}
+                ) : isPdf && fileUrl ? (
+                  <iframe
+                    src={withPdfParams(fileUrl, { showToolbar: true })}
+                    className="w-full h-full border-none"
+                    title="PDF"
+                    allow="fullscreen"
+                    allowFullScreen
                   />
-                </div>
-              </Card>
-
-              <DocumentCard
-                title="Expediente Aduanal"
-                files={filesExpAduanal}
-                isLoading={subfolderLoading === '02-EXPEDIENTE-ADUANAL'}
-                folder="02-EXPEDIENTE-ADUANAL"
-                onDownload={() => {
-                  setSubfolderLoading('02-EXPEDIENTE-ADUANAL');
-                  setSubfolder('02-EXPEDIENTE-ADUANAL');
-                  setUrl(`/dea/zip/${client}/${reference}/02-EXPEDIENTE-ADUANAL`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('02-EXPEDIENTE-ADUANAL');
-                }}
-                activeFile={fileName}
-              />
-
-              <DocumentCard
-                title="EDocs"
-                files={filesVUCEM}
-                isLoading={subfolderLoading === '04-VUCEM-EDOCS'}
-                folder="04-VUCEM"
-                onDownload={() => {
-                  setSubfolderLoading('04-VUCEM-EDOCS');
-                  setSubfolder('04-VUCEM');
-                  setUrl(`/dea/zip/${client}/${reference}/04-VUCEM`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('04-VUCEM');
-                }}
-                activeFile={fileName}
-                filterFn={(item) => !item.includes('COVE')}
-              />
-
-              <DocumentCard
-                title="Comprobantes Fiscales"
-                files={filesFiscales}
-                isLoading={subfolderLoading === '03-FISCALES'}
-                folder="03-FISCALES"
-                onDownload={() => {
-                  setSubfolderLoading('03-FISCALES');
-                  setSubfolder('03-FISCALES');
-                  setUrl(`/dea/zip/${client}/${reference}/03-FISCALES`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('03-FISCALES');
-                }}
-                activeFile={fileName}
-              />
-
-              <DocumentCard
-                title="Expediente Digital"
-                files={filesExpDigital}
-                isLoading={subfolderLoading === '05-EXP-DIGITAL'}
-                folder="05-EXP-DIGITAL"
-                onDownload={() => {
-                  setSubfolderLoading('05-EXP-DIGITAL');
-                  setSubfolder('05-EXP-DIGITAL');
-                  setUrl(`/dea/zip/${client}/${reference}/05-EXP-DIGITAL`);
-                }}
-                onFileSelect={(item) => {
-                  setFile(item);
-                  setSubfolder('05-EXP-DIGITAL');
-                }}
-                activeFile={fileName}
-              />
+                ) : file.textContent ? (
+                  <pre
+                    className="
+            p-4
+            bg-gray-50
+            rounded-md
+            w-full
+            h-full
+            text-sm
+            overflow-y-auto
+            overflow-x-hidden
+            whitespace-pre-wrap
+            break-words
+          "
+                  >
+                    {file.textContent}
+                  </pre>
+                ) : (
+                  <div className="flex w-full h-full items-center justify-center text-gray-400 text-sm">
+                    No hay contenido disponible
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-          {windows.map((window) => (
-            <DEADraggableWindow window={window} setWindows={setWindows} key={window.id} />
-          ))}
+          </Card>
+
+          {/* Expediente Aduanal */}
+          <DocumentCard
+            title="Expediente Aduanal"
+            files={ExpAduanal}
+            isLoading={isFilesByRefLoading}
+            currentFolder="02-EXPEDIENTE-ADUANAL"
+            onFileSelect={(item) => {
+              setFile({ activeFile: item, folder: '02-EXPEDIENTE-ADUANAL' });
+            }}
+          />
+
+          {/* EDocs */}
+          <DocumentCard
+            title="EDocs"
+            files={VUCEM}
+            isLoading={isFilesByRefLoading}
+            currentFolder="04-VUCEM"
+            onFileSelect={(item) => {
+              setFile({ activeFile: item, folder: '04-VUCEM' });
+            }}
+            filterFn={(item) => !item.includes('COVE') && !item.includes('PSIM')}
+          />
+
+          {/* Comprobantes Fiscales */}
+          <DocumentCard
+            title="Comprobantes Fiscales"
+            files={Fiscales}
+            currentFolder="03-FISCALES"
+            isLoading={isFilesByRefLoading}
+            onFileSelect={(item) => {
+              setFile({ activeFile: item, folder: '03-FISCALES' });
+            }}
+          />
+
+          {/* Expediente Digital */}
+          <DocumentCard
+            title="Expediente Digital"
+            files={ExpDigital}
+            isLoading={isFilesByRefLoading}
+            currentFolder="05-EXP-DIGITAL"
+            onFileSelect={(item) => {
+              setFile({ activeFile: item, folder: '05-EXP-DIGITAL' });
+            }}
+          />
+        </div>
+      ) : (
+        <div className="flex w-full h-full items-center justify-center">
+          <ClientLogoSection client={client.number} />
         </div>
       )}
-      {client &&
-        !reference &&
-        (logoUrl === undefined || isLogoBlobLoading ? null : logoUrl ? (
-          <div className="flex w-full h-[calc(100%_-_85px)] items-center justify-center">
-            <div className="relative max-w-[600px]">
+    </>
+  );
+}
+
+function ClientLogoSection({ client }: { client: string }) {
+  const [version, setVersion] = React.useState(0);
+  const { logoUrl, isLoading: isLogoUrlLoading } = useClientLogo(client, version);
+
+  const handleUploaded = React.useCallback(() => {
+    setVersion((v) => v + 1);
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      {isLogoUrlLoading ? (
+        <div className="text-sm text-gray-500 text-center">Cargando logo...</div>
+      ) : logoUrl ? (
+        <div className="flex justify-center">
+          <div className="relative bg-white border border-gray-200 rounded-lg shadow-sm p-4 max-w-[500px] w-full">
+            <div className="flex justify-center items-center max-h-[300px] overflow-hidden">
               <Image
                 src={logoUrl}
-                alt="client_logo"
-                width={500} // just a "max size", not forced
-                height={600} // keeps ratio
-                className="w-full h-auto object-contain"
+                alt="Logo del cliente"
+                width={400}
+                height={400}
+                className="object-contain w-auto h-auto max-h-[280px] transition-transform duration-200 hover:scale-105"
               />
             </div>
           </div>
-        ) : (
-          <div>
-            <p className="mb-4">
-              Tu compañía no tiene un logo registrado, arrástralo en la zona de abajo para subirlo
-            </p>
-            <UploadMultipartToServer
-              apiEndpointPath={`/dea/uploadClientLogo/${client}`}
-              placeholder="Arrastra o da click aquí para subir el logo de tu compañía en formato .png"
-              mutationKey={`/dea/getClientLogo/${client}`}
-            />
-          </div>
-        ))}
-    </RoleGuard>
+        </div>
+      ) : (
+        <div className="text-sm text-gray-400 text-center">Sin logo disponible</div>
+      )}
+
+      {!logoUrl && (
+        <div className="flex justify-center">
+          <UploadFile to={`/GESTION/${client}`} url="/dea/uploadLogo" onUploaded={handleUploaded} />
+        </div>
+      )}
+    </div>
   );
 }

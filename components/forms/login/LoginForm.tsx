@@ -12,14 +12,18 @@ import { z } from 'zod/v4';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2Icon } from 'lucide-react';
 import { loginSchema } from '@/lib/schemas/login/loginSchema';
-import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { toast } from 'sonner';
+import { LoginResponse } from '@/types/auth/login';
+import axios from 'axios';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
-  const { login } = useAuth();
+  const router = useRouter();
   const [shouldView, setShouldView] = React.useState(false);
-
+  const [isLoginLoading, setIsLoginLoading] = React.useState(false);
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
@@ -28,6 +32,35 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       password: '',
     },
   });
+
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    try {
+      setIsLoginLoading(true);
+      try {
+        // 1) Login → accessToken + cookies
+        const loginRes = await GPClient.post<LoginResponse>('/api/auth/login', data, {
+          withCredentials: true,
+        });
+        toast.success(loginRes.data.message);
+
+        setIsLoginLoading(false);
+
+        return router.replace('/mygp/dashboard');
+      } catch (error: unknown) {
+        let message = 'Login failed';
+
+        if (axios.isAxiosError(error)) {
+          message = error.response?.data?.message ?? message;
+        }
+
+        toast.error(message);
+        setIsLoginLoading(false);
+        throw error;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
@@ -40,7 +73,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(login)}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="email">Correo electrónico</Label>
@@ -100,9 +133,15 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                   />
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
-                    Iniciar sesión
-                  </Button>
+                  {isLoginLoading ? (
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600" disabled>
+                      Cargando <Loader2Icon className="animate-spin" />
+                    </Button>
+                  ) : (
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600">
+                      Iniciar sesión
+                    </Button>
+                  )}
                 </div>
               </div>
             </form>

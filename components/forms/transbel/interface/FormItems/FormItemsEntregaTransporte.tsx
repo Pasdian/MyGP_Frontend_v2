@@ -1,4 +1,4 @@
-import { ExceptionCodeCombo } from '@/components/comboboxes/ExceptionCodeCombo';
+import ExceptionCodeCombo from '@/components/comboboxes/ExceptionCodeCombo';
 import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,69 @@ import { IconTrashFilled } from '@tabler/icons-react';
 import { Row } from '@tanstack/react-table';
 import { UseFormReturn } from 'react-hook-form';
 
+const ExceptionCodeField = ({
+  form,
+  row,
+}: {
+  form: UseFormReturn<
+    {
+      ref: string;
+      phase: string;
+      date: string;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
+    },
+    unknown,
+    {
+      ref: string;
+      phase: string;
+      date: string;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
+    }
+  >;
+  row: Row<getRefsPendingCE>;
+}) => {
+  if (!row.original.has_business_days_error) return null; // <- fine here (component return), not inside render prop
+
+  return (
+    <FormField
+      control={form.control}
+      name="exceptionCode"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Código de Excepción</FormLabel>
+          <FormControl>
+            <div className="flex">
+              <div className="mr-2">
+                <ExceptionCodeCombo
+                  onSelect={(value) => {
+                    field.onChange(value);
+                    form.trigger();
+                  }}
+                  currentValue={field.value}
+                />
+              </div>
+              <Button
+                size="sm"
+                className="cursor-pointer bg-red-400 hover:bg-red-500"
+                type="button"
+                onClick={() => {
+                  form.setValue('exceptionCode', '');
+                  form.trigger();
+                }}
+              >
+                <IconTrashFilled />
+              </Button>
+            </div>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+};
+
 export default function FormItemsEntregaTransporte({
   form,
   row,
@@ -16,19 +79,17 @@ export default function FormItemsEntregaTransporte({
     {
       ref: string;
       phase: string;
-      exceptionCode: string | undefined;
       date: string;
-      time: string;
-      user: string | undefined;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
     },
     unknown,
     {
       ref: string;
       phase: string;
-      exceptionCode: string | undefined;
       date: string;
-      time: string;
-      user: string | undefined;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
     }
   >;
   row: Row<getRefsPendingCE>;
@@ -39,7 +100,12 @@ export default function FormItemsEntregaTransporte({
         <Label htmlFor="revalidación" className="mb-1">
           Fecha de Revalidación
         </Label>
-        <Input id="revalidación" disabled type="date" value={row.original.REVALIDACION_073 ?? ''} />
+        <Input
+          id="revalidación"
+          disabled
+          type="date"
+          value={row.original.REVALIDACION_073?.split(' ')[0] ?? ''}
+        />
       </div>
       <div>
         <Label htmlFor="ultimoDoc" className="mb-1">
@@ -49,14 +115,14 @@ export default function FormItemsEntregaTransporte({
           id="ultimoDoc"
           disabled
           type="date"
-          value={row.original.ULTIMO_DOCUMENTO_114 ?? ''}
+          value={row.original.ULTIMO_DOCUMENTO_114?.split(' ')[0] ?? ''}
         />
       </div>
       <div>
         <Label htmlFor="MSA" className="mb-1">
           Fecha de MSA
         </Label>
-        <Input id="MSA" disabled type="date" value={row.original.MSA_130 ?? ''} />
+        <Input id="MSA" disabled type="date" value={row.original.MSA_130?.split(' ')[0] ?? ''} />
       </div>
       <FormField
         control={form.control}
@@ -71,40 +137,8 @@ export default function FormItemsEntregaTransporte({
           </FormItem>
         )}
       />
-      <FormField
-        control={form.control}
-        name="exceptionCode"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Código de Excepción</FormLabel>
-            <FormControl>
-              <div className="flex">
-                <div className="mr-2">
-                  <ExceptionCodeCombo
-                    onSelect={(value) => {
-                      field.onChange(value);
-                      form.trigger();
-                    }}
-                    currentValue={field.value}
-                  />
-                </div>
-                <Button
-                  size="sm"
-                  className="cursor-pointer bg-red-400 hover:bg-red-500"
-                  type="button"
-                  onClick={() => {
-                    form.setValue('exceptionCode', '');
-                    form.trigger();
-                  }}
-                >
-                  <IconTrashFilled />
-                </Button>
-              </div>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+
+      <ExceptionCodeField form={form} row={row} />
     </>
   );
 }

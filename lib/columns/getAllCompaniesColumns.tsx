@@ -13,8 +13,8 @@ export function getAllCompaniesColumns(
       header: "Nombre",
       filterFn: fuzzyFilter,
       cell: ({ row }) => {
-        if (!row.original.name) return "--";
-        return row.original.name;
+        if (!row.original.NOM_IMP) return "--";
+        return row.original.NOM_IMP;
       },
     },
     {

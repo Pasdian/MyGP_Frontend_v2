@@ -1,5 +1,7 @@
 import { z } from "zod/v4";
 
+export const FOLIO_VALIDATION = z.string();
+
 export const REF_VALIDATION = z
   .string({ error: "Ingresa una referencia" })
   .min(3, { error: "Selecciona una referencia" });

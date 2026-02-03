@@ -13,9 +13,6 @@ export default function DeliveriesDataTableFilter({
 
   return (
     <Input
-      type={
-        column.id == 'ENTREGA_TRANSPORTE_138' || column.id == 'ENTREGA_CDP_140' ? 'date' : 'text'
-      }
       value={(columnFilterValue ?? '') as string}
       onChange={(e) => {
         column.setFilterValue(e.target.value);

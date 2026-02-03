@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -12,16 +11,17 @@ import {
 import React from 'react';
 import { IconPlus } from '@tabler/icons-react';
 import AddRoleForm from '@/components/forms/admin-panel/AddRoleForm';
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 export default function AddRoleButton() {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="cursor-pointer bg-blue-400 hover:bg-blue-500 mb-4">
+        <MyGPButtonPrimary className="mb-4">
           <IconPlus stroke={2} />
           Añadir Rol
-        </Button>
+        </MyGPButtonPrimary>
       </DialogTrigger>
       <DialogContent className="md:max-w-[500px] md:max-h-[600px] md:rounded-lg rounded-none max-h-full max-w-full overflow-y-auto">
         <DialogHeader>
