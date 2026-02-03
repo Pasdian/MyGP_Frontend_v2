@@ -53,7 +53,6 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
       transporte: row?.original?.ENTREGA_TRANSPORTE_138?.split(' ')[0],
     },
   });
-  console.log(form.formState.errors);
 
   async function onSubmit(data: z.infer<typeof deliveriesUpsertPhaseSchema>) {
     setIsSubmitting(true);

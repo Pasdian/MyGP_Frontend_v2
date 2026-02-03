@@ -20,7 +20,7 @@ function asFileArray(v: unknown): File[] {
 }
 
 export function DatosContactoSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const { casa_id, updateProgressFromSubmitResponse, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -59,8 +59,7 @@ export function DatosContactoSub() {
         folderKey: FOLDER_KEY,
         formData: fd,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length) toast.error(`Algunos archivos fallaron: ${failed.join(', ')}`);
@@ -94,19 +93,19 @@ export function DatosContactoSub() {
 
             <InputController
               form={form}
-              controllerName="fotosAcreditacionLegalInmueble.files"
+              controllerName="fotosDomicilioFiscal.files"
               docKey={DOC_KEYS[1]}
-              fieldLabel="Acreditación Legal del Inmueble:"
-              description="Contrato de arrendamiento, título de propiedad, etc."
+              fieldLabel="Fotos Domicilio Fiscal:"
+              description="Fachada del inmueble con número exterior e interior"
               isMulti={true}
             />
 
             <InputController
               form={form}
-              controllerName="fotosDomicilioFiscal.files"
+              controllerName="fotosAcreditacionLegalInmueble.files"
               docKey={DOC_KEYS[2]}
-              fieldLabel="Fotos Domicilio Fiscal:"
-              description="Fachada del inmueble con número exterior e interior"
+              fieldLabel="Acreditación Legal del Inmueble:"
+              description="Contrato de arrendamiento, título de propiedad, etc."
               isMulti={true}
             />
 

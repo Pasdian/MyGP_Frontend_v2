@@ -1,12 +1,12 @@
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { IsComplete } from './buttons/IsComplete';
-import { ShowFile, ShowFileSlot } from './buttons/ShowFile';
+import { ShowFile } from './buttons/ShowFile';
 import { FileController } from './form-controllers/FileController';
 import { MultiImageController } from './MultiImageController';
 import { DownloadFormato } from './DownloadFormato';
 import { LinkIcon } from 'lucide-react';
 
-type InputController = {
+type InputControllerProps = {
   form: any;
   fieldLabel: string;
   controllerName: string;
@@ -16,7 +16,6 @@ type InputController = {
   isMulti?: boolean;
   description?: string;
   showFile?: boolean;
-  showFileSlot?: boolean;
   formatoDoc?: string;
 };
 
@@ -30,35 +29,48 @@ export function InputController({
   isMulti = false,
   description = '',
   showFile = true,
-  showFileSlot = false,
   formatoDoc,
-}: InputController) {
+}: InputControllerProps) {
   const { casa_id } = useCliente();
-  const gridCols = showFile ? 'grid-cols-[auto_1fr_auto]' : 'grid-cols-[1fr_auto]';
+
+  const showMiddle = Boolean(formatoDoc) || showFile;
+
+  const gridCols = showMiddle ? 'grid-cols-[auto_1fr_auto]' : 'grid-cols-[1fr_auto]';
+
   return (
     <>
       {!isMulti ? (
         <div className={`w-full grid ${gridCols} gap-2 items-end`}>
-          {showFileSlot && <ShowFileSlot />}
-          <div className="flex flex-col gap-2 items-center">
-            {formatoDoc &&
-              (formatoDoc !== 'LISTA_CLINTON' ? (
-                <DownloadFormato doc={formatoDoc} />
-              ) : (
-                <LinkIcon
-                  size={20}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    window.open(
-                      'https://sanctionssearch.ofac.treas.gov/',
-                      '_blank',
-                      'noopener,noreferrer'
-                    );
-                  }}
+          {showMiddle && (
+            <div className="flex flex-col gap-2 items-center">
+              {formatoDoc &&
+                (formatoDoc !== 'LISTA_CLINTON' ? (
+                  <DownloadFormato doc={formatoDoc} />
+                ) : (
+                  <LinkIcon
+                    size={20}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      window.open(
+                        'https://sanctionssearch.ofac.treas.gov/',
+                        '_blank',
+                        'noopener,noreferrer'
+                      );
+                    }}
+                  />
+                ))}
+
+              {showFile && (
+                <ShowFile
+                  client={casa_id}
+                  docKey={docKey}
+                  disabled={!showFile}
+                  className={!showFile ? 'opacity-50' : undefined}
                 />
-              ))}
-            {showFile && <ShowFile client={casa_id} docKey={docKey} />}
-          </div>
+              )}
+            </div>
+          )}
+
           <FileController
             form={form}
             fieldLabel={fieldLabel}
@@ -66,11 +78,18 @@ export function InputController({
             accept={accept}
             buttonText={buttonText}
           />
+
           <IsComplete docKey={docKey} />
         </div>
       ) : (
         <div className="grid grid-cols-[auto_1fr_auto] gap-6 items-end">
-          {showFile && <ShowFile client={casa_id} docKey={docKey} />}
+          <ShowFile
+            client={casa_id}
+            docKey={docKey}
+            disabled={!showFile}
+            className={!showFile ? 'opacity-50' : undefined}
+          />
+
           <MultiImageController
             control={form.control}
             name={controllerName}
@@ -78,6 +97,7 @@ export function InputController({
             label={fieldLabel}
             description={description}
           />
+
           <IsComplete docKey={docKey} />
         </div>
       )}

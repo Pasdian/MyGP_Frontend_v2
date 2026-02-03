@@ -141,7 +141,7 @@ export function ClientMain({
 
         setIsSubmitting(true);
 
-        const resp = await GPClient.get('/api/expediente-digital-cliente/client', {
+        const resp = await GPClient.get('/expediente-digital-cliente/client', {
           params: { casa_id },
         });
 
@@ -203,7 +203,7 @@ export function ClientMain({
         },
       };
 
-      const resp = await GPClient.post('/api/expediente-digital-cliente/client', payload);
+      const resp = await GPClient.post('/expediente-digital-cliente/client', payload);
 
       if (resp.status !== 200) {
         toast.error('Error al guardar cliente');
@@ -224,7 +224,7 @@ export function ClientMain({
     try {
       setIsGettingNextCasaId(true);
 
-      const resp = await GPClient.get('/api/expediente-digital-cliente/next-casa-id');
+      const resp = await GPClient.get('/expediente-digital-cliente/nextCasaId');
       const nextCasaId = resp.data?.casa_id ?? resp.data;
 
       if (!nextCasaId || !String(nextCasaId).trim()) {

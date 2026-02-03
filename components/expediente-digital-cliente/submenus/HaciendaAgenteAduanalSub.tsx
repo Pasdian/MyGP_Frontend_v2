@@ -16,7 +16,7 @@ import { InputController } from '../InputController';
 import ExpDigiCard from './ExpDigiCard';
 
 export function HaciendaAgenteAduanalSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const { casa_id, updateProgressFromSubmitResponse, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -57,8 +57,7 @@ export function HaciendaAgenteAduanalSub() {
         folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length > 0) {

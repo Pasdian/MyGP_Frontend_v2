@@ -3,23 +3,17 @@ import useSWR, { mutate } from 'swr';
 import { Eye, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-
-/* ======================================================
-   Types
-====================================================== */
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 type ShowFileProps = {
-  client: string; // e.g. "ACME"
-  docKey?: string; // e.g. "imp.legal.acta"
+  client: string;
+  docKey?: string;
   className?: string;
+  disabled?: boolean;
 };
 
 type FileExistsKey = readonly ['file-exists', string, string];
 type FileExistsSWRKey = FileExistsKey | null;
-
-/* ======================================================
-   Helpers
-====================================================== */
 
 const fileExistsKey = (client?: string, docKey?: string): FileExistsSWRKey =>
   client && docKey ? ['file-exists', client, docKey] : null;
@@ -123,10 +117,6 @@ function openPopup(): Window | null {
   return popup;
 }
 
-/* ======================================================
-   Availability hook
-====================================================== */
-
 function useFileAvailability(client?: string, docKey?: string) {
   const key = fileExistsKey(client, docKey);
 
@@ -153,16 +143,16 @@ export function revalidateFileExists(client: string, docKey: string) {
   return mutate(['file-exists', client, docKey] as const);
 }
 
-/* ======================================================
-   ShowFile Component
-====================================================== */
-
-export function ShowFile({ client, docKey, className }: ShowFileProps) {
+export function ShowFile({ client, docKey, className, disabled = false }: ShowFileProps) {
   const [isOpening, setIsOpening] = React.useState(false);
 
   const { available, checking } = useFileAvailability(client, docKey);
+
+  const canOpen = Boolean(docKey) && available === true && !disabled && !checking && !isOpening;
+
   const openFile = React.useCallback(async () => {
     if (!client || !docKey) return;
+    if (!canOpen) return;
 
     setIsOpening(true);
 
@@ -200,30 +190,23 @@ export function ShowFile({ client, docKey, className }: ShowFileProps) {
     } finally {
       setIsOpening(false);
     }
-  }, [client, docKey]);
+  }, [client, docKey, canOpen]);
 
   return (
     <div className={`h-8 w-8 flex items-center justify-center ${className ?? ''}`}>
       {checking || isOpening ? (
         <Loader2 className="h-4 w-4 animate-spin" />
-      ) : available ? (
+      ) : (
         <Button
           type="button"
           onClick={openFile}
-          className="h-8 w-8 p-0 bg-blue-500 hover:bg-blue-600"
-          title="Abrir archivo"
+          disabled={!canOpen}
+          className="bg-blue-500 cursor-pointer hover:bg-blue-600 h-8 w-8 p-0"
+          title={canOpen ? 'Abrir archivo' : 'No disponible'}
         >
           <Eye className="h-4 w-4" />
         </Button>
-      ) : null}
+      )}
     </div>
   );
-}
-
-/* ======================================================
-   Empty slot (layout alignment)
-====================================================== */
-
-export function ShowFileSlot({ className }: { className?: string }) {
-  return <div className={`h-8 w-8 ${className ?? ''}`} aria-hidden="true" />;
 }
