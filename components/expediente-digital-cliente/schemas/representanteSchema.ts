@@ -59,9 +59,6 @@ export const buildRepresentanteSchema = (ineSize: number) =>
 
     ine: z.object({
       file: createPdfSchema(ineSize),
-      category: z.number(),
-      filepath: z.string(),
-      filename: z.string(),
     }),
     ineExp: expiryDateSchema,
   });

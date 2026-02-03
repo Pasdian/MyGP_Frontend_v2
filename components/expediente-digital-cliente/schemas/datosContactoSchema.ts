@@ -10,12 +10,10 @@ export const createImagesSchema = (maxSize: number, maxFiles: number) =>
   z
     .array(
       z
-        .file({
-          message: 'Por favor ingresa una imagen en PNG o JPEG',
-        })
+        .file({ message: 'Por favor ingresa una imagen en PNG o JPEG' })
         .min(10_000, 'El archivo debe de ser de mínimo 10 KB')
         .max(maxSize, `El archivo debe de ser de máximo ${maxSize / 1_000_000} MB`)
         .refine(isAllowedImage, { message: 'Solo se aceptan archivos PNG o JPEG' })
     )
-    .min(1, 'Debes subir al menos un archivo')
-    .max(maxFiles, `Puedes subir máximo ${maxFiles} fotos`);
+    .max(maxFiles, `Puedes subir máximo ${maxFiles} fotos`)
+    .catch([]); // <- ALWAYS outputs File[]
