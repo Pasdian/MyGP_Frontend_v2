@@ -158,6 +158,7 @@ export function DocumentosComplementariosMain() {
                     controllerName="cuestionarioLavadoTerrorismo.file"
                     docKey="cmp.pld"
                     fieldLabel="Cuestionario de Prevención de Lavado de Activos y Financiación de Terrorismo:"
+                    formatoDoc="CUESTIONARIO_PREVENCION_LAVADO_TERRORISMO"
                   />
 
                   <InputController
@@ -165,6 +166,7 @@ export function DocumentosComplementariosMain() {
                     controllerName="altaClientes.file"
                     docKey="cmp.alta"
                     fieldLabel="Alta de Clientes:"
+                    formatoDoc="ALTA_CLIENTES"
                   />
 
                   <InputController
@@ -172,6 +174,7 @@ export function DocumentosComplementariosMain() {
                     controllerName="listaClinton.file"
                     docKey="cmp.clinton"
                     fieldLabel="Lista Clinton:"
+                    formatoDoc="LISTA_CLINTON"
                   />
                 </div>
               </FieldGroup>

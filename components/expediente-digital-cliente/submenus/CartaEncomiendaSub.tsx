@@ -87,20 +87,21 @@ export function CartaEncomiendaSub() {
               controllerName="cartaEncomienda3901.file"
               docKey="com.encomienda.3901"
               fieldLabel="Carta Encomienda Patente 3901:"
+              formatoDoc="ENCOMIENDA_PASCAL"
             />
-
             <InputController
               form={form}
               controllerName="cartaEncomienda3072.file"
               docKey="com.encomienda.3072"
               fieldLabel="Carta Encomienda Patente 3072:"
+              formatoDoc="ENCOMIENDA_BREMER"
             />
-
             <InputController
               form={form}
               controllerName="avisoPrivacidad.file"
               docKey="com.privacidad"
               fieldLabel="Aviso de Privacidad:"
+              formatoDoc="AVISO_PRIVACIDAD"
             />
           </div>
         </FieldGroup>

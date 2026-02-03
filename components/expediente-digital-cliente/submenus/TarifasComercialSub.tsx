@@ -85,6 +85,7 @@ export function TarifasComercialSub() {
               controllerName="tarifaAutorizada.file"
               docKey="com.tarifa.aut"
               fieldLabel="Tarifa Autorizada (deberá entregarse en original):"
+              formatoDoc="TARIFA_AUTORIZADA"
             />
 
             <InputController
@@ -92,6 +93,7 @@ export function TarifasComercialSub() {
               controllerName="tarifaPreferencial.file"
               docKey="com.tarifa.pre"
               fieldLabel="Tarifa de Preclasificación (en caso de aplicar):"
+              formatoDoc="TARIFA_PRECLASIFICACION"
             />
 
             <InputController
@@ -99,6 +101,7 @@ export function TarifasComercialSub() {
               controllerName="tarifaUSA.file"
               docKey="com.tarifa.usa"
               fieldLabel="Tarifa Americana (en caso de aplicar):"
+              formatoDoc="TARIFA_AMERICANA"
             />
           </div>
         </FieldGroup>

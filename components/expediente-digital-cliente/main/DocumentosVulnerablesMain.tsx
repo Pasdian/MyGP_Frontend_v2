@@ -188,6 +188,7 @@ export function DocumentosVulnerablesMain() {
                     controllerName="formatoActividadVulnerable3901.file"
                     docKey="vul.act.3901"
                     fieldLabel="Formato Actividad Vulnerable (3901):"
+                    formatoDoc="FORMATO_ACTIVIDAD_VULNERABLE_3901"
                   />
 
                   <InputController
@@ -195,6 +196,7 @@ export function DocumentosVulnerablesMain() {
                     controllerName="formatoActividadVulnerable3072.file"
                     docKey="vul.act.3072"
                     fieldLabel="Formato Actividad Vulnerable (3072):"
+                    formatoDoc="FORMATO_ACTIVIDAD_VULNERABLE_3072"
                   />
 
                   <InputController
@@ -202,6 +204,7 @@ export function DocumentosVulnerablesMain() {
                     controllerName="formatoDuenioBeneficiario3901.file"
                     docKey="vul.benef.3901"
                     fieldLabel="Formato de Dueño Beneficiario 3901:"
+                    formatoDoc="FORMATO_DUENIO_BENEFICIARIO_3901"
                   />
 
                   <InputController
@@ -209,6 +212,7 @@ export function DocumentosVulnerablesMain() {
                     controllerName="formatoDuenioBeneficiario3072.file"
                     docKey="vul.benef.3072"
                     fieldLabel="Formato de Dueño Beneficiario 3072:"
+                    formatoDoc="FORMATO_DUENIO_BENEFICIARIO_3072"
                   />
 
                   <InputController
@@ -216,6 +220,7 @@ export function DocumentosVulnerablesMain() {
                     controllerName="constanciaHojaMembretada3901.file"
                     docKey="vul.lfpiorpi.3901"
                     fieldLabel="Constancia LFPIORPI en Hoja Membretada 3901:"
+                    formatoDoc="LFPIORPI_3901"
                   />
 
                   <InputController
@@ -223,6 +228,7 @@ export function DocumentosVulnerablesMain() {
                     controllerName="constanciaHojaMembretada3072.file"
                     docKey="vul.lfpiorpi.3072"
                     fieldLabel="Constancia LFPIORPI en Hoja Membretada 3072:"
+                    formatoDoc="LFPIORPI_3072"
                   />
                 </div>
               </FieldGroup>

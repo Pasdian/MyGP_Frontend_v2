@@ -81,6 +81,7 @@ export function AcuerdoConfidencialidadSub() {
               controllerName="acuerdoConfidencialidad.file"
               docKey="com.acuerdo.conf"
               fieldLabel="Acuerdo Confidencialidad:"
+              formatoDoc="ACUERDO_CONFIDENCIALIDAD"
             />
 
             <InputController
@@ -88,6 +89,7 @@ export function AcuerdoConfidencialidadSub() {
               controllerName="acuerdoSocioComercial.file"
               docKey="com.acuerdo.socio"
               fieldLabel="Acuerdo de Colaboración Socio Comercial:"
+              formatoDoc="ACUERDO_SOCIO_COMERCIAL"
             />
           </div>
         </FieldGroup>

@@ -3,6 +3,8 @@ import { IsComplete } from './buttons/IsComplete';
 import { ShowFile, ShowFileSlot } from './buttons/ShowFile';
 import { FileController } from './form-controllers/FileController';
 import { MultiImageController } from './MultiImageController';
+import { DownloadFormato } from './DownloadFormato';
+import { LinkIcon } from 'lucide-react';
 
 type InputController = {
   form: any;
@@ -15,6 +17,7 @@ type InputController = {
   description?: string;
   showFile?: boolean;
   showFileSlot?: boolean;
+  formatoDoc?: string;
 };
 
 export function InputController({
@@ -28,6 +31,7 @@ export function InputController({
   description = '',
   showFile = true,
   showFileSlot = false,
+  formatoDoc,
 }: InputController) {
   const { casa_id } = useCliente();
   const gridCols = showFile ? 'grid-cols-[auto_1fr_auto]' : 'grid-cols-[1fr_auto]';
@@ -36,7 +40,25 @@ export function InputController({
       {!isMulti ? (
         <div className={`w-full grid ${gridCols} gap-2 items-end`}>
           {showFileSlot && <ShowFileSlot />}
-          {showFile && <ShowFile client={casa_id} docKey={docKey} />}
+          <div className="flex flex-col gap-2 items-center">
+            {formatoDoc &&
+              (formatoDoc !== 'LISTA_CLINTON' ? (
+                <DownloadFormato doc={formatoDoc} />
+              ) : (
+                <LinkIcon
+                  size={20}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    window.open(
+                      'https://sanctionssearch.ofac.treas.gov/',
+                      '_blank',
+                      'noopener,noreferrer'
+                    );
+                  }}
+                />
+              ))}
+            {showFile && <ShowFile client={casa_id} docKey={docKey} />}
+          </div>
           <FileController
             form={form}
             fieldLabel={fieldLabel}

@@ -25,7 +25,6 @@ export function DownloadFormato({ doc }: { doc: string }) {
 
       toast.success('Documento descargado correctamente');
     } catch (err: any) {
-      const status = err?.response?.status;
       const data = err?.response?.data;
 
       let detail = 'Error al descargar el documento';
