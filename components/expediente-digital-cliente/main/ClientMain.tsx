@@ -20,6 +20,8 @@ import { useCompanies } from '@/hooks/useCompanies';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 export function ClientMain({
   setShowDocuments,
@@ -30,51 +32,64 @@ export function ClientMain({
   const [collapseAccordion, setCollapseAccordion] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isHydrating, setIsHydrating] = React.useState(false);
+  const [isGettingNextCasaId, setIsGettingNextCasaId] = React.useState(false);
 
   const { rows: companies } = useCompanies();
 
-  const formSchema = z.object({
-    casa_id: z
-      .string({ message: 'Selecciona un cliente' })
-      .min(1, 'Selecciona un cliente')
-      .max(100, 'Máximo 100 caracteres'),
-    legal_type: z
-      .string({ message: 'Ingresa el tipo de cliente' })
-      .min(1, 'Ingresa el tipo de cliente')
-      .max(100, 'Máximo 100 caracteres'),
-    rfc: z
-      .string({ message: 'Ingresa el RFC del cliente' })
-      .min(1, 'Ingresa el RFC del cliente')
-      .max(100, 'Máximo 100 caracteres'),
-    address_1: z
-      .string({ message: 'Ingresa una dirección' })
-      .min(1, 'Ingresa una dirección')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    neighbourhood: z
-      .string({ message: 'Ingresa una colonia' })
-      .min(1, 'Ingresa una colonia')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    municipality: z
-      .string({ message: 'Ingresa un municipio' })
-      .min(1, 'Ingresa un municipio')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    city: z
-      .string({ message: 'Ingresa una ciudad' })
-      .min(1, 'Ingresa una ciudad')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    state: z
-      .string({ message: 'Ingresa un estado' })
-      .min(1, 'Ingresa un estado')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-    postal_code: z
-      .string({ message: 'Ingresa un código postal' })
-      .min(1, 'Ingresa un código postal')
-      .max(100, { message: 'Máximo 100 caracteres' }),
-  });
+  const formSchema = z
+    .object({
+      is_new: z.boolean(),
+      casa_id: z.string().optional(),
+      legal_name: z.string().optional(),
+      legal_type: z
+        .string({ message: 'Ingresa el tipo de cliente' })
+        .min(1, 'Ingresa el tipo de cliente')
+        .max(100, 'Máximo 100 caracteres'),
+      rfc: z
+        .string({ message: 'Ingresa el RFC del cliente' })
+        .min(1, 'Ingresa el RFC del cliente')
+        .max(100, 'Máximo 100 caracteres'),
+      address_1: z
+        .string({ message: 'Ingresa una dirección' })
+        .min(1, 'Ingresa una dirección')
+        .max(100, { message: 'Máximo 100 caracteres' }),
+      neighbourhood: z
+        .string({ message: 'Ingresa una colonia' })
+        .min(1, 'Ingresa una colonia')
+        .max(100, { message: 'Máximo 100 caracteres' }),
+      municipality: z
+        .string({ message: 'Ingresa un municipio' })
+        .min(1, 'Ingresa un municipio')
+        .max(100, { message: 'Máximo 100 caracteres' }),
+      city: z
+        .string({ message: 'Ingresa una ciudad' })
+        .min(1, 'Ingresa una ciudad')
+        .max(100, { message: 'Máximo 100 caracteres' }),
+      state: z
+        .string({ message: 'Ingresa un estado' })
+        .min(1, 'Ingresa un estado')
+        .max(100, { message: 'Máximo 100 caracteres' }),
+      postal_code: z
+        .string({ message: 'Ingresa un código postal' })
+        .min(1, 'Ingresa un código postal')
+        .max(100, { message: 'Máximo 100 caracteres' }),
+    })
+    .superRefine((data, ctx) => {
+      if (data.is_new) {
+        if (!data.casa_id?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['casa_id'],
+            message: 'Selecciona un cliente',
+          });
+        }
+      }
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      is_new: false,
       casa_id: '',
       legal_type: '',
       rfc: '',
@@ -89,6 +104,7 @@ export function ClientMain({
 
   const resetForm = () => {
     form.reset({
+      is_new: false,
       casa_id: '',
       legal_type: '',
       rfc: '',
@@ -132,33 +148,26 @@ export function ClientMain({
         const c = resp.data;
         const addr = c?.address;
 
-        form.reset({
-          casa_id: casa_id,
-          legal_type: c?.legal_type ?? '',
-          rfc: c?.rfc ?? '',
-          address_1: addr?.address_1 ?? '',
-          neighbourhood: addr?.neighbourhod ?? '',
-          municipality: addr?.municipality ?? '',
-          city: addr?.city ?? '',
-          state: addr?.state ?? '',
-          postal_code: addr?.postal_code ?? '',
-        });
+        form.setValue('legal_type', c?.legal_type ?? '');
+        form.setValue('rfc', c?.rfc ?? '');
+        form.setValue('address_1', addr?.address_1 ?? '');
+        form.setValue('neighbourhood', addr?.neighbourhod ?? '');
+        form.setValue('municipality', addr?.municipality ?? '');
+        form.setValue('city', addr?.city ?? '');
+        form.setValue('state', addr?.state ?? '');
+        form.setValue('postal_code', addr?.postal_code ?? '');
         setShowDocuments(true);
         setCollapseAccordion(true);
       } catch (err: any) {
-        // 404 = aún no hay registro en BD, dejamos campos vacíos (pero mantenemos casa_id)
         if (err?.response?.status === 404) {
-          form.reset({
-            casa_id: casa_id,
-            legal_type: '',
-            rfc: '',
-            address_1: '',
-            neighbourhood: '',
-            municipality: '',
-            city: '',
-            state: '',
-            postal_code: '',
-          });
+          form.setValue('legal_type', '');
+          form.setValue('rfc', '');
+          form.setValue('address_1', '');
+          form.setValue('neighbourhood', '');
+          form.setValue('municipality', '');
+          form.setValue('city', '');
+          form.setValue('state', '');
+          form.setValue('postal_code', '');
           return;
         }
 
@@ -172,7 +181,6 @@ export function ClientMain({
     };
 
     hydrateClient();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [casa_id]);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -184,6 +192,7 @@ export function ClientMain({
         legal_type: data.legal_type,
         rfc: data.rfc,
         legal_name: cliente ?? '',
+        is_new: data.is_new,
         address: {
           address_1: data.address_1,
           neighbourhod: data.neighbourhood,
@@ -211,6 +220,30 @@ export function ClientMain({
     }
   };
 
+  const fetchNextCasaId = async () => {
+    try {
+      setIsGettingNextCasaId(true);
+
+      const resp = await GPClient.get('/api/expediente-digital-cliente/next-casa-id');
+      const nextCasaId = resp.data?.casa_id ?? resp.data;
+
+      if (!nextCasaId || !String(nextCasaId).trim()) {
+        toast.error('No se pudo obtener el siguiente casa_id');
+        return;
+      }
+
+      form.setValue('casa_id', nextCasaId, { shouldValidate: true, shouldDirty: true });
+      setCasaId(nextCasaId);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message ?? 'Error al obtener el siguiente casa_id');
+    } finally {
+      setIsGettingNextCasaId(false);
+    }
+  };
+
+  const isNew = form.watch('is_new');
+
   return (
     <Accordion
       type="single"
@@ -222,7 +255,7 @@ export function ClientMain({
       className="w-full"
     >
       <AccordionItem value="client-main">
-        <AccordionTrigger className="bg-blue-700 text-white px-2 [&>svg]:text-white mb-2">
+        <AccordionTrigger className="bg-blue-900 text-white px-2 [&>svg]:text-white mb-2">
           <div className="flex items-center gap-2">
             <div className="grid grid-cols-[auto_1fr] gap-2 place-items-center">
               <FileIcon size={18} />
@@ -242,41 +275,162 @@ export function ClientMain({
                 <p className="text-2xl font-bold mb-4">Expediente Digital del Cliente</p>
                 <p className="text-xl font-semi-bold mb-4">{cliente && `${cliente}`}</p>
                 <form id="form-datos-cliente" onSubmit={form.handleSubmit(onSubmit)}>
+                  <Controller
+                    name="is_new"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid} className="grid gap-3 w-full">
+                        <Label className="text-lg font-medium">¿Es un cliente nuevo?</Label>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isGettingNextCasaId}
+                            onClick={async () => {
+                              field.onChange(true);
+                              !casa_id && (await fetchNextCasaId());
+                            }}
+                            className={`
+                              h-12 text-base font-medium transition-all
+                              ${
+                                field.value === true
+                                  ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                  : 'border-border hover:bg-blue-50/50'
+                              }
+                          `}
+                          >
+                            Sí
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => field.onChange(false)}
+                            className={`
+                              h-12 text-base font-medium transition-all
+                              ${
+                                field.value === false
+                                  ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                  : 'border-border hover:bg-blue-50/50'
+                              }
+                            `}
+                          >
+                            No
+                          </Button>
+                        </div>
+
+                        <div className="min-h-[20px]">
+                          {fieldState.invalid ? <FieldError errors={[fieldState.error]} /> : null}
+                        </div>
+                      </Field>
+                    )}
+                  />
+
                   <FieldGroup>
                     <div className="grid grid-cols-2 gap-2 mb-4">
-                      <Controller
-                        name="casa_id"
-                        control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field
-                            data-invalid={fieldState.invalid}
-                            className="grid grid-rows-2 gap-0 w-full min-w-0"
-                          >
-                            <FieldLabel htmlFor="casa_id">Selecciona un cliente:</FieldLabel>
-                            <MyGPCombo
-                              placeholder="Busca y selecciona un cliente"
-                              value={field.value}
-                              className="mb-2"
-                              aria-invalid={fieldState.invalid}
-                              setValue={(value: string) => {
-                                const selected = companiesOptions.find((o) => o.value === value);
-                                if (!selected) return;
+                      {isNew ? (
+                        <div className="grid grid-cols-[150px_1fr] gap-2">
+                          <Controller
+                            name="casa_id"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                              <Field
+                                data-invalid={fieldState.invalid}
+                                className="grid grid-rows-2 gap-0 w-full min-w-0"
+                              >
+                                <FieldLabel htmlFor="casa_id">
+                                  Número de Cliente (Consecutivo):
+                                </FieldLabel>
+                                <div className="flex gap-2 items-center">
+                                  {isGettingNextCasaId && (
+                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                  )}
+                                  <Input
+                                    {...field}
+                                    id="casa_id"
+                                    placeholder="00000"
+                                    className="mb-2"
+                                    aria-invalid={fieldState.invalid}
+                                    disabled={isGettingNextCasaId}
+                                    aria-busy={isGettingNextCasaId}
+                                  />
+                                </div>
+                                <div className="min-h-[20px]">
+                                  {fieldState.invalid ? (
+                                    <FieldError errors={[fieldState.error]} />
+                                  ) : null}
+                                </div>
+                              </Field>
+                            )}
+                          />
+                          <Controller
+                            name="legal_name"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                              <Field
+                                data-invalid={fieldState.invalid}
+                                className="grid grid-rows-2 gap-0 w-full min-w-0"
+                              >
+                                <FieldLabel htmlFor="legal_name">
+                                  Nombre del cliente nuevo:
+                                </FieldLabel>
 
-                                field.onChange(value);
-                                setCasaId(selected.value);
-                                setCliente(selected.label);
-                              }}
-                              options={companiesOptions}
-                              showValue
-                            />
-                            <div className="min-h-[20px]">
-                              {fieldState.invalid ? (
-                                <FieldError errors={[fieldState.error]} />
-                              ) : null}
-                            </div>
-                          </Field>
-                        )}
-                      />
+                                <Input
+                                  {...field}
+                                  id="legal_name"
+                                  placeholder="Ej. Cliente S.A. de C.V."
+                                  className="mb-2"
+                                  aria-invalid={fieldState.invalid}
+                                  onChange={(e) => {
+                                    field.onChange(e); // keep RHF in sync
+                                    setCliente(e.target.value); // update context on every keystroke
+                                  }}
+                                />
+
+                                <div className="min-h-[20px]">
+                                  {fieldState.invalid ? (
+                                    <FieldError errors={[fieldState.error]} />
+                                  ) : null}
+                                </div>
+                              </Field>
+                            )}
+                          />
+                        </div>
+                      ) : (
+                        <Controller
+                          name="casa_id"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field
+                              data-invalid={fieldState.invalid}
+                              className="grid grid-rows-2 gap-0 w-full min-w-0"
+                            >
+                              <FieldLabel htmlFor="casa_id">Selecciona un cliente:</FieldLabel>
+                              <MyGPCombo
+                                placeholder="Busca y selecciona un cliente"
+                                value={field.value || ''}
+                                className="mb-2"
+                                aria-invalid={fieldState.invalid}
+                                setValue={(value: string) => {
+                                  const selected = companiesOptions.find((o) => o.value === value);
+                                  if (!selected) return;
+                                  field.onChange(value);
+                                  setCasaId(selected.value);
+                                  setCliente(selected.label);
+                                }}
+                                options={companiesOptions}
+                                showValue
+                              />
+                              <div className="min-h-[20px]">
+                                {fieldState.invalid ? (
+                                  <FieldError errors={[fieldState.error]} />
+                                ) : null}
+                              </div>
+                            </Field>
+                          )}
+                        />
+                      )}
                       <Controller
                         name="legal_type"
                         control={form.control}

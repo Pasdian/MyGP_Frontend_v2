@@ -174,20 +174,6 @@ export default function AuthProvider({
     }
   }, [isAuthenticated, user]);
 
-  // Periodically revalidate session via /api/auth/me
-  React.useEffect(() => {
-    if (!isAuthenticated) return;
-
-    // Revalidate every 10 minutes (600000 ms)
-    const INTERVAL = 10 * 60 * 1000;
-
-    const id = setInterval(() => {
-      refresh(); // This now calls GET /api/auth/me
-    }, INTERVAL);
-
-    return () => clearInterval(id);
-  }, [isAuthenticated, refresh]);
-
   async function logout() {
     try {
       const res = await GPClient.post('/api/auth/logout', {}, { withCredentials: true });

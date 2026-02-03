@@ -9,12 +9,16 @@ const oneMonthFromToday = addMonths(startOfDay(new Date()), 1);
 // pdf schema
 export const createPdfSchema = (maxSize: number) =>
   z
-    .file({ message: 'Por favor ingresa un PDF' })
-    .min(10_000, 'El archivo debe de ser de mínimo 10 KB')
-    .max(maxSize, `El archivo debe de ser de máximo ${maxSize / 1_000_000} MB`)
-    .mime(['application/pdf', 'image/png', 'image/jpeg'], {
-      message: 'Solo se aceptan archivos .pdf .png .jpeg',
-    });
+    .instanceof(File, { message: 'Archivo inválido' })
+    .refine(
+      (file) => file.size <= maxSize,
+      `El archivo debe de ser de máximo ${maxSize / 1_000_000} MB`
+    )
+    .refine(
+      (file) => ['application/pdf', 'image/png', 'image/jpeg'].includes(file.type),
+      'Solo se aceptan archivos .pdf .png .jpeg'
+    )
+    .optional();
 
 // expiry date schema
 export const expiryDateSchema = z
@@ -24,53 +28,65 @@ export const expiryDateSchema = z
   .refine((value) => {
     const selected = parseISO(value); // always midnight
     return !isBefore(selected, oneMonthFromToday); // >= allowed
-  }, 'Debe ser por lo menos un mes a partir de hoy');
+  }, 'Debe ser por lo menos un mes a partir de hoy')
+  .optional();
 
 export const buildHaciendaSchema = (certSize: number, efirmaSize: number, constanciaSize: number) =>
   z.object({
-    certificado: z.object({
-      file: z
-        .file({ message: 'Por favor ingresa un PDF' })
-        .max(certSize || 2_000_000, 'El certificado debe ser máximo de 2MB')
-        .mime(
-          ['application/x-x509-ca-cert', 'application/pkix-cert', 'application/octet-stream'],
-          'El certificado debe ser un archivo .cer válido'
-        )
-        .refine(
-          (file) => file.name.toLowerCase().endsWith('.cer'),
-          'El certificado debe tener extensión .cer'
-        ),
-      category: z.number(),
-      filepath: z.string(),
-      filename: z.string(),
-    }),
+    certificado: z
+      .object({
+        file: z
+          .instanceof(File, { message: 'Archivo inválido' })
+          .refine(
+            (file) => file.size <= certSize,
+            `El certificado debe ser de máximo ${certSize / 1_000_000} MB`
+          )
+          .refine(
+            (file) =>
+              [
+                'application/x-x509-ca-cert',
+                'application/pkix-cert',
+                'application/octet-stream',
+              ].includes(file.type),
+            'El certificado debe ser un archivo .cer válido'
+          )
+          .refine(
+            (file) => file.name.toLowerCase().endsWith('.cer'),
+            'El certificado debe tener extensión .cer'
+          )
+          .optional(),
+      })
+      .optional(),
 
-    efirma: z.object({
-      file: z
-        .file({ message: 'Por favor ingresa un PDF' })
-        .max(efirmaSize, 'La e-firma debe ser máximo de 2MB')
-        .mime(
-          [
-            'application/vnd.apple.keynote',
-            'application/octet-stream',
-            'application/x-pem-file',
-            'application/pkcs8',
-          ],
-          'La e-firma debe ser un archivo .key válido'
-        )
-        .refine(
-          (file) => file.name.toLowerCase().endsWith('.key'),
-          'La e-firma debe tener extensión .key'
-        ),
-      category: z.number(),
-      filepath: z.string(),
-      filename: z.string(),
-    }),
+    efirma: z
+      .object({
+        file: z
+          .instanceof(File, { message: 'Archivo inválido' })
+          .refine(
+            (file) => file.size <= efirmaSize,
+            `La e-firma debe ser de máximo ${efirmaSize / 1_000_000} MB`
+          )
+          .refine(
+            (file) =>
+              [
+                'application/vnd.apple.keynote',
+                'application/octet-stream',
+                'application/x-pem-file',
+                'application/pkcs8',
+              ].includes(file.type),
+            'La e-firma debe ser un archivo .key válido'
+          )
+          .refine(
+            (file) => file.name.toLowerCase().endsWith('.key'),
+            'La e-firma debe tener extensión .key'
+          )
+          .optional(),
+      })
+      .optional(),
 
-    constancia: z.object({
-      file: createPdfSchema(constanciaSize),
-      category: z.number(),
-      filepath: z.string(),
-      filename: z.string(),
-    }),
+    constancia: z
+      .object({
+        file: createPdfSchema(constanciaSize),
+      })
+      .optional(),
   });
