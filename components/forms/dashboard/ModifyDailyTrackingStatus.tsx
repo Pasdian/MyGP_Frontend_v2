@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/select';
 import { statusOptions } from '@/lib/statusOptions/statusOptions';
 import { MyGPCombo } from '@/components/MyGPUI/Combobox/MyGPCombo';
+import { Button } from '@/components/ui/button';
+import { Trash } from 'lucide-react';
 
 const posthogEvent =
   dashboardModuleEvents.find((e) => e.alias === 'DASHBOARD_MODIFY_OP')?.eventName || '';
@@ -38,7 +40,7 @@ export default function ModifyDailyTrackingStatusForm({
   row: Row<DailyTracking>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { user } = useAuth();
+  const { user, getCasaUsername } = useAuth();
   const { setDailyTrackingData } = React.useContext(DailyTrackingContext);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -75,6 +77,26 @@ export default function ModifyDailyTrackingStatusForm({
   });
 
   const selectedCategory = form.watch('category');
+
+  const assign182Phase = async (row: Row<DailyTracking>) => {
+    const NUM_REFE = row.original.NUM_REFE;
+    const today = new Date().toISOString().split('T')[0];
+
+    const payload = {
+      phase: '182',
+      exceptionCode: '',
+      date: today,
+      user: getCasaUsername() || 'MYGP',
+    };
+
+    await GPClient.patch(`/api/casa/upsertPhase/${NUM_REFE}`, payload);
+
+    toast.info('Fase actualizada correctamente');
+
+    setDailyTrackingData((prev) => prev.filter((item) => item.NUM_REFE !== NUM_REFE));
+
+    setOpenDialog(false);
+  };
 
   async function onSubmit(data: z.infer<typeof schema>) {
     setIsSubmitting(true);
@@ -203,14 +225,24 @@ export default function ModifyDailyTrackingStatusForm({
             )}
           />
         </div>
-        <DialogFooter className="mt-4">
-          <DialogClose asChild>
-            <MyGPButtonGhost variant="outline" className="cursor-pointer">
-              Cancelar
-            </MyGPButtonGhost>
-          </DialogClose>
-          <MyGPButtonSubmit isSubmitting={isSubmitting} />
-        </DialogFooter>
+        <div className="mt-4 w-full flex items-center justify-between">
+          <Button
+            className="bg-red-500 font-bold hover:bg-red-600 cursor-pointer"
+            onClick={() => assign182Phase(row)}
+            type="button"
+          >
+            <Trash />
+            Eliminar
+          </Button>
+
+          <div className="flex gap-2">
+            <DialogClose asChild>
+              <MyGPButtonGhost variant="outline">Cancelar</MyGPButtonGhost>
+            </DialogClose>
+
+            <MyGPButtonSubmit isSubmitting={isSubmitting} />
+          </div>
+        </div>
       </form>
     </Form>
   );
