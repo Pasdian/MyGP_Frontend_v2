@@ -1,88 +1,129 @@
+import type { getFilesByReference } from '@/types/dea/getFilesByReferences';
+import { DateRange } from 'react-day-picker';
 import { createStore } from 'zustand/vanilla';
 
-export type DEAState = {
-  clientNumber: string;
+/**
+ * Domain models grouped into objects so we can remove most individual setters
+ */
+export type Client = {
+  number: string;
+  reference: string; // keep if you actually use it; otherwise remove from here and defaults
   custom: string;
-  reference: string;
-  pdfUrl: string;
-  initialDate: Date | undefined;
-  finalDate: Date | undefined;
-  fileName: string;
-  getFilesByReferenceKey: string;
 };
 
-export const defaultInitState: DEAState = {
-  clientNumber: '000041', // RICOH MEXICANA SA DE CV
-  custom: '',
-  reference: '',
-  pdfUrl: '',
-  initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-  finalDate: new Date(),
-  fileName: '',
-  getFilesByReferenceKey: '',
+export type Filters = {
+  dateRange: DateRange | undefined;
+};
+
+export type FileState = {
+  pdfUrl: string;
+  textContent: string | undefined | null;
+  folder: string;
+  filesByReference: getFilesByReference;
+  activeFile: string;
+};
+
+export type DEAState = {
+  client: Client;
+  filters: Filters;
+  file: FileState;
 };
 
 export type DEAActions = {
-  setClientNumber: (clientNumber: string) => void;
-  setCustom: (custom: string) => void;
-  setReference: (reference: string) => void;
-  setInitialDate: (initialDate: Date | undefined) => void;
-  setFinalDate: (finalDate: Date | undefined) => void;
-  setPdfUrl: (pdfUrl: string) => void;
-  setFile: (file: string) => void;
-  setGetFilesByReferenceKey: (key: string) => void;
-  resetDEAState: () => void;
+  /**
+   * Shallow patch for the root state (use nested setters below for convenience)
+   */
+  patch: (partial: Partial<DEAState>) => void;
+
+  /** Update only client fields */
+  setClient: (patch: Partial<Client>) => void;
+  /** Update only filter fields */
+  setFilters: (patch: Partial<Filters>) => void;
+  /** Update only file fields */
+  setFile: (patch: Partial<FileState>) => void;
+
+  /** Reset to defaults */
+  resetFileState: () => void;
+  resetClientState: () => void;
 };
 
 export type DEAStore = DEAState & DEAActions;
 
-// New helper that builds the URL using reference and client
-const getFilesByReference = (reference: string, client: string) => {
-  return `/dea/getFilesByReference?reference=${reference}&client=${client}`;
-};
+const emptyFilesByReference = (): getFilesByReference => ({
+  files: {
+    '01-CTA-GASTOS': [],
+    '02-EXPEDIENTE-ADUANAL': [],
+    '03-FISCALES': [],
+    '04-VUCEM': [],
+    '05-EXP-DIGITAL': [],
+  },
+  message: '',
+});
 
-export const initDEAStore = (): DEAState => {
-  const clientNumber = '000041';
-  const reference = '';
-  return {
-    clientNumber,
-    reference,
-    custom: '',
-    pdfUrl: '',
-    initialDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
-    finalDate: new Date(),
-    fileName: '',
-    getFilesByReferenceKey: getFilesByReference(reference, clientNumber),
-  };
-};
+export const defaultInitState = (): DEAState => ({
+  client: {
+    number: '',
+    reference: '',
+    custom: '', // Used in previos
+  },
+  filters: {
+    dateRange: undefined, // site-header.tsx date range
+  },
+  file: {
+    pdfUrl: '', // Current pdf url blob
+    textContent: '', // Current xml url blob
+    folder: '', // Current folder
+    filesByReference: emptyFilesByReference(), // Files by reference
+    activeFile: '', // Current active file
+  },
+});
 
-export const createDEAStore = (initState: DEAState = defaultInitState) => {
+export const initDEAStore = (): DEAState => defaultInitState();
+
+export const createDEAStore = (initState: DEAState = defaultInitState()) => {
   return createStore<DEAStore>()((set) => ({
     ...initState,
 
-    setClientNumber: (clientNumber) =>
+    patch: (partial) => set((state) => ({ ...state, ...partial })),
+
+    setClient: (patch) =>
       set((state) => ({
-        clientNumber,
-        getFilesByReferenceKey: getFilesByReference(state.reference, clientNumber),
+        client: { ...state.client, ...patch },
       })),
 
-    setReference: (reference) =>
+    setFilters: (patch) =>
       set((state) => ({
-        reference,
-        getFilesByReferenceKey: getFilesByReference(reference, state.clientNumber),
+        filters: { ...state.filters, ...patch },
       })),
 
-    setInitialDate: (initialDate) => set(() => ({ initialDate })),
+    setFile: (patch) =>
+      set((state) => ({
+        file: { ...state.file, ...patch },
+      })),
 
-    setFinalDate: (finalDate) => set(() => ({ finalDate })),
-
-    setPdfUrl: (pdfUrl) => set(() => ({ pdfUrl })),
-
-    setFile: (fileName) => set(() => ({ fileName })),
-
-    setCustom: (custom) => set(() => ({ custom })),
-
-    setGetFilesByReferenceKey: (getFilesByReferenceKey) => set(() => ({ getFilesByReferenceKey })),
-    resetDEAState: () => set(() => ({ ...defaultInitState })),
+    resetFileState: () =>
+      set((state) => {
+        if (state.file.pdfUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(state.file.pdfUrl);
+        }
+        return {
+          file: {
+            pdfUrl: '',
+            fileName: '',
+            textContent: '',
+            folder: '',
+            activeFile: '',
+            filesByReference: emptyFilesByReference(),
+          },
+        };
+      }),
+    resetClientState: () =>
+      set(() => ({
+        client: {
+          number: '',
+          reference: '',
+          custom: '',
+        },
+      })),
   }));
 };

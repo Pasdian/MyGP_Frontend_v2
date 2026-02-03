@@ -1,8 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { IconInnerShadowTop } from '@tabler/icons-react';
-
 import { NavMain } from '@/components/ui/nav-main';
 import { NavUser } from '@/components/ui/nav-user';
 import {
@@ -15,6 +13,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import NavCollapsible from './nav-collapsible';
+import Image from 'next/image';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -22,10 +21,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">MyGP.</span>
+            <SidebarMenuButton
+              asChild
+              className="flex justify-center data-[slot=sidebar-menu-button]:!p-0 overflow-visible"
+            >
+              <a href="/mygp/dashboard" className="block">
+                <Image src="/logo.avif" alt="Company logo" width={100} height={50} />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

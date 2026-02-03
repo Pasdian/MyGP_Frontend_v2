@@ -6,4 +6,12 @@ export type Role = {
   name: string | null;
   users: User[] | null;
   modules: Module[] | null;
+  permissions: Permission[] | null;
 };
+
+interface Permission {
+  uuid: string | null;
+  action: string | null;
+  description: string | null;
+  isChecked: boolean;
+}

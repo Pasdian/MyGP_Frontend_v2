@@ -14,13 +14,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
-import { companySchema } from '@/lib/schemas/admin-panel/companySchema';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import { Row } from '@tanstack/react-table';
 import { companyModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { CompanySchema } from '@/lib/schemas/admin-panel/companySchema';
 
 const posthogEvent =
   companyModuleEvents.find((e) => e.alias === 'COMPANY_MODIFY_COMPANY')?.eventName || '';
@@ -32,27 +31,24 @@ export default function ModifyCompanyForm({
   row: Row<getAllCompanies>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
-
-  const form = useForm<z.infer<typeof companySchema>>({
-    resolver: zodResolver(companySchema),
+  const form = useForm<z.infer<typeof CompanySchema>>({
+    resolver: zodResolver(CompanySchema),
     mode: 'onChange',
     defaultValues: {
-      name: row.original.name || '',
-      casa_id: row.original.casa_id || '',
+      NOM_IMP: row.original.NOM_IMP || '',
+      CVE_IMP: row.original.CVE_IMP || '',
     },
   });
 
-  async function onSubmit(data: z.infer<typeof companySchema>) {
-    await GPClient.put(`/api/companies/updateCompany/${row.original.uuid}`, {
-      name: data.name,
-      casa_id: data.casa_id,
+  async function onSubmit(data: z.infer<typeof CompanySchema>) {
+    await GPClient.put(`/api/companies/updateCompany/${data.CVE_IMP}`, {
+      NOM_IMP: data.NOM_IMP || '',
+      CVE_IMP: data.CVE_IMP || '',
     })
       .then((res) => {
         toast.success(res.data.message);
         posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
-        mutate('/api/companies/getAllCompanies');
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -65,7 +61,7 @@ export default function ModifyCompanyForm({
         <div className="grid gap-4">
           <FormField
             control={form.control}
-            name="name"
+            name="NOM_IMP"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nombre de la Compañia</FormLabel>
@@ -79,7 +75,7 @@ export default function ModifyCompanyForm({
 
           <FormField
             control={form.control}
-            name="casa_id"
+            name="CVE_IMP"
             render={({ field }) => (
               <FormItem className="mb-4">
                 <FormLabel>ID CASA</FormLabel>

@@ -1,10 +1,12 @@
 export const customs = [
-  { name: "Mazanillo", key: "160", code: "M" },
+  { name: "Manzanillo", key: "160", code: "M" },
   { name: "Nuevo Laredo", key: "240", code: "L" },
   { name: "Veracruz", key: "430", code: "V" },
   { name: "AICM", key: "470", code: "A" },
   { name: "Toluca", key: "650", code: "T" },
   { name: "AIFA", key: "850", code: "F" },
+  { name: "Colombia", key: "800", code: "" },
+  { name: "Querétaro", key: "370", code: "" },
 ];
 
 export function getCustomKeyByRef(reference: string) {
@@ -16,3 +18,5 @@ export function getCustomKeyByRef(reference: string) {
 
   return custom ? custom.key : null;
 }
+
+export const customsMap = Object.fromEntries(customs.map(c => [c.key, c.name]));

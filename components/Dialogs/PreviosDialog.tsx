@@ -1,98 +1,78 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-
-import { Button } from '@/components/ui/button';
 import { TreeView, TreeDataItem } from '@/components/ui/tree-view';
-
 import React from 'react';
 import { Folder, Image } from 'lucide-react';
 import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
-import TailwindSpinner from '../ui/TailwindSpinner';
 import ImageDialog from './ImageDialog';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
 import { IconEye } from '@tabler/icons-react';
+import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
+import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
+import MyGPSpinner from '../MyGPUI/Spinners/MyGPSpinner';
 
-function getcurrentFolder(custom: string) {
-  const char = custom.charAt(1);
-
-  if (['A', 'L', 'T'].includes(char)) {
-    return '3901';
-  }
-
-  if (['M', 'F'].includes(char)) {
-    return '3072';
-  }
-
+/** Map reference -> centralizada folder code */
+function getCurrentFolderFromReference(reference?: string) {
+  if (!reference || reference.length < 2) return '640';
+  const char = reference.charAt(1);
+  if (['A', 'L', 'T'].includes(char)) return '3901';
+  if (['M', 'F'].includes(char)) return '3072';
   return '640';
 }
 
-export default function PreviosDialog() {
-  const { custom, reference } = useDEAStore((state) => state);
-
-  const [currentFolder, setCurrentFolder] = React.useState<'PARTIDAS' | 'PREVIO' | ''>('');
+export default function PreviosDialog({ className }: { className?: string }) {
+  const { client } = useDEAStore((state) => state);
+  const [open, setOpen] = React.useState(false);
+  const [currentFolder, setCurrentFolder] = React.useState('');
   const [openImageDialog, setOpenImageDialog] = React.useState(false);
-  const [TreeData, setTreeData] = React.useState<TreeDataItem[]>([]);
-  const [currentItem, setCurrentItem] = React.useState<string | undefined>('');
+  const [treeData, setTreeData] = React.useState<TreeDataItem[]>([]);
+  const [currentItem, setCurrentItem] = React.useState<string>('');
 
-  const getImageKey = ({
-    custom,
-    reference,
-    currentFolder,
-    imageName,
-  }: {
-    custom?: string;
-    reference?: string;
-    currentFolder?: string;
-    imageName?: string;
-  }) => {
-    return (
-      custom &&
-      reference &&
-      currentFolder &&
-      imageName &&
-      `/dea/centralizada/${getcurrentFolder(
-        reference
-      )}/${custom}/Previos/${reference}/${currentFolder}/${imageName}`
-    );
-  };
-
-  const partidasPreviosKey =
-    custom &&
-    reference &&
-    `/dea/centralizada/${getcurrentFolder(reference)}/${custom}/Previos/${reference}`;
-
-  const { data: partidasPrevios, isLoading: isPartidosPreviosLoading } = useSWR<PartidasPrevios>(
-    partidasPreviosKey,
-    axiosFetcher
+  // Stable SWR key
+  const baseFolder = React.useMemo(
+    () =>
+      client.custom && client.reference ? getCurrentFolderFromReference(client.reference) : null,
+    [client]
   );
 
+  const partidasPreviosKey = React.useMemo(() => {
+    if (!client.custom || !client.reference || !baseFolder) return null;
+    return `/dea/scan?source=/centralizada/${baseFolder}/${client.custom}/Previos/${client.reference}`;
+  }, [client, baseFolder]);
+
+  const {
+    data: partidasPrevios,
+    error: partidasPreviosError,
+    isLoading: isPartidasPreviosLoading,
+  } = useSWR<PartidasPrevios>(partidasPreviosKey, axiosFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateIfStale: false,
+    refreshInterval: 0,
+    shouldRetryOnError: false,
+  });
+
+  // Build Tree data
   React.useEffect(() => {
-    if (!partidasPrevios) return;
+    if (!partidasPrevios) {
+      setTreeData([]);
+      return;
+    }
 
-    const entries = Object.entries(partidasPrevios) as [keyof PartidasPrevios, string[]][];
-
-    const result = entries
-      .filter(([, items]) => items.length > 0)
-      .map(([currentFolderKey, items]) => ({
-        id: currentFolderKey,
-        name: `${currentFolderKey} - ${partidasPrevios[currentFolderKey].length || 0} archivos`,
-        onClick: () => {
-          setCurrentFolder(currentFolderKey);
-        },
+    const entries = Object.entries(partidasPrevios) as [string, string[]][];
+    const result: TreeDataItem[] = entries
+      .filter(([, items]) => items && items.length > 0)
+      .map(([folderKey, items]) => ({
+        id: folderKey,
+        name: `${folderKey} - ${items.length} archivos`,
+        onClick: () => setCurrentFolder(folderKey),
         children: items.map((item) => ({
-          id: item,
+          id: `${folderKey}/${item}`,
           name: item,
           onClick: () => {
-            setOpenImageDialog(true);
+            setCurrentFolder(folderKey);
             setCurrentItem(item);
+            setOpenImageDialog(true);
           },
         })),
       }));
@@ -100,54 +80,98 @@ export default function PreviosDialog() {
     setTreeData(result);
   }, [partidasPrevios]);
 
-  if (isPartidosPreviosLoading) return;
+  // Reset state when dialog closes or deps change
+  React.useEffect(() => {
+    if (!open) {
+      setCurrentFolder('');
+      setCurrentItem('');
+      setOpenImageDialog(false);
+    }
+  }, [open]);
 
-  if (!partidasPrevios)
+  // Helpers
+  const getImageKey = React.useCallback(
+    ({
+      custom: c,
+      reference: r,
+      currentFolder: cf,
+      imageName,
+    }: {
+      custom?: string;
+      reference?: string;
+      currentFolder?: string;
+      imageName?: string;
+    }) => {
+      if (!c || !r || !cf || !imageName) return null; // <— return null, not undefined
+      const folder = getCurrentFolderFromReference(r);
+      return `/dea/getFileContent?source=/centralizada/${folder}/${c}/Previos/${r}/${cf}/${imageName}`;
+    },
+    []
+  );
+
+  const disabled = !client.custom || !client.reference;
+  const hasAnyData = !!treeData.length;
+  const showNoPreviosInDialog =
+    !isPartidasPreviosLoading && !partidasPreviosError && partidasPrevios && !hasAnyData;
+
+  if (!hasAnyData)
     return (
-      <Button disabled className="bg-blue-500 hover:bg-blue-600 font-bold">
+      <MyGPButtonPrimary className={className} disabled>
         No existen previos
-      </Button>
+      </MyGPButtonPrimary>
     );
 
   return (
     <>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="bg-blue-500 hover:bg-blue-600 font-bold">
+      <MyGPDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`Previos${client.reference && ` - ${client.reference}`}`}
+        description={`Aquí se listan los previos y las partidas de la referencia ${
+          client.reference ?? '—'
+        }`}
+        // keep your height & scroll behavior
+        trigger={
+          <MyGPButtonPrimary
+            className={className}
+            disabled={disabled}
+            title={disabled ? 'Selecciona aduana y referencia' : 'Ver previos'}
+          >
             <IconEye />
-            Ver Previos
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-h-[800px] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Previos - {reference}</DialogTitle>
-            <DialogDescription>
-              Aquí se listan los previos y las partidas de la referencia {reference}
-            </DialogDescription>
-          </DialogHeader>
-          <div>
-            {isPartidosPreviosLoading && <TailwindSpinner className="w-10 h-10" />}
-            {TreeData.length == 0 && !isPartidosPreviosLoading && (
-              <p className="text-sm ml-3">No se encontraron datos.</p>
-            )}
-            {custom && !isPartidosPreviosLoading && (
-              <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={TreeData} />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-      {currentFolder && custom && reference && currentFolder && currentItem && (
+            <span className="ml-1">Ver Previos</span>
+          </MyGPButtonPrimary>
+        }
+      >
+        <div>
+          {isPartidasPreviosLoading && <MyGPSpinner />}
+
+          {partidasPreviosError && (
+            <p className="text-sm ml-3 text-red-600">No se pudieron cargar los previos.</p>
+          )}
+
+          {!isPartidasPreviosLoading && !partidasPreviosError && !partidasPrevios && (
+            <p className="text-sm ml-3">No existen previos.</p>
+          )}
+
+          {showNoPreviosInDialog && <p className="text-sm ml-3">No se encontraron datos.</p>}
+
+          {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && client && (
+            <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={treeData} />
+          )}
+        </div>
+      </MyGPDialog>
+
+      {/* Image dialog */}
+      {openImageDialog && currentFolder && client && currentItem && partidasPrevios && (
         <ImageDialog
-          onOpenChange={(val) => {
-            setOpenImageDialog(val);
-          }}
-          key={currentItem}
-          partidasPrevios={partidasPrevios}
+          key={`${currentFolder}/${currentItem}`}
           open={openImageDialog}
+          onOpenChange={setOpenImageDialog}
+          partidasPrevios={partidasPrevios}
           getImageKey={getImageKey}
           previoInfo={{
-            custom,
-            reference,
+            custom: client.custom,
+            reference: client.reference,
             currentFolder,
             imageName: currentItem,
           }}

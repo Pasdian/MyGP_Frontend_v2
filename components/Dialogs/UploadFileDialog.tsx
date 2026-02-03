@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,140 +7,74 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Carousel } from '../ui/carousel';
-import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import React from 'react';
-import { Button } from '../ui/button';
-import { LoaderCircle } from 'lucide-react';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import { toast } from 'sonner';
-import { mutate } from 'swr';
+import UploadFile from '../UploadFiles/UploadFile';
+import { FolderKey } from '@/types/dea/getFilesByReferences';
 
 export default function UploadFileDialog({
-  onOpenChange,
+  setOpen,
   open,
   title,
-  folder,
+  currentFolder,
 }: {
-  onOpenChange: (open: boolean) => void;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   open: boolean;
   title: string;
-  folder: string;
+  currentFolder: FolderKey;
 }) {
+  const { client, file, setFile } = useDEAStore((state) => state);
+
+  const [filename, setFilename] = React.useState('');
+  const [successfulUpload, setSuccessfulUpload] = React.useState(false);
+
+  // Update store safely after success (supports legacy + new shapes)
+  React.useEffect(() => {
+    if (successfulUpload && filename) {
+      // Ensure base structure exists
+      const base = file.filesByReference ?? { message: '', files: {} };
+      const files = base.files ?? {};
+
+      // Ensure folder exists
+      const selectedFolder = currentFolder || 'SIN_CLASIFICAR';
+      const currentFiles = files[selectedFolder] || [];
+
+      // Add new file if not already there
+      if (!currentFiles.includes(filename)) {
+        setFile({
+          ...file,
+          filesByReference: {
+            ...base,
+            files: {
+              ...files,
+              [currentFolder]: [...currentFiles, filename],
+            },
+          },
+        });
+      }
+
+      // Reset flags
+      setSuccessfulUpload(false);
+      setFilename('');
+    }
+  }, [successfulUpload, filename, currentFolder, file, setFile]);
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <Carousel>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Subir archivo - {folder}</DialogTitle>
-            <DialogDescription>Aquí podras subir un archivo a {title}</DialogDescription>
+            <DialogTitle>Subir archivo - {currentFolder}</DialogTitle>
+            <DialogDescription>Aquí podrás subir un archivo a {title}</DialogDescription>
           </DialogHeader>
+
           <div className="overflow-hidden">
-            <FileDragAndUpload folder={folder} />
+            <UploadFile
+              to={`/GESTION/${client.number}/${client.reference}/${currentFolder}`}
+              setFilename={setFilename}
+              setSuccess={setSuccessfulUpload}
+            />
           </div>
         </DialogContent>
       </Carousel>
     </Dialog>
-  );
-}
-
-function FileDragAndUpload({ folder }: { folder: string }) {
-  const { clientNumber: client, reference, getFilesByReferenceKey } = useDEAStore((state) => state);
-
-  const [files, setFiles] = React.useState<File[]>([]);
-  const [uploading, setUploading] = React.useState(false);
-  const [message, setMessage] = React.useState('');
-
-  const sensors = useSensors(useSensor(PointerSensor));
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    if (droppedFiles.length > 0) {
-      setFiles((prev) => [...prev, ...droppedFiles]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleUpload = async () => {
-    if (files.length === 0) return;
-
-    setUploading(true);
-    setMessage('');
-
-    const formData = new FormData();
-    files.forEach((file) => formData.append('file', file));
-
-    await GPClient.post(`/dea/uploadFile/${client}/${reference}/${folder}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-      .then((res) => {
-        toast.success(res.data.message);
-        setFiles([]);
-        setUploading(false);
-        mutate(getFilesByReferenceKey);
-      })
-      .catch((error) => {
-        toast.error(error.response?.data?.detail || 'Error desconocido');
-      });
-  };
-
-  return (
-    <DndContext sensors={sensors}>
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        style={{
-          height: 150,
-          border: '2px dashed #666',
-          borderRadius: 10,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          color: '#666',
-          cursor: 'pointer',
-          userSelect: 'none',
-          marginBottom: 20,
-        }}
-      >
-        <p>Arrastra y suelta archivos aquí</p>
-        {files.length > 0 && (
-          <ul
-            style={{
-              maxHeight: 100,
-              overflowY: 'auto',
-              marginTop: 10,
-              width: '90%',
-              textAlign: 'center',
-            }}
-          >
-            {files.map((file, idx) => (
-              <li key={idx}>
-                {file.name} ({Math.round(file.size / 1024)} KB)
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <Button
-        className="bg-blue-500 hover:bg-blue-600 cursor-pointer"
-        onClick={handleUpload}
-        disabled={uploading || files.length === 0}
-      >
-        {uploading ? (
-          <div className="flex items-center animate-pulse">
-            <LoaderCircle className="animate-spin mr-2" />
-            Cargando
-          </div>
-        ) : (
-          'Subir archivos'
-        )}
-      </Button>
-      {message && <p>{message}</p>}
-    </DndContext>
   );
 }

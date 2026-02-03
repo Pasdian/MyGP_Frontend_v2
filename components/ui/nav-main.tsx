@@ -1,6 +1,6 @@
 'use client';
 
-import { IconArrowLeft, IconDashboard } from '@tabler/icons-react';
+import { IconAddressBook, IconArrowLeft, IconDashboard } from '@tabler/icons-react';
 
 import {
   SidebarGroup,
@@ -11,12 +11,12 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React from 'react';
-import RoleGuard from '../RoleGuard/RoleGuard';
+import { Album } from 'lucide-react';
+import PermissionGuard from '../PermissionGuard/PermissionGuard';
+import { PERM } from '@/lib/modules/permissions';
 
-const activeItemClass =
-  'bg-blue-200 active:bg-blue-200 hover:bg-blue-300 rounded-md font-bold cursor-pointer';
-const inactiveItemClass = 'rounded-md font-bold cursor-pointer';
+const activeItemClass = 'rounded-none bg-gray-200 hover:bg-gray-300 font-bold cursor-pointer';
+const inactiveItemClass = 'font-bold cursor-pointer';
 
 export function NavMain() {
   const pathname = usePathname();
@@ -25,23 +25,21 @@ export function NavMain() {
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          {pathname === '/mygp/dea' ? (
+          {pathname === '/mygp/dea' && (
             <Link href="/mygp/dashboard">
               <SidebarMenuItem className="flex items-center gap-2">
-                <SidebarMenuButton
-                  tooltip="Quick Create"
-                  className="rounded-md font-bold cursor-pointer"
-                >
+                <SidebarMenuButton tooltip="Quick Create" className="font-bold cursor-pointer">
                   <IconArrowLeft />
-                  <span>Regresar al Dashboard</span>
+                  <span className="text-xs">Regresar</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </Link>
-          ) : (
+          )}
+          {pathname !== '/mygp/dea' && (
             <Link href="/mygp/dashboard">
               <SidebarMenuItem className="flex items-center gap-2">
                 <SidebarMenuButton
-                  tooltip="Quick Create"
+                  tooltip="Dashboard Operativo"
                   className={pathname == '/mygp/dashboard' ? activeItemClass : inactiveItemClass}
                 >
                   <IconDashboard />
@@ -50,19 +48,36 @@ export function NavMain() {
               </SidebarMenuItem>
             </Link>
           )}
-          <RoleGuard allowedRoles={['ADMIN', 'DEA']}>
-            <Link href="/mygp/dea">
-              <SidebarMenuItem className="flex items-center gap-2">
-                <SidebarMenuButton
-                  tooltip="Quick Create"
-                  className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
-                >
-                  <IconDashboard />
-                  <span>DEA</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </Link>
-          </RoleGuard>
+          <Link href="/mygp/dea">
+            <SidebarMenuItem className="flex items-center gap-2">
+              <SidebarMenuButton
+                tooltip="DEA"
+                className={pathname == '/mygp/dea' ? activeItemClass : inactiveItemClass}
+              >
+                <IconAddressBook />
+                <span>DEA</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </Link>
+          {pathname !== '/mygp/dea' && (
+            <PermissionGuard requiredPermissions={[PERM.EXPEDIENTE_DIGITAL_CLIENTE]}>
+              <Link href="/mygp/expediente-digital-cliente">
+                <SidebarMenuItem className="flex items-center gap-2">
+                  <SidebarMenuButton
+                    tooltip="Expediente Digital Cliente"
+                    className={
+                      pathname == '/mygp/expediente-digital-cliente'
+                        ? activeItemClass
+                        : inactiveItemClass
+                    }
+                  >
+                    <Album />
+                    <span>Exp. Digital Cliente</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Link>
+            </PermissionGuard>
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

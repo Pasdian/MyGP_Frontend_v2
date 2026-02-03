@@ -1,5 +1,4 @@
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
@@ -15,13 +14,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, SaveAllIcon, X } from 'lucide-react';
 import AdminPanelRoleSelect from '@/components/selects/RoleSelect';
 import { z } from 'zod/v4';
 import { addUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import CompanySelect from '@/components/selects/CompanySelect';
+import { MyGPButtonDanger } from '@/components/MyGPUI/Buttons/MyGPButtonDanger';
+import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 
 const posthogEvent = usersModuleEvents.find((e) => e.alias === 'USERS_ADD_USER')?.eventName || '';
 
@@ -31,8 +33,8 @@ export default function AddUserForm({
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [shouldView, setShouldView] = React.useState(false);
-  const { mutate } = useSWRConfig();
-
+  const { setAllUsers } = React.useContext(UsersDataTableContext);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const form = useForm<z.infer<typeof addUserSchema>>({
     resolver: zodResolver(addUserSchema),
     mode: 'onChange',
@@ -45,10 +47,12 @@ export default function AddUserForm({
       has_casa_user: true,
       casa_user_name: '',
       role_uuid: '',
+      companies_uuids: [],
     },
   });
 
   async function onSubmit(data: z.infer<typeof addUserSchema>) {
+    setIsSubmitting(true);
     await GPClient.post(`/api/users/createUser`, {
       name: data.name,
       email: data.email,
@@ -57,15 +61,18 @@ export default function AddUserForm({
       mobile: data.mobile,
       has_casa_user: data.has_casa_user,
       casa_user_name: data.casa_user_name,
+      companies_uuids: data.companies_uuids,
     })
       .then((res) => {
         toast.success(res.data.message);
         setIsOpen((opened) => !opened);
         posthog.capture(posthogEvent);
-        mutate('/api/users/getAllUsers');
+        setAllUsers((prev) => [...prev, res.data.data]);
+        setIsSubmitting(false);
       })
       .catch((error) => {
         toast.error(error.response.data.message);
+        setIsSubmitting(false);
       });
   }
 
@@ -185,6 +192,20 @@ export default function AddUserForm({
 
           <FormField
             control={form.control}
+            name="companies_uuids"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Compañia del Usuario</FormLabel>
+                <FormControl>
+                  <CompanySelect value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="mobile"
             render={({ field }) => (
               <FormItem>
@@ -213,13 +234,14 @@ export default function AddUserForm({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="cursor-pointer">
-              Cancelar
-            </Button>
+            <MyGPButtonDanger>
+              <X /> Cancelar
+            </MyGPButtonDanger>
           </DialogClose>
-          <Button className="cursor-pointer bg-blue-500 hover:bg-blue-600" type="submit">
+          <MyGPButtonSubmit isSubmitting={isSubmitting} className="w-[170px]">
+            <SaveAllIcon />
             Guardar Cambios
-          </Button>
+          </MyGPButtonSubmit>
         </DialogFooter>
       </form>
     </Form>

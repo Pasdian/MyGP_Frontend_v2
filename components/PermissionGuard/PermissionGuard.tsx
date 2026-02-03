@@ -1,41 +1,33 @@
 'use client';
-import { useAuth } from '@/hooks/useAuth';
-import { usePathname, useRouter } from 'next/navigation';
-import React from 'react';
 
-export default function PermissionGuard({
-  children,
-  allowedPermissions,
-}: {
+import React from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import type { Permission } from '@/lib/modules/permissions';
+
+type PermissionGuardProps = {
   children: React.ReactNode;
-  allowedPermissions: string[];
-}) {
-  const pathname = usePathname();
-  const { isAuthenticated, user, isLoading } = useAuth();
+  requiredPermissions?: Permission[];
+};
+
+export default function PermissionGuard({ children, requiredPermissions }: PermissionGuardProps) {
   const router = useRouter();
+  const { isAuthenticated, isLoading, hasPermission } = useAuth();
 
   React.useEffect(() => {
     if (isLoading) return;
-
     if (!isAuthenticated) {
-      router.push('/login'); // Redirect to login if not authenticated
+      router.push('/login');
     }
-  }, [isAuthenticated, user, allowedPermissions, isLoading, router, pathname]);
+  }, [isAuthenticated, isLoading, router]);
 
-  const isAdmin = user?.complete_user?.role?.name === 'ADMIN';
+  if (isLoading) return null;
+  if (!isAuthenticated) return null;
 
-  if (
-    !isAuthenticated ||
-    (!isAdmin &&
-      allowedPermissions &&
-      !allowedPermissions.some((allowedPermission) =>
-        user.complete_user.role.permissions.some(
-          (userPermission) => userPermission.action === allowedPermission
-        )
-      ))
-  ) {
-    return null;
+  if (requiredPermissions?.length) {
+    const allowed = requiredPermissions.some((p) => hasPermission(p));
+    if (!allowed) return null;
   }
 
-  return children;
+  return <>{children}</>;
 }

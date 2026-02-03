@@ -1,8 +1,15 @@
+import { User } from '../permissions/user';
+
 export interface LoginResponse {
   message: string;
   accessToken: string;
+}
+
+export interface Me {
   complete_user: CompleteUser;
 }
+
+export type AuthSession = LoginResponse & Me;
 
 interface CompleteUser {
   user: User;
@@ -10,31 +17,21 @@ interface CompleteUser {
   modules: Module[];
 }
 
-interface User {
-  uuid: string;
-  name: string;
-  casa_user_name: string;
-  email: string;
-  mobile: string;
-  status: string;
-  company_name: string | null;
-  company_uuid: string;
-  company_casa_id: string | null;
-}
+type Role = {
+  uuid: string | null;
+  name: string | null;
+  description: string | null;
+  permissions: Permission[] | null;
+};
 
-interface Role {
-  uuid: string;
-  name: string;
-  description: string;
-  permissions: Permission[];
-}
-
-interface Permission {
+type Permission = {
+  uuid: string | null;
   action: string | null;
   description: string | null;
-}
+  isChecked: boolean | null;
+};
 
 interface Module {
-  name: string;
-  description: string;
+  name: string | null;
+  description: string | null;
 }

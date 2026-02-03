@@ -1,5 +1,7 @@
 @import "tailwindcss";
+@import 'driver.js/dist/driver.css';
 @import "tw-animate-css";
+@import 'swiper/css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -117,4 +119,20 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.mygp-tour .driver-popover-footer {
+  display: none !important;
+}
+
+.mygp-tour .driver-popover-close-btn {
+  display: none !important;
 }

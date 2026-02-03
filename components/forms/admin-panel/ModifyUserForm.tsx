@@ -1,5 +1,4 @@
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
@@ -12,63 +11,78 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { getAllUsers } from '@/types/users/getAllUsers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Row } from '@tanstack/react-table';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { Switch } from '@/components/ui/switch';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, X } from 'lucide-react';
 import RoleSelect from '@/components/selects/RoleSelect';
 import CompanySelect from '@/components/selects/CompanySelect';
 import { modifyUserSchema } from '@/lib/schemas/admin-panel/userSchema';
 import { usersModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
+import { getAllUsers } from '@/types/users/getAllUsers';
+import { MyGPButtonDanger } from '@/components/MyGPUI/Buttons/MyGPButtonDanger';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import { UsersDataTableContext } from '@/contexts/UsersDataTableContext';
+import { AxiosError } from 'axios';
 
 const posthogEvent =
   usersModuleEvents.find((e) => e.alias === 'USERS_MODIFY_USER')?.eventName || '';
 
 export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
   const [shouldView, setShouldView] = React.useState(false);
-  const { mutate } = useSWRConfig();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { setAllUsers } = React.useContext(UsersDataTableContext);
 
   const form = useForm<z.infer<typeof modifyUserSchema>>({
     resolver: zodResolver(modifyUserSchema),
     mode: 'onChange',
     defaultValues: {
-      name: row.original.name ? row.original.name : '',
-      email: row.original.email ? row.original.email : '',
-      mobile: row.original.mobile ? row.original.mobile : '',
+      name: row.original.name || undefined,
+      email: row.original.email || undefined,
+      mobile: row.original.mobile || undefined,
       password: '',
-      role_uuid: row.original.role_uuid ? row.original.role_uuid.toString() : '',
+      role_uuid: row.original.role.uuid ? row.original.role.uuid.toString() : '',
       casa_user_name: row.original.casa_user_name ?? '',
       status: row.original.status == 'active' ? true : false,
-      company_uuid: row.original.company?.uuid || '',
+      companies: row.original.companies?.map((c) => c.CVE_IMP) || undefined, // string[] or undefined
     },
   });
 
   async function onSubmit(data: z.infer<typeof modifyUserSchema>) {
-    await GPClient.post(`/api/users/updateUser/${row.original.user_uuid}`, {
-      name: data.name,
-      email: data.email,
-      mobile: data.mobile,
-      password: data.password,
-      role_uuid: data.role_uuid,
-      casa_user_name: data.casa_user_name,
-      status: data.status == true ? 'active' : 'inactive',
-      company_uuid: data.company_uuid,
-    })
-      .then((res) => {
-        toast.success(res.data.message);
-        posthog.capture(posthogEvent);
-        mutate('/api/users/getAllUsers');
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
+    setIsSubmitting(true);
+    try {
+      const res = await GPClient.patch(`/api/users/updateUser/${row.original.user_uuid}`, {
+        name: data.name,
+        email: data.email,
+        mobile: data.mobile,
+        password: data.password,
+        role_uuid: data.role_uuid,
+        casa_user_name: data.casa_user_name,
+        status: data.status ? 'active' : 'inactive',
+        companies_uuids: data.companies,
       });
+
+      toast.success(res.data.message);
+      posthog.capture(posthogEvent);
+
+      const updated = res.data.data; // backend shape with role & companies
+      setAllUsers((prev) =>
+        prev.map((u) => (u.user_uuid === updated.user_uuid ? { ...u, ...updated } : u))
+      );
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message ?? 'Error al actualizar el usuario');
+      } else {
+        toast.error('Error desconocido al actualizar el usuario');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -164,14 +178,15 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
-            name="company_uuid"
+            name="companies"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Compañia del Usuario</FormLabel>
                 <FormControl>
-                  <CompanySelect onValueChange={field.onChange} defaultValue={field.value} />
+                  <CompanySelect value={field.value} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -213,13 +228,12 @@ export default function ModifyUserForm({ row }: { row: Row<getAllUsers> }) {
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" className="cursor-pointer">
+            <MyGPButtonDanger>
+              <X />
               Cancelar
-            </Button>
+            </MyGPButtonDanger>
           </DialogClose>
-          <Button className="cursor-pointer bg-yellow-500 hover:bg-yellow-600" type="submit">
-            Guardar Cambios
-          </Button>
+          <MyGPButtonSubmit isSubmitting={isSubmitting} />
         </DialogFooter>
       </form>
     </Form>

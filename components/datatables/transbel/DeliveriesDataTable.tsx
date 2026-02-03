@@ -13,24 +13,35 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { getDeliveries } from '@/types/transbel/getDeliveries';
 import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
-import useSWR from 'swr/immutable';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import TailwindSpinner from '@/components/ui/TailwindSpinner';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
+import { DeliveriesContext } from '@/contexts/DeliveriesContext';
+import { MyGPTabs } from '@/components/MyGPUI/Tabs/MyGPTabs';
+import TablePageSize from '../pageSize/TablePageSize';
+import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 
 export default function DeliveriesDataTable() {
-  const { data, isValidating } = useSWR<getDeliveries[]>(
-    '/api/transbel/getDeliveries',
-    axiosFetcher
-  );
+  const { deliveries, isLoading: isDeliveriesLoading } = React.useContext(DeliveriesContext);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [shouldFilterErrors, setShouldFilterErrors] = React.useState(true);
+
+  const rowsForTable = React.useMemo(() => {
+    if (!Array.isArray(deliveries)) return [];
+
+    return deliveries.filter((r) => {
+      const hasError =
+        r?.has_entrega_cdp_error === true ||
+        r?.has_guia_house_error === true ||
+        r?.has_entrega_transporte_error === true;
+
+      return shouldFilterErrors ? hasError : !hasError;
+    });
+  }, [deliveries, shouldFilterErrors]);
 
   const table = useReactTable({
-    data: data ? data : [],
+    data: rowsForTable ?? [],
     columns: deliveriesColumns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
@@ -39,22 +50,25 @@ export default function DeliveriesDataTable() {
     state: {
       pagination, // Pagination
     },
+    autoResetPageIndex: false,
   });
 
-  React.useEffect(() => {
-    if (!data) return;
-    data.map((item) => {
-      item.ENTREGA_TRANSPORTE_138 = item.ENTREGA_TRANSPORTE_138
-        ? item.ENTREGA_TRANSPORTE_138.split(' ')[0]
-        : '';
-      item.ENTREGA_CDP_140 = item.ENTREGA_CDP_140 ? item.ENTREGA_CDP_140.split(' ')[0] : '';
-    });
-  }, [data]);
-
-  if (isValidating) return <TailwindSpinner />;
+  if (isDeliveriesLoading) return <MyGPSpinner />;
 
   return (
     <div>
+      <div className="flex items-center space-x-2 mb-4">
+        <div className="flex items-center">
+          <MyGPTabs
+            tabs={[
+              { value: 'errors', label: 'Referencias con Error' },
+              { value: 'not_errors', label: 'Referencias sin Error' },
+            ]}
+            value={shouldFilterErrors ? 'errors' : 'not_errors'}
+            onValueChange={(v) => setShouldFilterErrors(v === 'errors')}
+          />
+        </div>
+      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -98,7 +112,10 @@ export default function DeliveriesDataTable() {
           )}
         </TableBody>
       </Table>
-      <TablePagination table={table} />
+      <div className="w-full flex justify-end items-center gap-2">
+        <TablePageSize pagination={pagination} setPagination={setPagination} />
+        <TablePagination table={table} />
+      </div>
     </div>
   );
 }

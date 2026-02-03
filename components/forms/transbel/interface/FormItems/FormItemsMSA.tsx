@@ -13,19 +13,17 @@ export default function FormItemsMSA({
     {
       ref: string;
       phase: string;
-      exceptionCode: string | undefined;
       date: string;
-      time: string;
-      user: string | undefined;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
     },
     unknown,
     {
       ref: string;
       phase: string;
-      exceptionCode: string | undefined;
       date: string;
-      time: string;
-      user: string | undefined;
+      exceptionCode?: string | undefined;
+      user?: string | undefined;
     }
   >;
 
@@ -37,7 +35,12 @@ export default function FormItemsMSA({
         <Label htmlFor="revalidación" className="mb-1">
           Fecha de Revalidación
         </Label>
-        <Input id="revalidación" disabled type="date" value={row.original.REVALIDACION_073 ?? ''} />
+        <Input
+          id="revalidación"
+          disabled
+          type="date"
+          value={row.original.REVALIDACION_073?.split(' ')[0] ?? ''}
+        />
       </div>
       <div>
         <Label htmlFor="ultimoDoc" className="mb-1">
@@ -47,7 +50,7 @@ export default function FormItemsMSA({
           id="ultimoDoc"
           disabled
           type="date"
-          value={row.original.ULTIMO_DOCUMENTO_114 ?? ''}
+          value={row.original.ULTIMO_DOCUMENTO_114?.split(' ')[0] ?? ''}
         />
       </div>
       <div>
@@ -58,7 +61,7 @@ export default function FormItemsMSA({
           id="entregaTransporte"
           disabled
           type="date"
-          value={row.original.ENTREGA_TRANSPORTE_138 ?? ''}
+          value={row.original.ENTREGA_TRANSPORTE_138?.split(' ')[0] ?? ''}
         />
       </div>
 

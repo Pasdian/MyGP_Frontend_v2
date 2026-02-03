@@ -14,7 +14,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useSWRConfig } from 'swr';
 import { z } from 'zod/v4';
 import { moduleSchema } from '@/lib/schemas/admin-panel/moduleSchema';
 import { getAllModules } from '@/types/getAllModules/getAllModules';
@@ -32,8 +31,6 @@ export default function ModifyModuleForm({
   row: Row<getAllModules>;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { mutate } = useSWRConfig();
-
   const form = useForm<z.infer<typeof moduleSchema>>({
     resolver: zodResolver(moduleSchema),
     mode: 'onChange',
@@ -54,7 +51,6 @@ export default function ModifyModuleForm({
         toast.success(res.data.message);
         posthog.capture(posthogEvent);
         setIsOpen((opened) => !opened);
-        mutate('/api/modules');
       })
       .catch((error) => {
         toast.error(error.response.data.message);
