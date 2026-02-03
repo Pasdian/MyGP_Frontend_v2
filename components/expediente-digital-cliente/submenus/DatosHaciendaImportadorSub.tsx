@@ -15,20 +15,18 @@ import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMai
 import { InputController } from '../InputController';
 import ExpDigiCard from './ExpDigiCard';
 
-// Adjust these to the real docKeys your backend/progress map expects.
-const DOC_KEYS = ['imp.tax.cert', 'imp.tax.efirma', 'imp.tax.constancia'] as const;
-
-const folderKey = 'imp.tax';
-
 export function DatosHaciendaImportadorSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys } = useCliente();
+  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const formSchema = EXP_DIGI_SCHEMAS[folderKey];
+  const FOLDER_KEY = 'imp.tax';
+  const DOC_KEYS = React.useMemo(() => folderMappings[FOLDER_KEY]?.docKeys ?? [], [folderMappings]);
+
+  const formSchema = EXP_DIGI_SCHEMAS[FOLDER_KEY];
   type FormType = z.input<typeof formSchema>;
 
-  const defaultValues = EXP_DIGI_DEFAULT_VALUES[folderKey];
+  const defaultValues = EXP_DIGI_DEFAULT_VALUES[FOLDER_KEY];
 
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
@@ -56,7 +54,7 @@ export function DatosHaciendaImportadorSub() {
       }
 
       const { failed } = await submitFolderAndUpdateProgress({
-        folderKey: folderKey,
+        folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
         setProgressMap,
@@ -67,7 +65,7 @@ export function DatosHaciendaImportadorSub() {
         toast.error(`Fallaron: ${failed.join(', ')}`);
       } else {
         toast.success('Archivos guardados correctamente');
-        form.reset(EXP_DIGI_DEFAULT_VALUES[folderKey]);
+        form.reset(EXP_DIGI_DEFAULT_VALUES[FOLDER_KEY]);
       }
     } catch (err) {
       console.error(err);
@@ -80,7 +78,7 @@ export function DatosHaciendaImportadorSub() {
   return (
     <ExpDigiCard
       title="Datos de Hacienda del Importador"
-      folderKey={folderKey}
+      folderKey={FOLDER_KEY}
       formId="form-datos-hacienda-importador"
       isFormSubmitting={isSubmitting}
     >
@@ -91,24 +89,27 @@ export function DatosHaciendaImportadorSub() {
               <InputController
                 form={form}
                 controllerName="certificado.file"
-                docKey="imp.legal.acta"
+                docKey={DOC_KEYS[0]}
                 fieldLabel="Certificado del Importador (.cer):"
                 buttonText="Selecciona .cer"
                 accept={['.cer']}
+                showFile={false}
               />
+
               <InputController
                 form={form}
                 controllerName="efirma.file"
-                docKey="imp.legal.acta"
+                docKey={DOC_KEYS[1]}
                 buttonText="Selecciona .key"
                 fieldLabel="e-firma del Importador (.key):"
                 accept={['.key']}
+                showFile={false}
               />
 
               <InputController
                 form={form}
                 controllerName="constancia.file"
-                docKey="imp.legal.acta"
+                docKey={DOC_KEYS[2]}
                 fieldLabel="Constancia de Situación Fiscal:"
               />
             </div>

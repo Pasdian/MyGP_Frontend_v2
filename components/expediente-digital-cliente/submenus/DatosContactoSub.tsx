@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FieldGroup } from '@/components/ui/field';
 import { toast } from 'sonner';
 
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -16,23 +15,18 @@ import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMai
 import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { InputController } from '../InputController';
 
-const FOLDER_KEY = 'imp.contact';
-
-const CONTACT_DOC_KEYS = [
-  'imp.contact.domicilio',
-  'imp.contact.fotos_fiscal',
-  'imp.contact.fotos_inmueble',
-  'imp.contact.fotos_actividades',
-] as const;
-
 function asFileArray(v: unknown): File[] {
   return Array.isArray(v) ? (v as File[]) : [];
 }
 
 export function DatosContactoSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, progressMap } = useCliente();
+  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const FOLDER_KEY = 'imp.contact';
+
+  const DOC_KEYS = React.useMemo(() => folderMappings[FOLDER_KEY]?.docKeys ?? [], [folderMappings]);
 
   const formSchema = EXP_DIGI_SCHEMAS[FOLDER_KEY];
   type FormType = z.input<typeof formSchema>;
@@ -64,7 +58,7 @@ export function DatosContactoSub() {
       const { failed } = await submitFolderAndUpdateProgress({
         folderKey: FOLDER_KEY,
         formData: fd,
-        docKeys: CONTACT_DOC_KEYS,
+        docKeys: DOC_KEYS,
         setProgressMap,
         recomputeFolderProgress: setFolderProgressFromDocKeys,
       });
@@ -94,14 +88,14 @@ export function DatosContactoSub() {
             <InputController
               form={form}
               controllerName="comprobanteDomicilio.file"
-              docKey="imp.contact.domicilio"
+              docKey={DOC_KEYS[0]}
               fieldLabel="Comprobante de Domicilio:"
             />
 
             <InputController
               form={form}
               controllerName="fotosAcreditacionLegalInmueble.files"
-              docKey="imp.contact.fotos_inmueble"
+              docKey={DOC_KEYS[1]}
               fieldLabel="Acreditación Legal del Inmueble:"
               description="Contrato de arrendamiento, título de propiedad, etc."
               isMulti={true}
@@ -110,7 +104,7 @@ export function DatosContactoSub() {
             <InputController
               form={form}
               controllerName="fotosDomicilioFiscal.files"
-              docKey="imp.contact.fotos_fiscal"
+              docKey={DOC_KEYS[2]}
               fieldLabel="Fotos Domicilio Fiscal:"
               description="Fachada del inmueble con número exterior e interior"
               isMulti={true}
@@ -119,7 +113,7 @@ export function DatosContactoSub() {
             <InputController
               form={form}
               controllerName="fotosLugarActividades.files"
-              docKey="imp.contact.fotos_actividades"
+              docKey={DOC_KEYS[3]}
               fieldLabel="Fotos del lugar de donde realizan sus actividades:"
               description="Donde se observe: fachada del domicilio, maquinaria, equipo de oficina, el personal, medios de transporte y demás medios empleados para la realización de sus actividades."
               isMulti={true}

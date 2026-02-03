@@ -1,6 +1,6 @@
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { IsComplete } from './buttons/IsComplete';
-import { ShowFile } from './buttons/ShowFile';
+import { ShowFile, ShowFileSlot } from './buttons/ShowFile';
 import { FileController } from './form-controllers/FileController';
 import { MultiImageController } from './MultiImageController';
 
@@ -13,6 +13,8 @@ type InputController = {
   docKey: string;
   isMulti?: boolean;
   description?: string;
+  showFile?: boolean;
+  showFileSlot?: boolean;
 };
 
 export function InputController({
@@ -24,13 +26,17 @@ export function InputController({
   docKey,
   isMulti = false,
   description = '',
+  showFile = true,
+  showFileSlot = false,
 }: InputController) {
   const { casa_id } = useCliente();
+  const gridCols = showFile ? 'grid-cols-[auto_1fr_auto]' : 'grid-cols-[1fr_auto]';
   return (
     <>
       {!isMulti ? (
-        <div className="w-full grid grid-cols-[auto_1fr_auto] gap-2 items-end">
-          <ShowFile client={casa_id} docKey={docKey} />
+        <div className={`w-full grid ${gridCols} gap-2 items-end`}>
+          {showFileSlot && <ShowFileSlot />}
+          {showFile && <ShowFile client={casa_id} docKey={docKey} />}
           <FileController
             form={form}
             fieldLabel={fieldLabel}
@@ -42,7 +48,7 @@ export function InputController({
         </div>
       ) : (
         <div className="grid grid-cols-[auto_1fr_auto] gap-6 items-end">
-          <ShowFile client={casa_id} docKey={docKey} />
+          {showFile && <ShowFile client={casa_id} docKey={docKey} />}
           <MultiImageController
             control={form.control}
             name={controllerName}

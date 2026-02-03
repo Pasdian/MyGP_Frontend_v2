@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import React from 'react';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
+import { FileIcon } from 'lucide-react';
 
 export default function ExpDigiCard({
   title,
@@ -43,7 +44,8 @@ export default function ExpDigiCard({
     >
       <AccordionItem value={folderKey} className="ml-4">
         <AccordionTrigger className={getAccordionClassName([folderKey], progressMap)}>
-          <div>
+          <div className="flex items-center gap-2">
+            <FileIcon size={18} />
             <p>
               {title} - {progress}% completado
               {isFormSubmitting ? ' (guardando...)' : null}

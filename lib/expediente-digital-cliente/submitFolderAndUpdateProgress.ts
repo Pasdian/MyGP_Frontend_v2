@@ -1,5 +1,5 @@
-import type { AxiosInstance } from "axios";
 import { GPClient } from "../axiosUtils/axios-instance";
+import { mutate } from "swr";
 
 type ProgressResponse = {
   client_id: string;
@@ -30,18 +30,23 @@ export async function submitFolderAndUpdateProgress(opts: {
 
   opts.setProgressMap((prev: any) => {
     const next = { ...prev };
-
-    // write docKey progress
     for (const k of opts.docKeys) {
       next[k] = byDoc[k]?.progress ?? next[k] ?? 0;
     }
-
     return next;
   });
 
-  // compute folder from docKeys
   opts.recomputeFolderProgress(opts.folderKey, opts.docKeys);
 
-  const failed = res.data?.failed ? Object.keys(res.data.failed) : [];
-  return { failed };
+  const failedKeys = res.data?.failed ? Object.keys(res.data.failed) : [];
+  const clientId = String(opts.formData.get("client_id") ?? "");
+
+  if (clientId) {
+    const successKeys = opts.docKeys.filter((k) => !failedKeys.includes(k));
+    await Promise.all(
+      successKeys.map((k) => mutate(["file-exists", clientId, k] as const)),
+    );
+  }
+
+  return { failed: failedKeys };
 }

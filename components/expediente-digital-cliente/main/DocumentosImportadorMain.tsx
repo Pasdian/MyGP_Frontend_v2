@@ -14,6 +14,10 @@ import { DatosContactoSub } from '@/components/expediente-digital-cliente/submen
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { DatosHaciendaImportadorSub } from '../submenus/DatosHaciendaImportadorSub';
+import { RepresentanteSub } from '../submenus/RepresentanteSub';
+import { BajoProtestaSub } from '../submenus/BajoProtestaSub';
+import { AcreditacionSub } from '../submenus/AcreditacionSub';
+import { HaciendaAgenteAduanalSub } from '../submenus/HaciendaAgenteAduanalSub';
 
 type ProgressResponse = {
   client_id: string;
@@ -26,7 +30,7 @@ export function DocumentosImportadorMain() {
     casa_id,
     progressMap,
     setProgressMap,
-    folderDocKeys,
+    folderMappings,
     setFolderProgressFromDocKeys,
     getAccordionClassName,
     getProgressFromKeys,
@@ -35,14 +39,17 @@ export function DocumentosImportadorMain() {
   const [value, setValue] = React.useState<string | undefined>();
 
   const importerKeys = React.useMemo(
-    () => ['imp.docs', 'imp.contact', 'imp.tax', 'rep.docs', 'manifiestos', 'agent.docs'],
-    []
+    () => Object.keys(folderMappings).filter((key) => key.startsWith('imp.')),
+    [folderMappings]
   );
 
   const fetchAllProgress = React.useCallback(async () => {
     try {
       const foldersWithDocKeys = importerKeys
-        .map((folderKey) => ({ folderKey, docKeys: folderDocKeys[folderKey] ?? [] }))
+        .map((folderKey) => ({
+          folderKey,
+          docKeys: folderMappings[folderKey]?.docKeys ?? [],
+        }))
         .filter((x) => x.docKeys.length > 0);
 
       const results = await Promise.all(
@@ -71,12 +78,11 @@ export function DocumentosImportadorMain() {
         return next;
       });
 
-      // recompute folder progress from docKeys
       for (const r of results) setFolderProgressFromDocKeys(r.folderKey, r.docKeys);
     } catch (e) {
       console.error(e);
     }
-  }, [importerKeys, folderDocKeys, casa_id, setProgressMap, setFolderProgressFromDocKeys]);
+  }, [importerKeys, folderMappings, casa_id, setProgressMap, setFolderProgressFromDocKeys]);
 
   React.useEffect(() => {
     if (!casa_id) return;
@@ -98,10 +104,10 @@ export function DocumentosImportadorMain() {
           <DocumentosImportadorSub />
           <DatosContactoSub />
           <DatosHaciendaImportadorSub />
-          {/* <RepresentanteSub />
+          <RepresentanteSub />
           <BajoProtestaSub />
           <AcreditacionSub />
-          <HaciendaAgenteAduanalSub /> */}
+          <HaciendaAgenteAduanalSub />
         </AccordionContent>
       </AccordionItem>
     </Accordion>

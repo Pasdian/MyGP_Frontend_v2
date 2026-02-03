@@ -1,8 +1,15 @@
 'use client';
 
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
 
 type ProgressMap = Record<string, number>;
+
+type FolderMappingItem = {
+  docKeys: string[];
+};
+
+type FolderMappings = Record<string, FolderMappingItem>;
 
 type ClienteContextType = {
   cliente: string;
@@ -12,7 +19,10 @@ type ClienteContextType = {
   setCasaId: (value: string) => void;
   setProgressMap: React.Dispatch<React.SetStateAction<ProgressMap>>;
 
-  folderDocKeys: Record<string, string[]>;
+  folderMappings: FolderMappings;
+
+  getDocKeysForFolder: (folderKey: string) => string[];
+
   setFolderProgressFromDocKeys: (folderKey: string, docKeys: readonly string[]) => void;
 
   getAccordionClassName: (
@@ -24,6 +34,10 @@ type ClienteContextType = {
     | 'bg-red-800 text-white px-2 [&>svg]:text-white mb-2';
 
   getProgressFromKeys: (keys: string[], progressMap: ProgressMap) => number;
+
+  folderMappingsLoading: boolean;
+  folderMappingsError: string | null;
+  refetchFolderMappings: () => Promise<void>;
 };
 
 const ClienteContext = React.createContext<ClienteContextType | undefined>(undefined);
@@ -35,27 +49,66 @@ export const getProgressFromKeys = (keys: string[], progressMap: ProgressMap) =>
   return Math.round(total / keys.length);
 };
 
-const DEFAULT_FOLDER_DOC_KEYS: Record<string, string[]> = {
-  'imp.docs': ['imp.legal.acta', 'imp.legal.poder'],
-  'imp.contact': [
-    'imp.contact.domicilio',
-    'imp.contact.fotos_fiscal',
-    'imp.contact.fotos_inmueble',
-    'imp.contact.fotos_actividades',
-  ],
-  // Add more here when you implement them:
-  // 'imp.tax': [...],
-  // 'rep.docs': [...],
-  // 'manifiestos': [...],
-  // 'agent.docs': [...],
-};
+function isFolderMappings(value: unknown): value is FolderMappings {
+  if (!value || typeof value !== 'object') return false;
+
+  const record = value as Record<string, unknown>;
+
+  return Object.values(record).every((v) => {
+    if (!v || typeof v !== 'object') return false;
+    const item = v as Record<string, unknown>;
+    if (!Array.isArray(item.docKeys)) return false;
+    return item.docKeys.every((x) => typeof x === 'string');
+  });
+}
+
+async function fetchFolderMappings(): Promise<FolderMappings> {
+  const res = await GPClient.get('/expediente-digital-cliente/folderMappings');
+  const data = res.data;
+
+  // If your backend wraps responses sometimes, you can extend this:
+  // const candidate = data?.folderMappings ?? data;
+  const candidate = data;
+
+  if (!isFolderMappings(candidate)) {
+    throw new Error('Invalid folderMappings response shape');
+  }
+
+  return candidate;
+}
 
 export function ClienteProvider({ children }: { children: React.ReactNode }) {
   const [cliente, setCliente] = React.useState('');
   const [casa_id, setCasaId] = React.useState('');
   const [progressMap, setProgressMap] = React.useState<ProgressMap>({});
 
-  const folderDocKeys = React.useMemo(() => DEFAULT_FOLDER_DOC_KEYS, []);
+  const [folderMappings, setFolderMappings] = React.useState<FolderMappings>({});
+  const [folderMappingsLoading, setFolderMappingsLoading] = React.useState(false);
+  const [folderMappingsError, setFolderMappingsError] = React.useState<string | null>(null);
+
+  const refetchFolderMappings = React.useCallback(async () => {
+    setFolderMappingsLoading(true);
+    setFolderMappingsError(null);
+
+    try {
+      const mappings = await fetchFolderMappings();
+      setFolderMappings(mappings);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to fetch folderMappings';
+      setFolderMappingsError(message);
+    } finally {
+      setFolderMappingsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    void refetchFolderMappings();
+  }, [refetchFolderMappings]);
+
+  const getDocKeysForFolder = React.useCallback(
+    (folderKey: string) => folderMappings[folderKey]?.docKeys ?? [],
+    [folderMappings]
+  );
 
   const setFolderProgressFromDocKeys = React.useCallback(
     (folderKey: string, docKeys: readonly string[]) => {
@@ -89,12 +142,16 @@ export function ClienteProvider({ children }: { children: React.ReactNode }) {
         casa_id,
         progressMap,
         setProgressMap,
-        folderDocKeys,
+        folderMappings,
+        getDocKeysForFolder,
         setFolderProgressFromDocKeys,
         getAccordionClassName,
         getProgressFromKeys,
         setCliente,
         setCasaId,
+        folderMappingsLoading,
+        folderMappingsError,
+        refetchFolderMappings,
       }}
     >
       {children}

@@ -11,11 +11,12 @@ import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMai
 import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { InputController } from '../InputController';
 
-const DOC_KEYS = ['imp.legal.acta', 'imp.legal.poder'] as const;
-const FOLDER_KEY = 'imp.docs';
-
 export function DocumentosImportadorSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys } = useCliente();
+  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const FOLDER_KEY = 'imp.docs';
+
+  const DOC_KEYS = React.useMemo(() => folderMappings[FOLDER_KEY]?.docKeys ?? [], [folderMappings]);
+
   const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 

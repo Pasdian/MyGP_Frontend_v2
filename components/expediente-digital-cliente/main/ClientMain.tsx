@@ -20,7 +20,6 @@ import { useCompanies } from '@/hooks/useCompanies';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 

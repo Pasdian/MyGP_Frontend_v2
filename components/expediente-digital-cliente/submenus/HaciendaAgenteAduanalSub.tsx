@@ -1,155 +1,74 @@
 'use client';
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Controller, useForm } from 'react-hook-form';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
-import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import { FieldGroup } from '@/components/ui/field';
+import { toast } from 'sonner';
 
 import * as z from 'zod/v4';
+import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 
-import { buildHaciendaSchema } from '@/components/expediente-digital-cliente/schemas/utilSchema';
-import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { toast } from 'sonner';
-import { revalidateFileExists, ShowFile, ShowFileSlot } from '../buttons/ShowFile';
-import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-
-const _datosHaciendaImportador =
-  FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_HACIENDA_IMPORTADOR;
-
-if (!_datosHaciendaImportador?.docs) {
-  throw new Error('Missing DATOS_HACIENDA_IMPORTADOR docs');
-}
-
-const RENAME_MAP: Record<string, string> = {
-  certificado: _datosHaciendaImportador.docs.CERTIFICADO_SAT.filename,
-  efirma: _datosHaciendaImportador.docs.EFIRMA_SAT.filename,
-  constancia: _datosHaciendaImportador.docs.CONSTANCIA_SITUACION_FISCAL_SAT.filename,
-};
+import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMain';
+import { InputController } from '../InputController';
+import ExpDigiCard from './ExpDigiCard';
 
 export function HaciendaAgenteAduanalSub() {
-  const { casa_id, cliente } = useCliente();
+  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
-
-  const [accordionOpen, setAccordionOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const DOCUMENTOS_IMPORTADOR_EXPORTADOR = FOLDERFILESTRUCT.DOCUMENTOS_IMPORTADOR_EXPORTADOR;
-  const DATOS_HACIENDA_AGENTE_ADUANAL =
-    DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_HACIENDA_AGENTE_ADUANAL;
-  const DATOS_HACIENDA_AGENTE_ADUANAL_DOCS =
-    DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_HACIENDA_AGENTE_ADUANAL.docs;
+  const FOLDER_KEY = 'imp.agent.tax';
+  const DOC_KEYS = React.useMemo(() => folderMappings[FOLDER_KEY]?.docKeys ?? [], [folderMappings]);
 
-  const basePath = `/${casa_id}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_HACIENDA_AGENTE_ADUANAL?.name}`;
+  const formSchema = EXP_DIGI_SCHEMAS[FOLDER_KEY];
+  type FormType = z.input<typeof formSchema>;
 
-  const certificadoPath = `${basePath}/${DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.CERTIFICADO_SAT.filename}`;
-  const efirmaPath = `${basePath}/${DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.EFIRMA_SAT.filename}`;
-  const constanciaPath = `${basePath}/${DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.CONSTANCIA_SITUACION_FISCAL_SAT.filename}`;
+  const defaultValues = EXP_DIGI_DEFAULT_VALUES[FOLDER_KEY];
 
-  const formSchema = buildHaciendaSchema(
-    DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.CERTIFICADO_SAT?.size || 2_000_000,
-    DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.EFIRMA_SAT?.size || 2_000_000,
-    DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.CONSTANCIA_SITUACION_FISCAL_SAT?.size || 2_000_000
-  );
-
-  const defaultValues = React.useMemo(() => {
-    const docs = DATOS_HACIENDA_AGENTE_ADUANAL_DOCS!;
-    return {
-      certificado: {
-        file: undefined,
-        category: docs.CERTIFICADO_SAT.category,
-        filename: docs.CERTIFICADO_SAT.filename || 'CERTIFICADO_SAT.pdf',
-        filepath: certificadoPath,
-      },
-      efirma: {
-        files: [],
-        category: docs.EFIRMA_SAT.category,
-        filename: docs.EFIRMA_SAT.filename || 'EFIRMA_SAT.pdf',
-        filepath: efirmaPath,
-      },
-      constancia: {
-        files: [],
-        category: docs.CONSTANCIA_SITUACION_FISCAL_SAT.category,
-        filename:
-          docs.CONSTANCIA_SITUACION_FISCAL_SAT.filename || 'CONSTANCIA_SITUACION_FISCAL_SAT.pdf',
-        filepath: constanciaPath,
-      },
-    };
-  }, [DATOS_HACIENDA_AGENTE_ADUANAL_DOCS, certificadoPath, efirmaPath, efirmaPath]);
-
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
-  const resetForm = () => {
-    form.reset({
-      certificado: { ...form.getValues('certificado'), file: undefined },
-      efirma: { ...form.getValues('efirma'), file: undefined },
-      constancia: { ...form.getValues('constancia'), file: undefined },
-    });
-  };
-
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+
     try {
-      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('client_id', casa_id);
+      formData.append('uploaded_by', getCasaUsername() || 'MYGP');
 
-      const entries = Object.entries(data) as Array<
-        [
-          keyof typeof data,
-          { file?: File; category?: number; filepath?: string; filename?: string },
-        ]
-      >;
-
-      for (const [fieldName, value] of entries) {
-        const file = value?.file;
-        if (!file) continue;
-
-        const rename = RENAME_MAP[fieldName as string] ?? String(fieldName);
-
-        const formData = new FormData();
-        formData.append('path', basePath);
-        formData.append('file', file);
-        formData.append('rename', rename);
-
-        const insertRecordPayload = {
-          filename: value.filename,
-          file_date: value.file
-            ? new Date(value.file.lastModified).toISOString().split('T')[0]
-            : new Date().toISOString().split('T')[0],
-          filepath: value.filepath,
-          client_id: cliente.split(' ')[0],
-          file_category: value.category,
-          is_valid: 1,
-          status: 0,
-          comment: '',
-          expiration_date: null,
-          uploaded_by: getCasaUsername() || 'MYGP',
-        };
-
-        await GPClient.post('/expediente-digital-cliente/uploadFile', formData);
-        await GPClient.post('/api/expediente-digital-cliente', insertRecordPayload);
+      if (data.certificado?.file) {
+        formData.append('agent.tax.cert', data.certificado.file);
       }
 
-      toast.info('Se subieron los archivos correctamente');
+      if (data.efirma?.file) {
+        formData.append('agent.tax.efirma', data.efirma.file);
+      }
 
-      await Promise.all([revalidateFileExists(constanciaPath)]);
+      if (data.constancia?.file) {
+        formData.append('agent.tax.constancia', data.constancia.file);
+      }
 
-      resetForm();
-    } catch (error) {
-      console.error(error);
+      const { failed } = await submitFolderAndUpdateProgress({
+        folderKey: FOLDER_KEY,
+        formData,
+        docKeys: DOC_KEYS,
+        setProgressMap,
+        recomputeFolderProgress: setFolderProgressFromDocKeys,
+      });
+
+      if (failed.length > 0) {
+        toast.error(`Fallaron: ${failed.join(', ')}`);
+      } else {
+        toast.success('Archivos guardados correctamente');
+        form.reset(EXP_DIGI_DEFAULT_VALUES[FOLDER_KEY]);
+      }
+    } catch (err) {
+      console.error(err);
       toast.error('Error al subir los archivos');
     } finally {
       setIsSubmitting(false);
@@ -157,83 +76,46 @@ export function HaciendaAgenteAduanalSub() {
   };
 
   return (
-    <Accordion
-      type="single"
-      collapsible
-      className="w-full"
-      value={accordionOpen ? 'datos-hacienda-agente-aduanal' : ''}
-      onValueChange={(val) => setAccordionOpen(val === 'datos-hacienda-agente-aduanal')}
+    <ExpDigiCard
+      title="Datos de Hacienda del Agente Aduanal"
+      folderKey={FOLDER_KEY}
+      formId="form-datos-hacienda-agente"
+      isFormSubmitting={isSubmitting}
     >
-      <AccordionItem value="datos-hacienda-agente-aduanal" className="ml-4">
-        <AccordionTrigger className="bg-blue-500 text-white px-2 [&>svg]:text-white">
-          Datos de Hacienda del Agente Aduanal
-        </AccordionTrigger>
+      <form id="form-datos-hacienda-agente" onSubmit={form.handleSubmit(onSubmit)}>
+        <FieldGroup>
+          <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
+            <div className="col-span-2 grid w-full gap-2">
+              <InputController
+                form={form}
+                controllerName="certificado.file"
+                docKey={DOC_KEYS[0]}
+                fieldLabel="Certificado del Agente Aduanal (.cer):"
+                buttonText="Selecciona .cer"
+                accept={['.cer']}
+                showFile={false}
+              />
 
-        <AccordionContent>
-          <Card>
-            <CardContent>
-              <form id="form-datos-hacienda-agente-aduanal" onSubmit={form.handleSubmit(onSubmit)}>
-                <FieldGroup>
-                  <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
-                    <div className="col-span-2 grid w-full gap-2">
-                      <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
-                        <ShowFileSlot />
-                        <div className="min-w-0 w-full">
-                          <FileController
-                            form={form}
-                            fieldLabel="Certificado del Agente Aduanal (.cer):"
-                            controllerName="certificado.file"
-                            accept=".cer"
-                            buttonText="Seleccionar .cer"
-                          />
-                        </div>
-                      </div>
+              <InputController
+                form={form}
+                controllerName="efirma.file"
+                docKey={DOC_KEYS[1]}
+                buttonText="Selecciona .key"
+                fieldLabel="e-firma del Agente Aduanal (.key):"
+                accept={['.key']}
+                showFile={false}
+              />
 
-                      <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
-                        <ShowFileSlot />
-                        <div className="min-w-0 w-full">
-                          <FileController
-                            form={form}
-                            fieldLabel="e-firma del Agente Aduanal (.key):"
-                            controllerName="efirma.file"
-                            accept=".key"
-                            buttonText="Seleccionar .key"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
-                        <ShowFile shouldFetch={accordionOpen} path={constanciaPath} />
-                        <div className="min-w-0 w-full">
-                          <FileController
-                            form={form}
-                            fieldLabel="Constancia de Situación Fiscal:"
-                            controllerName="constancia.file"
-                            accept={['application/pdf', 'image/png', 'image/jpeg']}
-                            buttonText="Selecciona .pdf .png .jpeg"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </FieldGroup>
-              </form>
-            </CardContent>
-
-            <CardFooter className="flex items-end">
-              <Field orientation="horizontal" className="justify-end">
-                <MyGPButtonGhost onClick={() => resetForm()}>Reiniciar</MyGPButtonGhost>
-                <MyGPButtonSubmit
-                  form="form-datos-hacienda-agente-aduanal"
-                  isSubmitting={isSubmitting}
-                >
-                  Guardar Cambios
-                </MyGPButtonSubmit>
-              </Field>
-            </CardFooter>
-          </Card>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+              <InputController
+                form={form}
+                controllerName="constancia.file"
+                docKey={DOC_KEYS[2]}
+                fieldLabel="Constancia de Situación Fiscal:"
+              />
+            </div>
+          </div>
+        </FieldGroup>
+      </form>
+    </ExpDigiCard>
   );
 }

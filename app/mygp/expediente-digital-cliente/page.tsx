@@ -7,15 +7,15 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PERM } from '@/lib/modules/permissions';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
-import ExpDigiCard from '@/components/expediente-digital-cliente/submenus/ExpDigiCard';
+import { DocumentosComercialMain } from '@/components/expediente-digital-cliente/main/DocumentosComercialMain';
+import { DocumentosComplementariosMain } from '@/components/expediente-digital-cliente/main/DocumentosComplementariosMain';
+import { DocumentosVulnerablesMain } from '@/components/expediente-digital-cliente/main/DocumentosVulnerablesMain';
 
 function Content() {
   const [showDocuments, setShowDocuments] = React.useState(false);
-  const [isFetchingProgress, setIsFetchingProgress] = React.useState(false);
-  const [progressData, setProgressData] = React.useState<any>(null);
-
-  const { cliente, progressMap, getAccordionClassName, getProgressFromKeys } = useCliente();
-  const allKeys = ['imp.docs', 'imp.contact', 'imp.tax', 'rep.docs', 'manifiestos', 'agent.docs'];
+  const { cliente, progressMap, getAccordionClassName, getProgressFromKeys, folderMappings } =
+    useCliente();
+  const allKeys = React.useMemo(() => Object.keys(folderMappings), [folderMappings]);
   const expDigiProgress = getProgressFromKeys(allKeys, progressMap);
 
   return (
@@ -39,10 +39,9 @@ function Content() {
       {showDocuments && (
         <div>
           <DocumentosImportadorMain />
-
-          {/* <DocumentosComercialMain />
+          <DocumentosComercialMain />
           <DocumentosComplementariosMain />
-          <DocumentosVulnerablesMain /> */}
+          <DocumentosVulnerablesMain />
         </div>
       )}
     </PermissionGuard>
