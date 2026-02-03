@@ -16,7 +16,7 @@ import { InputController } from '../InputController';
 import ExpDigiCard from './ExpDigiCard';
 
 export function DatosHaciendaImportadorSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const { casa_id, folderMappings, updateProgressFromSubmitResponse } = useCliente();
   const { getCasaUsername } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -37,28 +37,34 @@ export function DatosHaciendaImportadorSub() {
     setIsSubmitting(true);
 
     try {
+      if (!casa_id?.trim()) {
+        toast.error('Selecciona un cliente antes de subir archivos');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('client_id', casa_id);
       formData.append('uploaded_by', getCasaUsername() || 'MYGP');
 
-      if (data.constancia?.file) {
-        formData.append('imp.tax.cert', data.constancia.file);
+      // IMPORTANT: append using the backend docKey field names
+      // Make sure these keys match your DOC_KEYS ordering / schema fields.
+      if (data.certificado?.file) {
+        formData.append(DOC_KEYS[0] ?? 'imp.tax.cert', data.certificado.file);
       }
 
       if (data.efirma?.file) {
-        formData.append('imp.tax.efirma', data.efirma.file);
+        formData.append(DOC_KEYS[1] ?? 'imp.tax.efirma', data.efirma.file);
       }
 
       if (data.constancia?.file) {
-        formData.append('imp.tax.constancia', data.constancia.file);
+        formData.append(DOC_KEYS[2] ?? 'imp.tax.constancia', data.constancia.file);
       }
 
       const { failed } = await submitFolderAndUpdateProgress({
         folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length > 0) {
@@ -74,7 +80,7 @@ export function DatosHaciendaImportadorSub() {
       setIsSubmitting(false);
     }
   };
-  console.log(form.formState.errors);
+
   return (
     <ExpDigiCard
       title="Datos de Hacienda del Importador"
@@ -84,36 +90,32 @@ export function DatosHaciendaImportadorSub() {
     >
       <form id="form-datos-hacienda-importador" onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
-          <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
-            <div className="col-span-2 grid w-full gap-2">
-              <InputController
-                form={form}
-                controllerName="certificado.file"
-                docKey={DOC_KEYS[0]}
-                fieldLabel="Certificado del Importador (.cer):"
-                buttonText="Selecciona .cer"
-                accept={['.cer']}
-                showFile={false}
-              />
+          <InputController
+            form={form}
+            controllerName="certificado.file"
+            docKey={DOC_KEYS[0]}
+            fieldLabel="Certificado del Importador (.cer):"
+            buttonText="Selecciona .cer"
+            accept={['.cer']}
+            showFile={false}
+          />
 
-              <InputController
-                form={form}
-                controllerName="efirma.file"
-                docKey={DOC_KEYS[1]}
-                buttonText="Selecciona .key"
-                fieldLabel="e-firma del Importador (.key):"
-                accept={['.key']}
-                showFile={false}
-              />
+          <InputController
+            form={form}
+            controllerName="efirma.file"
+            docKey={DOC_KEYS[1]}
+            buttonText="Selecciona .key"
+            fieldLabel="e-firma del Importador (.key):"
+            accept={['.key']}
+            showFile={false}
+          />
 
-              <InputController
-                form={form}
-                controllerName="constancia.file"
-                docKey={DOC_KEYS[2]}
-                fieldLabel="Constancia de Situación Fiscal:"
-              />
-            </div>
-          </div>
+          <InputController
+            form={form}
+            controllerName="constancia.file"
+            docKey={DOC_KEYS[2]}
+            fieldLabel="Constancia de Situación Fiscal:"
+          />
         </FieldGroup>
       </form>
     </ExpDigiCard>

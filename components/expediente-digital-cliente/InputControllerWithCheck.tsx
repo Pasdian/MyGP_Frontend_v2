@@ -5,11 +5,11 @@ import { Field, FieldError } from '@/components/ui/field';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
 import { IsComplete } from './buttons/IsComplete';
 import { ShowFile } from './buttons/ShowFile';
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 
 type Props = {
   form: any;
 
-  client: string; // casa_id
   docKey: string; // "man.usuario" | "man.agente"
 
   checkName: string; // "usuarioSolicitoOperacion.isChecked"
@@ -28,7 +28,6 @@ type Props = {
 
 export function InputControllerWithCheck({
   form,
-  client,
   docKey,
   checkName,
   checkLabel,
@@ -40,12 +39,24 @@ export function InputControllerWithCheck({
   error,
   showFile = true,
 }: Props) {
+  const { casa_id } = useCliente();
+
+  const showMiddle = showFile;
+  const gridCols = showMiddle ? 'grid-cols-[auto_auto_1fr_auto]' : 'grid-cols-[auto_1fr_auto]';
+
   return (
     <>
-      <div className="grid grid-cols-[2rem_auto_1fr_auto] gap-x-4 items-start">
-        <div className="pt-2 flex justify-center">
-          {showFile ? <ShowFile client={client} docKey={docKey} /> : null}
-        </div>
+      <div className={`w-full grid ${gridCols} gap-2 items-end`}>
+        {showMiddle && (
+          <div className="flex flex-col gap-2 items-center">
+            <ShowFile
+              client={casa_id}
+              docKey={docKey}
+              disabled={!showFile}
+              className={!showFile ? 'opacity-50' : undefined}
+            />
+          </div>
+        )}
 
         <Controller
           name={checkName as any}
@@ -53,7 +64,7 @@ export function InputControllerWithCheck({
           render={({ field, fieldState }) => (
             <Field
               data-invalid={fieldState.invalid}
-              className="w-auto inline-flex items-start gap-2 pt-2"
+              className="w-auto inline-flex items-start gap-2"
             >
               <Checkbox
                 checked={!!field.value}

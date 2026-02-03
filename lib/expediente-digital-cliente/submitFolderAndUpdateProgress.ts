@@ -13,30 +13,23 @@ type ProgressResponse = {
 export async function submitFolderAndUpdateProgress(opts: {
   folderKey: string;
   formData: FormData;
-  docKeys: readonly string[];
-  setProgressMap: (updater: (prev: any) => any) => void;
-  recomputeFolderProgress: (
+  docKeys: readonly string[]; // keep this only for SWR mutate keys + optional safety
+  updateProgressFromSubmitResponse: (
     folderKey: string,
-    docKeys: readonly string[],
+    progress: ProgressResponse,
   ) => void;
 }) {
   const res = await GPClient.post(
     `/expediente-digital-cliente/folders/${opts.folderKey}/submit`,
     opts.formData,
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
 
   const progress = res.data?.progress as ProgressResponse | undefined;
-  const byDoc = progress?.byDocKey ?? {};
-
-  opts.setProgressMap((prev: any) => {
-    const next = { ...prev };
-    for (const k of opts.docKeys) {
-      next[k] = byDoc[k]?.progress ?? next[k] ?? 0;
-    }
-    return next;
-  });
-
-  opts.recomputeFolderProgress(opts.folderKey, opts.docKeys);
+  if (progress) {
+    // single local update: updates docKey progress + recomputes folder progress locally
+    opts.updateProgressFromSubmitResponse(opts.folderKey, progress);
+  }
 
   const failedKeys = res.data?.failed ? Object.keys(res.data.failed) : [];
   const clientId = String(opts.formData.get("client_id") ?? "");
@@ -48,5 +41,5 @@ export async function submitFolderAndUpdateProgress(opts: {
     );
   }
 
-  return { failed: failedKeys };
+  return { failed: failedKeys, progress: progress ?? null };
 }

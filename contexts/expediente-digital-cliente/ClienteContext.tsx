@@ -1,7 +1,8 @@
+// contexts/expediente-digital-cliente/ClienteContext.tsx
 'use client';
 
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
 
 type ProgressMap = Record<string, number>;
 
@@ -11,19 +12,25 @@ type FolderMappingItem = {
 
 type FolderMappings = Record<string, FolderMappingItem>;
 
+type BackendProgress = {
+  client_id: string;
+  overall: { scannedFiles: number; requiredFiles: number; progress: number };
+  byDocKey: Record<string, { scannedFiles: number; requiredFiles: number; progress: number }>;
+};
+
 type ClienteContextType = {
   cliente: string;
   casa_id: string;
+
   progressMap: ProgressMap;
+  setProgressMap: React.Dispatch<React.SetStateAction<ProgressMap>>;
+
   setCliente: (label: string) => void;
   setCasaId: (value: string) => void;
-  setProgressMap: React.Dispatch<React.SetStateAction<ProgressMap>>;
 
   folderMappings: FolderMappings;
 
   getDocKeysForFolder: (folderKey: string) => string[];
-
-  setFolderProgressFromDocKeys: (folderKey: string, docKeys: readonly string[]) => void;
 
   getAccordionClassName: (
     keys: string[],
@@ -35,9 +42,22 @@ type ClienteContextType = {
 
   getProgressFromKeys: (keys: string[], progressMap: ProgressMap) => number;
 
+  // Bulk progress
+  refreshAllProgress: () => Promise<void>;
+  updateProgressFromSubmitResponse: (folderKey: string, progress: BackendProgress) => void;
+
   folderMappingsLoading: boolean;
   folderMappingsError: string | null;
   refetchFolderMappings: () => Promise<void>;
+
+  progressLoading: boolean;
+  progressError: string | null;
+};
+
+type ProgressResponse = {
+  client_id: string;
+  overall: { scannedFiles: number; requiredFiles: number; progress: number };
+  byDocKey: Record<string, { scannedFiles: number; requiredFiles: number; progress: number }>;
 };
 
 const ClienteContext = React.createContext<ClienteContextType | undefined>(undefined);
@@ -53,7 +73,6 @@ function isFolderMappings(value: unknown): value is FolderMappings {
   if (!value || typeof value !== 'object') return false;
 
   const record = value as Record<string, unknown>;
-
   return Object.values(record).every((v) => {
     if (!v || typeof v !== 'object') return false;
     const item = v as Record<string, unknown>;
@@ -64,11 +83,7 @@ function isFolderMappings(value: unknown): value is FolderMappings {
 
 async function fetchFolderMappings(): Promise<FolderMappings> {
   const res = await GPClient.get('/expediente-digital-cliente/folderMappings');
-  const data = res.data;
-
-  // If your backend wraps responses sometimes, you can extend this:
-  // const candidate = data?.folderMappings ?? data;
-  const candidate = data;
+  const candidate = res.data;
 
   if (!isFolderMappings(candidate)) {
     throw new Error('Invalid folderMappings response shape');
@@ -77,10 +92,50 @@ async function fetchFolderMappings(): Promise<FolderMappings> {
   return candidate;
 }
 
+async function fetchProgressByDocKeys(
+  clientId: string,
+  docKeys: string[]
+): Promise<BackendProgress> {
+  const res = await GPClient.get<BackendProgress>(
+    '/expediente-digital-cliente/getProgressByDocKeys',
+    {
+      params: {
+        client_id: clientId,
+        'docKeys[]': docKeys,
+      },
+    }
+  );
+
+  return res.data;
+}
+
+function buildProgressMapFromBackend(
+  folderMappings: FolderMappings,
+  backend: BackendProgress
+): ProgressMap {
+  const next: ProgressMap = {};
+
+  // docKey progress
+  for (const [docKey, v] of Object.entries(backend.byDocKey ?? {})) {
+    next[docKey] = Number(v?.progress ?? 0);
+  }
+
+  // folder progress computed locally from docKey progress
+  for (const [folderKey, item] of Object.entries(folderMappings)) {
+    const keys = item?.docKeys ?? [];
+    next[folderKey] = getProgressFromKeys(keys, next);
+  }
+
+  return next;
+}
+
 export function ClienteProvider({ children }: { children: React.ReactNode }) {
   const [cliente, setCliente] = React.useState('');
   const [casa_id, setCasaId] = React.useState('');
+
   const [progressMap, setProgressMap] = React.useState<ProgressMap>({});
+  const [progressLoading, setProgressLoading] = React.useState(false);
+  const [progressError, setProgressError] = React.useState<string | null>(null);
 
   const [folderMappings, setFolderMappings] = React.useState<FolderMappings>({});
   const [folderMappingsLoading, setFolderMappingsLoading] = React.useState(false);
@@ -105,20 +160,59 @@ export function ClienteProvider({ children }: { children: React.ReactNode }) {
     void refetchFolderMappings();
   }, [refetchFolderMappings]);
 
-  const getDocKeysForFolder = React.useCallback(
-    (folderKey: string) => folderMappings[folderKey]?.docKeys ?? [],
-    [folderMappings]
-  );
+  const allDocKeys = React.useMemo(() => {
+    const set = new Set<string>();
+    Object.values(folderMappings).forEach((f) => {
+      (f?.docKeys ?? []).forEach((k) => set.add(k));
+    });
+    return Array.from(set);
+  }, [folderMappings]);
 
-  const setFolderProgressFromDocKeys = React.useCallback(
-    (folderKey: string, docKeys: readonly string[]) => {
+  const refreshAllProgress = React.useCallback(async () => {
+    const clientId = casa_id?.trim();
+    if (!clientId) return;
+    if (allDocKeys.length === 0) return;
+
+    setProgressLoading(true);
+    setProgressError(null);
+
+    try {
+      const backend = await fetchProgressByDocKeys(clientId, allDocKeys);
+      const next = buildProgressMapFromBackend(folderMappings, backend);
+      setProgressMap(next);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to fetch progress';
+      setProgressError(message);
+    } finally {
+      setProgressLoading(false);
+    }
+  }, [casa_id, allDocKeys, folderMappings]);
+
+  React.useEffect(() => {
+    void refreshAllProgress();
+  }, [refreshAllProgress]);
+
+  const updateProgressFromSubmitResponse = React.useCallback(
+    (folderKey: string, progress: ProgressResponse) => {
       setProgressMap((prev) => {
         const next = { ...prev };
-        next[folderKey] = getProgressFromKeys([...docKeys], next);
+
+        for (const [docKey, v] of Object.entries(progress.byDocKey ?? {})) {
+          next[docKey] = Number(v?.progress ?? 0);
+        }
+
+        const keys = folderMappings[folderKey]?.docKeys ?? [];
+        next[folderKey] = getProgressFromKeys(keys, next);
+
         return next;
       });
     },
-    []
+    [folderMappings]
+  );
+
+  const getDocKeysForFolder = React.useCallback(
+    (folderKey: string) => folderMappings[folderKey]?.docKeys ?? [],
+    [folderMappings]
   );
 
   const getAccordionClassName = (keys: string[], progressMap: ProgressMap) => {
@@ -140,18 +234,27 @@ export function ClienteProvider({ children }: { children: React.ReactNode }) {
       value={{
         cliente,
         casa_id,
+
         progressMap,
         setProgressMap,
-        folderMappings,
-        getDocKeysForFolder,
-        setFolderProgressFromDocKeys,
-        getAccordionClassName,
-        getProgressFromKeys,
+
         setCliente,
         setCasaId,
+
+        folderMappings,
+        getDocKeysForFolder,
+        getAccordionClassName,
+        getProgressFromKeys,
+
+        refreshAllProgress,
+        updateProgressFromSubmitResponse,
+
         folderMappingsLoading,
         folderMappingsError,
         refetchFolderMappings,
+
+        progressLoading,
+        progressError,
       }}
     >
       {children}

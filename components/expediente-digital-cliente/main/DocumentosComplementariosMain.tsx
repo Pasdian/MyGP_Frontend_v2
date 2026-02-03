@@ -19,30 +19,20 @@ import { InputController } from '../InputController';
 import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMain';
 import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import ExpDigiCard from '../submenus/ExpDigiCard';
-
-type ProgressResponse = {
-  client_id: string;
-  overall: { scannedFiles: number; requiredFiles: number; progress: number };
-  byDocKey: Record<string, { scannedFiles: number; requiredFiles: number; progress: number }>;
-};
 
 export function DocumentosComplementariosMain() {
   const {
     casa_id,
     progressMap,
-    setProgressMap,
     folderMappings,
-    setFolderProgressFromDocKeys,
+    updateProgressFromSubmitResponse,
     getAccordionClassName,
-    getProgressFromKeys,
   } = useCliente();
 
   const { getCasaUsername } = useAuth();
 
   const FOLDER_KEY = 'cmp.docs';
-
   const DOC_KEYS = React.useMemo(() => folderMappings[FOLDER_KEY]?.docKeys ?? [], [folderMappings]);
 
   const [value, setValue] = React.useState<string | undefined>();
@@ -55,40 +45,15 @@ export function DocumentosComplementariosMain() {
     defaultValues: EXP_DIGI_DEFAULT_VALUES[FOLDER_KEY],
   });
 
-  const fetchProgress = React.useCallback(async () => {
-    try {
-      if (!casa_id || DOC_KEYS.length === 0) return;
-
-      const res = await GPClient.get<ProgressResponse>(
-        '/expediente-digital-cliente/getProgressByDocKeys',
-        {
-          params: {
-            client_id: casa_id,
-            'docKeys[]': DOC_KEYS,
-          },
-        }
-      );
-
-      setProgressMap((prev) => {
-        const next = { ...prev };
-        for (const k of DOC_KEYS) next[k] = res.data?.byDocKey?.[k]?.progress ?? 0;
-        return next;
-      });
-
-      setFolderProgressFromDocKeys(FOLDER_KEY, DOC_KEYS);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [DOC_KEYS, casa_id, setProgressMap, setFolderProgressFromDocKeys]);
-
-  React.useEffect(() => {
-    if (!casa_id) return;
-    fetchProgress();
-  }, [casa_id, fetchProgress]);
-
-  const folderProgress = getProgressFromKeys(DOC_KEYS, progressMap);
+  // Prefer reading folder progress computed in context
+  const folderProgress = progressMap[FOLDER_KEY] ?? 0;
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    if (!casa_id?.trim()) {
+      toast.error('Selecciona un cliente antes de subir archivos');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -96,7 +61,6 @@ export function DocumentosComplementariosMain() {
       formData.append('client_id', casa_id);
       formData.append('uploaded_by', getCasaUsername() || 'MYGP');
 
-      // Use docKey from the schema/defaultValues
       if (data.cuestionarioLavadoTerrorismo?.file) {
         formData.append(
           data.cuestionarioLavadoTerrorismo.docKey,
@@ -116,8 +80,7 @@ export function DocumentosComplementariosMain() {
         folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length > 0) {

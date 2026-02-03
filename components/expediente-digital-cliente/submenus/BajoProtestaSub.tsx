@@ -2,18 +2,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FieldError, FieldGroup } from '@/components/ui/field';
 import * as z from 'zod/v4';
-import { DownloadFormato } from '../DownloadFormato';
 import { toast } from 'sonner';
-import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import React from 'react';
+
+import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { useAuth } from '@/hooks/useAuth';
 import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMain';
 import ExpDigiCard from './ExpDigiCard';
 import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
-import { InputControllerWithCheck } from '../InputControllerWithCheck';
+import { InputController } from '../InputController';
 
 export function BajoProtestaSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const { casa_id, updateProgressFromSubmitResponse, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
 
   const FOLDER_KEY = 'imp.man';
@@ -22,20 +22,19 @@ export function BajoProtestaSub() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const defaultValues = EXP_DIGI_DEFAULT_VALUES[FOLDER_KEY];
-
   const formSchema = EXP_DIGI_SCHEMAS[FOLDER_KEY];
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
   const usuarioError =
-    form.formState.errors.usuarioSolicitoOperacion?.file ??
+    form.formState.errors.usuarioSolicitoOperacion?.file?.file ??
     form.formState.errors.usuarioSolicitoOperacion?.isChecked;
 
   const agenteError =
-    form.formState.errors.agenteAduanalVerificoUsuarios?.file ??
+    form.formState.errors.agenteAduanalVerificoUsuarios?.file?.file ??
     form.formState.errors.agenteAduanalVerificoUsuarios?.isChecked;
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -56,8 +55,7 @@ export function BajoProtestaSub() {
         folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length > 0) {
@@ -84,40 +82,32 @@ export function BajoProtestaSub() {
       <form id="form-manifiesto-bajo-protesta" onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="space-y-3">
-            <InputControllerWithCheck
-              form={form}
-              client={casa_id}
-              docKey="man.usuario"
-              checkName="usuarioSolicitoOperacion.isChecked"
-              checkLabel={<DownloadFormato doc="MANIFIESTO_USUARIO_SOLICITO_OPERACION" />}
-              controllerName="usuarioSolicitoOperacion.file.file"
-              fieldLabel="Manifiesto bajo protesta de decir verdad del usuario que solicitó la operación:"
-              accept={['application/pdf']}
-              buttonText="Selecciona .pdf"
-              error={
-                form.formState.errors.usuarioSolicitoOperacion?.file?.file ??
-                form.formState.errors.usuarioSolicitoOperacion?.isChecked
-              }
-            />
-            {usuarioError ? <FieldError errors={[usuarioError]} /> : null}
+            <div className="space-y-1">
+              <InputController
+                form={form}
+                docKey="man.usuario"
+                controllerName="usuarioSolicitoOperacion.file.file"
+                fieldLabel="Manifiesto bajo protesta de decir verdad del usuario que solicitó la operación:"
+                accept={['application/pdf']}
+                buttonText="Selecciona .pdf"
+                formatoDoc="MANIFIESTO_USUARIO_SOLICITO_OPERACION"
+              />
+              {usuarioError ? <FieldError errors={[usuarioError]} /> : null}
+            </div>
 
-            <InputControllerWithCheck
-              form={form}
-              client={casa_id}
-              docKey="man.agente"
-              checkName="agenteAduanalVerificoUsuarios.isChecked"
-              checkLabel={<DownloadFormato doc="MANIFIESTO_AGENTE_VERIFICO_USUARIO" />}
-              controllerName="agenteAduanalVerificoUsuarios.file.file"
-              fieldLabel="Manifiesto bajo protesta de decir verdad en el que el Agente Aduanal señale que verificó a los usuarios"
-              accept={['application/pdf']}
-              buttonText="Selecciona .pdf"
-              description="Artículos 49 Bis fracción X, 69, 69 B y 69 B-Bis del CFF"
-              error={
-                form.formState.errors.agenteAduanalVerificoUsuarios?.file?.file ??
-                form.formState.errors.agenteAduanalVerificoUsuarios?.isChecked
-              }
-            />
-            {agenteError ? <FieldError errors={[agenteError]} /> : null}
+            <div className="space-y-1">
+              <InputController
+                form={form}
+                docKey="man.agente"
+                controllerName="agenteAduanalVerificoUsuarios.file.file"
+                fieldLabel="Manifiesto bajo protesta de decir verdad en el que el Agente Aduanal señale que verificó a los usuarios"
+                accept={['application/pdf']}
+                buttonText="Selecciona .pdf"
+                description="Artículos 49 Bis fracción X, 69, 69 B y 69 B-Bis del CFF"
+                formatoDoc="MANIFIESTO_AGENTE_VERIFICO_USUARIO"
+              />
+              {agenteError ? <FieldError errors={[agenteError]} /> : null}
+            </div>
           </div>
         </FieldGroup>
       </form>

@@ -16,7 +16,6 @@ import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMai
 import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { InputController } from '../InputController';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { ShowFileSlot } from '../buttons/ShowFile';
 import ExpDigiCard from './ExpDigiCard';
 
 export function RepresentanteSub() {
@@ -25,7 +24,7 @@ export function RepresentanteSub() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [_, setIsHydrating] = React.useState(false);
 
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const { casa_id, updateProgressFromSubmitResponse, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
 
   const FOLDER_KEY = 'imp.rep' as const;
@@ -50,7 +49,7 @@ export function RepresentanteSub() {
         setIsHydrating(true);
 
         const { data: rep } = await GPClient.get(
-          '/api/expediente-digital-cliente/legal-representative',
+          '/expediente-digital-cliente/legalRepresentative',
           { params: { casa_id } }
         );
 
@@ -129,8 +128,7 @@ export function RepresentanteSub() {
         folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length > 0) {
@@ -156,36 +154,39 @@ export function RepresentanteSub() {
     >
       <form id="form-datos-representante" onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
-              <ShowFileSlot />
-              <Controller
-                name="nombre"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="grid grid-rows-2 gap-0 w-full min-w-0"
-                  >
-                    <FieldLabel htmlFor="nombre">Nombre:</FieldLabel>
-                    <Input
-                      {...field}
-                      id="nombre"
-                      placeholder="Ingresa un nombre..."
-                      className="mb-2"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-            </div>
+          {/* Main 2-col grid for the whole form */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {/* Nombre */}
+            <Controller
+              name="nombre"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="grid grid-rows-2 gap-0 w-full min-w-0"
+                >
+                  <FieldLabel htmlFor="nombre">Nombre:</FieldLabel>
+                  <Input
+                    {...field}
+                    id="nombre"
+                    placeholder="Ingresa un nombre..."
+                    className="mb-2"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
+            {/* Apellido 1 */}
             <Controller
               name="apellido1"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="grid grid-rows-2 gap-0 w-full min-w-0"
+                >
                   <FieldLabel htmlFor="apellido1">Primer Apellido:</FieldLabel>
                   <Input
                     {...field}
@@ -199,35 +200,37 @@ export function RepresentanteSub() {
               )}
             />
 
-            <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
-              <ShowFileSlot />
-              <Controller
-                name="apellido2"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="grid grid-rows-2 gap-0 w-full min-w-0"
-                  >
-                    <FieldLabel htmlFor="apellido2">Segundo Apellido:</FieldLabel>
-                    <Input
-                      {...field}
-                      id="apellido2"
-                      placeholder="Ingresa un apellido..."
-                      className="mb-2"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-            </div>
+            {/* Apellido 2 */}
+            <Controller
+              name="apellido2"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="grid grid-rows-2 gap-0 w-full min-w-0"
+                >
+                  <FieldLabel htmlFor="apellido2">Segundo Apellido:</FieldLabel>
+                  <Input
+                    {...field}
+                    id="apellido2"
+                    placeholder="Ingresa un apellido..."
+                    className="mb-2"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
+            {/* RFC */}
             <Controller
               name="rfc"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="grid grid-rows-2 gap-0 w-full min-w-0"
+                >
                   <FieldLabel htmlFor="rfc">RFC:</FieldLabel>
                   <Input
                     {...field}
@@ -241,8 +244,8 @@ export function RepresentanteSub() {
               )}
             />
 
-            <div className="grid grid-cols-[auto_1fr] gap-2 items-start col-span-2">
-              <ShowFileSlot />
+            {/* CURP full width */}
+            <div className="md:col-span-2">
               <Controller
                 name="curp"
                 control={form.control}
@@ -265,12 +268,13 @@ export function RepresentanteSub() {
               />
             </div>
 
-            <div className="col-span-2 my-6">
+            {/* Separator */}
+            <div className="md:col-span-2 my-6">
               <Separator />
             </div>
 
-            <div className="grid grid-cols-[auto_1fr] gap-2 items-start col-span-2">
-              <ShowFileSlot />
+            {/* Address block full width */}
+            <div className="md:col-span-2">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full min-w-0">
                 <Controller
                   name="address_1"
@@ -382,39 +386,42 @@ export function RepresentanteSub() {
               </div>
             </div>
 
-            <div className="col-span-2 my-6">
+            {/* Separator */}
+            <div className="md:col-span-2 my-6">
               <Separator />
             </div>
 
-            <div className="grid grid-cols-[auto_1fr] gap-2 items-start">
-              <ShowFileSlot />
-              <Controller
-                name="correoElectronico"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="grid grid-rows-2 gap-0 w-full min-w-0"
-                  >
-                    <FieldLabel htmlFor="correoElectronico">Correo Electrónico:</FieldLabel>
-                    <Input
-                      {...field}
-                      id="correoElectronico"
-                      className="mb-2"
-                      placeholder="ejemplo@gmail.com"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-            </div>
+            {/* Correo */}
+            <Controller
+              name="correoElectronico"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="grid grid-rows-2 gap-0 w-full min-w-0"
+                >
+                  <FieldLabel htmlFor="correoElectronico">Correo Electrónico:</FieldLabel>
+                  <Input
+                    {...field}
+                    id="correoElectronico"
+                    className="mb-2"
+                    placeholder="ejemplo@gmail.com"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
+            {/* Número de oficina */}
             <Controller
               name="numeroOficina"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="grid grid-rows-2 gap-0 w-full min-w-0"
+                >
                   <FieldLabel htmlFor="numeroOficina">Número de Oficina:</FieldLabel>
                   <Input
                     {...field}
@@ -428,8 +435,8 @@ export function RepresentanteSub() {
               )}
             />
 
-            <div className="col-span-2 grid grid-cols-[auto_1fr] gap-2 items-start">
-              <ShowFileSlot />
+            {/* Teléfono full width */}
+            <div className="md:col-span-2">
               <Controller
                 name="telefonoRepresentanteLegal"
                 control={form.control}
@@ -454,12 +461,13 @@ export function RepresentanteSub() {
               />
             </div>
 
-            <div className="col-span-2 my-6">
+            {/* Separator */}
+            <div className="md:col-span-2 my-6">
               <Separator />
             </div>
 
-            <div className="grid grid-cols-[auto_1fr] gap-2 items-start col-span-2">
-              <ShowFileSlot />
+            {/* INE block full width */}
+            <div className="md:col-span-2">
               <div className="space-y-4 w-full">
                 <InputController
                   form={form}

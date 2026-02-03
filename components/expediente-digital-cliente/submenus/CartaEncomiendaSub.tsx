@@ -12,7 +12,7 @@ import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/
 import { InputController } from '../InputController';
 
 export function CartaEncomiendaSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const { casa_id, updateProgressFromSubmitResponse, folderMappings } = useCliente();
 
   // Adjust to the folder key you registered in schemasMain + folderMappings
   const FOLDER_KEY = 'com.encomienda';
@@ -54,8 +54,7 @@ export function CartaEncomiendaSub() {
         folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length > 0) {

@@ -13,7 +13,7 @@ import { InputController } from '../InputController';
 import { ExpiraEnController } from '@/components/expediente-digital-cliente/form-controllers/ExpiraEnController';
 
 export function AcreditacionSub() {
-  const { casa_id, setProgressMap, setFolderProgressFromDocKeys, folderMappings } = useCliente();
+  const { casa_id, updateProgressFromSubmitResponse, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
 
   const FOLDER_KEY = 'imp.acre';
@@ -70,8 +70,7 @@ export function AcreditacionSub() {
         folderKey: FOLDER_KEY,
         formData,
         docKeys: DOC_KEYS,
-        setProgressMap,
-        recomputeFolderProgress: setFolderProgressFromDocKeys,
+        updateProgressFromSubmitResponse,
       });
 
       if (failed.length > 0) {

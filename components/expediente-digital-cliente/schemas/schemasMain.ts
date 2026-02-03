@@ -308,18 +308,12 @@ export const EXP_DIGI_DEFAULT_VALUES = {
 
   'imp.man': {
     usuarioSolicitoOperacion: {
-      isChecked: false,
-      file: {
-        docKey: 'man.usuario',
-        file: undefined,
-      },
+      docKey: 'man.usuario',
+      file: undefined,
     },
     agenteAduanalVerificoUsuarios: {
-      isChecked: false,
-      file: {
-        docKey: 'man.agente',
-        file: undefined,
-      },
+      docKey: 'man.agente',
+      file: undefined,
     },
   },
 
