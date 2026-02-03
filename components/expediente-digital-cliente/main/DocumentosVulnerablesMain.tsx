@@ -18,7 +18,7 @@ import { DownloadFormato } from '../DownloadFormato';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import React from 'react';
 import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,7 +61,7 @@ export function DocumentosVulnerablesMain() {
   const DOCUMENTOS_ACTIVIDAD_VULNERABLE = FOLDERFILESTRUCT.DOCUMENTOS_ACTIVIDAD_VULNERABLE;
   const DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS = DOCUMENTOS_ACTIVIDAD_VULNERABLE?.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE.name}`;
 
   const formatoActividadVulnerable3901Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3901.filename}`;
   const formatoActividadVulnerable3072Path = `${basePath}/${DOCUMENTOS_ACTIVIDAD_VULNERABLE_DOCS?.FORMATO_ACTIVIDAD_VULNERABLE_3072.filename}`;

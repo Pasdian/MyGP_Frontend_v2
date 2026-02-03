@@ -20,7 +20,7 @@ import { ExpiraEnController } from '@/components/expediente-digital-cliente/form
 
 import * as z from 'zod/v4';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
 import { revalidateFileExists, ShowFile, ShowFileSlot } from '../buttons/ShowFile';
@@ -57,7 +57,7 @@ export function RepresentanteSub() {
   const DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS =
     DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DOCUMENTOS_REPRESENTANTE_LEGAL.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_REPRESENTANTE_LEGAL?.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_REPRESENTANTE_LEGAL?.name}`;
   const inePath = `${basePath}/${DOCUMENTOS_REPRESENTANTE_LEGAL_DOCS?.INE.filename}`;
 
   const formSchema = buildRepresentanteSchema(

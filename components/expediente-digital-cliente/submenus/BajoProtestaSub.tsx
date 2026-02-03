@@ -25,7 +25,7 @@ import { FileController } from '@/components/expediente-digital-cliente/form-con
 import { DownloadFormato } from '../DownloadFormato';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import React from 'react';
 import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
@@ -117,7 +117,7 @@ export function BajoProtestaSub() {
 
   const MANIFIESTO_BAJO_PROTESTA_DOCS = MANIFIESTO_BAJO_PROTESTA?.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${MANIFIESTO_BAJO_PROTESTA?.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${MANIFIESTO_BAJO_PROTESTA?.name}`;
 
   const usuarioSolicitoOperacionPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.USUARIO_SOLICITO_OPERACION.filename}`;
   const agenteAduanalVerificoUsuariosPath = `${basePath}/${MANIFIESTO_BAJO_PROTESTA_DOCS?.AGENTE_ADUANAL_VERIFICO_USUARIOS.filename}`;

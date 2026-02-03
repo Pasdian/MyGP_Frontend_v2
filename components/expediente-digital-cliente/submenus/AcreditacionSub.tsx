@@ -23,7 +23,7 @@ import { ExpiraEnController } from '@/components/expediente-digital-cliente/form
 
 import * as z from 'zod/v4';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
@@ -63,7 +63,7 @@ export function AcreditacionSub() {
 
   const DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS = DOCUMENTOS_ACREDITA_AGENTE_ADUANAL?.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL?.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL?.name}`;
 
   const obligacionesFiscalesPath = `${basePath}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.OPINION_CUMPLIMIENTO_OBLIGACIONES_FISCALES.filename}`;
   const datosBancariosPath = `${basePath}/${DOCUMENTOS_ACREDITA_AGENTE_ADUANAL_DOCS?.DATOS_BANCARIOS_HOJA_MEMBRETADA.filename}`;

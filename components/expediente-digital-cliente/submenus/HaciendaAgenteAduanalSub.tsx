@@ -18,7 +18,7 @@ import * as z from 'zod/v4';
 
 import { buildHaciendaSchema } from '@/components/expediente-digital-cliente/schemas/utilSchema';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
@@ -52,7 +52,7 @@ export function HaciendaAgenteAduanalSub() {
   const DATOS_HACIENDA_AGENTE_ADUANAL_DOCS =
     DOCUMENTOS_IMPORTADOR_EXPORTADOR.children?.DATOS_HACIENDA_AGENTE_ADUANAL.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_HACIENDA_AGENTE_ADUANAL?.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_IMPORTADOR_EXPORTADOR.name}/${DATOS_HACIENDA_AGENTE_ADUANAL?.name}`;
 
   const certificadoPath = `${basePath}/${DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.CERTIFICADO_SAT.filename}`;
   const efirmaPath = `${basePath}/${DATOS_HACIENDA_AGENTE_ADUANAL_DOCS?.EFIRMA_SAT.filename}`;

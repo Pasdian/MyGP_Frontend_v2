@@ -18,7 +18,7 @@ import { DownloadFormato } from '../DownloadFormato';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import React from 'react';
 import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,7 +46,7 @@ export function DocumentosComplementariosMain() {
   const DOCUMENTOS_COMPLEMENTARIOS = FOLDERFILESTRUCT.DOCUMENTOS_COMPLEMENTARIOS;
   const DOCUMENTOS_COMPLEMENTARIOS_DOCS = DOCUMENTOS_COMPLEMENTARIOS?.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_COMPLEMENTARIOS.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_COMPLEMENTARIOS.name}`;
 
   const cuestionarioPath = `${basePath}/${DOCUMENTOS_COMPLEMENTARIOS_DOCS?.CUESTIONARIO_PREVENCION_LAVADO_ACTIVOS.filename}`;
   const altaClientesPath = `${basePath}/${DOCUMENTOS_COMPLEMENTARIOS_DOCS?.ALTA_CLIENTES.filename}`;

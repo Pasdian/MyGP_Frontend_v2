@@ -1,27 +1,35 @@
 'use client';
 
 import { DocumentosImportadorMain } from '@/components/expediente-digital-cliente/main/DocumentosImportadorMain';
-import { DocumentosComercialMain } from '@/components/expediente-digital-cliente/main/DocumentosComercialMain';
-import { DocumentosComplementariosMain } from '@/components/expediente-digital-cliente/main/DocumentosComplementariosMain';
-import { DocumentosVulnerablesMain } from '@/components/expediente-digital-cliente/main/DocumentosVulnerablesMain';
 import { ClienteProvider, useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { ClientMain } from '@/components/expediente-digital-cliente/main/ClientMain';
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PERM } from '@/lib/modules/permissions';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
+import ExpDigiCard from '@/components/expediente-digital-cliente/submenus/ExpDigiCard';
 
 function Content() {
   const [showDocuments, setShowDocuments] = React.useState(false);
-  const { cliente } = useCliente();
+  const [isFetchingProgress, setIsFetchingProgress] = React.useState(false);
+  const [progressData, setProgressData] = React.useState<any>(null);
+
+  const { cliente, progressMap, getAccordionClassName, getProgressFromKeys } = useCliente();
+  const allKeys = ['imp.docs', 'imp.contact', 'imp.tax', 'rep.docs', 'manifiestos', 'agent.docs'];
+  const expDigiProgress = getProgressFromKeys(allKeys, progressMap);
 
   return (
     <PermissionGuard requiredPermissions={[PERM.EXPEDIENTE_DIGITAL_CLIENTE]}>
       {showDocuments && (
-        <Card className="mb-4 bg-blue-400">
+        <Card className={getAccordionClassName(allKeys, progressMap)}>
           <CardContent>
-            <p className="font-semibold text-xl text-white">Expediente Digital del Cliente</p>
-            <p className="text-white">{cliente}</p>
+            <div>
+              <div>
+                <p className="font-semibold text-xl text-white">Expediente Digital del Cliente</p>
+                <p className="text-white">{cliente}</p>
+              </div>
+              <p className="text-2xl">{expDigiProgress ?? 0}%</p>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -31,9 +39,10 @@ function Content() {
       {showDocuments && (
         <div>
           <DocumentosImportadorMain />
-          <DocumentosComercialMain />
+
+          {/* <DocumentosComercialMain />
           <DocumentosComplementariosMain />
-          <DocumentosVulnerablesMain />
+          <DocumentosVulnerablesMain /> */}
         </div>
       )}
     </PermissionGuard>

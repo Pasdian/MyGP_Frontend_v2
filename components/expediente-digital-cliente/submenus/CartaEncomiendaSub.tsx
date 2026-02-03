@@ -15,7 +15,7 @@ import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
 import { DownloadFormato } from '../DownloadFormato';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
 import React from 'react';
@@ -45,7 +45,7 @@ export function CartaEncomiendaSub() {
 
   const CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS = CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD?.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD?.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_AREA_COMERCIAL.name}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD?.name}`;
 
   const cartaEncomienda3901Path = `${basePath}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3901.filename}`;
   const cartaEncomienda3072Path = `${basePath}/${CARTAS_ENCOMIENDA_AVISO_PRIVACIDAD_DOCS?.CARTA_ENCOMIENDA_3072.filename}`;

@@ -16,7 +16,7 @@ import { FileController } from '@/components/expediente-digital-cliente/form-con
 import { DownloadFormato } from '../DownloadFormato';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { toast } from 'sonner';
 import React from 'react';
 import { revalidateFileExists, ShowFile } from '../buttons/ShowFile';
@@ -45,7 +45,7 @@ export function AcuerdoConfidencialidadSub() {
   const ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS =
     ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL?.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL?.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_AREA_COMERCIAL.name}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL?.name}`;
 
   const acuerdoConfidencialidadPath = `${basePath}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_CONFIDENCIALIDAD.filename}`;
   const acuerdoSocioComercialPath = `${basePath}/${ACUERDO_CONFIDENCIALIDAD_SOCIO_COMERCIAL_DOCS?.ACUERDO_SOCIO_COMERCIAL.filename}`;

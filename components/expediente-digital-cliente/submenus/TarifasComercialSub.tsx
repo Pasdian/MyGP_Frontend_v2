@@ -15,7 +15,7 @@ import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
 import { DownloadFormato } from '../DownloadFormato';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
-import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/folderFileStruct';
+import { FOLDERFILESTRUCT } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { toast } from 'sonner';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import React from 'react';
@@ -45,7 +45,7 @@ export function TarifasComercialSub() {
   const TARIFAS = DOCUMENTOS_AREA_COMERCIAL.children?.TARIFAS;
   const TARIFAS_DOCS = TARIFAS?.docs;
 
-  const basePath = `/${casa_id} ${cliente}/${DOCUMENTOS_AREA_COMERCIAL.name}/${TARIFAS?.name}`;
+  const basePath = `/${casa_id}/${DOCUMENTOS_AREA_COMERCIAL.name}/${TARIFAS?.name}`;
 
   const tarifaAutorizadaPath = `${basePath}/${TARIFAS_DOCS?.TARIFA_AUTORIZADA.filename}`;
   const tarifaPreclasificacionPath = `${basePath}/${TARIFAS_DOCS?.TARIFA_PRECLASIFICACION.filename}`;
