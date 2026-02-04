@@ -40,7 +40,7 @@ export default function CollapsibleReferences() {
     document.body.removeChild(a);
   }
 
-  const filteredItems = fuzzyFilterObjects(filterValue, refs, ['NUM_REFE']);
+  const filteredItems = fuzzyFilterObjects(filterValue, refs, ['NUM_REFE', 'NUM_PEDI']);
   // Fuzzy filter
   function fuzzyFilterObjects(
     query: string,
@@ -85,7 +85,7 @@ export default function CollapsibleReferences() {
               <SidebarMenu>
                 <Input
                   type="text"
-                  placeholder="Buscar..."
+                  placeholder="Num. Pedime, Ref"
                   className="mb-3"
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}

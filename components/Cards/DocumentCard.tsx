@@ -88,7 +88,9 @@ export default function DocumentCard({
 
   const baseVisibleFiles = (Array.isArray(files) ? files : []).filter(filterFn ?? (() => true));
 
-  const visibleFiles = baseVisibleFiles.filter((item) => fuzzyMatch(query, item));
+  const visibleFiles = baseVisibleFiles
+    .filter((item) => fuzzyMatch(query, item))
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
   return (
     <Card className="rounded-none p-0 h-full min-h-0">
