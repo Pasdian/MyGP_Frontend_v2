@@ -1,3 +1,4 @@
+import React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getRefsByClient } from '@/types/casa/getRefsByClient';
 import {
@@ -9,7 +10,6 @@ import {
 } from '../sidebar';
 import { ChevronRight, DownloadIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
-import React from 'react';
 import { Input } from '../input';
 import { getCustomKeyByRef } from '@/lib/customs/customs';
 import { useRefsByClient } from '@/hooks/useRefsByClient';
@@ -18,16 +18,33 @@ import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
 
+function exactMatchFilter(
+  query: string,
+  list: getRefsByClient[] | undefined,
+  keys: (keyof getRefsByClient)[]
+) {
+  if (!list) return [];
+  const q = query.trim().toLowerCase();
+  if (!q) return list;
+
+  return list.filter((item) =>
+    keys.some((key) => {
+      const value = item[key];
+      return typeof value === 'string' && value.toLowerCase() === q;
+    })
+  );
+}
+
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
   const { client, setClient, filters, resetFileState } = useDEAStore((state) => state);
+
   const { refs, isLoading: isRefsLoading } = useRefsByClient(
     client.number,
     filters.dateRange?.from,
     filters.dateRange?.to
   );
 
-  // Get zip stream
   function handleDownloadZip(clientNumber: string, reference: string) {
     const apiKey = process.env.NEXT_PUBLIC_PYTHON_API_KEY;
     const url = `/dea/zip?source=/GESTION/${clientNumber}/${reference}&api_key=${apiKey}`;
@@ -40,32 +57,10 @@ export default function CollapsibleReferences() {
     document.body.removeChild(a);
   }
 
-  const filteredItems = fuzzyFilterObjects(filterValue, refs, ['NUM_REFE', 'NUM_PEDI']);
-  // Fuzzy filter
-  function fuzzyFilterObjects(
-    query: string,
-    list: getRefsByClient[] | undefined,
-    keys: (keyof getRefsByClient)[]
-  ) {
-    if (!list || !query) return list ?? [];
-    const lowerQuery = query.toLowerCase();
+  const filteredItems = exactMatchFilter(filterValue, refs, ['NUM_REFE', 'NUM_PEDI']);
 
-    return list.filter((item) =>
-      keys.some((key) => {
-        const value = item[key];
-        if (typeof value !== 'string') return false;
-
-        const lowerValue = value.toLowerCase();
-        let qIndex = 0;
-
-        for (let i = 0; i < lowerValue.length && qIndex < lowerQuery.length; i++) {
-          if (lowerValue[i] === lowerQuery[qIndex]) qIndex++;
-        }
-        return qIndex === lowerQuery.length;
-      })
-    );
-  }
   if (isRefsLoading) return <MyGPSpinner />;
+
   return (
     <div>
       <Collapsible defaultOpen className="group/collapsible">
@@ -75,7 +70,7 @@ export default function CollapsibleReferences() {
             className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
           >
             <CollapsibleTrigger>
-              <p className="font-bold text-xs">{filteredItems?.length || 0} referencias</p>
+              <p className="font-bold text-xs">{filteredItems.length} referencias</p>
               <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
@@ -85,14 +80,14 @@ export default function CollapsibleReferences() {
               <SidebarMenu>
                 <Input
                   type="text"
-                  placeholder="Num. Pedime, Ref"
+                  placeholder="Num. Pedido o Referencia exacta"
                   className="mb-3"
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
                 />
 
                 {client.number &&
-                  filteredItems?.map(({ NUM_REFE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
+                  filteredItems.map(({ NUM_REFE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
                     const isActive = client.reference === NUM_REFE;
                     const base =
                       'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
