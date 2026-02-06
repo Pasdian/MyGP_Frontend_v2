@@ -232,7 +232,7 @@ export default function ModifyDailyTrackingStatusForm({
             type="button"
           >
             <Trash />
-            Eliminar
+            Cancelación (Etapa - 182)
           </Button>
 
           <div className="flex gap-2">
