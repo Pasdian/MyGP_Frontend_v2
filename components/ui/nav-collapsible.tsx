@@ -8,6 +8,7 @@ import {
   IconManualGearbox,
   IconFolderBolt,
   IconDoor,
+  IconMoneybag,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
@@ -75,6 +76,12 @@ const nav: NavGroupDef[] = [
         url: '/mygp/operaciones/reportes',
         requires: [PERM.OPERACIONES_REPORTES],
         icon: SheetIcon,
+      },
+      {
+        title: 'Gastos Referencia',
+        url: '/mygp/operaciones/gastos',
+        requires: [PERM.OPERACIONES_GASTOS],
+        icon: IconMoneybag,
       },
     ],
   },
