@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
+import { Label } from '../label';
 
 function exactMatchFilter(
   query: string,
@@ -78,9 +79,10 @@ export default function CollapsibleReferences() {
           <CollapsibleContent>
             <SidebarGroupContent className="pl-4">
               <SidebarMenu>
+                <Label>Buscar por Referencia o Pedimento</Label>
                 <Input
                   type="text"
-                  placeholder="Num. Pedido o Referencia exacta"
+                  placeholder="PAI123456"
                   className="mb-3"
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
