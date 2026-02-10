@@ -44,7 +44,7 @@ export default function Gastos() {
       const { data } = await GPClient.get<Gasto[]>(`/operaciones/gastosByRef?ref=${dataForm.ref}`);
 
       setData(data);
-      toast.success('Si la referencia es correcta, se mostrará la tabla de gastos');
+      toast.success('Referencia correcta');
     } catch (error: any) {
       toast.error(
         error?.response?.data?.detail ??
