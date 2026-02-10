@@ -81,10 +81,10 @@ export function SiteHeader() {
       const hasSelection = companySelect && companySelect.length > 0;
       const base = hasSelection
         ? companies.filter(
-            (c) =>
-              companySelect.includes(String(c.CVE_IMP)) &&
-              String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
-          )
+          (c) =>
+            companySelect.includes(String(c.CVE_IMP)) &&
+            String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
+        )
         : companies.filter((c) => String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC);
 
       return base.map((c) => ({
@@ -111,8 +111,8 @@ export function SiteHeader() {
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
     useSWRMutation(
       client.number &&
-        client.reference &&
-        `/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
+      client.reference &&
+      `/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
       axiosFetcher
     );
   return (
@@ -156,7 +156,7 @@ export function SiteHeader() {
           </PermissionGuard>
 
           <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
-            {client.reference && client.number && (
+            {client.reference && client.number && file?.filesByReference?.files?.['05-EXP-DIGITAL']?.length > 0 && (
               <MyGPButtonPrimary
                 className="h-5 text-xs w-[200px]"
                 disabled={
