@@ -104,9 +104,14 @@ export default function CollapsibleReferences() {
                         className={`${base} ${isActive ? active : normal}`}
                         onClick={() => {
                           if (!FOLDER_HAS_CONTENT) return;
-                          const custom = getCustomKeyByRef(NUM_REFE);
-                          setClient({ custom: custom || '' });
-                          setClient({ reference: NUM_REFE });
+
+                          if (client.reference === NUM_REFE) {
+                            return;
+                          }
+
+                          const custom = getCustomKeyByRef(NUM_REFE) || '';
+
+                          setClient({ reference: NUM_REFE, custom });
                           resetFileState();
                         }}
                       >
