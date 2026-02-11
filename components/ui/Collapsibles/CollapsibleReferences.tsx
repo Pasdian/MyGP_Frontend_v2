@@ -18,6 +18,7 @@ import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
 import { Label } from '../label';
+import { Checkbox } from '../checkbox';
 
 function exactMatchFilter(
   query: string,
@@ -36,9 +37,27 @@ function exactMatchFilter(
   );
 }
 
+function fuzzyFilter(
+  query: string,
+  list: getRefsByClient[] | undefined,
+  keys: (keyof getRefsByClient)[]
+) {
+  if (!list) return [];
+  const q = query.trim().toLowerCase();
+  if (!q) return list;
+
+  return list.filter((item) =>
+    keys.some((key) => {
+      const value = item[key];
+      return typeof value === 'string' && value.toLowerCase().includes(q);
+    })
+  );
+}
+
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
   const { client, setClient, filters, resetFileState } = useDEAStore((state) => state);
+  const [isFuzzy, setIsFuzzy] = React.useState(false);
 
   const { refs, isLoading: isRefsLoading } = useRefsByClient(
     client.number,
@@ -58,8 +77,9 @@ export default function CollapsibleReferences() {
     document.body.removeChild(a);
   }
 
-  const filteredItems = exactMatchFilter(filterValue, refs, ['NUM_REFE', 'NUM_PEDI']);
-
+  const filteredItems = isFuzzy
+    ? fuzzyFilter(filterValue, refs, ['NUM_REFE', 'NUM_PEDI'])
+    : exactMatchFilter(filterValue, refs, ['NUM_REFE', 'NUM_PEDI']);
   if (isRefsLoading) return <MyGPSpinner />;
 
   return (
@@ -79,7 +99,14 @@ export default function CollapsibleReferences() {
           <CollapsibleContent>
             <SidebarGroupContent className="pl-4">
               <SidebarMenu>
-                <Label>Buscar por Referencia o Pedimento</Label>
+                <Label className="mb-4">Buscar por Referencia o Pedimento</Label>
+                <div className="flex gap-2 items-center">
+                  <Checkbox
+                    checked={isFuzzy}
+                    onCheckedChange={(checked) => setIsFuzzy(Boolean(checked))}
+                  />
+                  <Label className="text-xs">Fuzzy Search</Label>
+                </div>
                 <Input
                   type="text"
                   placeholder="PAI123456"
