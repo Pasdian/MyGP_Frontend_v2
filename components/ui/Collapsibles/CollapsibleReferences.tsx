@@ -57,7 +57,7 @@ function fuzzyFilter(
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
   const { client, setClient, filters, resetFileState } = useDEAStore((state) => state);
-  const [isFuzzy, setIsFuzzy] = React.useState(false);
+  const [isFuzzy, setIsFuzzy] = React.useState(true);
 
   const { refs, isLoading: isRefsLoading } = useRefsByClient(
     client.number,
