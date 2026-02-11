@@ -32,6 +32,9 @@ export function SiteHeader() {
     (state) => state
   );
 
+  const digitalFiles = file?.filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
+  const hasDigitalFile = digitalFiles.length > 0;
+
   const { user, hasCompany } = useAuth();
 
   const rawUserCompanies = React.useMemo(() => {
@@ -81,10 +84,10 @@ export function SiteHeader() {
       const hasSelection = companySelect && companySelect.length > 0;
       const base = hasSelection
         ? companies.filter(
-          (c) =>
-            companySelect.includes(String(c.CVE_IMP)) &&
-            String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
-        )
+            (c) =>
+              companySelect.includes(String(c.CVE_IMP)) &&
+              String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC
+          )
         : companies.filter((c) => String(c.CVE_IMP) !== COMPANY.AGENCIA_ADUANAL_PASCAL_SC);
 
       return base.map((c) => ({
@@ -111,8 +114,8 @@ export function SiteHeader() {
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
     useSWRMutation(
       client.number &&
-      client.reference &&
-      `/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
+        client.reference &&
+        `/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
       axiosFetcher
     );
   return (
@@ -156,25 +159,20 @@ export function SiteHeader() {
           </PermissionGuard>
 
           <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
-            {client.reference && client.number && file?.filesByReference?.files?.['05-EXP-DIGITAL']?.length > 0 && (
+            {client.reference && client.number && (
               <MyGPButtonPrimary
                 className="h-5 text-xs w-[200px]"
-                disabled={
-                  file?.filesByReference?.files?.['05-EXP-DIGITAL']?.length > 0 ||
-                  hasExpediente ||
-                  isDigitalRecordGenerationMutating
-                }
+                disabled={hasDigitalFile || hasExpediente || isDigitalRecordGenerationMutating}
                 onClick={async () => {
                   try {
                     const response = await triggerDigitalRecordGeneration();
 
                     if (file.filesByReference) {
-                      const current = file.filesByReference.files?.['05-EXP-DIGITAL'] ?? [];
                       const updated = {
                         ...file.filesByReference,
                         files: {
                           ...file.filesByReference.files,
-                          '05-EXP-DIGITAL': [...current, response.filename],
+                          '05-EXP-DIGITAL': [...digitalFiles, response.filename],
                         },
                       };
                       setFile({ filesByReference: updated });
@@ -193,13 +191,13 @@ export function SiteHeader() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Generando...
                   </>
-                ) : !hasExpediente ? (
+                ) : hasDigitalFile || hasExpediente ? (
+                  <>Ya Existe Expediente Digital</>
+                ) : (
                   <>
                     <RocketIcon className="mr-2 h-4 w-4" />
                     Expediente Digital
                   </>
-                ) : (
-                  <>Ya Existe Expediente Digital</>
                 )}
               </MyGPButtonPrimary>
             )}
