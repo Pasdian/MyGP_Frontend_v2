@@ -98,7 +98,7 @@ export default function FormItemsEntregaTransporte({
     <>
       <div>
         <Label htmlFor="revalidación" className="mb-1">
-          Fecha de Revalidación
+          073 - Fecha de Revalidación
         </Label>
         <Input
           id="revalidación"
@@ -109,7 +109,7 @@ export default function FormItemsEntregaTransporte({
       </div>
       <div>
         <Label htmlFor="ultimoDoc" className="mb-1">
-          Fecha de Último Documento
+          114 - Fecha de Último Documento
         </Label>
         <Input
           id="ultimoDoc"
@@ -120,7 +120,7 @@ export default function FormItemsEntregaTransporte({
       </div>
       <div>
         <Label htmlFor="MSA" className="mb-1">
-          Fecha de MSA
+          130 - Fecha de MSA
         </Label>
         <Input id="MSA" disabled type="date" value={row.original.MSA_130?.split(' ')[0] ?? ''} />
       </div>
@@ -129,7 +129,7 @@ export default function FormItemsEntregaTransporte({
         name="date"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Fecha de Entrega Transporte</FormLabel>
+            <FormLabel>138 - Fecha de Entrega Transporte</FormLabel>
             <FormControl>
               <Input type="date" {...field} />
             </FormControl>
