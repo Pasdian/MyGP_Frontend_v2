@@ -33,7 +33,7 @@ export default function FormItemsRevalidacion({
     <>
       <div>
         <Label htmlFor="ultimoDoc" className="mb-1">
-          Fecha de Último Documento
+          114- Fecha de Último Documento
         </Label>
         <Input
           id="ultimoDoc"
@@ -44,13 +44,13 @@ export default function FormItemsRevalidacion({
       </div>
       <div>
         <Label htmlFor="MSA" className="mb-1">
-          Fecha de MSA
+          130 - Fecha de MSA
         </Label>
         <Input id="MSA" disabled type="date" value={row.original.MSA_130?.split(' ')[0] ?? ''} />
       </div>
       <div>
         <Label htmlFor="entregaTransporte" className="mb-1">
-          Fecha de Entrega a Transporte
+          138 - Fecha de Entrega a Transporte
         </Label>
         <Input
           id="entregaTransporte"
@@ -65,7 +65,7 @@ export default function FormItemsRevalidacion({
         name="date"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Fecha de Revalidación</FormLabel>
+            <FormLabel>073 - Fecha de Revalidación</FormLabel>
             <FormControl>
               <Input type="date" {...field} />
             </FormControl>

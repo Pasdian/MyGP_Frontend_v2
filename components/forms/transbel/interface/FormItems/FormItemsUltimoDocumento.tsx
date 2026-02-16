@@ -32,7 +32,7 @@ export default function FormItemsUltimoDocumento({
     <>
       <div>
         <Label htmlFor="revalidación" className="mb-1">
-          Fecha de Revalidación
+          073 - Fecha de Revalidación
         </Label>
         <Input
           id="revalidación"
@@ -43,13 +43,13 @@ export default function FormItemsUltimoDocumento({
       </div>
       <div>
         <Label htmlFor="MSA" className="mb-1">
-          Fecha de MSA
+          130 - Fecha de MSA
         </Label>
         <Input id="MSA" disabled type="date" value={row.original.MSA_130?.split(' ')[0] ?? ''} />
       </div>
       <div>
         <Label htmlFor="entregaTransporte" className="mb-1">
-          Fecha de Entrega a Transporte
+          138 - Fecha de Entrega a Transporte
         </Label>
         <Input
           id="entregaTransporte"
@@ -64,7 +64,7 @@ export default function FormItemsUltimoDocumento({
         name="date"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Fecha de Último Documento</FormLabel>
+            <FormLabel>114 - Fecha de Último Documento</FormLabel>
             <FormControl>
               <Input type="date" {...field} />
             </FormControl>

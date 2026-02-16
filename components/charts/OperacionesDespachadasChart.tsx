@@ -387,7 +387,7 @@ export function OperacionesDespachadasChart() {
 
   const { rows: companies } = useCompanies();
 
-  const [viewAs, setViewAs] = React.useState<ViewAs>('day');
+  const [viewAs, setViewAs] = React.useState<ViewAs>('month');
   const [clientNumbers, setClientNumbers] = React.useState<string[]>([]);
   const [clientsMap, setClientsMap] = React.useState<ClientsMap>({});
 

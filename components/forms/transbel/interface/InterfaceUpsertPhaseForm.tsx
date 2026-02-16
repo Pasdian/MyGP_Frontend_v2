@@ -1,5 +1,4 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
 import { Input } from '@/components/ui/input';
 
 import {
@@ -44,6 +43,46 @@ import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_INTERFACE')?.eventName || '';
 
+const toISODate = (s?: string) => (s ?? '').split(/[ T]/)[0] || '';
+
+const parseDateOnly = (s?: string) => {
+  const d = toISODate(s);
+  if (!d) return null;
+  const dt = new Date(`${d}T00:00:00`);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+};
+
+const isWithinLast365DaysNoFuture = (d: Date) => {
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const min = new Date(todayStart);
+  min.setDate(min.getDate() - 365);
+  const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return dd >= min && dd <= todayStart;
+};
+
+const businessDaysDiff = (a: Date, b: Date) => {
+  const start = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  const end = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  if (end <= start) return 0;
+
+  let count = 0;
+  const cur = new Date(start);
+  while (cur < end) {
+    cur.setDate(cur.getDate() + 1);
+    const day = cur.getDay(); 
+    if (day !== 0 && day !== 6) count += 1;
+  }
+  return count;
+};
+
+const PHASE_LABEL: Record<string, string> = {
+  '073': 'Revalidación',
+  '114': 'Último Documento',
+  '130': 'MSA',
+  '138': 'Entrega a Transporte',
+};
+
 export default function InterfaceUpsertPhaseForm({
   row,
   setOpenDialog,
@@ -54,130 +93,131 @@ export default function InterfaceUpsertPhaseForm({
   const { user } = useAuth();
   const { setRefsPendingCE } = React.useContext(InterfaceContext);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const schema = z
     .object({
       ref: REF_VALIDATION,
-      phase: PHASE_VALIDATION,
+      phase: PHASE_VALIDATION, 
       exceptionCode: EXCEPTION_CODE_VALIDATION,
       date: DATE_VALIDATION,
       user: USER_CASA_USERNAME_VALIDATION,
     })
-    .refine(
-      (data) => {
-        if (
-          data.phase === '073' &&
-          row.original.ULTIMO_DOCUMENTO_114 &&
-          data.date > row.original.ULTIMO_DOCUMENTO_114
-        ) {
-          return false;
-        }
-        return true;
-      },
-      {
-        message: 'La fecha de revalidación no puede ser mayor a la fecha de último documento',
-        path: ['date'],
-      }
-    )
-    .refine(
-      (data) => {
-        if (data.phase === '073' && row.original.MSA_130 && data.date > row.original.MSA_130) {
-          return false;
-        }
-        return true;
-      },
-      {
-        message: 'La fecha de revalidación no puede ser mayor a la fecha de MSA',
-        path: ['date'],
-      }
-    )
-    .refine(
-      (data) => {
-        if (
-          data.phase === '073' &&
-          row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date > row.original.ENTREGA_TRANSPORTE_138
-        ) {
-          return false;
-        }
-        return true;
-      },
-      {
-        message: 'La fecha de revalidación no puede ser mayor a la fecha de entrega de transporte',
-        path: ['date'],
-      }
-    )
-    .refine(
-      (data) => {
-        if (data.phase === '114' && row.original.MSA_130 && data.date > row.original.MSA_130) {
-          return false;
-        }
-        return true;
-      },
-      {
-        message: 'La fecha de último documento no puede ser mayor a la fecha de MSA',
-        path: ['date'],
-      }
-    )
-    .refine(
-      (data) => {
-        if (
-          data.phase === '114' &&
-          row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date > row.original.ENTREGA_TRANSPORTE_138
-        ) {
-          return false;
-        }
-        return true;
-      },
-      {
-        message:
-          'La fecha de último documento no puede ser mayor a la fecha de entrega de transporte',
-        path: ['date'],
-      }
-    )
-    .refine(
-      (data) => {
-        if (
-          data.phase === '130' &&
-          row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date !== row.original.ENTREGA_TRANSPORTE_138
-        ) {
-          return false;
-        }
-        return true;
-      },
-      {
-        message: 'La fecha de MSA debe ser igual a la fecha de entrega de transporte',
-        path: ['date'],
-      }
-    )
-    .refine(
-      (data) =>
-        !(
-          data.phase === '114' &&
-          row.original.ENTREGA_TRANSPORTE_138 &&
-          data.date &&
-          row.original.ENTREGA_TRANSPORTE_138 < data.date
-        ),
-      {
-        message: 'La fecha de transporte no puede ser menor a la fecha de último documento',
-        path: ['date'],
-      }
-    )
-    .refine(
-      () => {
-        const hasError = row.original.has_business_days_error;
-        const hasException = !!form.watch('exceptionCode');
+    .superRefine((data, ctx) => {
+      const allowed = new Set(['073', '114', '130', '138']);
+      if (!allowed.has(data.phase)) return;
 
-        // Valid if there's no business days error OR there is an exception code
-        return !hasError || hasException;
-      },
-      {
-        message:
-          'Coloca un código de excepción, la diferencia entre la fecha de último documento y transporte es mayor a 7 días',
-        path: ['date'], // error will attach to 'date'
+      const label = PHASE_LABEL[data.phase] ?? data.phase;
+
+      const inputISO = toISODate(data.date);
+      if (!inputISO) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['date'],
+          message: `(${label}) La fecha es obligatoria`,
+        });
+        return;
       }
-    );
+
+      const dInput = parseDateOnly(inputISO);
+      if (!dInput) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['date'],
+          message: `(${label}) Fecha inválida`,
+        });
+        return;
+      }
+
+      if (!isWithinLast365DaysNoFuture(dInput)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['date'],
+          message: `(${label}) La fecha debe estar dentro de los últimos 365 días`,
+        });
+        return;
+      }
+
+      const addDateError = (message: string) =>
+        ctx.addIssue({ code: 'custom', path: ['date'], message: `(ERROR ${label}) ${message}` });
+
+      const addExceptionError = (message: string) =>
+        ctx.addIssue({ code: 'custom', path: ['exceptionCode'], message: `(ERROR ${label}) ${message}` });
+
+      const iso073 = toISODate(row.original.REVALIDACION_073 ?? '');
+      const iso114 = toISODate(row.original.ULTIMO_DOCUMENTO_114 ?? '');
+      const iso130 = toISODate(row.original.MSA_130 ?? '');
+      const iso138 = toISODate(row.original.ENTREGA_TRANSPORTE_138 ?? '');
+
+      const d073 = iso073 ? parseDateOnly(iso073) : null;
+      const d114 = iso114 ? parseDateOnly(iso114) : null;
+      const d130 = iso130 ? parseDateOnly(iso130) : null;
+      const d138 = iso138 ? parseDateOnly(iso138) : null;
+
+
+      if (data.phase === '073' && d114 && dInput > d114) {
+        addDateError(`La fecha de ${PHASE_LABEL['073']} debe ser menor o igual a la fecha de ${PHASE_LABEL['114']}`);
+      }
+
+      if (data.phase === '114' && d073 && dInput < d073) {
+        addDateError(`La fecha de ${PHASE_LABEL['114']} debe ser mayor o igual a la fecha de ${PHASE_LABEL['073']}`);
+      }
+
+      if (data.phase === '114') {
+        const upper = d138 ?? d130 ?? null;
+        if (upper && dInput > upper) {
+          addDateError(`La fecha de ${PHASE_LABEL['114']} debe ser menor o igual a la fecha de ${PHASE_LABEL['130']} / ${PHASE_LABEL['138']}`);
+        }
+      }
+
+      if (data.phase === '130' && d114 && dInput < d114) {
+        addDateError(`La fecha de ${PHASE_LABEL['130']} debe ser mayor o igual a la fecha de ${PHASE_LABEL['114']}`);
+      }
+
+      if (data.phase === '138' && d114 && dInput < d114) {
+        addDateError(`La fecha de ${PHASE_LABEL['138']} debe ser mayor o igual a la fecha de ${PHASE_LABEL['114']}`);
+      }
+
+      if (data.phase === '130') {
+        if (!iso138) {
+          addDateError(`Para guardar ${PHASE_LABEL['130']}, debe existir ${PHASE_LABEL['138']} y tener la misma fecha`);
+        } else if (inputISO !== iso138) {
+          addDateError(`La fecha de ${PHASE_LABEL['130']} debe ser igual a la fecha de ${PHASE_LABEL['138']}`);
+        }
+      }
+
+      if (data.phase === '138') {
+        if (!iso130) {
+          addDateError(`Para guardar ${PHASE_LABEL['138']}, debe existir ${PHASE_LABEL['130']} y tener la misma fecha`);
+        } else if (inputISO !== iso130) {
+          addDateError(`La fecha de ${PHASE_LABEL['138']} debe ser igual a la fecha de ${PHASE_LABEL['130']}`);
+        }
+      }
+
+      const KPI_THRESHOLD = 7;
+
+      let start: Date | null = null;
+      let end: Date | null = null;
+
+      if (data.phase === '130' || data.phase === '138') {
+        start = d114 ?? null;
+        end = dInput;
+      }
+
+      if (data.phase === '114') {
+        start = dInput;
+        end = d138 ?? d130 ?? null;
+      }
+
+      if (start && end) {
+        const diff = end >= start ? businessDaysDiff(start, end) : businessDaysDiff(end, start);
+
+        if (diff >= KPI_THRESHOLD && !data.exceptionCode) {
+          addExceptionError(
+            `Coloca un código de excepción: la diferencia entre (${PHASE_LABEL['114']}) y (${PHASE_LABEL['130']})/(${PHASE_LABEL['138']}) es mayor a ${KPI_THRESHOLD} días hábiles`
+          );
+        }
+      }
+    });
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -193,12 +233,10 @@ export default function InterfaceUpsertPhaseForm({
     },
   });
 
-  const toISODate = (s?: string) => (s ?? '').split(/[ T]/)[0] || '';
-
   const phase = form.watch('phase');
+
   React.useEffect(() => {
-    // Set dates when chaging the dropdown
-    const phaseField: Record<string, keyof typeof row.original> = {
+    const phaseField: Record<string, keyof getRefsPendingCE> = {
       '073': 'REVALIDACION_073',
       '114': 'ULTIMO_DOCUMENTO_114',
       '130': 'MSA_130',
@@ -210,7 +248,10 @@ export default function InterfaceUpsertPhaseForm({
       const raw = field ? row.original[field] : '';
       return toISODate(typeof raw === 'string' ? raw : '');
     };
-    form.setValue('date', getDateFromPhase(phase));
+
+    if (phase) {
+      form.setValue('date', getDateFromPhase(phase), { shouldValidate: true });
+    }
   }, [phase, form, row]);
 
   async function onSubmit(data: z.infer<typeof schema>) {
@@ -219,35 +260,37 @@ export default function InterfaceUpsertPhaseForm({
       const res = await GPClient.patch(`/api/casa/upsertPhase/${data.ref}`, {
         phase: data.phase,
         exceptionCode: data.exceptionCode,
-        date: data.date, // "YYYY-MM-DD"
+        date: data.date,
         user: data.user,
       });
 
       if (res.status === 200) {
-        const row = res.data.data; // { NUM_REFE, CVE_ETAP, FEC_ETAP, ... }
+        const updated = res.data.data;
 
-        const fieldMap: Record<string, string> = {
+        const fieldMap: Record<string, keyof getRefsPendingCE> = {
           '073': 'REVALIDACION_073',
           '114': 'ULTIMO_DOCUMENTO_114',
           '130': 'MSA_130',
           '138': 'ENTREGA_TRANSPORTE_138',
         };
 
-        const field = fieldMap[row.CVE_ETAP];
+        const field = fieldMap[updated.CVE_ETAP];
         const formatted =
-          typeof formatISOtoDDMMYYYY === 'function' ? formatISOtoDDMMYYYY(row.FEC_ETAP) : null; // or formatISOtoDDMMYY(row.FEC_ETAP)
+          typeof formatISOtoDDMMYYYY === 'function'
+            ? formatISOtoDDMMYYYY(updated.FEC_ETAP)
+            : null;
 
         setRefsPendingCE((prev) =>
           prev.map((r) =>
-            r.REFERENCIA === row.NUM_REFE
+            r.REFERENCIA === updated.NUM_REFE
               ? {
                   ...r,
-                  ...(field ? { [field]: row.FEC_ETAP, [`${field}_FORMATTED`]: formatted } : {}),
-                  CVE_ETAP: row.CVE_ETAP,
-                  CVE_MODI: row.CVE_MODI,
-                  OBS_ETAP: row.OBS_ETAP,
-                  FEC_ETAP: row.FEC_ETAP,
-                  HOR_ETAP: row.HOR_ETAP,
+                  ...(field
+                    ? {
+                        [field]: updated.FEC_ETAP,
+                        [`${field}_FORMATTED`]: formatted,
+                      }
+                    : {}),
                 }
               : r
           )
@@ -256,7 +299,6 @@ export default function InterfaceUpsertPhaseForm({
         toast.success('Datos modificados correctamente');
         posthog.capture(posthogEvent);
         setIsSubmitting(false);
-
         setOpenDialog((o) => !o);
       } else {
         toast.error('No se pudieron actualizar tus datos');
@@ -284,6 +326,7 @@ export default function InterfaceUpsertPhaseForm({
           de editar los campos.
         </p>
       </div>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
@@ -309,27 +352,33 @@ export default function InterfaceUpsertPhaseForm({
                   <FormLabel>Etapa a Modificar</FormLabel>
                   <FormControl>
                     <Select
-                      value={field.value} // <-- controlled
-                      onValueChange={(val) => {
-                        // update phase explicitly
+                      value={field.value}
+                      onValueChange={(val: string) => {
                         form.setValue('phase', val, {
                           shouldDirty: true,
                           shouldTouch: true,
                           shouldValidate: true,
                         });
 
-                        // set date depending on phase & row values
-                        if (val === '073' && row.original.REVALIDACION_073) {
-                          form.setValue('date', row.original.REVALIDACION_073);
-                        } else if (val === '114' && row.original.ULTIMO_DOCUMENTO_114) {
-                          form.setValue('date', row.original.ULTIMO_DOCUMENTO_114);
-                        } else if (val === '130' && row.original.MSA_130) {
-                          form.setValue('date', row.original.MSA_130);
-                        } else if (val === '138' && row.original.ENTREGA_TRANSPORTE_138) {
-                          form.setValue('date', row.original.ENTREGA_TRANSPORTE_138);
-                        } else {
-                          form.setValue('date', '');
-                        }
+                        const phaseDates: Record<string, string | null | undefined> = {
+                          '073': row.original.REVALIDACION_073,
+                          '114': row.original.ULTIMO_DOCUMENTO_114,
+                          '130': row.original.MSA_130,
+                          '138': row.original.ENTREGA_TRANSPORTE_138,
+                        };
+
+                        form.setValue('date', toISODate(phaseDates[val] ?? ''), {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        });
+
+                        // Para estas etapas el campo de excepción viene de CE_138 en tu tipo
+                        form.setValue('exceptionCode', row.original.CE_138 || '', {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        });
                       }}
                     >
                       <SelectTrigger>
@@ -347,10 +396,11 @@ export default function InterfaceUpsertPhaseForm({
                 </FormItem>
               )}
             />
-            {phase == '073' && <FormItemsRevalidacion form={form} row={row} />}
-            {phase == '114' && <FormItemsUltimoDocumento form={form} row={row} />}
-            {phase == '130' && <FormItemsMSA form={form} row={row} />}
-            {phase == '138' && <FormItemsEntregaTransporte form={form} row={row} />}
+
+            {phase === '073' && <FormItemsRevalidacion form={form} row={row} />}
+            {phase === '114' && <FormItemsUltimoDocumento form={form} row={row} />}
+            {phase === '130' && <FormItemsMSA form={form} row={row} />}
+            {phase === '138' && <FormItemsEntregaTransporte form={form} row={row} />}
 
             <FormField
               control={form.control}
@@ -359,18 +409,14 @@ export default function InterfaceUpsertPhaseForm({
                 <FormItem>
                   <FormLabel>Usuario</FormLabel>
                   <FormControl>
-                    <Input
-                      disabled
-                      placeholder="Usuario..."
-                      className="mb-4 uppercase"
-                      {...field}
-                    />
+                    <Input disabled placeholder="Usuario..." className="mb-4 uppercase" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
           <DialogFooter>
             <DialogClose asChild>
               <MyGPButtonGhost>Cancelar</MyGPButtonGhost>

@@ -33,7 +33,7 @@ export default function FormItemsMSA({
     <>
       <div>
         <Label htmlFor="revalidación" className="mb-1">
-          Fecha de Revalidación
+          073 - Fecha de Revalidación
         </Label>
         <Input
           id="revalidación"
@@ -44,7 +44,7 @@ export default function FormItemsMSA({
       </div>
       <div>
         <Label htmlFor="ultimoDoc" className="mb-1">
-          Fecha de Último Documento
+          114 - Fecha de Último Documento
         </Label>
         <Input
           id="ultimoDoc"
@@ -55,7 +55,7 @@ export default function FormItemsMSA({
       </div>
       <div>
         <Label htmlFor="entregaTransporte" className="mb-1">
-          Fecha de Entrega a Transporte
+          138 - Fecha de Entrega a Transporte
         </Label>
         <Input
           id="entregaTransporte"
@@ -70,7 +70,7 @@ export default function FormItemsMSA({
         name="date"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Fecha de MSA</FormLabel>
+            <FormLabel>130 - Fecha de MSA</FormLabel>
             <FormControl>
               <Input type="date" {...field} />
             </FormControl>
