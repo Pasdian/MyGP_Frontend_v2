@@ -124,11 +124,10 @@ export default function CollapsibleReferences() {
                   filteredItems.map(
                     ({ NUM_REFE, EE__GE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
                       const isActive = client.reference === NUM_REFE;
-                      const base =
-                        'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
+                      const base = 'cursor-pointer mb-1 px-1 transition-colors duration-150';
                       const active = FOLDER_HAS_CONTENT
-                        ? 'bg-green-300'
-                        : 'bg-red-400 cursor-not-allowed opacity-60';
+                        ? 'bg-blue-500'
+                        : 'bg-red-300 cursor-not-allowed opacity-60';
                       const normal = FOLDER_HAS_CONTENT ? 'even:bg-gray-200' : active;
 
                       return (
@@ -151,9 +150,23 @@ export default function CollapsibleReferences() {
                           <div className="grid grid-cols-[1fr_auto] items-center gap-2">
                             <div>
                               {(client.number == '005009' || client.number == '000259') && (
-                                <p className="text-slate-500">{EE__GE}</p>
+                                <p
+                                  className={
+                                    isActive ? 'text-slate-100 font-bold' : 'text-muted-foreground'
+                                  }
+                                >
+                                  {EE__GE}
+                                </p>
                               )}
-                              <p className="min-w-0 text-[14px] break-words">{NUM_REFE}</p>
+                              <p
+                                className={
+                                  isActive
+                                    ? 'min-w-0 text-[14px] break-words text-slate-100 font-bold'
+                                    : 'min-w-0 text-[14px] break-words'
+                                }
+                              >
+                                {NUM_REFE}
+                              </p>
                             </div>
 
                             {FOLDER_HAS_CONTENT && (
@@ -161,7 +174,11 @@ export default function CollapsibleReferences() {
                                 <button
                                   type="button"
                                   aria-label={`Descargar ${NUM_REFE}`}
-                                  className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
+                                  className={
+                                    isActive
+                                      ? 'shrink-0 cursor-pointer text-gray-700 text-slate-100 font-bold'
+                                      : 'shrink-0 cursor-pointer text-gray-700'
+                                  }
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleDownloadZip(client.number, NUM_REFE);
