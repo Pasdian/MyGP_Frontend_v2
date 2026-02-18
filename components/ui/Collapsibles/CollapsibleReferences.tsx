@@ -77,7 +77,7 @@ export default function CollapsibleReferences() {
     document.body.removeChild(a);
   }
   const filterKeys: (keyof getRefsByClient)[] =
-    client.number === '005009'
+    client.number === '005009' || client.number == '000259'
       ? (['EE__GE', 'NUM_REFE'] as const)
       : (['NUM_REFE', 'NUM_PEDI'] as const);
 
@@ -150,7 +150,7 @@ export default function CollapsibleReferences() {
                         >
                           <div className="grid grid-cols-[1fr_auto] items-center gap-2">
                             <div>
-                              {client.number == '005009' && (
+                              {(client.number == '005009' || client.number == '000259') && (
                                 <p className="text-slate-500">{EE__GE}</p>
                               )}
                               <p className="min-w-0 text-[14px] break-words">{NUM_REFE}</p>
