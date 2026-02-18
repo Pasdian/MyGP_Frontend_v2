@@ -33,7 +33,7 @@ function safeIdentify(person: User) {
   const { uuid, email, name } = person ?? {};
   if (!uuid) return;
 
-  posthog.identify(uuid);
+  posthog.identify(email || uuid);
 
   posthog.people.set({
     $name: name ?? undefined,
@@ -90,8 +90,8 @@ export default function AuthProvider({
   const roleName = user?.complete_user?.role?.name;
   const permissions = React.useMemo(() => user?.complete_user?.role?.permissions ?? [], [user]);
 
-  const getCasaUsername = () => {
-    return user.complete_user.user.casa_user_name;
+  const getCasaUsername = (): string => {
+    return user?.complete_user?.user?.casa_user_name ?? 'MYGP';
   };
 
   const hasRole = React.useCallback(
