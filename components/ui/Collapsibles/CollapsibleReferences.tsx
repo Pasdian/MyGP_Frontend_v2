@@ -76,10 +76,15 @@ export default function CollapsibleReferences() {
     a.click();
     document.body.removeChild(a);
   }
+  const filterKeys: (keyof getRefsByClient)[] =
+    client.number === '005009'
+      ? (['EE__GE', 'NUM_REFE'] as const)
+      : (['NUM_REFE', 'NUM_PEDI'] as const);
 
   const filteredItems = isFuzzy
-    ? fuzzyFilter(filterValue, refs, ['NUM_REFE', 'NUM_PEDI'])
-    : exactMatchFilter(filterValue, refs, ['NUM_REFE', 'NUM_PEDI']);
+    ? fuzzyFilter(filterValue, refs, filterKeys)
+    : exactMatchFilter(filterValue, refs, filterKeys);
+
   if (isRefsLoading) return <MyGPSpinner />;
 
   return (
@@ -116,56 +121,63 @@ export default function CollapsibleReferences() {
                 />
 
                 {client.number &&
-                  filteredItems.map(({ NUM_REFE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
-                    const isActive = client.reference === NUM_REFE;
-                    const base =
-                      'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
-                    const active = FOLDER_HAS_CONTENT
-                      ? 'bg-green-300'
-                      : 'bg-red-400 cursor-not-allowed opacity-60';
-                    const normal = FOLDER_HAS_CONTENT ? 'even:bg-gray-200' : active;
+                  filteredItems.map(
+                    ({ NUM_REFE, EE__GE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
+                      const isActive = client.reference === NUM_REFE;
+                      const base =
+                        'cursor-pointer mb-1 px-1 transition-colors duration-150 select-none';
+                      const active = FOLDER_HAS_CONTENT
+                        ? 'bg-green-300'
+                        : 'bg-red-400 cursor-not-allowed opacity-60';
+                      const normal = FOLDER_HAS_CONTENT ? 'even:bg-gray-200' : active;
 
-                    return (
-                      <SidebarMenuItem
-                        key={`${NUM_REFE}-${i}`}
-                        className={`${base} ${isActive ? active : normal}`}
-                        onClick={() => {
-                          if (!FOLDER_HAS_CONTENT) return;
+                      return (
+                        <SidebarMenuItem
+                          key={`${NUM_REFE}-${i}`}
+                          className={`${base} ${isActive ? active : normal}`}
+                          onClick={() => {
+                            if (!FOLDER_HAS_CONTENT) return;
 
-                          if (client.reference === NUM_REFE) {
-                            return;
-                          }
+                            if (client.reference === NUM_REFE) {
+                              return;
+                            }
 
-                          const custom = getCustomKeyByRef(NUM_REFE) || '';
+                            const custom = getCustomKeyByRef(NUM_REFE) || '';
 
-                          setClient({ reference: NUM_REFE, custom });
-                          resetFileState();
-                        }}
-                      >
-                        <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                          <p className="min-w-0 text-[14px] break-words">{NUM_REFE}</p>
+                            setClient({ reference: NUM_REFE, custom });
+                            resetFileState();
+                          }}
+                        >
+                          <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                            <div>
+                              {client.number == '005009' && (
+                                <p className="text-slate-500">{EE__GE}</p>
+                              )}
+                              <p className="min-w-0 text-[14px] break-words">{NUM_REFE}</p>
+                            </div>
 
-                          {FOLDER_HAS_CONTENT && (
-                            <PermissionGuard requiredPermissions={[PERM.DEA_DESCARGAR_ARCHIVOS]}>
-                              <button
-                                type="button"
-                                aria-label={`Descargar ${NUM_REFE}`}
-                                className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDownloadZip(client.number, NUM_REFE);
-                                  toast.success(`${NUM_REFE} descargando...`);
-                                }}
-                                title="Descargar ZIP"
-                              >
-                                <DownloadIcon size={14} />
-                              </button>
-                            </PermissionGuard>
-                          )}
-                        </div>
-                      </SidebarMenuItem>
-                    );
-                  })}
+                            {FOLDER_HAS_CONTENT && (
+                              <PermissionGuard requiredPermissions={[PERM.DEA_DESCARGAR_ARCHIVOS]}>
+                                <button
+                                  type="button"
+                                  aria-label={`Descargar ${NUM_REFE}`}
+                                  className="shrink-0 cursor-pointer text-gray-700 hover:text-blue-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDownloadZip(client.number, NUM_REFE);
+                                    toast.success(`${NUM_REFE} descargando...`);
+                                  }}
+                                  title="Descargar ZIP"
+                                >
+                                  <DownloadIcon size={14} />
+                                </button>
+                              </PermissionGuard>
+                            )}
+                          </div>
+                        </SidebarMenuItem>
+                      );
+                    }
+                  )}
               </SidebarMenu>
             </SidebarGroupContent>
           </CollapsibleContent>
