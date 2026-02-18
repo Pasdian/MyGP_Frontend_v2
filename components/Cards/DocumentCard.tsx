@@ -145,10 +145,10 @@ export default function DocumentCard({
                   key={item}
                   className={`flex justify-between items-center cursor-pointer mb-1 p-1 ${
                     isActive
-                      ? 'bg-green-300'
+                      ? 'bg-green-100 text-slate-900 font-semibold'
                       : isPedimentoSimplificado
-                        ? 'bg-yellow-200'
-                        : 'even:bg-gray-100'
+                        ? 'bg-yellow-100 hover:bg-yellow-200'
+                        : 'even:bg-gray-100 hover:bg-slate-300'
                   }`}
                   onClick={() => onFileSelect(item)}
                 >
