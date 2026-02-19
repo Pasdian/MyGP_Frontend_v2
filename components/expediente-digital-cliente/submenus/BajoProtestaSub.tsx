@@ -30,12 +30,10 @@ export function BajoProtestaSub() {
   });
 
   const usuarioError =
-    form.formState.errors.usuarioSolicitoOperacion?.file?.file ??
-    form.formState.errors.usuarioSolicitoOperacion?.isChecked;
+    form.formState.errors.usuarioSolicitoOperacion?.file?.file
 
   const agenteError =
-    form.formState.errors.agenteAduanalVerificoUsuarios?.file?.file ??
-    form.formState.errors.agenteAduanalVerificoUsuarios?.isChecked;
+    form.formState.errors.agenteAduanalVerificoUsuarios?.file?.file
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);

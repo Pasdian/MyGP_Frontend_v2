@@ -20,82 +20,62 @@ export const EXP_DIGI_SCHEMAS = {
   }),
 
   'imp.contact': z.object({
-    comprobanteDomicilio: z
-      .object({
-        docKey: z.literal('imp.contact.domicilio'),
-        file: createPdfSchema(5_000_000),
-      })
-      .optional(),
+    comprobanteDomicilio: z.object({
+      docKey: z.literal('imp.contact.domicilio'),
+      file: createPdfSchema(10_000_000).optional(),
+    }),
 
-    fotosDomicilioFiscal: z
-      .object({
-        docKey: z.literal('imp.contact.fotos_fiscal'),
-        files: createImagesSchema(50_000_000, 10),
-      })
-      .optional(),
+    fotosDomicilioFiscal: z.object({
+      docKey: z.literal('imp.contact.fotos_fiscal'),
+      files: createImagesSchema(50_000_000, 10).optional(),
+    }),
 
-    fotosAcreditacionLegalInmueble: z
-      .object({
-        docKey: z.literal('imp.contact.fotos_inmueble'),
-        files: createImagesSchema(50_000_000, 10),
-      })
-      .optional(),
+    fotosAcreditacionLegalInmueble: z.object({
+      docKey: z.literal('imp.contact.fotos_inmueble'),
+      files: createImagesSchema(50_000_000, 10).optional(),
+    }),
 
-    fotosLugarActividades: z
-      .object({
-        docKey: z.literal('imp.contact.fotos_actividades'),
-        files: createImagesSchema(50_000_000, 10),
-      })
-      .optional(),
+    fotosLugarActividades: z.object({
+      docKey: z.literal('imp.contact.fotos_actividades'),
+      files: createImagesSchema(50_000_000, 10).optional(),
+    }),
   }),
 
-  'imp.tax': buildHaciendaSchema(2_000_000, 2_000_000, 2_000_000),
+  'imp.tax': buildHaciendaSchema(10_000_000, 10_000_000, 10_000_000),
 
-  'imp.rep': buildRepresentanteSchema(2_000_000),
+  'imp.rep': buildRepresentanteSchema(10_000_000),
 
   'imp.man': z
     .object({
       usuarioSolicitoOperacion: z.object({
-        isChecked: z.boolean(),
+        docKey: z.literal('man.usuario'),
         file: z.object({
-          docKey: z.literal('man.usuario'),
-          file: createPdfSchema(2_000_000).optional(),
+          file: createPdfSchema(10_000_000).optional(),
         }),
       }),
       agenteAduanalVerificoUsuarios: z.object({
-        isChecked: z.boolean(),
+        docKey: z.literal('man.agente'),
         file: z.object({
-          docKey: z.literal('man.agente'),
-          file: createPdfSchema(2_000_000).optional(),
+          file: createPdfSchema(10_000_000).optional(),
         }),
       }),
     })
     .superRefine((val, ctx) => {
-      if (!val.usuarioSolicitoOperacion.isChecked) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['usuarioSolicitoOperacion', 'isChecked'],
-          message: 'Debes marcar esta casilla.',
-        });
-      } else if (!val.usuarioSolicitoOperacion.file?.file) {
+      const usuarioFile = val.usuarioSolicitoOperacion.file?.file;
+      const agenteFile = val.agenteAduanalVerificoUsuarios.file?.file;
+
+      // Require at least one file
+      if (!usuarioFile && !agenteFile) {
         ctx.addIssue({
           code: 'custom',
           path: ['usuarioSolicitoOperacion', 'file', 'file'],
-          message: 'Adjunta el archivo en PDF.',
+          message: 'Adjunta al menos uno de los archivos en PDF.',
         });
-      }
 
-      if (!val.agenteAduanalVerificoUsuarios.isChecked) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['agenteAduanalVerificoUsuarios', 'isChecked'],
-          message: 'Debes marcar esta casilla.',
-        });
-      } else if (!val.agenteAduanalVerificoUsuarios.file?.file) {
         ctx.addIssue({
           code: 'custom',
           path: ['agenteAduanalVerificoUsuarios', 'file', 'file'],
-          message: 'Adjunta el archivo en PDF.',
+          message: 'Adjunta al menos uno de los archivos en PDF.',
         });
       }
     }),
@@ -104,14 +84,14 @@ export const EXP_DIGI_SCHEMAS = {
     obligacionesFiscales: z
       .object({
         docKey: z.literal('acre.legal.opinion'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     datosBancarios: z
       .object({
         docKey: z.literal('acre.legal.banco'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
     datosBancariosExp: z.string().optional(),
@@ -119,7 +99,7 @@ export const EXP_DIGI_SCHEMAS = {
     conferidoJosePascal: z
       .object({
         docKey: z.literal('acre.legal.encargo_jpc'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
     conferidoJosePascalExp: z.string().optional(),
@@ -127,33 +107,33 @@ export const EXP_DIGI_SCHEMAS = {
     conferidoMarcoBremer: z
       .object({
         docKey: z.literal('acre.legal.encargo_mbg'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
     conferidoMarcoBremerExp: z.string().optional(),
   }),
 
-  'imp.agent.tax': buildHaciendaSchema(2_000_000, 2_000_000, 2_000_000),
+  'imp.agent.tax': buildHaciendaSchema(10_000_000, 10_000_000, 10_000_000),
 
   'com.encomienda': z.object({
     cartaEncomienda3901: z
       .object({
         docKey: z.literal('com.encomienda.3901'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     cartaEncomienda3072: z
       .object({
         docKey: z.literal('com.encomienda.3072'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     avisoPrivacidad: z
       .object({
         docKey: z.literal('com.privacidad'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
   }),
@@ -162,14 +142,14 @@ export const EXP_DIGI_SCHEMAS = {
     acuerdoConfidencialidad: z
       .object({
         docKey: z.literal('com.acuerdo.conf'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     acuerdoSocioComercial: z
       .object({
         docKey: z.literal('com.acuerdo.socio'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
   }),
@@ -178,21 +158,21 @@ export const EXP_DIGI_SCHEMAS = {
     tarifaAutorizada: z
       .object({
         docKey: z.literal('com.tarifa.aut'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     tarifaPreferencial: z
       .object({
         docKey: z.literal('com.tarifa.pre'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     tarifaUSA: z
       .object({
         docKey: z.literal('com.tarifa.usa'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
   }),
@@ -201,21 +181,21 @@ export const EXP_DIGI_SCHEMAS = {
     cuestionarioLavadoTerrorismo: z
       .object({
         docKey: z.literal('cmp.pld'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     altaClientes: z
       .object({
         docKey: z.literal('cmp.alta'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     listaClinton: z
       .object({
         docKey: z.literal('cmp.clinton'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
   }),
@@ -224,42 +204,42 @@ export const EXP_DIGI_SCHEMAS = {
     formatoActividadVulnerable3901: z
       .object({
         docKey: z.literal('vul.act.3901'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     formatoActividadVulnerable3072: z
       .object({
         docKey: z.literal('vul.act.3072'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     formatoDuenioBeneficiario3901: z
       .object({
         docKey: z.literal('vul.benef.3901'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     formatoDuenioBeneficiario3072: z
       .object({
         docKey: z.literal('vul.benef.3072'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     constanciaHojaMembretada3901: z
       .object({
         docKey: z.literal('vul.lfpiorpi.3901'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
 
     constanciaHojaMembretada3072: z
       .object({
         docKey: z.literal('vul.lfpiorpi.3072'),
-        file: createPdfSchema(2_000_000),
+        file: createPdfSchema(10_000_000),
       })
       .optional(),
   }),
@@ -273,9 +253,9 @@ export const EXP_DIGI_DEFAULT_VALUES = {
 
   'imp.contact': {
     comprobanteDomicilio: { docKey: 'imp.contact.domicilio', file: undefined },
-    fotosDomicilioFiscal: { docKey: 'imp.contact.fotos_fiscal', files: [] },
-    fotosAcreditacionLegalInmueble: { docKey: 'imp.contact.fotos_inmueble', files: [] },
-    fotosLugarActividades: { docKey: 'imp.contact.fotos_actividades', files: [] },
+    fotosDomicilioFiscal: { docKey: 'imp.contact.fotos_fiscal', files: [] as File[] },
+    fotosAcreditacionLegalInmueble: { docKey: 'imp.contact.fotos_inmueble', files: [] as File[] },
+    fotosLugarActividades: { docKey: 'imp.contact.fotos_actividades', files: [] as File[] },
   },
 
   'imp.tax': {

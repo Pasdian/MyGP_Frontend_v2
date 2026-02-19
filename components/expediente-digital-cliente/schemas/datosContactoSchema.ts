@@ -16,4 +16,4 @@ export const createImagesSchema = (maxSize: number, maxFiles: number) =>
         .refine(isAllowedImage, { message: 'Solo se aceptan archivos PNG o JPEG' })
     )
     .max(maxFiles, `Puedes subir máximo ${maxFiles} fotos`)
-    .catch([]); // <- ALWAYS outputs File[]
+    .default([]); // <-- default only, no swallowing errors
