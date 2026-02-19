@@ -47,6 +47,7 @@ export const buildHaciendaSchema = (certSize: number, efirmaSize: number, consta
                 'application/x-x509-ca-cert',
                 'application/pkix-cert',
                 'application/octet-stream',
+                'application/vnd.apple.keynote',
               ].includes(file.type),
             'El certificado debe ser un archivo .cer válido'
           )
@@ -65,16 +66,6 @@ export const buildHaciendaSchema = (certSize: number, efirmaSize: number, consta
           .refine(
             (file) => file.size <= efirmaSize,
             `La e-firma debe ser de máximo ${efirmaSize / 1_000_000} MB`
-          )
-          .refine(
-            (file) =>
-              [
-                'application/vnd.apple.keynote',
-                'application/octet-stream',
-                'application/x-pem-file',
-                'application/pkcs8',
-              ].includes(file.type),
-            'La e-firma debe ser un archivo .key válido'
           )
           .refine(
             (file) => file.name.toLowerCase().endsWith('.key'),
