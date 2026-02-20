@@ -41,7 +41,7 @@ export function DatosContactoSub() {
       setIsSubmitting(true);
 
       const fd = new FormData();
-      fd.append('client_id', casa_id);
+      fd.append('client_rfc', casa_id);
       fd.append('uploaded_by', getCasaUsername() || 'MYGP');
 
       if (data.comprobanteDomicilio?.file) {

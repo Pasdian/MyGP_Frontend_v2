@@ -40,7 +40,7 @@ export function BajoProtestaSub() {
 
     try {
       const formData = new FormData();
-      formData.append('client_id', casa_id);
+      formData.append('client_rfc', casa_id);
       formData.append('uploaded_by', getCasaUsername() || 'MYGP');
 
       const usuarioFile = data.usuarioSolicitoOperacion.file.file;

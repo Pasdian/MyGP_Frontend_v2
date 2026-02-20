@@ -37,7 +37,7 @@ export function AcreditacionSub() {
 
     try {
       const formData = new FormData();
-      formData.append('client_id', casa_id);
+      formData.append('client_rfc', casa_id);
       formData.append('uploaded_by', getCasaUsername() || 'MYGP');
 
       // Upload keys: use your folderMappings keys (acre.*) since that's what your progress/upload expects.

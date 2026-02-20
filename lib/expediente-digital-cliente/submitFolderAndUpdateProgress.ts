@@ -32,7 +32,7 @@ export async function submitFolderAndUpdateProgress(opts: {
   }
 
   const failedKeys = res.data?.failed ? Object.keys(res.data.failed) : [];
-  const clientId = String(opts.formData.get("client_id") ?? "");
+  const clientId = String(opts.formData.get("client_rfc") ?? "");
 
   if (clientId) {
     const successKeys = opts.docKeys.filter((k) => !failedKeys.includes(k));

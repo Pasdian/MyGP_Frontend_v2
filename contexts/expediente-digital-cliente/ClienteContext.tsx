@@ -100,7 +100,7 @@ async function fetchProgressByDocKeys(
     '/expediente-digital-cliente/getProgressByDocKeys',
     {
       params: {
-        client_id: clientId,
+        client_rfc: clientId,
         'docKeys[]': docKeys,
       },
     }
