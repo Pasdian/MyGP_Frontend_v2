@@ -32,7 +32,7 @@ export function DocumentosImportadorSub() {
 
     try {
       const formData = new FormData();
-      formData.append('client_id', casa_id);
+      formData.append('client_rfc', casa_id);
       formData.append('uploaded_by', getCasaUsername() || 'MYGP');
 
       if (data.actaConstitutiva?.file) {

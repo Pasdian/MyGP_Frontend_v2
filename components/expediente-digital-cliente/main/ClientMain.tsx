@@ -46,7 +46,7 @@ export function ClientMain({
   const formSchema = z
     .object({
       is_new: z.boolean(),
-      casa_id: z.string().optional(),
+      casa_id: z.string(),
       legal_name: z.string().optional(),
       legal_type: z
         .string({ message: 'Ingresa el tipo de cliente' })
@@ -83,8 +83,8 @@ export function ClientMain({
     })
     .superRefine((data, ctx) => {
       if (data.is_new) {
-        // NEW client: casa_id must be undefined, and legal_name is required
-        if (data.casa_id && data.casa_id.trim()) {
+        // NEW client: casa_id must be empty string, and legal_name is required
+        if (data.casa_id.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['casa_id'],
@@ -100,8 +100,8 @@ export function ClientMain({
           });
         }
       } else {
-        // Existing client: casa_id required
-        if (!data.casa_id?.trim()) {
+        // Existing client: casa_id required (non-empty)
+        if (!data.casa_id.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['casa_id'],
@@ -144,7 +144,7 @@ export function ClientMain({
       state: '',
       postal_code: '',
     });
-    setCasaId(undefined as any);
+    setCasaId('');
     setCliente('');
     setShowDocuments(false);
     setCollapseAccordion(false);
@@ -167,15 +167,15 @@ export function ClientMain({
 
   const isNew = form.watch('is_new');
 
-  // When switching to "new client", force casa_id to undefined (form + context)
+  // When switching to "new client", clear selected RFC in form + context
   React.useEffect(() => {
     if (!isNew) return;
 
     form.setValue('casa_id', '', { shouldValidate: true, shouldDirty: true });
-    setCasaId(undefined as any);
+    setCasaId('');
   }, [isNew, form, setCasaId]);
 
-  // Hydrate from CASA only when NOT new and casa_id exists
+  // Hydrate existing client by RFC when NOT new and RFC exists
   React.useEffect(() => {
     const hydrateClient = async () => {
       if (isNew) return;
@@ -186,7 +186,7 @@ export function ClientMain({
         setIsSubmitting(true);
 
         const resp = await GPClient.get('/expediente-digital-cliente/client', {
-          params: { casa_id },
+          params: { rfc: casa_id },
         });
 
         const c = resp.data;
@@ -227,13 +227,12 @@ export function ClientMain({
     hydrateClient();
   }, [casa_id, isNew, form, setShowDocuments]);
 
-
   const onSubmit = async (data: FormValues) => {
     try {
       setIsSubmitting(true);
 
       const payload = {
-        casa_id: data.is_new ? undefined : data.casa_id, // enforce requirement
+        casa_id: data.casa_id,
         legal_type: data.legal_type,
         rfc: data.rfc,
         legal_name: data.is_new ? (data.legal_name ?? '') : (cliente ?? ''),
@@ -255,6 +254,7 @@ export function ClientMain({
         return;
       }
 
+      setCasaId(data.rfc.trim());
       toast.info('Se subieron los datos correctamente');
       setShowDocuments(true);
       setCollapseAccordion(true);
@@ -265,7 +265,7 @@ export function ClientMain({
       setIsSubmitting(false);
     }
   };
-  console.log(form.formState.errors)
+  console.log(form.formState.errors);
 
   return (
     <Accordion
@@ -312,18 +312,19 @@ export function ClientMain({
                             onClick={async () => {
                               field.onChange(true);
 
-                              // clear casa_id in form + context, then optionally fetch next id
+                              // Clear selected RFC in form + context
                               form.setValue('casa_id', '', {
                                 shouldValidate: true,
                                 shouldDirty: true,
                               });
-                              setCasaId(undefined as any);
+                              setCasaId('');
                             }}
                             className={`
                               h-12 text-base font-medium transition-all
-                              ${field.value === true
-                                ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
-                                : 'border-border hover:bg-blue-50/50'
+                              ${
+                                field.value === true
+                                  ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                  : 'border-border hover:bg-blue-50/50'
                               }
                             `}
                           >
@@ -336,9 +337,10 @@ export function ClientMain({
                             onClick={() => field.onChange(false)}
                             className={`
                               h-12 text-base font-medium transition-all
-                              ${field.value === false
-                                ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
-                                : 'border-border hover:bg-blue-50/50'
+                              ${
+                                field.value === false
+                                  ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                  : 'border-border hover:bg-blue-50/50'
                               }
                             `}
                           >
@@ -405,9 +407,7 @@ export function ClientMain({
                                 className="mb-2"
                                 aria-invalid={fieldState.invalid}
                                 setValue={(value: string) => {
-                                  const selected = companiesOptions.find(
-                                    (o) => o.value === value
-                                  );
+                                  const selected = companiesOptions.find((o) => o.value === value);
                                   if (!selected) return;
 
                                   if (!selected.existsCasa) {
@@ -518,7 +518,10 @@ export function ClientMain({
                         name="neighbourhood"
                         control={form.control}
                         render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid} className="grid grid-rows-2 gap-0">
+                          <Field
+                            data-invalid={fieldState.invalid}
+                            className="grid grid-rows-2 gap-0"
+                          >
                             <FieldLabel htmlFor="neighbourhood">Colonia:</FieldLabel>
 
                             <Input

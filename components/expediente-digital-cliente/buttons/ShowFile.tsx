@@ -20,7 +20,7 @@ const fileExistsKey = (client?: string, docKey?: string): FileExistsSWRKey =>
 
 function buildFileUrl(client: string, docKey: string) {
   const qs = new URLSearchParams({
-    client,
+    rfc: client,
     docKey,
     _ts: String(Date.now()),
   });

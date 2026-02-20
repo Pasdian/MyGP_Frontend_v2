@@ -44,13 +44,14 @@ export function RepresentanteSub() {
   React.useEffect(() => {
     const hydrate = async () => {
       if (didHydrateRef.current) return;
+      if (!casa_id?.trim()) return;
 
       try {
         setIsHydrating(true);
 
         const { data: rep } = await GPClient.get(
           '/expediente-digital-cliente/legalRepresentative',
-          { params: { casa_id } }
+          { params: { rfc: casa_id } }
         );
 
         const addr = rep?.addressByIdAddress;
@@ -93,11 +94,16 @@ export function RepresentanteSub() {
   }, [casa_id, form]);
 
   const onSubmit = async (data: FormType) => {
+    if (!casa_id?.trim()) {
+      toast.error('Selecciona un cliente antes de guardar');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const formData = new FormData();
-      formData.append('client_id', casa_id);
+      formData.append('client_rfc', casa_id);
       formData.append('uploaded_by', getCasaUsername() || 'MYGP');
 
       if (data.ine?.file) {
@@ -105,11 +111,10 @@ export function RepresentanteSub() {
       }
 
       await GPClient.post('/expediente-digital-cliente/legalRepresentative', {
-        casa_id,
+        rfc: casa_id,
         name: data.nombre,
         last_name: data.apellido1,
         last_name_2: data.apellido2 || '',
-        rfc: data.rfc,
         curp: data.curp,
         email: data.correoElectronico,
         phone: data.telefonoRepresentanteLegal,
