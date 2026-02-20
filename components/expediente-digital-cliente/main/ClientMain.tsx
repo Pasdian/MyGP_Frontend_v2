@@ -265,7 +265,6 @@ export function ClientMain({
       setIsSubmitting(false);
     }
   };
-  console.log(form.formState.errors);
 
   return (
     <Accordion
