@@ -23,6 +23,8 @@ export const PERM = {
   TRANSBEL_DATOS_EMBARQUE: "TRANSBEL_DATOS_EMBARQUE",
 
   EXPEDIENTE_DIGITAL_CLIENTE: "EXPEDIENTE_DIGITAL_CLIENTE",
+
+  GESTOR: "GESTOR",
 } as const;
 
 export type Permission = (typeof PERM)[keyof typeof PERM];

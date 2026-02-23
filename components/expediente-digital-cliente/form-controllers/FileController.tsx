@@ -12,6 +12,7 @@ export function FileController<TFieldValues extends FieldValues>({
   buttonText = 'Seleccionar archivo',
   showFileName = true,
   showError = true,
+  clearSignal,
 }: {
   form: UseFormReturn<TFieldValues>;
   fieldLabel: string;
@@ -20,26 +21,31 @@ export function FileController<TFieldValues extends FieldValues>({
   buttonText?: string;
   showFileName?: boolean;
   showError?: boolean;
+  clearSignal?: number; // increment to force clear
 }) {
   const acceptValue = typeof accept === 'string' ? accept : accept?.join(',');
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+
   return (
     <Controller
       name={controllerName}
       control={form.control}
       render={({ field, fieldState }) => {
         const file = field.value as File | undefined;
-        const inputRef = React.useRef<HTMLInputElement | null>(null);
 
-        const clear = () => {
+        const clear = React.useCallback(() => {
           field.onChange(undefined);
           if (inputRef.current) inputRef.current.value = '';
-        };
+        }, [field]);
+
+        React.useEffect(() => {
+          if (typeof clearSignal === 'number') clear();
+        }, [clearSignal, clear]);
 
         return (
           <Field data-invalid={fieldState.invalid} className="grid gap-0 self-start min-w-0">
             <FieldLabel className="mb-2">{fieldLabel}</FieldLabel>
 
-            {/* Hidden native input */}
             <input
               ref={inputRef}
               type="file"

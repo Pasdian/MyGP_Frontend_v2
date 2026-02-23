@@ -1,6 +1,11 @@
 'use client';
 
-import { IconAddressBook, IconArrowLeft, IconDashboard } from '@tabler/icons-react';
+import {
+  IconAddressBook,
+  IconArrowLeft,
+  IconDashboard,
+  IconManualGearbox,
+} from '@tabler/icons-react';
 
 import {
   SidebarGroup,
@@ -60,23 +65,38 @@ export function NavMain() {
             </SidebarMenuItem>
           </Link>
           {pathname !== '/mygp/dea' && (
-            <PermissionGuard requiredPermissions={[PERM.EXPEDIENTE_DIGITAL_CLIENTE]}>
-              <Link href="/mygp/expediente-digital-cliente">
-                <SidebarMenuItem className="flex items-center gap-2">
-                  <SidebarMenuButton
-                    tooltip="Expediente Digital Cliente"
-                    className={
-                      pathname == '/mygp/expediente-digital-cliente'
-                        ? activeItemClass
-                        : inactiveItemClass
-                    }
-                  >
-                    <Album />
-                    <span>Exp. Digital Cliente</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Link>
-            </PermissionGuard>
+            <div>
+              <PermissionGuard requiredPermissions={[PERM.EXPEDIENTE_DIGITAL_CLIENTE]}>
+                <Link href="/mygp/expediente-digital-cliente">
+                  <SidebarMenuItem className="flex items-center gap-2">
+                    <SidebarMenuButton
+                      tooltip="Expediente Digital Cliente"
+                      className={
+                        pathname == '/mygp/expediente-digital-cliente'
+                          ? activeItemClass
+                          : inactiveItemClass
+                      }
+                    >
+                      <Album />
+                      <span>Exp. Digital Cliente</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </Link>
+              </PermissionGuard>
+              <PermissionGuard requiredPermissions={[PERM.GESTOR]}>
+                <Link href="/mygp/gestor">
+                  <SidebarMenuItem className="flex items-center gap-2">
+                    <SidebarMenuButton
+                      tooltip="Expediente Digital Cliente"
+                      className={pathname == '/mygp/gestor' ? activeItemClass : inactiveItemClass}
+                    >
+                      <IconManualGearbox />
+                      <span>Gestor</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </Link>
+              </PermissionGuard>
+            </div>
           )}
         </SidebarMenu>
       </SidebarGroupContent>

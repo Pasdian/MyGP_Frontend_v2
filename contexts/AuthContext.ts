@@ -16,8 +16,8 @@ export const AuthContext = React.createContext<
       hasPermission: (perm: string | string[]) => boolean;
       hasRole: (role: string | string[]) => boolean;
       safeIdentify(person: User): void;
-      getCasaUsername(): string | null;
-      hasCompany: (companyName: string) => boolean
+      getCasaUsername(): string;
+      hasCompany: (companyName: string) => boolean;
     }
   | undefined
 >(undefined);
