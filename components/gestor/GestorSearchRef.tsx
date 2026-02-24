@@ -51,8 +51,8 @@ export function GestorSearchRef({
     } catch (error: any) {
       toast.error(
         error?.response?.data?.detail ??
-          error?.response?.data?.message ??
-          'Error al buscar la referencia'
+        error?.response?.data?.message ??
+        'Error al buscar la referencia'
       );
       setIsSubmitting(false);
     }
