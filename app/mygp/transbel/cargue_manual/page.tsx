@@ -51,6 +51,7 @@ export function toYMD(date: Date): string {
 export default function CargueManual() {
   const [isSendingToApi, setIsSendingToApi] = React.useState(false);
   const [taskId, setTaskId] = React.useState('');
+  const submitLockRef = React.useRef(false);
 
   const RUNNING_STATES = ['PENDING', 'STARTED', 'PROGRESS', 'RETRY'] as const;
   const TERMINAL_STATES = [
@@ -110,6 +111,9 @@ export default function CargueManual() {
   });
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+
     const lines = data.referenciasTextArea
       .split('\n')
       .map((s: string) => s.trim())
@@ -140,6 +144,17 @@ export default function CargueManual() {
 
     } catch (err) {
       if (axios.isAxiosError(err)) {
+        if (err.response?.status === 409) {
+          const duplicateTaskId = err.response?.data?.task_id;
+          if (duplicateTaskId) {
+            setTaskId(duplicateTaskId);
+            toast.info('Ese cargue ya está en proceso. Se abrió su seguimiento.');
+            return;
+          }
+          toast.info(err.response?.data?.message || 'Ese cargue ya está en proceso');
+          return;
+        }
+
         const message =
           err.response?.data?.message || err.message || 'Ocurrió un error';
         toast.error(message);
@@ -148,6 +163,7 @@ export default function CargueManual() {
       }
     } finally {
       setIsSendingToApi(false);
+      submitLockRef.current = false;
     }
   };
 
