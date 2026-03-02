@@ -13,6 +13,7 @@ export function FileController<TFieldValues extends FieldValues>({
   showFileName = true,
   showError = true,
   clearSignal,
+  multiple = false,
 }: {
   form: UseFormReturn<TFieldValues>;
   fieldLabel: string;
@@ -21,7 +22,8 @@ export function FileController<TFieldValues extends FieldValues>({
   buttonText?: string;
   showFileName?: boolean;
   showError?: boolean;
-  clearSignal?: number; // increment to force clear
+  clearSignal?: number;
+  multiple?: boolean;
 }) {
   const acceptValue = typeof accept === 'string' ? accept : accept?.join(',');
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -31,12 +33,12 @@ export function FileController<TFieldValues extends FieldValues>({
       name={controllerName}
       control={form.control}
       render={({ field, fieldState }) => {
-        const file = field.value as File | undefined;
+        const files = (field.value as File[] | undefined) ?? [];
 
         const clear = React.useCallback(() => {
-          field.onChange(undefined);
+          field.onChange(multiple ? [] : undefined);
           if (inputRef.current) inputRef.current.value = '';
-        }, [field]);
+        }, [field, multiple]);
 
         React.useEffect(() => {
           if (typeof clearSignal === 'number') clear();
@@ -50,12 +52,14 @@ export function FileController<TFieldValues extends FieldValues>({
               ref={inputRef}
               type="file"
               accept={acceptValue}
+              multiple={multiple}
               className="hidden"
               onBlur={field.onBlur}
               onChange={(e) => {
-                const f = e.currentTarget.files?.[0];
-                field.onChange(f ?? undefined);
-                e.currentTarget.value = ''; // allow re-pick same file
+                const list = e.currentTarget.files;
+                const next = list ? Array.from(list) : [];
+                field.onChange(multiple ? next : next[0] ?? undefined);
+                e.currentTarget.value = ''; // allow re-pick same file(s)
               }}
             />
 
@@ -72,15 +76,25 @@ export function FileController<TFieldValues extends FieldValues>({
               {showFileName ? (
                 <div
                   className="ml-3 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm opacity-70"
-                  title={file?.name}
+                  title={
+                    multiple
+                      ? files.map((f) => f.name).join(', ')
+                      : files[0]?.name
+                  }
                 >
-                  {file ? file.name : 'Ningún archivo seleccionado'}
+                  {multiple
+                    ? files.length
+                      ? `${files.length} archivo(s) seleccionado(s)`
+                      : 'Ningún archivo seleccionado'
+                    : files[0]
+                      ? files[0].name
+                      : 'Ningún archivo seleccionado'}
                 </div>
               ) : (
                 <div className="flex-1 min-w-0" />
               )}
 
-              {file ? (
+              {((multiple && files.length > 0) || (!multiple && files[0])) ? (
                 <Button
                   type="button"
                   variant="ghost"

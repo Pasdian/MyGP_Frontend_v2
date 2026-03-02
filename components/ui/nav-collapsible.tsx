@@ -9,6 +9,7 @@ import {
   IconFolderBolt,
   IconDoor,
   IconMoneybag,
+  IconFileExcel,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
@@ -97,6 +98,18 @@ const nav: NavGroupDef[] = [
     ],
   },
   {
+    title: 'Stars',
+    items: [
+      {
+        title: 'KONE',
+        url: '/mygp/stars/kone',
+        requires: [PERM.STARS_KONE],
+        icon: IconFileExcel,
+      },
+
+    ],
+  },
+  {
     title: 'Admin',
     items: [
       {
@@ -112,7 +125,7 @@ const nav: NavGroupDef[] = [
         icon: IconDoor,
       },
     ],
-  },
+  }
 ];
 
 const PERM_SET = new Set<string>(Object.values(PERM));
