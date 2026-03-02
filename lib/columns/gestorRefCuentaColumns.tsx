@@ -17,6 +17,14 @@ export const gestorRefCuentaColumns: ColumnDef<GestorCuenta>[] = [
     },
   },
   {
+    accessorKey: "Clave Concepto",
+    header: () => <Header label="Clave Concepto" />,
+    cell: ({ row }) => {
+      const value = row.getValue<string>("Clave Concepto");
+      return value && value.trim() !== "" ? value : "--";
+    },
+  },
+  {
     accessorKey: "Clave",
     header: () => <Header label="Clave" />,
     cell: ({ row }) => {

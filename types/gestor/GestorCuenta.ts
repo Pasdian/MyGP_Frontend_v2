@@ -10,4 +10,5 @@ export type GestorCuenta = {
   Nombre: string | null;
   GTOS_X_PC: string | null;
   'UUID Factura': string | null;
+  'Clave Concepto': string | null;
 };
