@@ -41,6 +41,17 @@ const LAYOUTB_COLUMNS = [
   "Item",
 ];
 
+const LAYOUTC_COLUMNS = [
+  "FL Network",
+  "Buyer’s reference",
+  "Sales order",
+  "Pos",
+  "Package Nr",
+  "Package Description",
+  "Gross Weight (kg)",
+  "Volume (m3)",
+]
+
 const formSchema = z.object({
   pdf_files: z
     .array(z.instanceof(File))
@@ -62,7 +73,7 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-type LayoutChoice = "A" | "B";
+type LayoutChoice = "A" | "B" | "C";
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -206,10 +217,7 @@ export default function KONE() {
         formData.append("pdf_files", file, file.name);
       }
 
-      const endpoint =
-        layout === "A" ? "/stars/kone/layoutA" : "/stars/kone/layoutB";
-
-      const response = await GPClient.post(endpoint, formData, {
+      const response = await GPClient.post(`/stars/kone/layout${layout}`, formData, {
         responseType: "blob",
       });
 
@@ -253,6 +261,13 @@ export default function KONE() {
               columns={LAYOUTB_COLUMNS}
               selected={layout === "B"}
               onSelect={() => setLayout("B")}
+            />
+            <LayoutOption
+              id="C"
+              title="Formato C"
+              columns={LAYOUTC_COLUMNS}
+              selected={layout === "C"}
+              onSelect={() => setLayout("C")}
             />
           </div>
 
