@@ -101,7 +101,7 @@ function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
                   {op.NEW_STATUS}
                 </td>
                 <td className="px-2 py-1 border-b whitespace-nowrap">
-                  {formatISOtoDDMMYYYY(op.CHANGED_AT)}
+                  {op.CHANGED_AT_FORMATTED}
                 </td>
                 <td className="px-2 py-1 border-b whitespace-nowrap">{op.CHANGED_BY}</td>
               </tr>

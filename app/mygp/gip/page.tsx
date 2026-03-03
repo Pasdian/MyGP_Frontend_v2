@@ -20,7 +20,9 @@ function buildPreviewUrl(rel: string) {
   const u = new URL('/gip/download', window.location.origin);
   u.searchParams.set('filepath', rel);
   u.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
-  return u.toString();
+
+  // Hide PDF toolbar
+  return u.toString() + '#toolbar=0&navpanes=0&scrollbar=0';
 }
 
 export default function GipBrowserLite() {
@@ -28,11 +30,10 @@ export default function GipBrowserLite() {
   const [selected, setSelected] = React.useState('');
   const [loadingPrev, setLoadingPrev] = React.useState(false);
   const [prevErr, setPrevErr] = React.useState('');
-  const key = `/gip/search${
-    folder
-      ? `?filepath=${encodeURIComponent(folder)}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`
-      : ''
-  }`;
+  const key = `/gip/search${folder
+    ? `?filepath=${encodeURIComponent(folder)}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`
+    : ''
+    }`;
 
   const previewUrl = React.useMemo(() => {
     return selected ? buildPreviewUrl(selected) : '';
@@ -45,6 +46,8 @@ export default function GipBrowserLite() {
       setPrevErr('');
     }
   }, [selected]);
+
+
 
   const atRoot = !folder || folder === '/';
 
@@ -124,13 +127,12 @@ export default function GipBrowserLite() {
                     key={rel}
                     onClick={() => (it.is_dir ? setFolder(rel) : setSelected(rel))}
                     title={it.name}
-                    className={`w-full text-left flex items-center gap-2 px-3 py-2 border-b last:border-b-0 ${
-                      selectedRow
-                        ? 'bg-blue-50 border-l-4 border-blue-400'
-                        : i % 2
+                    className={`w-full text-left flex items-center gap-2 px-3 py-2 border-b last:border-b-0 ${selectedRow
+                      ? 'bg-blue-50 border-l-4 border-blue-400'
+                      : i % 2
                         ? 'bg-white'
                         : 'bg-gray-50'
-                    } hover:bg-gray-100`}
+                      } hover:bg-gray-100`}
                   >
                     <span aria-hidden>{it.is_dir ? '📁' : '📄'}</span>
                     <span className="truncate">{it.name}</span>
@@ -145,32 +147,25 @@ export default function GipBrowserLite() {
                 Selecciona un archivo para previsualizar
               </div>
             ) : (
-              <div>
+              <div className="flex flex-col h-full">
                 <div className="flex items-center gap-3 px-3 py-2 border-b bg-gray-50">
                   <span className="text-xs uppercase text-gray-500">Vista previa:</span>
                   <span className="font-medium truncate">{selected.split('/').pop()}</span>
                 </div>
+
                 <div className="flex-1 overflow-hidden relative">
                   {loadingPrev && (
                     <div className="absolute inset-0 z-10 bg-white/70 flex items-center justify-center">
                       <div className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
                     </div>
                   )}
-                  {prevErr && !loadingPrev && (
-                    <div className="absolute inset-0 z-10 bg-white/90 flex items-center justify-center p-6 text-center">
-                      <div className="text-red-600">No se pudo cargar la vista previa.</div>
-                    </div>
-                  )}
+
                   <iframe
                     key={selected}
                     src={previewUrl}
                     className="w-full h-full"
                     frameBorder={0}
                     onLoad={() => setLoadingPrev(false)}
-                    onError={() => {
-                      setLoadingPrev(false);
-                      setPrevErr('');
-                    }}
                   />
                 </div>
               </div>
