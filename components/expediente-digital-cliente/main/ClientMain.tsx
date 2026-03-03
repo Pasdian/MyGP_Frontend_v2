@@ -25,7 +25,7 @@ import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { useCliente } from '@/contexts/expediente-digital-cliente/ClienteContext';
 import { axiosFetcher, GPClient } from '@/lib/axiosUtils/axios-instance';
 
-type Company = { CVE_IMP: string; NOM_IMP: string; EXISTS_ON_CASA: boolean };
+type Company = { CVE_IMP: string; NOM_IMP: string };
 
 export function ClientMain({
   setShowDocuments,
@@ -156,7 +156,6 @@ export function ClientMain({
       companies?.map((c) => ({
         value: c.CVE_IMP,
         label: c.NOM_IMP,
-        existsCasa: c.EXISTS_ON_CASA,
       })) ?? [],
     [companies]
   );
@@ -409,10 +408,6 @@ export function ClientMain({
                                 setValue={(value: string) => {
                                   const selected = companiesOptions.find((o) => o.value === value);
                                   if (!selected) return;
-
-                                  if (!selected.existsCasa) {
-                                    toast.warning('Advertencia: El cliente no existe en CASA');
-                                  }
 
                                   field.onChange(value);
                                   setCasaId(selected.value);
