@@ -17,10 +17,26 @@ export const operacionesGastosColumns: ColumnDef<Gasto>[] = [
     },
   },
   {
+    accessorKey: "BENEFICIARIO",
+    header: () => <Header label="Beneficiario" />,
+    cell: ({ row }) => {
+      const value = row.getValue<string>("BENEFICIARIO");
+      return value && value.trim() !== "" ? value : "--";
+    },
+  },
+  {
     accessorKey: "FACTURA",
     header: () => <Header label="Factura" />,
     cell: ({ row }) => {
       const value = row.getValue<string>("FACTURA");
+      return value && value.trim() !== "" ? value : "--";
+    },
+  },
+  {
+    accessorKey: "FECHA_FACTURA_FORMATTED",
+    header: () => <Header label="Fecha Factura" />,
+    cell: ({ row }) => {
+      const value = row.getValue<string>("FECHA_FACTURA_FORMATTED");
       return value && value.trim() !== "" ? value : "--";
     },
   },
@@ -32,9 +48,9 @@ export const operacionesGastosColumns: ColumnDef<Gasto>[] = [
 
       return value !== undefined && value !== null
         ? value.toLocaleString("es-MX", {
-            style: "currency",
-            currency: "MXN",
-          })
+          style: "currency",
+          currency: "MXN",
+        })
         : "--";
     },
   },
