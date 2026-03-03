@@ -33,7 +33,14 @@ export function FileController<TFieldValues extends FieldValues>({
       name={controllerName}
       control={form.control}
       render={({ field, fieldState }) => {
-        const files = (field.value as File[] | undefined) ?? [];
+        const value = field.value as unknown;
+        const files = multiple
+          ? Array.isArray(value)
+            ? value.filter((item): item is File => item instanceof File)
+            : []
+          : [];
+        const singleFile =
+          !multiple && value && typeof value === 'object' && value instanceof File ? value : undefined;
 
         const clear = React.useCallback(() => {
           field.onChange(multiple ? [] : undefined);
@@ -76,25 +83,21 @@ export function FileController<TFieldValues extends FieldValues>({
               {showFileName ? (
                 <div
                   className="ml-3 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm opacity-70"
-                  title={
-                    multiple
-                      ? files.map((f) => f.name).join(', ')
-                      : files[0]?.name
-                  }
+                  title={multiple ? files.map((f) => f.name).join(', ') : singleFile?.name}
                 >
                   {multiple
                     ? files.length
                       ? `${files.length} archivo(s) seleccionado(s)`
                       : 'Ningún archivo seleccionado'
-                    : files[0]
-                      ? files[0].name
+                    : singleFile
+                      ? singleFile.name
                       : 'Ningún archivo seleccionado'}
                 </div>
               ) : (
                 <div className="flex-1 min-w-0" />
               )}
 
-              {((multiple && files.length > 0) || (!multiple && files[0])) ? (
+              {((multiple && files.length > 0) || (!multiple && singleFile)) ? (
                 <Button
                   type="button"
                   variant="ghost"

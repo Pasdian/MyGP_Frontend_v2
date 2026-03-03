@@ -27,17 +27,17 @@ export const EXP_DIGI_SCHEMAS = {
 
     fotosDomicilioFiscal: z.object({
       docKey: z.literal('imp.contact.fotos_fiscal'),
-      files: createImagesSchema(50_000_000, 10).optional(),
+      file: createPdfSchema(50_000_000).optional(),
     }),
 
     fotosAcreditacionLegalInmueble: z.object({
       docKey: z.literal('imp.contact.fotos_inmueble'),
-      files: createImagesSchema(50_000_000, 10).optional(),
+      file: createPdfSchema(50_000_000).optional(),
     }),
 
     fotosLugarActividades: z.object({
       docKey: z.literal('imp.contact.fotos_actividades'),
-      files: createImagesSchema(50_000_000, 10).optional(),
+      file: createPdfSchema(50_000_000).optional(),
     }),
   }),
 
@@ -253,9 +253,9 @@ export const EXP_DIGI_DEFAULT_VALUES = {
 
   'imp.contact': {
     comprobanteDomicilio: { docKey: 'imp.contact.domicilio', file: undefined },
-    fotosDomicilioFiscal: { docKey: 'imp.contact.fotos_fiscal', files: [] as File[] },
-    fotosAcreditacionLegalInmueble: { docKey: 'imp.contact.fotos_inmueble', files: [] as File[] },
-    fotosLugarActividades: { docKey: 'imp.contact.fotos_actividades', files: [] as File[] },
+    fotosDomicilioFiscal: { docKey: 'imp.contact.fotos_fiscal', file: undefined },
+    fotosAcreditacionLegalInmueble: { docKey: 'imp.contact.fotos_inmueble', file: undefined },
+    fotosLugarActividades: { docKey: 'imp.contact.fotos_actividades', file: undefined },
   },
 
   'imp.tax': {

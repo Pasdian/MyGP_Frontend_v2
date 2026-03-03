@@ -15,10 +15,6 @@ import { EXP_DIGI_DEFAULT_VALUES, EXP_DIGI_SCHEMAS } from '../schemas/schemasMai
 import { submitFolderAndUpdateProgress } from '@/lib/expediente-digital-cliente/submitFolderAndUpdateProgress';
 import { InputController } from '../InputController';
 
-function asFileArray(v: unknown): File[] {
-  return Array.isArray(v) ? (v as File[]) : [];
-}
-
 export function DatosContactoSub() {
   const { casa_id, updateProgressFromSubmitResponse, folderMappings } = useCliente();
   const { getCasaUsername } = useAuth();
@@ -48,12 +44,17 @@ export function DatosContactoSub() {
         fd.append('imp.contact.domicilio', data.comprobanteDomicilio.file);
       }
 
-      for (const f of asFileArray(data.fotosDomicilioFiscal?.files))
-        fd.append('imp.contact.fotos_fiscal', f);
-      for (const f of asFileArray(data.fotosAcreditacionLegalInmueble?.files))
-        fd.append('imp.contact.fotos_inmueble', f);
-      for (const f of asFileArray(data.fotosLugarActividades?.files))
-        fd.append('imp.contact.fotos_actividades', f);
+      if (data.fotosDomicilioFiscal?.file) {
+        fd.append('imp.contact.fotos_fiscal', data.fotosDomicilioFiscal.file);
+      }
+
+      if (data.fotosAcreditacionLegalInmueble?.file) {
+        fd.append('imp.contact.fotos_inmueble', data.fotosAcreditacionLegalInmueble.file);
+      }
+      if (data.fotosLugarActividades?.file) {
+        fd.append('imp.contact.fotos_actividades', data.fotosLugarActividades?.file);
+      }
+
 
       const { failed } = await submitFolderAndUpdateProgress({
         folderKey: FOLDER_KEY,
@@ -73,7 +74,6 @@ export function DatosContactoSub() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <ExpDigiCard
       title="Datos de Contacto del Importador"
@@ -93,29 +93,26 @@ export function DatosContactoSub() {
 
             <InputController
               form={form}
-              controllerName="fotosDomicilioFiscal.files"
+              controllerName="fotosDomicilioFiscal.file"
               docKey={DOC_KEYS[1]}
               fieldLabel="Fotos Domicilio Fiscal:"
               description="Fachada del inmueble con número exterior e interior"
-              isMulti={true}
             />
 
             <InputController
               form={form}
-              controllerName="fotosAcreditacionLegalInmueble.files"
+              controllerName="fotosAcreditacionLegalInmueble.file"
               docKey={DOC_KEYS[2]}
               fieldLabel="Acreditación Legal del Inmueble:"
               description="Contrato de arrendamiento, título de propiedad, etc."
-              isMulti={true}
             />
 
             <InputController
               form={form}
-              controllerName="fotosLugarActividades.files"
+              controllerName="fotosLugarActividades.file"
               docKey={DOC_KEYS[3]}
               fieldLabel="Fotos del lugar de donde realizan sus actividades:"
               description="Donde se observe: fachada del domicilio, maquinaria, equipo de oficina, el personal, medios de transporte y demás medios empleados para la realización de sus actividades."
-              isMulti={true}
             />
           </div>
         </FieldGroup>

@@ -128,6 +128,7 @@ export function ClientMain({
       state: '',
       postal_code: '',
     },
+    mode: 'onChange'
   });
 
   const resetForm = () => {
@@ -200,7 +201,8 @@ export function ClientMain({
         form.setValue('city', addr?.city ?? '');
         form.setValue('state', addr?.state ?? '');
         form.setValue('postal_code', addr?.postal_code ?? '');
-
+        form.clearErrors();
+        await form.trigger();
         setShowDocuments(true);
         setCollapseAccordion(true);
       } catch (err: any) {
@@ -320,10 +322,9 @@ export function ClientMain({
                             }}
                             className={`
                               h-12 text-base font-medium transition-all
-                              ${
-                                field.value === true
-                                  ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
-                                  : 'border-border hover:bg-blue-50/50'
+                              ${field.value === true
+                                ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                : 'border-border hover:bg-blue-50/50'
                               }
                             `}
                           >
@@ -336,10 +337,9 @@ export function ClientMain({
                             onClick={() => field.onChange(false)}
                             className={`
                               h-12 text-base font-medium transition-all
-                              ${
-                                field.value === false
-                                  ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
-                                  : 'border-border hover:bg-blue-50/50'
+                              ${field.value === false
+                                ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                : 'border-border hover:bg-blue-50/50'
                               }
                             `}
                           >
@@ -376,8 +376,9 @@ export function ClientMain({
                                 className="mb-2"
                                 aria-invalid={fieldState.invalid}
                                 onChange={(e) => {
-                                  field.onChange(e);
-                                  setCliente(e.target.value);
+                                  const v = e.target.value;
+                                  field.onChange(v);
+                                  setCliente(v);
                                 }}
                               />
 
