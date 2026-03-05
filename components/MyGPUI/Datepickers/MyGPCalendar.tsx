@@ -1,4 +1,5 @@
 'use client';
+
 import * as React from 'react';
 import { type DateRange } from 'react-day-picker';
 import { Calendar } from '@/components/ui/calendar';
@@ -16,6 +17,28 @@ type MyGPCalendarProps = {
   label?: string;
 } & React.ComponentProps<typeof Button>;
 
+const startOfDay = (d: Date) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
+
+const endOfDay = (d: Date) => {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+};
+
+const normalizeRange = (range: DateRange | undefined): DateRange | undefined => {
+  if (!range?.from) return range;
+
+  // If only one day is selected, treat it as a 1-day range.
+  const from = startOfDay(range.from);
+  const to = endOfDay(range.to ?? range.from);
+
+  return { from, to };
+};
+
 export default function MyGPCalendar({
   dateRange,
   setDateRange,
@@ -23,6 +46,8 @@ export default function MyGPCalendar({
   ...props
 }: MyGPCalendarProps) {
   const [open, setOpen] = React.useState(false);
+
+  // Draft range is what user is currently selecting in the popover (not applied yet).
   const [draftRange, setDraftRange] = React.useState<DateRange | undefined>(dateRange);
 
   React.useEffect(() => {
@@ -73,9 +98,9 @@ export default function MyGPCalendar({
 
   const getLast500Years = () => {
     const today = new Date();
-    const twoHundredYearsAgo = new Date(today);
-    twoHundredYearsAgo.setFullYear(today.getFullYear() - 500);
-    return { from: twoHundredYearsAgo, to: today };
+    const fiveHundredYearsAgo = new Date(today);
+    fiveHundredYearsAgo.setFullYear(today.getFullYear() - 500);
+    return { from: fiveHundredYearsAgo, to: today };
   };
 
   const formatDate = (date: Date | undefined) => {
@@ -87,12 +112,15 @@ export default function MyGPCalendar({
     });
   };
 
+  // When user clicks a preset, we set draftRange (not applied yet).
+  // We normalize here so the draft shows the same boundaries.
   const handlePresetClick = (preset: DateRange) => {
-    setDraftRange(preset);
+    setDraftRange(normalizeRange(preset));
   };
 
+  // Apply commits draft to parent, with required time boundaries.
   const handleApply = () => {
-    setDateRange(draftRange);
+    setDateRange(normalizeRange(draftRange));
     setOpen(false);
   };
 
@@ -139,6 +167,7 @@ export default function MyGPCalendar({
               >
                 Última Semana
               </Button>
+
               <Button
                 variant="ghost"
                 className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
@@ -146,6 +175,7 @@ export default function MyGPCalendar({
               >
                 Último Mes
               </Button>
+
               <Button
                 variant="ghost"
                 className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
@@ -153,6 +183,7 @@ export default function MyGPCalendar({
               >
                 Últimos 2 Meses
               </Button>
+
               <Button
                 variant="ghost"
                 className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
@@ -160,6 +191,7 @@ export default function MyGPCalendar({
               >
                 Último Año
               </Button>
+
               <Button
                 variant="ghost"
                 className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
@@ -167,6 +199,7 @@ export default function MyGPCalendar({
               >
                 Últimos 5 Años
               </Button>
+
               <Button
                 variant="ghost"
                 className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
@@ -174,6 +207,7 @@ export default function MyGPCalendar({
               >
                 Últimos 10 Años
               </Button>
+
               <Button
                 variant="ghost"
                 className="w-full justify-start text-[11px] font-normal px-2 py-1 h-auto"
@@ -181,6 +215,7 @@ export default function MyGPCalendar({
               >
                 Histórico
               </Button>
+
               <div className="pt-1 border-t mt-1">
                 <p className="text-[10px] text-slate-500 mb-0.5 px-1">Personalizado</p>
                 <Button

@@ -11,6 +11,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '../../ui/label';
@@ -41,22 +42,67 @@ export function MyGPComboMulti({
 }) {
   const [open, setOpen] = React.useState(false);
 
+  const listRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollRef = React.useRef(0);
+
   React.useEffect(() => {
     if (pickFirst && (!values || values.length === 0) && options.length > 0) {
       setValues([options[0].value]);
     }
   }, [pickFirst, values, options, setValues]);
 
+  const selectedSet = React.useMemo(() => new Set(values || []), [values]);
+
+  const sortedOptions = React.useMemo(() => {
+    // Stable: selected first, keep relative order from original `options`
+    const selected: { value: string; label: string }[] = [];
+    const unselected: { value: string; label: string }[] = [];
+
+    for (const o of options || []) {
+      if (selectedSet.has(o.value)) selected.push(o);
+      else unselected.push(o);
+    }
+
+    return [...selected, ...unselected];
+  }, [options, selectedSet]);
+
   const selectedLabels = React.useMemo(() => {
-    const map = new Map(options.map((o) => [o.value, o.label]));
+    const map = new Map((options || []).map((o) => [o.value, o.label]));
     return (values || []).map((v) => map.get(v) ?? v);
   }, [values, options]);
 
   const buttonText = React.useMemo(() => {
     if (!values || values.length === 0) return placeholder ?? 'Selecciona clientes';
     if (values.length === 1) return selectedLabels[0];
-    return `${values.length} clientes seleccionados`;
+    return `${values.length} seleccionados`;
   }, [values, selectedLabels, placeholder]);
+
+  const toggleValue = React.useCallback(
+    (value: string) => {
+      // Capture current scroll before list reorders
+      if (listRef.current) {
+        scrollRef.current = listRef.current.scrollTop;
+      }
+
+      setValues((prev) => {
+        const current = Array.isArray(prev) ? prev : [];
+        return current.includes(value)
+          ? current.filter((x) => x !== value) // deselect
+          : [...current, value]; // select
+      });
+
+      onSelect?.();
+      setOpen(true);
+    },
+    [setValues, onSelect]
+  );
+
+  // Restore scroll after DOM updates (prevents jump when item moves sections)
+  React.useLayoutEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = scrollRef.current;
+    }
+  });
 
   return (
     <div className="flex flex-col gap-2">
@@ -107,47 +153,48 @@ export function MyGPComboMulti({
             }}
           >
             <CommandInput placeholder={label} className="h-9" />
-            <CommandList>
+
+            {/* Attach ref here so we can preserve scrollTop */}
+            <CommandList ref={listRef}>
               <CommandEmpty>No se encontraron elementos.</CommandEmpty>
 
               <CommandGroup>
-                {options?.map((item) => {
-                  const isSelected = (values || []).includes(item.value);
+                {sortedOptions.map((item, idx) => {
+                  const isSelected = selectedSet.has(item.value);
+
+                  // Optional: draw a separator between selected and unselected
+                  const prev = sortedOptions[idx - 1];
+                  const prevSelected = prev ? selectedSet.has(prev.value) : true;
+                  const needsSeparator = idx > 0 && prevSelected && !isSelected;
 
                   return (
-                    <CommandItem
-                      key={item.value}
-                      value={`${item.label} ${item.value}`}
-                      onSelect={() => {
-                        setValues((prev) => {
-                          const current = Array.isArray(prev) ? prev : [];
-                          if (current.includes(item.value))
-                            return current.filter((x) => x !== item.value);
-                          return [...current, item.value];
-                        });
-                        onSelect?.();
-                        setOpen(true);
-                      }}
-                    >
-                      <div className="flex items-center min-w-0 gap-2 w-full">
-                        {showValue && (
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            ({item.value})
+                    <React.Fragment key={item.value}>
+                      {needsSeparator && <CommandSeparator />}
+
+                      <CommandItem
+                        value={`${item.label} ${item.value}`}
+                        onSelect={() => toggleValue(item.value)}
+                      >
+                        <div className="flex items-center min-w-0 gap-2 w-full">
+                          {showValue && (
+                            <span className="text-xs text-muted-foreground shrink-0">
+                              ({item.value})
+                            </span>
+                          )}
+
+                          <span className="text-xs font-semibold truncate min-w-0 flex-1">
+                            {item.label}
                           </span>
-                        )}
+                        </div>
 
-                        <span className="text-xs font-semibold truncate min-w-0 flex-1">
-                          {item.label}
-                        </span>
-                      </div>
-
-                      <Check
-                        className={cn(
-                          'ml-auto h-4 w-4 shrink-0',
-                          isSelected ? 'opacity-100' : 'opacity-0'
-                        )}
-                      />
-                    </CommandItem>
+                        <Check
+                          className={cn(
+                            'ml-auto h-4 w-4 shrink-0',
+                            isSelected ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
+                      </CommandItem>
+                    </React.Fragment>
                   );
                 })}
               </CommandGroup>

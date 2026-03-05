@@ -87,6 +87,17 @@ const nav: NavGroupDef[] = [
     ],
   },
   {
+    title: 'Facturación',
+    items: [
+      {
+        title: 'Reportes',
+        url: '/mygp/facturacion/reportes',
+        requires: [PERM.FACTURACION_REPORTES],
+        icon: SheetIcon,
+      },
+    ],
+  },
+  {
     title: 'Sistema GIP',
     items: [
       {
@@ -106,7 +117,6 @@ const nav: NavGroupDef[] = [
         requires: [PERM.STARS_KONE],
         icon: IconFileExcel,
       },
-
     ],
   },
   {
@@ -125,7 +135,7 @@ const nav: NavGroupDef[] = [
         icon: IconDoor,
       },
     ],
-  }
+  },
 ];
 
 const PERM_SET = new Set<string>(Object.values(PERM));

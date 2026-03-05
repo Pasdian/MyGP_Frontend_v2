@@ -27,6 +27,8 @@ export const PERM = {
   GESTOR: "GESTOR",
 
   STARS_KONE: "STARS_KONE",
+
+  FACTURACION_REPORTES: "FACTURACION_REPORTES",
 } as const;
 
 export type Permission = (typeof PERM)[keyof typeof PERM];
