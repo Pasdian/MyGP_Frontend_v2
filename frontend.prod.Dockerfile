@@ -1,33 +1,40 @@
 # --- Dependencies stage ---
-FROM node:20 AS deps
+FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
 # --- Build stage ---
-FROM node:20 AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-
-# Copy env FIRST so Next can read it at build time
-COPY .env .env
-
-# Copy the rest of the frontend source
 COPY . .
 
-# Next.js will read .env automatically
+# next.config.js must have output: 'standalone' for this to work
 RUN npm run build
 
 # --- Runtime stage ---
-FROM node:20-slim AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY package*.json ./
-COPY --from=deps /app/node_modules ./node_modules
+# Don't run as root
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Standalone output is self-contained — no node_modules copy needed
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
 
 EXPOSE 3000
-CMD ["npm", "start"]
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 --start-period=15s \
+  CMD wget -qO- http://localhost:3000/ || exit 1
+
+CMD ["node", "server.js"]
