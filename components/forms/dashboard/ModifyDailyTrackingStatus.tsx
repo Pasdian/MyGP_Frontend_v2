@@ -205,6 +205,7 @@ export default function ModifyDailyTrackingStatusForm({
                   }
                   aria-invalid={!!form.formState.errors.status}
                   className={!selectedCategory ? 'opacity-50 pointer-events-none' : undefined}
+                  isModal
                 />
                 <FormMessage />
               </FormItem>

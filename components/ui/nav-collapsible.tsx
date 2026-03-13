@@ -15,7 +15,7 @@ import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import { NavItem } from '@/types/nav/navItem';
-import { BookPlusIcon, Container, SheetIcon } from 'lucide-react';
+import { BookPlusIcon, ChartAreaIcon, ChartBarIcon, Container, SheetIcon } from 'lucide-react';
 import { PERM, type Permission } from '@/lib/modules/permissions';
 
 type NavItemDef = NavItem & {
@@ -116,6 +116,23 @@ const nav: NavGroupDef[] = [
         url: '/mygp/stars/kone',
         requires: [PERM.STARS_KONE],
         icon: IconFileExcel,
+      },
+    ],
+  },
+  {
+    title: 'DIPP',
+    items: [
+      {
+        title: 'Solicitudes Diarias de Recursos Operativos',
+        url: '/mygp/dipp/solicitudes-diarias-recursos-operativos',
+        requires: [PERM.DIPP_SOLICITUDES_DIARIAS_RECURSOS_OPERATIVOS],
+        icon: ChartBarIcon,
+      },
+      {
+        title: 'Orden de Facturación',
+        url: '/mygp/dipp/orden-facturacion',
+        requires: [PERM.DIPP_SOLICITUDES_DIARIAS_RECURSOS_OPERATIVOS],
+        icon: ChartBarIcon,
       },
     ],
   },

@@ -26,6 +26,7 @@ export function MyGPComboMulti({
   className,
   pickFirst,
   onSelect,
+  isModal = true,
   'aria-invalid': ariaInvalid,
   ...props
 }: {
@@ -38,6 +39,7 @@ export function MyGPComboMulti({
   className?: string;
   onSelect?: () => void;
   pickFirst?: boolean;
+  isModal?: boolean;
   'aria-invalid'?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -112,7 +114,7 @@ export function MyGPComboMulti({
         </Label>
       )}
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={isModal}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"

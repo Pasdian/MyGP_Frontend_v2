@@ -14,6 +14,21 @@ export const metadata: Metadata = {
 const inter = localFont({
   src: [
     {
+      path: './fonts/inter/Inter-Thin.ttf',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: './fonts/inter/Inter-ExtraLight.ttf',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: './fonts/inter/Inter-Light.ttf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
       path: './fonts/inter/Inter-Regular.ttf',
       weight: '400',
       style: 'normal',
@@ -21,6 +36,11 @@ const inter = localFont({
     {
       path: './fonts/inter/Inter-Medium.ttf',
       weight: '500',
+      style: 'normal',
+    },
+    {
+      path: './fonts/inter/Inter-SemiBold.ttf',
+      weight: '600',
       style: 'normal',
     },
     {

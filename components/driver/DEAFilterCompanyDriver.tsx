@@ -2,7 +2,6 @@ import React from 'react';
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import CompanySelect from '../selects/CompanySelect';
-import { FilterIcon } from 'lucide-react';
 
 export default function DEAFilterCompanyDriver({
   companySelect,
@@ -42,11 +41,10 @@ export default function DEAFilterCompanyDriver({
 
   return (
     <CompanySelect
-      id="company-select-filter"
-      className="h-5 text-xs w-[50px]"
+      className="h-5 text-xs"
       value={companySelect}
       onChange={setCompanySelect}
-      placeHolder={<FilterIcon width={5} height={5} />}
+      placeHolder="Filtrar"
     />
   );
 }

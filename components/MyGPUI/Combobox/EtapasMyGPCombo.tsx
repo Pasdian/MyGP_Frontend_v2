@@ -47,6 +47,7 @@ export function EtapasMyGPCombo({
       options={options}
       showValue={false}
       className={isLoading ? 'opacity-50 pointer-events-none' : undefined}
+      isModal
     />
   );
 }
