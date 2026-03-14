@@ -5,7 +5,6 @@ import { DatosReferencia } from '@/components/orden-facturacion/DatosReferencia'
 import { DetallesFinanciamiento } from '@/components/orden-facturacion/DetallesFinanciamiento';
 import { GastosAComprobar } from '@/components/orden-facturacion/GastosAComprobar';
 import { OrdenFacturacionProvider } from '@/contexts/dipp/OrdenFacturacionContext';
-import { CuentaAmericana } from '@/components/orden-facturacion/CuentaAmericana';
 import { InstruccionesAdicionales } from '@/components/orden-facturacion/InstruccionesAdicionales';
 import { ExpedienteDigitalChecklist } from '@/components/orden-facturacion/ExpedienteDigitalChecklist';
 
@@ -26,7 +25,7 @@ export default function OrdenFacturacion() {
           <GastosAComprobar />
         </div>
         <div className="mb-4">
-          <CuentaAmericana />
+          <GastosAComprobar isAmericana />
         </div>
         <div className="mb-4">
           <InstruccionesAdicionales />
