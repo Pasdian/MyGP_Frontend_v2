@@ -104,9 +104,7 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
     <OrdenFacturacionCard title={title}>
       <div className="flex gap-2 mb-4">
         <AgregarGasto isAmericana={isAmericana} />
-        <PermissionGuard
-          requiredPermissions={[PERM.DIPP_SOLICITUDES_DIARIAS_RECURSOS_OPERATIVOS_ADMIN]}
-        >
+        <PermissionGuard requiredPermissions={[PERM.DIPP_ORDEN_FACTURACION_ADMIN]}>
           <AgregarProvision isAmericana={isAmericana} />
         </PermissionGuard>
       </div>
