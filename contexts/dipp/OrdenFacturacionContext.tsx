@@ -13,6 +13,7 @@ export type GastoItem = {
   CVE_BENE: string | null;
   NOM_BENE: string | null;
   IS_AMERICANA: boolean;
+  CHECKED: boolean | null;
   canDelete: boolean;
 };
 
@@ -83,9 +84,10 @@ export type DippReferenceData = {
   CVE_IMP: string | null;
   GASTOS_A_COMPROBAR: GastoItem[];
   CUENTA_AMERICANA: GastoItem[];
+  IS_KPI_MET: boolean | null;
+  TRAFFIC_TYPE: string | null;
   INSTRUCCIONES_ADICIONALES: InstruccionesAdicionalesData | null;
   EXPEDIENTE_DIGITAL: ExpedienteDigitalData | null;
-
   PROVISION: {
     CVE_IMPO: string | null;
     IMP_EXPO: string | null;
