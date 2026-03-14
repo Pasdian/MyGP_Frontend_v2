@@ -1,33 +1,46 @@
 import { Loader2, SaveAll } from 'lucide-react';
 import { MyGPButtonPrimary } from './MyGPButtonPrimary';
 import React from 'react';
+import { MyGPButtonDanger } from './MyGPButtonDanger';
 
 export default function MyGPButtonSubmit({
   isSubmitting,
   children,
   isSubmittingText = 'Enviando',
+  danger = false,
   ...props
 }: {
   isSubmitting?: boolean;
   children?: React.ReactNode;
   isSubmittingText?: string;
+  danger?: boolean;
 } & React.ComponentProps<typeof MyGPButtonPrimary>) {
-  return (
-    <MyGPButtonPrimary type="submit" disabled={isSubmitting} {...props}>
-      {isSubmitting ? (
+  const content = isSubmitting ? (
+    <>
+      <Loader2 className="animate-spin mr-2" />
+      <p>{isSubmittingText}</p>
+    </>
+  ) : (
+    <>
+      {children || (
         <>
-          <Loader2 className="animate-spin mr-2" />
-          <p>{isSubmittingText}</p>
-        </>
-      ) : (
-        <>
-          {children || (
-            <>
-              <SaveAll /> <p>Guardar Cambios</p>
-            </>
-          )}
+          <SaveAll /> <p>Guardar Cambios</p>
         </>
       )}
-    </MyGPButtonPrimary>
+    </>
+  );
+
+  if (!danger) {
+    return (
+      <MyGPButtonPrimary type="submit" disabled={isSubmitting} {...props}>
+        {content}
+      </MyGPButtonPrimary>
+    );
+  }
+
+  return (
+    <MyGPButtonDanger type="submit" disabled={isSubmitting} {...props}>
+      {content}
+    </MyGPButtonDanger>
   );
 }
