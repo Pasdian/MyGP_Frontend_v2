@@ -94,6 +94,14 @@ export default function AuthProvider({
     return user?.complete_user?.user?.casa_user_name ?? 'MYGP';
   };
 
+  const getUserEmail = (): string => {
+    return user?.complete_user?.user?.email || '';
+  };
+
+  const getUserFullName = (): string => {
+    return `${user.complete_user.user.name}` || '';
+  };
+
   const hasRole = React.useCallback(
     (role: string | string[]) => {
       if (!roleName) return false;
@@ -218,6 +226,8 @@ export default function AuthProvider({
         hasRole,
         hasPermission,
         getCasaUsername,
+        getUserFullName,
+        getUserEmail,
         hasCompany,
       }}
     >
