@@ -13,10 +13,13 @@ import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { useAuth } from '@/hooks/useAuth';
+import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   concepto: z.string().min(1, 'Selecciona un concepto'),
-  proveedor: z.string().min(1, 'Selecciona un proveedor'),
+  clave_proveedor: z.string().min(1, 'Selecciona un proveedor'),
   factura: z.string().min(1, 'El número de factura es obligatorio'),
   importe: z
     .string()
@@ -30,6 +33,7 @@ type FormValues = z.infer<typeof formSchema>;
 const errorClass = (hasError: boolean) => (hasError ? 'border-red-500' : '');
 
 export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean }) {
+  const { getUserEmail, getUserFullName } = useAuth();
   const { reference, referencePayload, swrKey } = useOrdenFacturacion();
   const { mutate } = useSWR(swrKey, axiosFetcher);
 
@@ -56,7 +60,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
     }
     return conceptosData.map((item: any) => ({
       value: String(item.CLAVE),
-      label: `${item.CLAVE} - ${item.DESCRIPCION}`,
+      label: item.DESCRIPCION,
     }));
   }, [conceptosData, isAmericana]);
 
@@ -78,7 +82,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
     resolver: zodResolver(formSchema),
     defaultValues: {
       concepto: '',
-      proveedor: isAmericana ? '00025' : '',
+      clave_proveedor: isAmericana ? '00025' : '',
       factura: '',
       importe: '',
     },
@@ -87,7 +91,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
   React.useEffect(() => {
     reset({
       concepto: '',
-      proveedor: isAmericana ? '00025' : '',
+      clave_proveedor: isAmericana ? '00025' : '',
       factura: '',
       importe: '',
     });
@@ -97,15 +101,37 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
     try {
       setIsSubmitting(true);
 
-      await GPClient.post('/dipp/agregarConcepto', {
+      const proveedor_name = isAmericana
+        ? 'CUSTOMS & SHIPPING SERVICES INC'
+        : (proveedoresOptions.find(
+            (p: { value: string; label: string }) => p.value === payload.clave_proveedor
+          )?.label ?? '');
+
+      const concepto_name =
+        conceptoProvisionOptions.find(
+          (c: { value: string; label: string }) => c.value === payload.concepto
+        )?.label ?? '';
+
+      await GPClient.post('/dipp/agregarGasto', {
         ...payload,
         isAmericana,
         referencia: reference,
+        userEmail: getUserEmail() || '',
+        userFullName: getUserFullName() || '',
+        proveedor_name,
+        concepto_name,
       });
 
       await mutate();
       setIsOpen(false);
-      reset({ concepto: '', proveedor: isAmericana ? '00025' : '', factura: '', importe: '' });
+      toast.success('Gasto agregado correctamente!');
+
+      reset({
+        concepto: '',
+        clave_proveedor: isAmericana ? '00025' : '',
+        factura: '',
+        importe: '',
+      });
     } catch (error) {
       console.error(error);
     } finally {
@@ -120,9 +146,9 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
       title="Agregar Gasto"
       description="Aquí podrás agregar un gasto."
       trigger={
-        <MyGPButtonSubmit isSubmitting={isSubmitting}>
+        <MyGPButtonPrimary>
           <PlusIcon /> Agregar Gasto
-        </MyGPButtonSubmit>
+        </MyGPButtonPrimary>
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
@@ -172,16 +198,16 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
               defaultValue="00025"
               readOnly
               className="bg-muted cursor-not-allowed opacity-70"
-              {...register('proveedor')}
+              {...register('clave_proveedor')}
             />
           </div>
         ) : (
           <Controller
             control={control}
-            name="proveedor"
+            name="clave_proveedor"
             render={({ field, fieldState }) => (
               <MyGPCombo
-                id="proveedor"
+                id="clave_proveedor"
                 value={field.value}
                 setValue={field.onChange}
                 label="Proveedor:"
