@@ -6,27 +6,8 @@ import Image from 'next/image';
 import { OrdenFacturacionCard } from './OrdenFacturacionCard';
 import { displayValue } from '@/lib/utilityFunctions/displayValue';
 
-function getKpiSemaphore(msa: string | null | undefined, horas: string | null | undefined) {
-  if (!msa || !horas) return null;
-
-  const horasNumber = Number(horas);
-  if (Number.isNaN(horasNumber)) return null;
-
-  const baseDate = new Date(msa);
-  if (Number.isNaN(baseDate.getTime())) return null;
-
-  const deadline = new Date(baseDate.getTime() + horasNumber * 60 * 60 * 1000);
-  const now = new Date();
-
-  return now <= deadline ? 'verde' : 'rojo';
-}
-
 export function DatosReferencia() {
   const { reference, referencePayload, isLoading } = useOrdenFacturacion();
-
-  const kpiSemaphore = useMemo(() => {
-    return getKpiSemaphore(referencePayload?.MSA_FMT, referencePayload?.HORAS);
-  }, [referencePayload?.MSA_FMT, referencePayload?.HORAS]);
 
   if (isLoading) return null;
 
@@ -47,6 +28,7 @@ export function DatosReferencia() {
   const impuestosPagados = displayValue(referencePayload?.TIPO_CUENTA);
   const clavePedimento = displayValue(referencePayload?.CVE_PEDI);
   const factura = displayValue(referencePayload?.NUM_FACTURA);
+  const isKpiMet = referencePayload?.IS_KPI_MET;
 
   return (
     <OrdenFacturacionCard title="Datos de la Referencia">
@@ -73,24 +55,34 @@ export function DatosReferencia() {
 
           <p className="font-semibold">Semáforo KPI:</p>
           <div>
-            {kpiSemaphore ? (
-              <Image
-                src={`/images/${kpiSemaphore}.png`}
-                alt={`Semáforo KPI ${kpiSemaphore}`}
-                width={120}
-                height={80}
-              />
-            ) : (
-              <span>-</span>
-            )}
+            <Image
+              src={isKpiMet ? `/images/verde.png` : `/images/rojo.png`}
+              alt={`Semáforo KPI`}
+              width={120}
+              height={80}
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 items-center">
           <p className="font-semibold">Semaforo de Cruce:</p>
-          <p className="flex items-center justify-center bg-green-700 font-semibold text-white">
-            {semaforoCruce}
-          </p>
+
+          <div
+            className={`inline-flex h-8 items-center justify-center rounded-full px-4 text-sm font-semibold text-white shadow-sm
+  ${
+    semaforoCruce === 'VERDE'
+      ? 'bg-green-700 ring-2 ring-green-500'
+      : semaforoCruce === 'ROJO'
+        ? 'bg-red-800 ring-2 ring-red-200'
+        : 'bg-gray-500 ring-2 ring-gray-200'
+  }`}
+          >
+            {semaforoCruce === 'VERDE'
+              ? 'VERDE'
+              : semaforoCruce === 'ROJO'
+                ? 'ROJO'
+                : 'DESCONOCIDO'}
+          </div>
 
           <p className="font-semibold">Aduana:</p>
           <p>{aduana}</p>
