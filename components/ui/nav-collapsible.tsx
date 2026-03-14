@@ -131,7 +131,7 @@ const nav: NavGroupDef[] = [
       {
         title: 'Orden de Facturación',
         url: '/mygp/dipp/orden-facturacion',
-        requires: [PERM.DIPP_SOLICITUDES_DIARIAS_RECURSOS_OPERATIVOS],
+        requires: [PERM.DIPP_ORDEN_FACTURACION],
         icon: ChartBarIcon,
       },
     ],
