@@ -43,7 +43,15 @@ const financiamientoOptions = [
 ];
 
 export function DetallesFinanciamiento() {
-  const { reference, referencePayload, isLoading } = useOrdenFacturacion();
+  const {
+    anticipos,
+    financiamiento,
+    reference,
+    referencePayload,
+    isLoading,
+    setAnticipos,
+    setFinanciamiento,
+  } = useOrdenFacturacion();
 
   if (isLoading) return null;
 
@@ -52,24 +60,38 @@ export function DetallesFinanciamiento() {
   return (
     <OrdenFacturacionCard title="Detalles de Financiamiento">
       <div className="mb-4">
-        <DetallesFinanciamientoSelect label="Anticipos" options={anticiposOptions} />
+        <DetallesFinanciamientoSelect
+          label="Anticipos"
+          options={anticiposOptions}
+          value={anticipos}
+          onValueChange={setAnticipos}
+        />
       </div>
-      <DetallesFinanciamientoSelect label="Financiamiento" options={financiamientoOptions} />
+      <DetallesFinanciamientoSelect
+        label="Financiamiento"
+        options={financiamientoOptions}
+        value={financiamiento}
+        onValueChange={setFinanciamiento}
+      />
     </OrdenFacturacionCard>
   );
 }
 
 function DetallesFinanciamientoSelect({
   label,
+  onValueChange,
   options,
+  value,
 }: {
   label: string;
+  onValueChange: (value: string) => void;
   options: { value: string; label: string }[];
+  value: string;
 }) {
   return (
     <div className="grid grid-cols-[100px_1fr] gap-2">
       <Label>{label} </Label>
-      <Select>
+      <Select onValueChange={onValueChange} value={value}>
         <SelectTrigger className="w-64">
           <SelectValue placeholder="Selecciona una opción" />
         </SelectTrigger>

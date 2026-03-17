@@ -1,7 +1,7 @@
 'use client';
 
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 export type GastoItem = {
@@ -85,7 +85,18 @@ export type DippReferenceData = {
   GASTOS_A_COMPROBAR: GastoItem[];
   CUENTA_AMERICANA: GastoItem[];
   IS_KPI_MET: boolean | null;
+  KPI_DAYS_DIFF: string | null;
   TRAFFIC_TYPE: string | null;
+  REFERENCIA_GUARDADA: {
+    REFERENCIA: string | null;
+    OBSERVACIONES: string | null;
+    ANTICIPOS: string | null;
+    FINANCIAMIENTO: string | null;
+    WAS_GASTOS_CONFIRMED: number | null;
+    WAS_GASTOS_AMERICANA_CONFIRMED: number | null;
+    SUBMITTED_BY: string | null;
+    CREATED_AT: string | null;
+  } | null;
   INSTRUCCIONES_ADICIONALES: InstruccionesAdicionalesData | null;
   EXPEDIENTE_DIGITAL: ExpedienteDigitalData | null;
   PROVISION: {
@@ -100,6 +111,14 @@ type OrdenFacturacionContextType = {
   reference: string;
   setReference: React.Dispatch<React.SetStateAction<string>>;
   referencePayload: DippReferenceData | null;
+  anticipos: string;
+  setAnticipos: React.Dispatch<React.SetStateAction<string>>;
+  financiamiento: string;
+  setFinanciamiento: React.Dispatch<React.SetStateAction<string>>;
+  wasGastosConfirmed: boolean;
+  setWasGastosConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
+  wasGastosAmericanaConfirmed: boolean;
+  setWasGastosAmericanaConfirmed: React.Dispatch<React.SetStateAction<boolean>>;
   isLoading: boolean;
   error: Error | null;
   swrKey: string | null;
@@ -109,6 +128,10 @@ const OrdenFacturacionContext = createContext<OrdenFacturacionContextType | unde
 
 export function OrdenFacturacionProvider({ children }: { children: React.ReactNode }) {
   const [reference, setReference] = useState('');
+  const [anticipos, setAnticipos] = useState('');
+  const [financiamiento, setFinanciamiento] = useState('');
+  const [wasGastosConfirmed, setWasGastosConfirmed] = useState(false);
+  const [wasGastosAmericanaConfirmed, setWasGastosAmericanaConfirmed] = useState(false);
 
   const normalizedReference = reference.trim().toUpperCase();
   const swrKey = normalizedReference
@@ -122,16 +145,43 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
     return data;
   }, [data]);
 
+  useEffect(() => {
+    const savedReference = referencePayload?.REFERENCIA_GUARDADA;
+
+    setAnticipos(savedReference?.ANTICIPOS || '');
+    setFinanciamiento(savedReference?.FINANCIAMIENTO || '');
+    setWasGastosConfirmed(false);
+    setWasGastosAmericanaConfirmed(false);
+  }, [referencePayload]);
+
   const value = useMemo(
     () => ({
       reference,
       setReference,
       referencePayload,
+      anticipos,
+      setAnticipos,
+      financiamiento,
+      setFinanciamiento,
+      wasGastosConfirmed,
+      setWasGastosConfirmed,
+      wasGastosAmericanaConfirmed,
+      setWasGastosAmericanaConfirmed,
       isLoading,
       error: (error as Error | undefined) ?? null,
       swrKey,
     }),
-    [referencePayload, error, isLoading, reference, swrKey]
+    [
+      anticipos,
+      error,
+      financiamiento,
+      isLoading,
+      reference,
+      referencePayload,
+      swrKey,
+      wasGastosAmericanaConfirmed,
+      wasGastosConfirmed,
+    ]
   );
 
   return (

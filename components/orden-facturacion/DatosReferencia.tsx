@@ -1,11 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useOrdenFacturacion } from '@/contexts/dipp/OrdenFacturacionContext';
-import Image from 'next/image';
 import { OrdenFacturacionCard } from './OrdenFacturacionCard';
 import { displayValue } from '@/lib/utilityFunctions/displayValue';
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 export function DatosReferencia() {
   const { reference, referencePayload, isLoading } = useOrdenFacturacion();
 
@@ -29,6 +27,16 @@ export function DatosReferencia() {
   const clavePedimento = displayValue(referencePayload?.CVE_PEDI);
   const factura = displayValue(referencePayload?.NUM_FACTURA);
   const isKpiMet = referencePayload?.IS_KPI_MET;
+  const kpiDaysDiff = referencePayload?.KPI_DAYS_DIFF;
+  const kpiBadgeLabel =
+    typeof kpiDaysDiff === 'number'
+      ? `${kpiDaysDiff} día${kpiDaysDiff === 1 ? '' : 's'}`
+      : 'SIN KPI';
+
+  const kpiTooltipText =
+    typeof kpiDaysDiff === 'number'
+      ? `${kpiBadgeLabel} de retraso para tipo de tráfico ${referencePayload.TRAFFIC_TYPE}`
+      : 'Sin información de KPI';
 
   return (
     <OrdenFacturacionCard title="Datos de la Referencia">
@@ -54,14 +62,26 @@ export function DatosReferencia() {
           <p>{fechaEntrada}</p>
 
           <p className="font-semibold">Semáforo KPI:</p>
-          <div>
-            <Image
-              src={isKpiMet ? `/images/verde.png` : `/images/rojo.png`}
-              alt={`Semáforo KPI`}
-              width={120}
-              height={80}
-            />
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`inline-flex w-fit items-center justify-center rounded-full px-2 py-0.5 font-medium text-white shadow-sm cursor-pointer
+                  ${
+                    typeof kpiDaysDiff !== 'number'
+                      ? 'bg-gray-500 ring-1 ring-gray-200'
+                      : isKpiMet
+                        ? 'bg-green-700 ring-1 ring-green-500'
+                        : 'bg-red-800 ring-1 ring-red-200'
+                  }`}
+                >
+                  {referencePayload.MSA_FMT}
+                </div>
+              </TooltipTrigger>
+
+              <TooltipContent>{kpiTooltipText}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <div className="grid grid-cols-2 gap-4 items-center">
@@ -69,13 +89,13 @@ export function DatosReferencia() {
 
           <div
             className={`inline-flex h-8 items-center justify-center rounded-full px-4 text-sm font-semibold text-white shadow-sm
-  ${
-    semaforoCruce === 'VERDE'
-      ? 'bg-green-700 ring-2 ring-green-500'
-      : semaforoCruce === 'ROJO'
-        ? 'bg-red-800 ring-2 ring-red-200'
-        : 'bg-gray-500 ring-2 ring-gray-200'
-  }`}
+            ${
+              semaforoCruce === 'VERDE'
+                ? 'bg-green-700 ring-2 ring-green-500'
+                : semaforoCruce === 'ROJO'
+                  ? 'bg-red-800 ring-2 ring-red-200'
+                  : 'bg-gray-500 ring-2 ring-gray-200'
+            }`}
           >
             {semaforoCruce === 'VERDE'
               ? 'VERDE'
