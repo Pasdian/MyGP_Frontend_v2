@@ -85,6 +85,7 @@ export type DippReferenceData = {
   GASTOS_A_COMPROBAR: GastoItem[];
   CUENTA_AMERICANA: GastoItem[];
   IS_KPI_MET: boolean | null;
+  KPI_DAYS_DIFF: string | null;
   TRAFFIC_TYPE: string | null;
   INSTRUCCIONES_ADICIONALES: InstruccionesAdicionalesData | null;
   EXPEDIENTE_DIGITAL: ExpedienteDigitalData | null;
