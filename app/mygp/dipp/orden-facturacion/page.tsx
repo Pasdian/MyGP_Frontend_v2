@@ -81,7 +81,7 @@ function GuardarReferenciaSection() {
       return;
     }
 
-    if (referencePayload.TRAFFIC_TYPE === 'L' && !wasGastosAmericanaConfirmed) {
+    if (referencePayload?.TRAFFIC_TYPE === 'L' && !wasGastosAmericanaConfirmed) {
       toast.error('Debes confirmar los gastos de cuenta americana antes de guardar la referencia');
       return;
     }
@@ -99,7 +99,7 @@ function GuardarReferenciaSection() {
         userFullName: getUserFullName() || getCasaUsername() || 'MYGP',
         wasGastosConfirmed,
         wasGastosAmericanaConfirmed:
-          referencePayload.TRAFFIC_TYPE === 'L' ? wasGastosAmericanaConfirmed : null,
+          referencePayload?.TRAFFIC_TYPE === 'L' ? wasGastosAmericanaConfirmed : null,
       });
 
       toast.success('Referencia guardada correctamente');
