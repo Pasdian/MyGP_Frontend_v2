@@ -25,6 +25,7 @@ import MyGPButtonSubmit from '../MyGPUI/Buttons/MyGPButtonSubmit';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
 
 interface GastosAComprobarProps {
   isAmericana?: boolean;
@@ -34,7 +35,16 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
   const { getUserEmail, getUserFullName } = useAuth();
   const [loadingCheckbox, setLoadingCheckbox] = React.useState<string | null>(null);
 
-  const { reference, referencePayload, isLoading, swrKey } = useOrdenFacturacion();
+  const {
+    reference,
+    referencePayload,
+    isLoading,
+    setWasGastosAmericanaConfirmed,
+    setWasGastosConfirmed,
+    swrKey,
+    wasGastosAmericanaConfirmed,
+    wasGastosConfirmed,
+  } = useOrdenFacturacion();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { mutate } = useSWR(swrKey, axiosFetcher);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -172,6 +182,29 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
           ))}
         </TableBody>
       </Table>
+
+      <div className="mt-4 flex items-center gap-2">
+        <Checkbox
+          id={isAmericana ? 'was_gastos_americana_confirmed' : 'was_gastos_confirmed'}
+          checked={isAmericana ? wasGastosAmericanaConfirmed : wasGastosConfirmed}
+          onCheckedChange={(checked) => {
+            const isChecked = checked === true;
+            if (isAmericana) {
+              setWasGastosAmericanaConfirmed(isChecked);
+              return;
+            }
+            setWasGastosConfirmed(isChecked);
+          }}
+        />
+        <Label
+          htmlFor={isAmericana ? 'was_gastos_americana_confirmed' : 'was_gastos_confirmed'}
+          className="text-sm font-medium"
+        >
+          {isAmericana
+            ? 'Confirmo que los gastos de la cuenta americana son correctos'
+            : 'Confirmo que los gastos de gastos a comprobar son correctos'}
+        </Label>
+      </div>
     </OrdenFacturacionCard>
   );
 }
