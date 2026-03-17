@@ -21,24 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import PermissionGuard from '@/components/PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
-import useSWR from 'swr';
-import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import { Progress } from '@/components/ui/progress';
-import { MyGPButtonDanger } from '@/components/MyGPUI/Buttons/MyGPButtonDanger'
-
-const STATE_LABEL: Record<string, string> = {
-	PENDING: 'En cola',
-	STARTED: 'Iniciando',
-	PROGRESS: 'Procesando',
-	RETRY: 'Reintentando',
-	SUCCESS: 'Completado',
-	FAILURE: 'Falló',
-	REVOKED: 'Cancelado',
-	ERROR_MOUNT_MISSING: 'Error de montaje',
-	ERROR_CARGUE_NOT_FOUND: 'Cargue no encontrado',
-	ERROR_BUSINESS_DATE_HOLIDAY: 'Fecha no hábil',
-  ERROR_PDF_NOT_FOUND: 'No se encontró el pdf'
-};
+import { MyGPButtonPrimary } from '@/components/MyGPUI/Buttons/MyGPButtonPrimary';
 
 export function toYMD(date: Date): string {
   const year = date.getFullYear();
@@ -53,39 +36,6 @@ export default function CargueManual() {
   const [taskId, setTaskId] = React.useState('');
   const submitLockRef = React.useRef(false);
 
-  const RUNNING_STATES = ['PENDING', 'STARTED', 'PROGRESS', 'RETRY'] as const;
-  const TERMINAL_STATES = [
-    'SUCCESS',
-    'FAILURE',
-    'REVOKED',
-    'ERROR_MOUNT_MISSING',
-    'ERROR_CARGUE_NOT_FOUND',
-    'ERROR_BUSINESS_DATE_HOLIDAY',
-    'ERROR_PDF_NOT_FOUND'
-  ] as const;
-  const ERROR_STATES = ['ERROR_BUSINESS_DATE_HOLIDAY', 'ERROR_MOUNT_MISSING', 'ERROR_CARGUE_NOT_FOUND', 'ERROR_PDF_NOT_FOUND'] as const;
-
-  const { data: taskData } = useSWR(
-    taskId ? `/tasks/${taskId}` : null,
-    axiosFetcher,
-    {
-      refreshInterval: (latestData) => {
-        if (!taskId) return 0;
-        const state = latestData?.state ?? '';
-        const done = TERMINAL_STATES.includes(state as any);
-        return done ? 0 : 1000;
-      },
-      revalidateOnFocus: false,
-    }
-  );
-
-  const taskState = taskData?.state || '';
-  const stateLabel = STATE_LABEL[taskState] ?? taskState ?? '-'
-
-  const isErrorState = ERROR_STATES.includes(taskState as any);
-  const infoMessage =
-    taskData?.info?.message || 'Ocurrió un error al procesar el cargue';
-
   const schema = z.object({
     date: z.date({
       required_error: 'Debes seleccionar una fecha',
@@ -93,10 +43,16 @@ export default function CargueManual() {
     }),
     referenciasTextArea: z
       .string()
-      .min(1, 'Debes ingresar al menos una referencia')
-      .refine((val) => !val.endsWith('\n'), {
-        message: 'El último elemento no debe terminar con salto de línea (\\n)',
-      }),
+      .refine(
+        (val) =>
+          val
+            .split('\n')
+            .map((item) => item.trim())
+            .filter(Boolean).length > 0,
+        {
+          message: 'Debes ingresar al menos una referencia',
+        }
+      ),
     suffix: z.string().trim().min(1, 'Debes ingresar un sufijo'),
   });
 
@@ -125,38 +81,22 @@ export default function CargueManual() {
       const payload = {
         date: toYMD(data.date), // send "YYYY-MM-DD"
         payload: lines,
-        suffix: data.suffix,
+        suffix: data.suffix.trim(),
       };
 
-      const res = await GPClient.post<{ task_id: string }>(
-        '/transbel/uploadCargues',
-        payload
-      );
+      const res = await GPClient.post<{ task_id: string }>('/transbel/uploadCargues', payload);
 
-      toast.success('Iniciando cargue...');
+      toast.success('Cargue enviado correctamente');
       setTaskId(res.data.task_id);
-      
+
       form.reset({
         date: data.date,
         referenciasTextArea: '',
-        suffix: ''
-      })
-
+        suffix: '',
+      });
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 409) {
-          const duplicateTaskId = err.response?.data?.task_id;
-          if (duplicateTaskId) {
-            setTaskId(duplicateTaskId);
-            toast.info('Ese cargue ya está en proceso. Se abrió su seguimiento.');
-            return;
-          }
-          toast.info(err.response?.data?.message || 'Ese cargue ya está en proceso');
-          return;
-        }
-
-        const message =
-          err.response?.data?.message || err.message || 'Ocurrió un error';
+        const message = err.response?.data?.message || err.message || 'Ocurrió un error';
         toast.error(message);
       } else {
         toast.error('Ocurrió un error inesperado');
@@ -164,19 +104,6 @@ export default function CargueManual() {
     } finally {
       setIsSendingToApi(false);
       submitLockRef.current = false;
-    }
-  };
-
-  const cancelTask = async () => {
-    try {
-      const res = await GPClient.post(`/tasks/cancel/${taskId}`);
-
-      if (res?.status === 200) {
-        toast.info("Tarea cancelada con éxito");
-				setTaskId('')
-      }
-    } catch (error) {
-      toast.error("Error al cancelar la tarea");
     }
   };
 
@@ -238,7 +165,7 @@ export default function CargueManual() {
                       id="cargue_suffix"
                       placeholder="Ingresa el sufijo del archivo (ej. V1)"
                       value={field.value}
-                      onChange={(e) => field.onChange(e.target.value.trim())}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
@@ -259,46 +186,21 @@ export default function CargueManual() {
               .filter(Boolean).length || 0}
           </p>
 
-
           {taskId && (
             <div className="rounded-md border p-3">
-              <p className="font-bold text-sm">Estado: <span>{stateLabel}</span></p>
-              <p className="text-sm">
-                {taskData?.info?.message || 'Sin información adicional'}
-              </p>
-
-              {typeof taskData?.info?.current === 'number' && (
-                <Progress value={taskData.info.current} className="w-[60%]" />
-              )}
+              <p className="font-bold text-sm">Cargue enviado</p>
+              <p className="text-sm">Task ID: {taskId}</p>
+              <p className="text-sm">El proceso continuará en segundo plano.</p>
 
               <div className="mt-2 flex gap-2">
-                {taskState !== 'SUCCESS' &&
-                  taskState !== 'FAILURE' &&
-                  taskState !== 'REVOKED' && (
-                    <MyGPButtonDanger onClick={() => {
-                      cancelTask()
-                    }}>
-                      Cancelar
-                    </MyGPButtonDanger>
-                  )}
-
-                {(taskState === 'SUCCESS' ||
-                  taskState === 'FAILURE' ||
-                  taskState === 'REVOKED') && (
-                  <MyGPButtonSubmit
-                    isSubmitting={false}
-                    onClick={() => setTaskId('')}
-                  >
-                    Nuevo cargue
-                  </MyGPButtonSubmit>
-                )}
+                <MyGPButtonPrimary onClick={() => setTaskId('')}>Nuevo cargue</MyGPButtonPrimary>
               </div>
             </div>
           )}
           {!taskId && (
             <MyGPButtonSubmit isSubmitting={isSendingToApi}>
               <SendIcon className="mr-3" />
-                Enviar Cargue
+              Enviar Cargue
             </MyGPButtonSubmit>
           )}
         </form>
