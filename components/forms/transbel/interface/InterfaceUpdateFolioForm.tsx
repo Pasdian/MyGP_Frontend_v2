@@ -34,7 +34,7 @@ export default function UpdateFolioForm({
   row: Row<getRefsPendingCE>;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { setRefsPendingCE } = React.useContext(InterfaceContext);
+  const { mutateRefsPendingCE } = React.useContext(InterfaceContext);
   const [comboValue, setComboValue] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const folioKey =
@@ -81,15 +81,17 @@ export default function UpdateFolioForm({
       if (res.status === 200) {
         const row = res.data.data; // { NUM_REFE, CVE_DAT, ETI_IMPR, DAT_EMB }
 
-        setRefsPendingCE((prev) =>
-          prev.map((r) =>
-            r.REFERENCIA === row.NUM_REFE
-              ? {
-                  ...r,
-                  EE__GE: row.DAT_EMB, // update only this property
-                }
-              : r
-          )
+        await mutateRefsPendingCE(
+          (prev = []) =>
+            prev.map((r) =>
+              r.REFERENCIA === row.NUM_REFE
+                ? {
+                    ...r,
+                    EE__GE: row.DAT_EMB,
+                  }
+                : r
+            ),
+          { revalidate: false }
         );
 
         toast.success('Datos modificados correctamente');

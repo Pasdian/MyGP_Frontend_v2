@@ -91,7 +91,7 @@ export default function InterfaceUpsertPhaseForm({
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { user } = useAuth();
-  const { setRefsPendingCE } = React.useContext(InterfaceContext);
+  const { mutateRefsPendingCE } = React.useContext(InterfaceContext);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const schema = z
@@ -280,20 +280,22 @@ export default function InterfaceUpsertPhaseForm({
             ? formatISOtoDDMMYYYY(updated.FEC_ETAP)
             : null;
 
-        setRefsPendingCE((prev) =>
-          prev.map((r) =>
-            r.REFERENCIA === updated.NUM_REFE
-              ? {
-                  ...r,
-                  ...(field
-                    ? {
-                        [field]: updated.FEC_ETAP,
-                        [`${field}_FORMATTED`]: formatted,
-                      }
-                    : {}),
-                }
-              : r
-          )
+        await mutateRefsPendingCE(
+          (prev = []) =>
+            prev.map((r) =>
+              r.REFERENCIA === updated.NUM_REFE
+                ? {
+                    ...r,
+                    ...(field
+                      ? {
+                          [field]: updated.FEC_ETAP,
+                          [`${field}_FORMATTED`]: formatted,
+                        }
+                      : {}),
+                  }
+                : r
+            ),
+          { revalidate: false }
         );
 
         toast.success('Datos modificados correctamente');
