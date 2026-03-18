@@ -10,7 +10,7 @@ import { PERM } from '@/lib/modules/permissions';
 export default function Page() {
   const [tabValue, setTabValue] = React.useState<'errors' | 'pending' | 'sent'>('errors');
 
-  const { refsPendingCE, setRefsPendingCE, loading: isRefsLoading } = useRefsPendingCE();
+  const { refsPendingCE, mutateRefsPendingCE, loading: isRefsLoading } = useRefsPendingCE();
 
   return (
     <PermissionGuard requiredPermissions={[PERM.TRANSBEL_INTERFAZ]}>
@@ -22,7 +22,7 @@ export default function Page() {
       <InterfaceContext.Provider
         value={{
           refsPendingCE,
-          setRefsPendingCE,
+          mutateRefsPendingCE,
           tabValue,
           setTabValue,
           isRefsLoading,

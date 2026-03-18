@@ -47,7 +47,7 @@ function isTabValue(v: string): v is TabValue {
 }
 
 export function InterfaceDataTable() {
-  const { refsPendingCE, isRefsLoading, tabValue, setTabValue, setRefsPendingCE } =
+  const { refsPendingCE, isRefsLoading, tabValue, setTabValue, mutateRefsPendingCE } =
     React.useContext(InterfaceContext);
   const [isConvertingToCsv, setIsConvertingToCsv] = React.useState(false);
 
@@ -174,37 +174,36 @@ export function InterfaceDataTable() {
 
   async function sendToWorkato() {
     setIsSendingToWorkato(true);
-    try {
-      const updatedRows = selectedWorkatoRows.map((r) => ({
-        ...r,
-        workato_status: '1',
-      }));
-      const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
-        payload: updatedRows,
-      });
-      if (res.status === 200) {
-        // Update matching rows in refsPendingCE (keep others unchanged)
-        setRefsPendingCE((prev) =>
-          prev.map((row) => {
-            const updated = updatedRows.find((r) => r.REFERENCIA === row.REFERENCIA);
-            return updated ? updated : row;
-          })
-        );
+    const selectedReferences = new Set(selectedWorkatoRows.map((row) => row.REFERENCIA));
+    const previousRows = refsPendingCE ?? [];
 
+    try {
+      await mutateRefsPendingCE(
+        (currentRows = []) =>
+          currentRows.map((row) =>
+            selectedReferences.has(row.REFERENCIA) ? { ...row, workato_status: '1' } : row
+          ),
+        { revalidate: false }
+      );
+
+      const res = await GPClient.post('/api/transbel/sendToTransbelAPI', {
+        payload: selectedWorkatoRows,
+      });
+
+      if (res.status === 200) {
         table.toggleAllRowsSelected(false);
         toast.success(res.data.message || 'Datos enviados correctamente');
-        setIsSendingToWorkato(false);
       } else {
+        await mutateRefsPendingCE(previousRows, { revalidate: false });
         toast.error('No se pudo enviar los datos solicitados');
-        setIsSendingToWorkato(false);
       }
     } catch (err) {
+      await mutateRefsPendingCE(previousRows, { revalidate: false });
       if (axios.isAxiosError(err)) {
         const message = err.response?.data?.message || err.message || 'Ocurrió un error';
         toast.error(message);
       } else {
         toast.error('Ocurrió un error inesperado');
-        setIsSendingToWorkato(false);
       }
     } finally {
       setIsSendingToWorkato(false);
