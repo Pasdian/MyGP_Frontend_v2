@@ -36,6 +36,7 @@ import TablePageSize from '../pageSize/TablePageSize';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Loader2, Sheet } from 'lucide-react';
 
 const TAB_VALUES = ['errors', 'pending', 'sent'] as const;
@@ -56,6 +57,7 @@ export function InterfaceDataTable() {
   const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({});
   const [isSendingToWorkato, setIsSendingToWorkato] = React.useState(false);
   const [columnVisibility, setColumnVisibility] = React.useState<Record<string, boolean>>({});
+  const [enableSendWithErrors, setEnableSendWithErrors] = React.useState(false);
   const interfaceColumns = useInterfaceColumns();
 
   // Filtered rows based on tabs and delete EE__GE duplicates
@@ -119,11 +121,11 @@ export function InterfaceDataTable() {
 
   // Conditionally add the selection column
   const columns = React.useMemo<ColumnDef<getRefsPendingCE>[]>(() => {
-    if (tabValue === 'pending') {
+    if (tabValue === 'pending' || (tabValue === 'errors' && enableSendWithErrors)) {
       return [selectionWorkatoColumn, ...baseColumns];
     }
     return baseColumns;
-  }, [tabValue, baseColumns, selectionWorkatoColumn]);
+  }, [tabValue, enableSendWithErrors, baseColumns, selectionWorkatoColumn]);
 
   // Table instance
   const table = useReactTable({
@@ -156,6 +158,14 @@ export function InterfaceDataTable() {
     });
     setRowSelection(initial);
   }, [refsPendingCE]);
+
+  React.useEffect(() => {
+    if (tabValue !== 'errors' || enableSendWithErrors) {
+      return;
+    }
+
+    table.toggleAllRowsSelected(false);
+  }, [enableSendWithErrors, tabValue, table]);
 
   const selectedWorkatoRows = table
     .getSelectedRowModel()
@@ -280,24 +290,38 @@ export function InterfaceDataTable() {
     <div>
       <div className="mb-4">
         {filtered.length > 0 && (
-          <Button
-            className="bg-green-500 hover:bg-green-700 font-bold hover:text-white cursor-pointer text-white w-[200px]"
-            onClick={() => convertToCsv()}
-          >
-            <div>
-              {isConvertingToCsv ? (
-                <div className="flex space-x-2 items-center">
-                  <Loader2 className="animate-spin" />
-                  <p>Cargando...</p>
-                </div>
-              ) : (
-                <div className="flex space-x-2 items-center">
-                  <Sheet className="mr-2 h-4 w-4" />
-                  <p> Exportar Tabla a CSV</p>
-                </div>
-              )}
+          <div className="flex flex-col gap-3">
+            <Button
+              className="bg-green-500 hover:bg-green-700 font-bold hover:text-white cursor-pointer text-white w-[200px]"
+              onClick={() => convertToCsv()}
+            >
+              <div>
+                {isConvertingToCsv ? (
+                  <div className="flex space-x-2 items-center">
+                    <Loader2 className="animate-spin" />
+                    <p>Cargando...</p>
+                  </div>
+                ) : (
+                  <div className="flex space-x-2 items-center">
+                    <Sheet className="mr-2 h-4 w-4" />
+                    <p> Exportar Tabla a CSV</p>
+                  </div>
+                )}
+              </div>
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id="enable_send_with_errors"
+                checked={enableSendWithErrors}
+                onCheckedChange={setEnableSendWithErrors}
+                className="data-[state=checked]:bg-green-600"
+              />
+              <label htmlFor="enable_send_with_errors" className="text-sm font-medium">
+                Habilitar Envio con Errores
+              </label>
             </div>
-          </Button>
+          </div>
         )}
       </div>
       <div className="grid grid-cols-2 w-[950px] items-center mb-4">
@@ -319,6 +343,7 @@ export function InterfaceDataTable() {
           <div>
             <MyGPButtonSubmit
               className="h-6"
+              danger={tabValue === 'errors'}
               onClick={sendToWorkato}
               isSubmitting={isSendingToWorkato} // optional: disable while loading
             >
