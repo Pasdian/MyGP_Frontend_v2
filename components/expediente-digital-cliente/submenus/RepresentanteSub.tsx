@@ -50,7 +50,7 @@ export function RepresentanteSub() {
         setIsHydrating(true);
 
         const { data: rep } = await GPClient.get(
-          '/expediente-digital-cliente/legalRepresentative',
+          '/pyapi/expediente-digital-cliente/legalRepresentative',
           { params: { rfc: casa_id } }
         );
 
@@ -110,7 +110,7 @@ export function RepresentanteSub() {
         formData.append('rep.ine', data.ine.file);
       }
 
-      await GPClient.post('/expediente-digital-cliente/legalRepresentative', {
+      await GPClient.post('/pyapi/expediente-digital-cliente/legalRepresentative', {
         rfc: casa_id,
         name: data.nombre,
         last_name: data.apellido1,

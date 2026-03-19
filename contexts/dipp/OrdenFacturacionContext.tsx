@@ -135,7 +135,7 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
 
   const normalizedReference = reference.trim().toUpperCase();
   const swrKey = normalizedReference
-    ? `/dipp/referenceData?reference=${encodeURIComponent(normalizedReference)}`
+    ? `/pyapi/dipp/referenceData?reference=${encodeURIComponent(normalizedReference)}`
     : null;
 
   const { data, isLoading, error } = useSWR<DippReferenceData>(swrKey, axiosFetcher);

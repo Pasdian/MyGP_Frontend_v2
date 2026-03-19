@@ -16,7 +16,7 @@ export function useClientLogo(client: string | null, version = 0) {
 
     const controller = new AbortController();
     const url =
-      `/dea/getFileContent` +
+      `/pyapi/dea/getFileContent` +
       `?source=${encodeURIComponent(`/GESTION/${client}/logo.png`)}` +
       `&v=${version}` + // cache buster
       `&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`;

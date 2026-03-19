@@ -6,7 +6,7 @@ export function DownloadFormato({ doc }: { doc: string }) {
   const downloadEncomienda = async () => {
     try {
       const res = await axios.get(
-        `/formatos?doc=${doc}&api_key=91940ba1-ec71-4d4d-bd14-bbde49ce50cc`,
+        `/pyapi/formatos?doc=${doc}&api_key=91940ba1-ec71-4d4d-bd14-bbde49ce50cc`,
         { responseType: 'blob' }
       );
 

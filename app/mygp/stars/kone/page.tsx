@@ -217,7 +217,7 @@ export default function KONE() {
         formData.append("pdf_files", file, file.name);
       }
 
-      const response = await GPClient.post(`/stars/kone/layout${layout}`, formData, {
+      const response = await GPClient.post(`/pyapi/stars/kone/layout${layout}`, formData, {
         responseType: "blob",
       });
 

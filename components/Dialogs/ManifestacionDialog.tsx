@@ -136,7 +136,7 @@ function UploadManifestacionContent({ makeSections }: { makeSections: () => Sect
   async function uploadOne(destPath: string, file: File) {
     const fd = new FormData();
     fd.append('file', file);
-    await GPClient.post('/dea/uploadFile', fd, {
+    await GPClient.post('/pyapi/dea/uploadFile', fd, {
       params: { destination: destPath },
       headers: { 'Content-Type': 'multipart/form-data' },
     });

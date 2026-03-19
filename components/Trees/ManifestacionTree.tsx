@@ -12,7 +12,7 @@ export function ManifestacionTree({ client }: { client: Client }) {
     isLoading,
     error,
   } = useSWR<Record<string, string[]> | undefined>(
-    `/dea/scan?source=/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR`,
+    `/pyapi/dea/scan?source=/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR`,
     axiosFetcher
   );
 

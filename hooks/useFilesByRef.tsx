@@ -5,7 +5,7 @@ import useSWR from 'swr';
 export default function useFilesByRef(reference: string | null, client: string | null) {
   const key =
     reference && client
-      ? `/dea/getFilesByReference?reference=${reference}&client=${client}&token=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`
+      ? `/pyapi/dea/getFilesByReference?reference=${reference}&client=${client}`
       : null;
 
   const { data, error, isLoading } = useSWR<getFilesByReference>(key, axiosFetcher);

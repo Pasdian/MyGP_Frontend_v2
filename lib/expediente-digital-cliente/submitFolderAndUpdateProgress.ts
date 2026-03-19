@@ -20,7 +20,7 @@ export async function submitFolderAndUpdateProgress(opts: {
   ) => void;
 }) {
   const res = await GPClient.post(
-    `/expediente-digital-cliente/folders/${opts.folderKey}/submit`,
+    `/pyapi/expediente-digital-cliente/folders/${opts.folderKey}/submit`,
     opts.formData,
     { headers: { "Content-Type": "multipart/form-data" } },
   );

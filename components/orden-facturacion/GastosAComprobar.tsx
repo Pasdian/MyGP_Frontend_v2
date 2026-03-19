@@ -75,7 +75,7 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
         userFullName: getUserFullName() || '',
       };
 
-      await GPClient.delete('/dipp/deleteGasto', { data: payload });
+      await GPClient.delete('/pyapi/dipp/deleteGasto', { data: payload });
       await mutate();
       setIsOpen(false);
       toast.success('Gasto eliminado correctamente');
@@ -91,7 +91,7 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
     const key = `${gasto.CVE_MOVI}-${gasto.FOL_EROG}-${gasto.CVE_BENE}`;
     try {
       setLoadingCheckbox(key);
-      await GPClient.patch('/dipp/updateGastoChecked', {
+      await GPClient.patch('/pyapi/dipp/updateGastoChecked', {
         referencia: reference,
         concepto: gasto.CVE_MOVI,
         factura: gasto.FOL_EROG,

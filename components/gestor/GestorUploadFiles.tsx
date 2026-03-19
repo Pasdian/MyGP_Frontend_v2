@@ -218,7 +218,7 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
       fd.append('upload_files', data.pdf_file);
       if (data.xml_file) fd.append('upload_files', data.xml_file);
 
-      const uploadRes = await GPClient.post('/gestor/uploads', fd, {
+      const uploadRes = await GPClient.post('/pyapi/gestor/uploads', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

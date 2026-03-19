@@ -37,7 +37,7 @@ export default function PreviosDialog({ className }: { className?: string }) {
 
   const partidasPreviosKey = React.useMemo(() => {
     if (!client.custom || !client.reference || !baseFolder) return null;
-    return `/dea/scan?source=/centralizada/${baseFolder}/${client.custom}/Previos/${client.reference}`;
+    return `/pyapi/dea/scan?source=/centralizada/${baseFolder}/${client.custom}/Previos/${client.reference}`;
   }, [client, baseFolder]);
 
   const {
@@ -104,7 +104,7 @@ export default function PreviosDialog({ className }: { className?: string }) {
     }) => {
       if (!c || !r || !cf || !imageName) return null; // <— return null, not undefined
       const folder = getCurrentFolderFromReference(r);
-      return `/dea/getFileContent?source=/centralizada/${folder}/${c}/Previos/${r}/${cf}/${imageName}`;
+      return `/pyapi/dea/getFileContent?source=/centralizada/${folder}/${c}/Previos/${r}/${cf}/${imageName}`;
     },
     []
   );

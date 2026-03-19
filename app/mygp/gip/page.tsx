@@ -17,7 +17,7 @@ function parentDir(p: string) {
   return parts.join('/');
 }
 function buildPreviewUrl(rel: string) {
-  const u = new URL('/gip/download', window.location.origin);
+  const u = new URL('/pyapi/gip/download', window.location.origin);
   u.searchParams.set('filepath', rel);
   u.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
 
@@ -30,7 +30,7 @@ export default function GipBrowserLite() {
   const [selected, setSelected] = React.useState('');
   const [loadingPrev, setLoadingPrev] = React.useState(false);
   const [prevErr, setPrevErr] = React.useState('');
-  const key = `/gip/search${folder
+  const key = `/pyapi/gip/search${folder
     ? `?filepath=${encodeURIComponent(folder)}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`
     : ''
     }`;

@@ -84,7 +84,10 @@ export default function CargueManual() {
         suffix: data.suffix.trim(),
       };
 
-      const res = await GPClient.post<{ task_id: string }>('/transbel/uploadCargues', payload);
+      const res = await GPClient.post<{ task_id: string }>(
+        '/pyapi/transbel/uploadCargues',
+        payload
+      );
 
       toast.success('Cargue enviado correctamente');
       setTaskId(res.data.task_id);

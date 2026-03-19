@@ -89,7 +89,7 @@ function GuardarReferenciaSection() {
     try {
       setIsSubmitting(true);
 
-      await GPClient.post('/dipp/saveReference', {
+      await GPClient.post('/pyapi/dipp/saveReference', {
         referencia: reference,
         observaciones: observaciones.trim() || null,
         anticipos: anticipos || null,

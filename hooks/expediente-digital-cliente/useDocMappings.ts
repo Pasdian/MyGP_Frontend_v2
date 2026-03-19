@@ -27,7 +27,7 @@ export function useDocMappings() {
       try {
         setIsLoading(true);
         const res = await GPClient.get<DocMappingsResponse>(
-          '/expediente-digital-cliente/docMappings'
+          '/pyapi/expediente-digital-cliente/docMappings'
         );
         cache = res.data.mappings ?? {};
         if (mounted) setMappings(cache);
