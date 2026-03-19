@@ -30,7 +30,7 @@ export function useRefsByClient(client: string | null, initialDate?: Date, final
   }
 
   // SWR key — only fetch if client provided
-  const key = hasParams ? `/dea/getRefsByClient?${params.toString()}` : null;
+  const key = hasParams ? `/pyapi/dea/getRefsByClient?${params.toString()}` : null;
 
   const { data, error, isLoading, mutate } = useSWR<{ refs: getRefsByClient[] }>(key, axiosFetcher);
 

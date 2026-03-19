@@ -53,17 +53,17 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
   const initialToday = new Date().toISOString().split('T')[0];
 
   const { data: conceptosData, isLoading: isConceptosLoading } = useSWR(
-    '/dipp/conceptos',
+    '/pyapi/dipp/conceptos',
     axiosFetcher
   );
 
   const { data: cuentasBancariasData, isLoading: isCuentasBancariasLoading } = useSWR(
-    '/dipp/cuentas-bancarias',
+    '/pyapi/dipp/cuentas-bancarias',
     axiosFetcher
   );
 
   const { data: beneficiariosData, isLoading: isBeneficiariosLoading } = useSWR(
-    '/dipp/beneficiarios',
+    '/pyapi/dipp/beneficiarios',
     axiosFetcher
   );
 
@@ -168,7 +168,7 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
         usuario: getCasaUsername() || 'MYGP',
       };
 
-      await GPClient.post('/dipp/agregarProvision', payload);
+      await GPClient.post('/pyapi/dipp/agregarProvision', payload);
       toast.success('Se añadió la provisión exitosamente');
 
       setIsOpen(false);

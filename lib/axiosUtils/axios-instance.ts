@@ -11,13 +11,11 @@ export const GPClient = axios.create({
   withCredentials: true,
   headers: {
     "Cache-Control": "no-cache",
-    "X-API-KEY": process.env.NEXT_PUBLIC_PYTHON_API_KEY || "",
   },
 });
 
 export const axiosFetcher = (url: string) =>
   GPClient.get(url).then((res) => res.data);
-
 
 export const axiosImageFetcher = async (url: string): Promise<string> => {
   const res = await GPClient.get(url, { responseType: "blob" });

@@ -35,7 +35,7 @@ export function useProgress({
     try {
       setIsFetching(true);
 
-      const resp = await GPClient.get<ProgressResponse>('/expediente-digital-cliente/getProgress', {
+      const resp = await GPClient.get<ProgressResponse>('/pyapi/expediente-digital-cliente/getProgress', {
         params: {
           // match your FastAPI signature:
           required_files: requiredFiles,

@@ -41,7 +41,7 @@ export default function Gastos() {
 
   async function onSubmit(dataForm: z.infer<typeof formSchema>) {
     try {
-      const { data } = await GPClient.get<Gasto[]>(`/operaciones/gastosByRef?ref=${dataForm.ref}`);
+      const { data } = await GPClient.get<Gasto[]>(`/pyapi/operaciones/gastosByRef?ref=${dataForm.ref}`);
 
       setData(data);
       toast.success('Referencia correcta');

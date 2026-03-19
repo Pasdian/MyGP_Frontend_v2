@@ -120,7 +120,7 @@ export function InstruccionesAdicionales() {
     try {
       const payload = toApiPayload(reference!, values.servicios);
 
-      await GPClient.post('/dipp/agregarInstruccionAdicional', payload);
+      await GPClient.post('/pyapi/dipp/agregarInstruccionAdicional', payload);
 
       toast.success('Instrucciones guardadas correctamente');
     } catch (err: any) {

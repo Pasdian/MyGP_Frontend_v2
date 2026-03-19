@@ -42,7 +42,7 @@ export function GestorSearchRef({
     try {
       setIsSubmitting(true);
 
-      const { data } = await GPClient.get<GestorRefInfo[]>(`/gestor/refInfo?ref=${dataForm.ref}`);
+      const { data } = await GPClient.get<GestorRefInfo[]>(`/pyapi/gestor/refInfo?ref=${dataForm.ref}`);
 
       setSearchData(data);
       toast.success('Referencia correcta');

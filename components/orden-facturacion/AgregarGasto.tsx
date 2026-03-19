@@ -41,12 +41,12 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { data: conceptosData, isLoading: isConceptosLoading } = useSWR(
-    isAmericana ? '/dipp/conceptos-americanos' : '/dipp/conceptos',
+    isAmericana ? '/pyapi/dipp/conceptos-americanos' : '/pyapi/dipp/conceptos',
     axiosFetcher
   );
 
   const { data: proveedoresData, isLoading: isProveedoresLoading } = useSWR(
-    '/dipp/proveedores',
+    '/pyapi/dipp/proveedores',
     axiosFetcher
   );
 
@@ -112,7 +112,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
           (c: { value: string; label: string }) => c.value === payload.concepto
         )?.label ?? '';
 
-      await GPClient.post('/dipp/agregarGasto', {
+      await GPClient.post('/pyapi/dipp/agregarGasto', {
         ...payload,
         isAmericana,
         referencia: reference,

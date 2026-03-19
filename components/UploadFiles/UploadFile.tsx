@@ -45,7 +45,7 @@ export default function UploadFile({
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await GPClient.post(url ?? '/dea/uploadFile', formData, {
+      const res = await GPClient.post(url ?? '/pyapi/dea/uploadFile', formData, {
         params: { destination: to },
         headers: { 'Content-Type': 'multipart/form-data' },
       });

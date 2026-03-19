@@ -25,7 +25,7 @@ function buildFileUrl(client: string, docKey: string) {
     _ts: String(Date.now()),
   });
 
-  return `/expediente-digital-cliente/getFile?${qs.toString()}`;
+  return `/pyapi/expediente-digital-cliente/getFile?${qs.toString()}`;
 }
 
 async function checkExistsWithAxios(url: string, signal?: AbortSignal): Promise<boolean> {

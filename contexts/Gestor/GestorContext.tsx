@@ -22,12 +22,12 @@ export function GestorProvider({ children }: { children: React.ReactNode }) {
   const ref = searchRefData?.[0]?.NUM_REFE;
 
   const { data: refCuenta } = useSWR(
-    ref ? `/gestor/refCuenta?ref=${ref}` : null,
+    ref ? `/pyapi/gestor/refCuenta?ref=${ref}` : null,
     axiosFetcher
   );
 
   const { data: fileCategories } = useSWR(
-    '/gestor/fileCategories',
+    '/pyapi/gestor/fileCategories',
     axiosFetcher
   );
 

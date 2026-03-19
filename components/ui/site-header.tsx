@@ -115,7 +115,7 @@ export function SiteHeader() {
     useSWRMutation(
       client.number &&
         client.reference &&
-        `/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
+        `/pyapi/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
       axiosFetcher
     );
   return (

@@ -82,7 +82,7 @@ function isFolderMappings(value: unknown): value is FolderMappings {
 }
 
 async function fetchFolderMappings(): Promise<FolderMappings> {
-  const res = await GPClient.get('/expediente-digital-cliente/folderMappings');
+  const res = await GPClient.get('/pyapi/expediente-digital-cliente/folderMappings');
   const candidate = res.data;
 
   if (!isFolderMappings(candidate)) {
@@ -97,7 +97,7 @@ async function fetchProgressByDocKeys(
   docKeys: string[]
 ): Promise<BackendProgress> {
   const res = await GPClient.get<BackendProgress>(
-    '/expediente-digital-cliente/getProgressByDocKeys',
+    '/pyapi/expediente-digital-cliente/getProgressByDocKeys',
     {
       params: {
         client_rfc: clientId,

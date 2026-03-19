@@ -276,7 +276,7 @@ function ClientLogoSection({ client }: { client: string }) {
 
       {!logoUrl && (
         <div className="flex justify-center">
-          <UploadFile to={`/GESTION/${client}`} url="/dea/uploadLogo" onUploaded={handleUploaded} />
+          <UploadFile to={`/GESTION/${client}`} url="/pyapi/dea/uploadLogo" onUploaded={handleUploaded} />
         </div>
       )}
     </div>

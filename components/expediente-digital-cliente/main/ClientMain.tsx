@@ -39,7 +39,7 @@ export function ClientMain({
   const [isHydrating, setIsHydrating] = React.useState(false);
 
   const { data: companies } = useSWR<Company[]>(
-    '/expediente-digital-cliente/companies',
+    '/pyapi/expediente-digital-cliente/companies',
     axiosFetcher
   );
 
@@ -185,7 +185,7 @@ export function ClientMain({
         setIsHydrating(true);
         setIsSubmitting(true);
 
-        const resp = await GPClient.get('/expediente-digital-cliente/client', {
+        const resp = await GPClient.get('/pyapi/expediente-digital-cliente/client', {
           params: { rfc: casa_id },
         });
 
@@ -248,7 +248,7 @@ export function ClientMain({
         },
       };
 
-      const resp = await GPClient.post('/expediente-digital-cliente/client', payload);
+      const resp = await GPClient.post('/pyapi/expediente-digital-cliente/client', payload);
 
       if (resp.status !== 200) {
         toast.error('Error al guardar cliente');
