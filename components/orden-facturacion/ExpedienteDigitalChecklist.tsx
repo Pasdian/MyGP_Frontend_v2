@@ -44,10 +44,15 @@ export function ExpedienteDigitalChecklist() {
 
         <TableBody>
           {CHECKLIST_ITEMS.map(({ key, label }) => {
-            const found = Boolean(expediente[key]);
+            const found = Boolean(expediente[key]?.found);
             return (
               <TableRow key={key}>
-                <TableCell className="text-sm font-medium">{label}</TableCell>
+                <TableCell className="text-sm ">
+                  <p className="font-medium">{label}</p>
+                  {expediente[key]?.filenames.map((filename) => {
+                    return <p key={filename}>{filename}</p>;
+                  })}
+                </TableCell>
                 <TableCell className="text-center">
                   {found ? (
                     <CheckCircle2 className="inline-block text-emerald-500" size={18} />

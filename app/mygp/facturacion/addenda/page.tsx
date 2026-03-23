@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -21,27 +20,10 @@ import {
 } from '@/components/ui/table';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { SaveAllIcon, SearchIcon } from 'lucide-react';
-
-const MAX_FILES = 20;
-const MAX_FILE_SIZE_MB = 25;
-const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+import { CheckCircle2, SaveAllIcon, SearchIcon, XCircle } from 'lucide-react';
 
 const formSchema = z.object({
   reference: z.string().min(1, 'Ingresa una referencia'),
-  xml_files: z
-    .array(z.instanceof(File))
-    .min(1, 'Selecciona al menos 1 xml')
-    .max(MAX_FILES, `Máximo ${MAX_FILES} XMLs`)
-    .refine(
-      (files) =>
-        files.every((f) => f.type === 'application/xml' || f.name.toLowerCase().endsWith('.xml')),
-      'Todos los archivos deben ser XML'
-    )
-    .refine(
-      (files) => files.every((f) => f.size <= MAX_FILE_SIZE),
-      `Cada archivo debe ser <= ${MAX_FILE_SIZE_MB}MB`
-    ),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -49,6 +31,10 @@ type DatosEmbarqueResponse = FolioRow[];
 type ResolvedAddendaSelection = {
   addenda: string | null;
   etiImpr: string | null;
+};
+type PdfCheckResult = {
+  exists: boolean;
+  filename: string | null;
 };
 
 function resolveAddendaSelection(rows: DatosEmbarqueResponse): ResolvedAddendaSelection {
@@ -69,35 +55,25 @@ function resolveAddendaSelection(rows: DatosEmbarqueResponse): ResolvedAddendaSe
   };
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 export default function Addenda() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { reference: '', xml_files: [] },
+    defaultValues: { reference: '' },
     mode: 'onChange',
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
+  const [isAddendando, setIsAddendando] = React.useState(false);
   const [embarqueData, setEmbarqueData] = React.useState<DatosEmbarqueResponse | null>(null);
   const [addenda, setAddenda] = React.useState<string | null>(null);
   const [selectedEtiImpr, setSelectedEtiImpr] = React.useState<string | null>(null);
+  const [pdfCheck, setPdfCheck] = React.useState<PdfCheckResult | null>(null);
   const reference = form.watch('reference');
 
   React.useEffect(() => {
     setEmbarqueData(null);
     setAddenda(null);
     setSelectedEtiImpr(null);
-    form.setValue('xml_files', [], { shouldDirty: false, shouldValidate: false });
+    setPdfCheck(null);
   }, [reference, form]);
 
   const onSearchReference = async () => {
@@ -106,16 +82,29 @@ export default function Addenda() {
 
     setIsSubmitting(true);
     setEmbarqueData(null);
+    setPdfCheck(null);
 
     try {
-      const { data } = await GPClient.get<DatosEmbarqueResponse>('/pyapi/transbel/datosEmbarque', {
-        params: { reference: form.getValues('reference').trim() },
-      });
+      const normalizedReference = form.getValues('reference').trim().toUpperCase();
+      const [embarqueResponse, pdfCheckResponse] = await Promise.all([
+        GPClient.get<DatosEmbarqueResponse>('/pyapi/transbel/datosEmbarque', {
+          params: { reference: normalizedReference },
+        }),
+        GPClient.get<PdfCheckResult>('/pyapi/dea/fileExists', {
+          params: {
+            client: '005009',
+            reference: normalizedReference,
+            path: String.raw`/01-CTA-GASTOS/2Fact.*\.xml$`,
+          },
+        }),
+      ]);
+      const data = embarqueResponse.data;
       const selection = resolveAddendaSelection(data);
 
       setEmbarqueData(data);
       setAddenda(selection.addenda);
       setSelectedEtiImpr(selection.etiImpr);
+      setPdfCheck(pdfCheckResponse.data);
     } catch (error: any) {
       toast.error(
         error?.response?.data?.detail ||
@@ -127,66 +116,39 @@ export default function Addenda() {
     }
   };
 
-  const onUploadPayload = async () => {
-    const hasXmlFiles = await form.trigger('xml_files');
-    if (!hasXmlFiles) return;
+  const onAddendar = async () => {
+    if (!pdfCheck?.exists || !pdfCheck.filename) {
+      toast.error('No se encontró el archivo a addendar');
+      return;
+    }
 
-    if (addenda === null) {
-      toast.error('El dato de embarque seleccionado está vacío');
+    if (!addenda) {
+      toast.error('No se resolvió la addenda');
       return;
     }
 
     if (!selectedEtiImpr) {
-      toast.error('El tipo está vacío');
+      toast.error('No se resolvió el ETI_IMPR');
       return;
     }
 
-    const xmlFiles = form.getValues('xml_files');
-    if (!xmlFiles.length) {
-      toast.error('Selecciona al menos 1 xml');
-      return;
-    }
-
-    setIsUploading(true);
+    setIsAddendando(true);
 
     try {
-      const formData = new FormData();
-      formData.append('eti_impr', selectedEtiImpr);
-      formData.append('addenda', addenda);
-
-      for (const file of xmlFiles) {
-        formData.append('xml_files', file, file.name);
-      }
-
-      const response = await GPClient.post('/pyapi/transbel/addendar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        responseType: 'blob',
+      const { data } = await GPClient.post('/pyapi/transbel/addendar', {
+        client: '005009',
+        reference: form.getValues('reference').trim().toUpperCase(),
+        eti_impr: selectedEtiImpr,
+        addenda,
+        filename: pdfCheck.filename,
       });
-
-      const disposition = response.headers['content-disposition'] ?? '';
-      const filenameMatch = disposition.match(/filename="([^"]+)"/);
-      const filename = filenameMatch?.[1] || 'transbel_addendados.zip';
-
-      downloadBlob(response.data, filename);
-      toast.success('Información enviada correctamente');
+      toast.success(data?.detail || 'Archivo addendado correctamente');
     } catch (error: any) {
-      let message = 'Error al subir payload';
-
-      if (error?.response?.data instanceof Blob) {
-        const text = await error.response.data.text();
-        try {
-          const parsed = JSON.parse(text);
-          message = parsed?.detail || parsed?.message || message;
-        } catch {
-          message = text || message;
-        }
-      } else {
-        message = error?.response?.data?.detail || error?.response?.data?.message || message;
-      }
-
-      toast.error(message);
+      toast.error(
+        error?.response?.data?.detail || error?.response?.data?.message || 'Error al addendar'
+      );
     } finally {
-      setIsUploading(false);
+      setIsAddendando(false);
     }
   };
 
@@ -217,29 +179,57 @@ export default function Addenda() {
         {embarqueData ? (
           <div className="grid gap-4">
             <DatosEmbarqueTable rows={embarqueData} />
-            <FileController
-              form={form}
-              fieldLabel="Selecciona xml(s)"
-              controllerName="xml_files"
-              accept={['.xml', 'application/xml', 'text/xml']}
-              buttonText="Selecciona xml(s)"
-              multiple
-            />
+            <CtaGastosCheck result={pdfCheck} />
             <div>
               <MyGPButtonSubmit
                 type="button"
-                isSubmitting={isUploading}
-                isSubmittingText="Subiendo"
-                onClick={onUploadPayload}
+                isSubmitting={isAddendando}
+                isSubmittingText="Addendando"
+                onClick={onAddendar}
               >
                 <SaveAllIcon />
-                Guardar Cambios
+                Addendar
               </MyGPButtonSubmit>
             </div>
           </div>
         ) : null}
       </form>
     </div>
+  );
+}
+
+function CtaGastosCheck({
+  result,
+}: {
+  result: PdfCheckResult | null;
+}) {
+  const found = !!result?.exists;
+
+  return (
+    <Card className="w-full">
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Archivo</TableHead>
+              <TableHead className="text-center w-24">Estatus</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="text-sm font-medium">{result?.filename ?? '-'}</TableCell>
+              <TableCell className="text-center">
+                {found ? (
+                  <CheckCircle2 className="inline-block text-emerald-500" size={18} />
+                ) : (
+                  <XCircle className="inline-block text-rose-500" size={18} />
+                )}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 
