@@ -170,7 +170,6 @@ const getSolicitudDiariaDefaultValues = (
 
 export function SolicitudDiariaForm({ mode, defaultValues, onSubmit }: SolicitudDiariaFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const { hasPermission } = useAuth();
   const formSchema = React.useMemo(() => getSolicitudDiariaFormSchema(mode), [mode]);
   const {
     control,
