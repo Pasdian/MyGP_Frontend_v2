@@ -18,10 +18,26 @@ export type GastoItem = {
 };
 
 export type ExpedienteDigitalData = {
-  HAS_FACTURA_ORIGEN: boolean;
-  HAS_PEDIMENTO: boolean;
-  HAS_MANIFESTACION_VALOR: boolean;
-  HAS_CARTAS_COMERCIO_EXTERIOR: boolean;
+  HAS_FACTURA_ORIGEN: {
+    found: boolean;
+    filename: string | null;
+    filenames: string[];
+  };
+  HAS_PEDIMENTO: {
+    found: boolean;
+    filename: string | null;
+    filenames: string[];
+  };
+  HAS_MANIFESTACION_VALOR: {
+    found: boolean;
+    filename: string | null;
+    filenames: string[];
+  };
+  HAS_CARTAS_COMERCIO_EXTERIOR: {
+    found: boolean;
+    filename: string | null;
+    filenames: string[];
+  };
 };
 
 export type InstruccionesAdicionalesData = {

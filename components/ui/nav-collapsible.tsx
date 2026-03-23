@@ -103,7 +103,7 @@ const nav: NavGroupDef[] = [
         icon: SheetIcon,
       },
       {
-        title: 'Addenda',
+        title: 'Addenda Transbel',
         url: '/mygp/facturacion/addenda',
         requires: [PERM.FACTURACION_ADDENDA],
         icon: CodeXmlIcon,
