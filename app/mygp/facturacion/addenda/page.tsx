@@ -1,0 +1,287 @@
+'use client';
+
+import * as React from 'react';
+import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
+import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import type { FolioRow } from '@/types/transbel/folioData';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import z from 'zod/v4';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { SaveAllIcon, SearchIcon } from 'lucide-react';
+
+const MAX_FILES = 20;
+const MAX_FILE_SIZE_MB = 25;
+const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const formSchema = z.object({
+  reference: z.string().min(1, 'Ingresa una referencia'),
+  xml_files: z
+    .array(z.instanceof(File))
+    .min(1, 'Selecciona al menos 1 xml')
+    .max(MAX_FILES, `Máximo ${MAX_FILES} XMLs`)
+    .refine(
+      (files) =>
+        files.every((f) => f.type === 'application/xml' || f.name.toLowerCase().endsWith('.xml')),
+      'Todos los archivos deben ser XML'
+    )
+    .refine(
+      (files) => files.every((f) => f.size <= MAX_FILE_SIZE),
+      `Cada archivo debe ser <= ${MAX_FILE_SIZE_MB}MB`
+    ),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+type DatosEmbarqueResponse = FolioRow[];
+type SelectedRowKey = string | null;
+
+function getRowKey(row: FolioRow, index: number) {
+  return `${row.NUM_REFE ?? 'sin-ref'}-${row.CVE_DAT ?? index}-${row.ETI_IMPR ?? 'sin-tipo'}-${index}`;
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export default function Addenda() {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { reference: '', xml_files: [] },
+    mode: 'onChange',
+  });
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [embarqueData, setEmbarqueData] = React.useState<DatosEmbarqueResponse | null>(null);
+  const [addenda, setAddenda] = React.useState<string | null>(null);
+  const [selectedEtiImpr, setSelectedEtiImpr] = React.useState<string | null>(null);
+  const [selectedRowKey, setSelectedRowKey] = React.useState<SelectedRowKey>(null);
+  const reference = form.watch('reference');
+
+  React.useEffect(() => {
+    setEmbarqueData(null);
+    setAddenda(null);
+    setSelectedEtiImpr(null);
+    setSelectedRowKey(null);
+    form.setValue('xml_files', [], { shouldDirty: false, shouldValidate: false });
+  }, [reference, form]);
+
+  const onSearchReference = async () => {
+    const isReferenceValid = await form.trigger('reference');
+    if (!isReferenceValid) return;
+
+    setIsSubmitting(true);
+    setEmbarqueData(null);
+
+    try {
+      const { data } = await GPClient.get<DatosEmbarqueResponse>('/pyapi/transbel/datosEmbarque', {
+        params: { reference: form.getValues('reference').trim() },
+      });
+
+      setEmbarqueData(data);
+      setAddenda(data[0]?.DAT_EMB ?? null);
+      setSelectedEtiImpr(data[0]?.ETI_IMPR ?? null);
+      setSelectedRowKey(data[0] ? getRowKey(data[0], 0) : null);
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.detail ||
+          error?.response?.data?.message ||
+          'No se encontró la referencia'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onUploadPayload = async () => {
+    const hasXmlFiles = await form.trigger('xml_files');
+    if (!hasXmlFiles) return;
+
+    if (addenda === null) {
+      toast.error('El dato de embarque seleccionado está vacío');
+      return;
+    }
+
+    if (!selectedEtiImpr) {
+      toast.error('El tipo está vacío');
+      return;
+    }
+
+    const xmlFiles = form.getValues('xml_files');
+    if (!xmlFiles.length) {
+      toast.error('Selecciona al menos 1 xml');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('eti_impr', selectedEtiImpr);
+      formData.append('addenda', addenda);
+
+      for (const file of xmlFiles) {
+        formData.append('xml_files', file, file.name);
+      }
+
+      const response = await GPClient.post('/pyapi/transbel/addendar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        responseType: 'blob',
+      });
+
+      const disposition = response.headers['content-disposition'] ?? '';
+      const filenameMatch = disposition.match(/filename="([^"]+)"/);
+      const filename = filenameMatch?.[1] || 'transbel_addendados.zip';
+
+      downloadBlob(response.data, filename);
+      toast.success('Información enviada correctamente');
+    } catch (error: any) {
+      let message = 'Error al subir payload';
+
+      if (error?.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        try {
+          const parsed = JSON.parse(text);
+          message = parsed?.detail || parsed?.message || message;
+        } catch {
+          message = text || message;
+        }
+      } else {
+        message = error?.response?.data?.detail || error?.response?.data?.message || message;
+      }
+
+      toast.error(message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-4">
+      <form className="grid gap-4">
+        <Field data-invalid={!!form.formState.errors.reference}>
+          <FieldLabel htmlFor="reference">
+            <SearchIcon /> Buscar referencia
+          </FieldLabel>
+          <Input
+            id="reference"
+            placeholder="Ingresa la referencia"
+            aria-invalid={!!form.formState.errors.reference}
+            {...form.register('reference')}
+          />
+          {form.formState.errors.reference ? (
+            <FieldError errors={[form.formState.errors.reference]} />
+          ) : null}
+        </Field>
+
+        <div>
+          <MyGPButtonSubmit type="button" isSubmitting={isSubmitting} onClick={onSearchReference}>
+            <SearchIcon /> {embarqueData ? 'Buscar otra vez' : 'Buscar referencia'}
+          </MyGPButtonSubmit>
+        </div>
+
+        {embarqueData ? (
+          <div className="grid gap-4">
+            <DatosEmbarqueTable
+              rows={embarqueData}
+              selectedRowKey={selectedRowKey}
+              onSelect={(rowKey, datEmb, etiImpr) => {
+                setSelectedRowKey(rowKey);
+                setAddenda(datEmb);
+                setSelectedEtiImpr(etiImpr);
+              }}
+            />
+            <FileController
+              form={form}
+              fieldLabel="Selecciona xml(s)"
+              controllerName="xml_files"
+              accept={['.xml', 'application/xml', 'text/xml']}
+              buttonText="Selecciona xml(s)"
+              multiple
+            />
+            <div>
+              <MyGPButtonSubmit
+                type="button"
+                isSubmitting={isUploading}
+                isSubmittingText="Subiendo"
+                onClick={onUploadPayload}
+              >
+                <SaveAllIcon />
+                Guardar Cambios
+              </MyGPButtonSubmit>
+            </div>
+          </div>
+        ) : null}
+      </form>
+    </div>
+  );
+}
+
+function DatosEmbarqueTable({
+  rows,
+  selectedRowKey,
+  onSelect,
+}: {
+  rows: DatosEmbarqueResponse;
+  selectedRowKey: SelectedRowKey;
+  onSelect: (rowKey: string, datEmb: string | null, etiImpr: string | null) => void;
+}) {
+  return (
+    <Card className="w-full">
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Seleccionar</TableHead>
+              <TableHead>Referencia</TableHead>
+              <TableHead>Clave</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Dato de Embarque</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row, index) => {
+              const rowKey = getRowKey(row, index);
+
+              return (
+                <TableRow key={rowKey}>
+                  <TableCell>
+                    <input
+                      type="radio"
+                      name="datos-embarque"
+                      checked={selectedRowKey === rowKey}
+                      onChange={() => onSelect(rowKey, row.DAT_EMB, row.ETI_IMPR)}
+                    />
+                  </TableCell>
+                  <TableCell>{row.NUM_REFE ?? '-'}</TableCell>
+                  <TableCell>{row.CVE_DAT ?? '-'}</TableCell>
+                  <TableCell>{row.ETI_IMPR ?? '-'}</TableCell>
+                  <TableCell>{row.DAT_EMB ?? '-'}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
