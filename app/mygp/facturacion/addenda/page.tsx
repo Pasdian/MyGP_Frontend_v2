@@ -46,10 +46,27 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 type DatosEmbarqueResponse = FolioRow[];
-type SelectedRowKey = string | null;
+type ResolvedAddendaSelection = {
+  addenda: string | null;
+  etiImpr: string | null;
+};
 
-function getRowKey(row: FolioRow, index: number) {
-  return `${row.NUM_REFE ?? 'sin-ref'}-${row.CVE_DAT ?? index}-${row.ETI_IMPR ?? 'sin-tipo'}-${index}`;
+function resolveAddendaSelection(rows: DatosEmbarqueResponse): ResolvedAddendaSelection {
+  const cecoRow = rows.find((row) => row.ETI_IMPR === 'CECO' && row.DAT_EMB);
+  const cuentaRow = rows.find((row) => row.ETI_IMPR === 'CUENTA' && row.DAT_EMB);
+
+  if (cecoRow && cuentaRow) {
+    return {
+      addenda: `${cecoRow.DAT_EMB} ${cuentaRow.DAT_EMB}`,
+      etiImpr: 'CECO/CUENTA',
+    };
+  }
+
+  const firstNonEmptyRow = rows.find((row) => row.DAT_EMB);
+  return {
+    addenda: firstNonEmptyRow?.DAT_EMB ?? null,
+    etiImpr: firstNonEmptyRow?.ETI_IMPR ?? null,
+  };
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -74,14 +91,12 @@ export default function Addenda() {
   const [embarqueData, setEmbarqueData] = React.useState<DatosEmbarqueResponse | null>(null);
   const [addenda, setAddenda] = React.useState<string | null>(null);
   const [selectedEtiImpr, setSelectedEtiImpr] = React.useState<string | null>(null);
-  const [selectedRowKey, setSelectedRowKey] = React.useState<SelectedRowKey>(null);
   const reference = form.watch('reference');
 
   React.useEffect(() => {
     setEmbarqueData(null);
     setAddenda(null);
     setSelectedEtiImpr(null);
-    setSelectedRowKey(null);
     form.setValue('xml_files', [], { shouldDirty: false, shouldValidate: false });
   }, [reference, form]);
 
@@ -96,11 +111,11 @@ export default function Addenda() {
       const { data } = await GPClient.get<DatosEmbarqueResponse>('/pyapi/transbel/datosEmbarque', {
         params: { reference: form.getValues('reference').trim() },
       });
+      const selection = resolveAddendaSelection(data);
 
       setEmbarqueData(data);
-      setAddenda(data[0]?.DAT_EMB ?? null);
-      setSelectedEtiImpr(data[0]?.ETI_IMPR ?? null);
-      setSelectedRowKey(data[0] ? getRowKey(data[0], 0) : null);
+      setAddenda(selection.addenda);
+      setSelectedEtiImpr(selection.etiImpr);
     } catch (error: any) {
       toast.error(
         error?.response?.data?.detail ||
@@ -201,15 +216,7 @@ export default function Addenda() {
 
         {embarqueData ? (
           <div className="grid gap-4">
-            <DatosEmbarqueTable
-              rows={embarqueData}
-              selectedRowKey={selectedRowKey}
-              onSelect={(rowKey, datEmb, etiImpr) => {
-                setSelectedRowKey(rowKey);
-                setAddenda(datEmb);
-                setSelectedEtiImpr(etiImpr);
-              }}
-            />
+            <DatosEmbarqueTable rows={embarqueData} />
             <FileController
               form={form}
               fieldLabel="Selecciona xml(s)"
@@ -238,12 +245,8 @@ export default function Addenda() {
 
 function DatosEmbarqueTable({
   rows,
-  selectedRowKey,
-  onSelect,
 }: {
   rows: DatosEmbarqueResponse;
-  selectedRowKey: SelectedRowKey;
-  onSelect: (rowKey: string, datEmb: string | null, etiImpr: string | null) => void;
 }) {
   return (
     <Card className="w-full">
@@ -251,7 +254,6 @@ function DatosEmbarqueTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Seleccionar</TableHead>
               <TableHead>Referencia</TableHead>
               <TableHead>Clave</TableHead>
               <TableHead>Tipo</TableHead>
@@ -259,26 +261,14 @@ function DatosEmbarqueTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((row, index) => {
-              const rowKey = getRowKey(row, index);
-
-              return (
-                <TableRow key={rowKey}>
-                  <TableCell>
-                    <input
-                      type="radio"
-                      name="datos-embarque"
-                      checked={selectedRowKey === rowKey}
-                      onChange={() => onSelect(rowKey, row.DAT_EMB, row.ETI_IMPR)}
-                    />
-                  </TableCell>
+            {rows.map((row, index) => (
+              <TableRow key={`${row.NUM_REFE ?? 'sin-ref'}-${row.CVE_DAT ?? index}-${row.ETI_IMPR ?? 'sin-tipo'}`}>
                   <TableCell>{row.NUM_REFE ?? '-'}</TableCell>
                   <TableCell>{row.CVE_DAT ?? '-'}</TableCell>
                   <TableCell>{row.ETI_IMPR ?? '-'}</TableCell>
                   <TableCell>{row.DAT_EMB ?? '-'}</TableCell>
-                </TableRow>
-              );
-            })}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </CardContent>
