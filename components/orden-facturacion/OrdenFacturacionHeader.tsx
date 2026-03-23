@@ -6,7 +6,7 @@ import { OrdenFacturacionCard } from './OrdenFacturacionCard';
 import MyGPButtonSubmit from '../MyGPUI/Buttons/MyGPButtonSubmit';
 
 export function OrdenFacturacionHeader() {
-  const { reference, setReference, isLoading, error } = useOrdenFacturacion();
+  const { reference, setReference, isLoading, error, referencePayload } = useOrdenFacturacion();
   const [referenceInput, setReferenceInput] = useState(reference);
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -31,6 +31,12 @@ export function OrdenFacturacionHeader() {
       </form>
 
       {error ? <p className="mt-2 text-sm text-red-600">No se pudo cargar la referencia.</p> : null}
+      {referencePayload?.REFERENCIA_GUARDADA?.STATUS && (
+        <div className="flex">
+          <p className="font-semibold mr-1">ESTATUS:</p>
+          {referencePayload?.REFERENCIA_GUARDADA?.STATUS}
+        </div>
+      )}
     </OrdenFacturacionCard>
   );
 }
