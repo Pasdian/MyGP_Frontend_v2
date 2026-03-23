@@ -3,6 +3,9 @@ import pkg from './package.json' assert { type: 'json' };
 const nextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: '20mb' },
+    webpackBuildWorker: true,
+    parallelServerCompiles: true,
+    parallelServerBuildTraces: true,
   },
   env: {
     NEXT_PUBLIC_RELEASE_VERSION: pkg.version,
