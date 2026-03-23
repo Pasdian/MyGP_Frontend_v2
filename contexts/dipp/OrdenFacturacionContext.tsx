@@ -106,6 +106,7 @@ export type DippReferenceData = {
   REFERENCIA_GUARDADA: {
     REFERENCIA: string | null;
     OBSERVACIONES: string | null;
+    STATUS: string | null;
     ANTICIPOS: string | null;
     FINANCIAMIENTO: string | null;
     WAS_GASTOS_CONFIRMED: number | null;

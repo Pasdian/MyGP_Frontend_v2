@@ -10,6 +10,13 @@ import { ExpedienteDigitalChecklist } from '@/components/orden-facturacion/Exped
 import { OrdenFacturacionCard } from '@/components/orden-facturacion/OrdenFacturacionCard';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { useOrdenFacturacion } from '@/contexts/dipp/OrdenFacturacionContext';
 import React from 'react';
@@ -17,6 +24,13 @@ import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+
+const STATUS_OPTIONS = [
+  { value: 'CAPTURADA', label: 'Capturada' },
+  { value: 'ENVIADA', label: 'Enviada' },
+  { value: 'REVISADA', label: 'Revisada' },
+  { value: 'CERRADA', label: 'Cerrada' },
+] as const;
 
 export default function OrdenFacturacion() {
   return (
@@ -64,11 +78,15 @@ function GuardarReferenciaSection() {
   const { getCasaUsername, getUserEmail, getUserFullName } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [observaciones, setObservaciones] = React.useState('');
+  const [estatus, setEstatus] = React.useState<(typeof STATUS_OPTIONS)[number]['value']>('CAPTURADA');
 
   React.useEffect(() => {
     const savedReference = referencePayload?.REFERENCIA_GUARDADA;
 
     setObservaciones(savedReference?.OBSERVACIONES || '');
+    setEstatus(
+      (savedReference?.STATUS as (typeof STATUS_OPTIONS)[number]['value'] | null) || 'CAPTURADA'
+    );
   }, [referencePayload]);
 
   if (isLoading) return null;
@@ -76,6 +94,16 @@ function GuardarReferenciaSection() {
   if (!reference || !referencePayload) return null;
 
   async function onSubmit() {
+    if (!anticipos) {
+      toast.error('Debes seleccionar Anticipos antes de guardar la referencia');
+      return;
+    }
+
+    if (!financiamiento) {
+      toast.error('Debes seleccionar Financiamiento antes de guardar la referencia');
+      return;
+    }
+
     if (!wasGastosConfirmed) {
       toast.error('Debes confirmar los gastos a comprobar antes de guardar la referencia');
       return;
@@ -92,8 +120,9 @@ function GuardarReferenciaSection() {
       await GPClient.post('/pyapi/dipp/saveReference', {
         referencia: reference,
         observaciones: observaciones.trim() || null,
-        anticipos: anticipos || null,
-        financiamiento: financiamiento || null,
+        estatus,
+        anticipos,
+        financiamiento,
         submittedBy: getCasaUsername() || 'MYGP',
         userEmail: getUserEmail() || '',
         userFullName: getUserFullName() || getCasaUsername() || 'MYGP',
@@ -125,6 +154,22 @@ function GuardarReferenciaSection() {
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="estatus">ESTATUS</Label>
+          <Select value={estatus} onValueChange={(value) => setEstatus(value as (typeof STATUS_OPTIONS)[number]['value'])}>
+            <SelectTrigger id="estatus" className="w-full">
+              <SelectValue placeholder="Selecciona un estatus" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <MyGPButtonSubmit isSubmitting={isSubmitting} onClick={onSubmit}>
