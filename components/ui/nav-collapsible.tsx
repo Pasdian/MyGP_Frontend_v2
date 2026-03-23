@@ -15,7 +15,14 @@ import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
 import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import { NavItem } from '@/types/nav/navItem';
-import { BookPlusIcon, ChartAreaIcon, ChartBarIcon, Container, SheetIcon } from 'lucide-react';
+import {
+  BookPlusIcon,
+  ChartAreaIcon,
+  ChartBarIcon,
+  CodeXmlIcon,
+  Container,
+  SheetIcon,
+} from 'lucide-react';
 import { PERM, type Permission } from '@/lib/modules/permissions';
 
 type NavItemDef = NavItem & {
@@ -94,6 +101,12 @@ const nav: NavGroupDef[] = [
         url: '/mygp/facturacion/reportes',
         requires: [PERM.FACTURACION_REPORTES],
         icon: SheetIcon,
+      },
+      {
+        title: 'Addenda',
+        url: '/mygp/facturacion/addenda',
+        requires: [PERM.FACTURACION_ADDENDA],
+        icon: CodeXmlIcon,
       },
     ],
   },
