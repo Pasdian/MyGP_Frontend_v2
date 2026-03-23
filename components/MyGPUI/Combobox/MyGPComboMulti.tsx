@@ -26,7 +26,7 @@ export function MyGPComboMulti({
   className,
   pickFirst,
   onSelect,
-  isModal = true,
+  isModal = false,
   'aria-invalid': ariaInvalid,
   ...props
 }: {

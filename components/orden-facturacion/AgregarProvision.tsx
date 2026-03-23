@@ -16,6 +16,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { ClientsController } from '../expediente-digital-cliente/form-controllers/ClientsController';
 
 const formSchema = z.object({
   cuentaBancaria: z.string().min(1, 'Selecciona una cuenta bancaria'),
@@ -67,11 +68,6 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
     axiosFetcher
   );
 
-  const { data: companiesData, isLoading: isCompaniesLoading } = useSWR(
-    '/api/companies/getAllCompanies',
-    axiosFetcher
-  );
-
   const cuentasBancariasOptions = React.useMemo(() => {
     if (!cuentasBancariasData) return [];
     return cuentasBancariasData.map((item: any) => ({
@@ -88,14 +84,6 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
     }));
   }, [beneficiariosData]);
 
-  const companiesOptions = React.useMemo(() => {
-    if (!companiesData) return [];
-    return companiesData.map((company: any) => ({
-      value: company.CVE_IMP,
-      label: company.NOM_IMP,
-    }));
-  }, [companiesData]);
-
   const conceptoProvisionOptions = React.useMemo(() => {
     if (!conceptosData) return [];
     return conceptosData.map((item: any) => ({
@@ -108,7 +96,6 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
     control,
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors },
   } = useForm<FormValues>({
@@ -116,7 +103,7 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
     defaultValues: {
       cuentaBancaria: '03',
       numPoliza: '',
-      beneficiario: isAmericana ? '00025' : '', // ← set default based on isAmericana
+      beneficiario: isAmericana ? '00025' : '',
       descripcion: '',
       factura: '',
       concepto: '',
@@ -401,26 +388,7 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
           )}
         </div>
 
-        <Controller
-          control={control}
-          name="client"
-          render={({ field, fieldState }) => (
-            <MyGPCombo
-              id="client"
-              value={field.value}
-              setValue={field.onChange}
-              label="Cliente:"
-              options={companiesOptions}
-              placeholder="Selecciona un cliente"
-              isModal={true}
-              isLoading={isCompaniesLoading}
-              error={!!fieldState.error}
-              helperText={fieldState.error?.message}
-              aria-invalid={!!fieldState.error}
-              aria-errormessage={fieldState.error ? 'client-error' : undefined}
-            />
-          )}
-        />
+        <ClientsController control={control} isModal />
 
         <div className="grid grid-rows gap-2">
           <Label htmlFor="totalPagar">Total a Pagar:</Label>

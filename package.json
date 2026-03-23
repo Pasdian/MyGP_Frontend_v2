@@ -59,6 +59,7 @@
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.5.207",
     "posthog-js": "^1.260.1",
+    "radix-ui": "^1.4.3",
     "react": "^19.2.1",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.2.1",

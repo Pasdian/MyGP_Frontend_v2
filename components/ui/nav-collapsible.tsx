@@ -10,6 +10,8 @@ import {
   IconDoor,
   IconMoneybag,
   IconFileExcel,
+  IconZoomMoneyFilled,
+  IconPigMoney,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
@@ -136,16 +138,16 @@ const nav: NavGroupDef[] = [
     title: 'DIPP',
     items: [
       {
-        title: 'Solicitudes Diarias de Recursos Operativos',
-        url: '/mygp/dipp/solicitudes-diarias-recursos-operativos',
-        requires: [PERM.DIPP_SOLICITUDES_DIARIAS_RECURSOS_OPERATIVOS],
-        icon: ChartBarIcon,
-      },
-      {
         title: 'Orden de Facturación',
         url: '/mygp/dipp/orden-facturacion',
         requires: [PERM.DIPP_ORDEN_FACTURACION],
         icon: ChartBarIcon,
+      },
+      {
+        title: 'Solicitud Diaria',
+        url: '/mygp/dipp/solicitud-diaria',
+        requires: [PERM.DIPP_SOLICITUDES_DIARIAS],
+        icon: IconPigMoney,
       },
     ],
   },
