@@ -12,5 +12,7 @@ declare module '@tanstack/table-core' {
     headerClassName?: string;
     /** cell-only class */
     cellClassName?: string;
+    /** used by custom table UIs to toggle search controls */
+    searchable?: boolean;
   }
 }
