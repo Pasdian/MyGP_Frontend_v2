@@ -32,7 +32,7 @@ type ResolvedAddendaSelection = {
   addenda: string | null;
   etiImpr: string | null;
 };
-type PdfCheckResult = {
+type XmlCheckResult = {
   exists: boolean;
   filename: string | null;
 };
@@ -66,14 +66,14 @@ export default function Addenda() {
   const [embarqueData, setEmbarqueData] = React.useState<DatosEmbarqueResponse | null>(null);
   const [addenda, setAddenda] = React.useState<string | null>(null);
   const [selectedEtiImpr, setSelectedEtiImpr] = React.useState<string | null>(null);
-  const [pdfCheck, setPdfCheck] = React.useState<PdfCheckResult | null>(null);
+  const [xmlCheck, setXmlCheck] = React.useState<XmlCheckResult | null>(null);
   const reference = form.watch('reference');
 
   React.useEffect(() => {
     setEmbarqueData(null);
     setAddenda(null);
     setSelectedEtiImpr(null);
-    setPdfCheck(null);
+    setXmlCheck(null);
   }, [reference, form]);
 
   const onSearchReference = async () => {
@@ -82,15 +82,15 @@ export default function Addenda() {
 
     setIsSubmitting(true);
     setEmbarqueData(null);
-    setPdfCheck(null);
+    setXmlCheck(null);
 
     try {
       const normalizedReference = form.getValues('reference').trim().toUpperCase();
-      const [embarqueResponse, pdfCheckResponse] = await Promise.all([
+      const [embarqueResponse, xmlCheckResponse] = await Promise.all([
         GPClient.get<DatosEmbarqueResponse>('/pyapi/transbel/datosEmbarque', {
           params: { reference: normalizedReference },
         }),
-        GPClient.get<PdfCheckResult>('/pyapi/dea/fileExists', {
+        GPClient.get<XmlCheckResult>('/pyapi/dea/fileExists', {
           params: {
             client: '005009',
             reference: normalizedReference,
@@ -104,7 +104,7 @@ export default function Addenda() {
       setEmbarqueData(data);
       setAddenda(selection.addenda);
       setSelectedEtiImpr(selection.etiImpr);
-      setPdfCheck(pdfCheckResponse.data);
+      setXmlCheck(xmlCheckResponse.data);
     } catch (error: any) {
       toast.error(
         error?.response?.data?.detail ||
@@ -117,7 +117,7 @@ export default function Addenda() {
   };
 
   const onAddendar = async () => {
-    if (!pdfCheck?.exists || !pdfCheck.filename) {
+    if (!xmlCheck?.exists || !xmlCheck.filename) {
       toast.error('No se encontró el archivo a addendar');
       return;
     }
@@ -140,7 +140,7 @@ export default function Addenda() {
         reference: form.getValues('reference').trim().toUpperCase(),
         eti_impr: selectedEtiImpr,
         addenda,
-        filename: pdfCheck.filename,
+        filename: xmlCheck.filename,
       });
       toast.success(data?.detail || 'Archivo addendado correctamente');
     } catch (error: any) {
@@ -179,18 +179,20 @@ export default function Addenda() {
         {embarqueData ? (
           <div className="grid gap-4">
             <DatosEmbarqueTable rows={embarqueData} />
-            <CtaGastosCheck result={pdfCheck} />
-            <div>
-              <MyGPButtonSubmit
-                type="button"
-                isSubmitting={isAddendando}
-                isSubmittingText="Addendando"
-                onClick={onAddendar}
-              >
-                <SaveAllIcon />
-                Addendar
-              </MyGPButtonSubmit>
-            </div>
+            <XmlCheckTable result={xmlCheck} />
+            {xmlCheck?.exists ? (
+              <div>
+                <MyGPButtonSubmit
+                  type="button"
+                  isSubmitting={isAddendando}
+                  isSubmittingText="Addendando"
+                  onClick={onAddendar}
+                >
+                  <SaveAllIcon />
+                  Addendar
+                </MyGPButtonSubmit>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </form>
@@ -198,10 +200,10 @@ export default function Addenda() {
   );
 }
 
-function CtaGastosCheck({
+function XmlCheckTable({
   result,
 }: {
-  result: PdfCheckResult | null;
+  result: XmlCheckResult | null;
 }) {
   const found = !!result?.exists;
 
