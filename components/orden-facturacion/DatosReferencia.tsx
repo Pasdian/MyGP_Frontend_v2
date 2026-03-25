@@ -64,12 +64,10 @@ export function DatosReferencia() {
                 : 'bg-gray-500 ring-2 ring-gray-200'
           }`}
         >
-          {semaforoCruce === 'VERDE'
-            ? 'VERDE'
-            : semaforoCruce === 'ROJO'
-              ? 'ROJO'
-              : 'DESCONOCIDO'}
+          {semaforoCruce === 'VERDE' ? 'VERDE' : semaforoCruce === 'ROJO' ? 'ROJO' : 'DESCONOCIDO'}
         </div>
+        <p className="font-semibold">Usuario</p>
+        <p>{referencePayload.REFERENCIA_GUARDADA?.SUBMITTED_BY || '--'}</p>
 
         <p className="font-semibold">Referencia</p>
         <p>{referenceValue}</p>
