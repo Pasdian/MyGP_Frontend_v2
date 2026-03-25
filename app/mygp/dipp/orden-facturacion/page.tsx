@@ -10,13 +10,7 @@ import { ExpedienteDigitalChecklist } from '@/components/orden-facturacion/Exped
 import { OrdenFacturacionCard } from '@/components/orden-facturacion/OrdenFacturacionCard';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { useOrdenFacturacion } from '@/contexts/dipp/OrdenFacturacionContext';
 import React from 'react';
@@ -24,13 +18,7 @@ import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-
-const STATUS_OPTIONS = [
-  { value: 'CAPTURADA', label: 'Capturada' },
-  { value: 'ENVIADA', label: 'Enviada' },
-  { value: 'REVISADA', label: 'Revisada' },
-  { value: 'CERRADA', label: 'Cerrada' },
-] as const;
+import { SaveAllIcon, SendIcon } from 'lucide-react';
 
 export default function OrdenFacturacion() {
   return (
@@ -72,28 +60,33 @@ function GuardarReferenciaSection() {
     reference,
     referencePayload,
     isLoading,
+    refreshReference,
     wasGastosAmericanaConfirmed,
     wasGastosConfirmed,
   } = useOrdenFacturacion();
   const { getCasaUsername, getUserEmail, getUserFullName } = useAuth();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [submitMode, setSubmitMode] = React.useState<'save' | 'send' | null>(null);
   const [observaciones, setObservaciones] = React.useState('');
-  const [estatus, setEstatus] = React.useState<(typeof STATUS_OPTIONS)[number]['value']>('CAPTURADA');
+  const isDev = process.env.NODE_ENV === 'development';
 
   React.useEffect(() => {
     const savedReference = referencePayload?.REFERENCIA_GUARDADA;
 
     setObservaciones(savedReference?.OBSERVACIONES || '');
-    setEstatus(
-      (savedReference?.STATUS as (typeof STATUS_OPTIONS)[number]['value'] | null) || 'CAPTURADA'
-    );
   }, [referencePayload]);
 
   if (isLoading) return null;
 
   if (!reference || !referencePayload) return null;
 
-  async function onSubmit() {
+  const isExpedienteDigitalComplete =
+    referencePayload.EXPEDIENTE_DIGITAL !== null &&
+    Object.values(referencePayload.EXPEDIENTE_DIGITAL).every((file) => file.found);
+  const sendDisabledReason = !isDev && !isExpedienteDigitalComplete
+    ? 'Debes completar todos los archivos del expediente digital antes de enviar la referencia.'
+    : null;
+
+  async function onSubmit(mode: 'save' | 'send') {
     if (!anticipos) {
       toast.error('Debes seleccionar Anticipos antes de guardar la referencia');
       return;
@@ -114,13 +107,20 @@ function GuardarReferenciaSection() {
       return;
     }
 
+    if (mode === 'send' && !isDev && !isExpedienteDigitalComplete) {
+      toast.error(
+        'Debes completar todos los archivos del expediente digital antes de enviar la referencia.'
+      );
+      return;
+    }
+
     try {
-      setIsSubmitting(true);
+      setSubmitMode(mode);
 
       await GPClient.post('/pyapi/dipp/saveReference', {
         referencia: reference,
         observaciones: observaciones.trim() || null,
-        estatus,
+        sendReference: mode === 'send',
         anticipos,
         financiamiento,
         submittedBy: getCasaUsername() || 'MYGP',
@@ -130,16 +130,23 @@ function GuardarReferenciaSection() {
         wasGastosAmericanaConfirmed:
           referencePayload?.TRAFFIC_TYPE === 'L' ? wasGastosAmericanaConfirmed : null,
       });
+      await refreshReference();
 
-      toast.success('Referencia guardada correctamente');
+      toast.success(
+        mode === 'send' ? 'Referencia enviada correctamente' : 'Referencia guardada correctamente'
+      );
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.detail || error.response?.data?.message || error.message);
       } else {
-        toast.error('Ocurrió un error al guardar la referencia');
+        toast.error(
+          mode === 'send'
+            ? 'Ocurrió un error al enviar la referencia'
+            : 'Ocurrió un error al guardar la referencia'
+        );
       }
     } finally {
-      setIsSubmitting(false);
+      setSubmitMode(null);
     }
   }
 
@@ -155,26 +162,46 @@ function GuardarReferenciaSection() {
             onChange={(e) => setObservaciones(e.target.value)}
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="estatus">ESTATUS</Label>
-          <Select value={estatus} onValueChange={(value) => setEstatus(value as (typeof STATUS_OPTIONS)[number]['value'])}>
-            <SelectTrigger id="estatus" className="w-full">
-              <SelectValue placeholder="Selecciona un estatus" />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap gap-8">
+          <MyGPButtonSubmit
+            isSubmitting={submitMode === 'save'}
+            isSubmittingText="Guardando..."
+            disabled={submitMode !== null}
+            onClick={() => onSubmit('save')}
+          >
+            <SaveAllIcon /> Guardar Referencia
+          </MyGPButtonSubmit>
+          {!sendDisabledReason ? (
+            <MyGPButtonSubmit
+              isSubmitting={submitMode === 'send'}
+              isSubmittingText="Enviando..."
+              disabled={submitMode !== null}
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => onSubmit('send')}
+            >
+              <SendIcon /> Enviar Referencia
+            </MyGPButtonSubmit>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <MyGPButtonSubmit
+                    isSubmitting={submitMode === 'send'}
+                    isSubmittingText="Enviando..."
+                    disabled={true}
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => onSubmit('send')}
+                  >
+                    <SendIcon /> Enviar Referencia
+                  </MyGPButtonSubmit>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {sendDisabledReason}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
-
-        <MyGPButtonSubmit isSubmitting={isSubmitting} onClick={onSubmit}>
-          Guardar Referencia
-        </MyGPButtonSubmit>
       </div>
     </OrdenFacturacionCard>
   );

@@ -58,6 +58,8 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
     : referencePayload.GASTOS_A_COMPROBAR;
 
   const title = isAmericana ? 'Gastos A Comprobar - Cuenta Americana' : 'Gastos A Comprobar';
+  const getImportePayload = (importe: GastoItem['MON_EGRE']) =>
+    importe === null ? 'N/A' : String(importe);
 
   const handleDeleteGasto = async (gasto: GastoItem) => {
     try {
@@ -67,7 +69,7 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
         concepto: gasto.CVE_MOVI,
         factura: gasto.FOL_EROG,
         clave_proveedor: gasto.CVE_BENE,
-        importe: String(gasto.MON_EGRE),
+        importe: getImportePayload(gasto.MON_EGRE),
         isAmericana,
         proveedor_name: gasto.NOM_BENE,
         concepto_name: gasto.DES_EGRE,
@@ -96,7 +98,8 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
         concepto: gasto.CVE_MOVI,
         factura: gasto.FOL_EROG,
         clave_proveedor: gasto.CVE_BENE,
-        importe: String(gasto.MON_EGRE),
+        importe: getImportePayload(gasto.MON_EGRE),
+        isAmericana: Boolean(gasto.IS_AMERICANA),
         checked,
         canDelete: gasto.canDelete,
       });
@@ -174,7 +177,7 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
                   );
                 })()}
               </TableCell>
-              <TableCell>{gasto.CVE_MOVI}</TableCell>
+              <TableCell>{gasto.DES_EGRE}</TableCell>
               <TableCell>{gasto.FOL_EROG}</TableCell>
               <TableCell>{gasto.NOM_BENE}</TableCell>
               <TableCell>{gasto.MON_EGRE_FMT}</TableCell>

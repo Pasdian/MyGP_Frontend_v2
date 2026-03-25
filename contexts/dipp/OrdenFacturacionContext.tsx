@@ -8,7 +8,7 @@ export type GastoItem = {
   CVE_MOVI: string | null;
   DES_EGRE: string | null;
   FOL_EROG: string | null;
-  MON_EGRE: number | null;
+  MON_EGRE: number | string | null;
   MON_EGRE_FMT: string | null;
   CVE_BENE: string | null;
   NOM_BENE: string | null;
@@ -71,6 +71,7 @@ export type DippReferenceData = {
   ANTI: number | null;
   SALDO: number | null;
   MSA: string | null;
+  SENT_AT: string | null;
   ADU: string | null;
   GUIA_M: string | null;
   GUIA_H: string | null;
@@ -87,6 +88,7 @@ export type DippReferenceData = {
   ADU_NAME: string | null;
   ADU_CODE: string | null;
   MSA_FMT: string | null;
+  SENT_AT_FMT: string | null;
   DIA_PAGO_FMT: string | null;
   FEC_ENTR_FMT: string | null;
   ID_ORDEN: string | null;
@@ -113,6 +115,7 @@ export type DippReferenceData = {
     WAS_GASTOS_AMERICANA_CONFIRMED: number | null;
     SUBMITTED_BY: string | null;
     CREATED_AT: string | null;
+    SENT_AT: string | null;
   } | null;
   INSTRUCCIONES_ADICIONALES: InstruccionesAdicionalesData | null;
   EXPEDIENTE_DIGITAL: ExpedienteDigitalData | null;
@@ -139,6 +142,7 @@ type OrdenFacturacionContextType = {
   isLoading: boolean;
   error: Error | null;
   swrKey: string | null;
+  refreshReference: () => Promise<DippReferenceData | undefined>;
 };
 
 const OrdenFacturacionContext = createContext<OrdenFacturacionContextType | undefined>(undefined);
@@ -155,7 +159,7 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
     ? `/pyapi/dipp/referenceData?reference=${encodeURIComponent(normalizedReference)}`
     : null;
 
-  const { data, isLoading, error } = useSWR<DippReferenceData>(swrKey, axiosFetcher);
+  const { data, isLoading, error, mutate } = useSWR<DippReferenceData>(swrKey, axiosFetcher);
 
   const referencePayload = useMemo(() => {
     if (!data) return null;
@@ -167,8 +171,8 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
 
     setAnticipos(savedReference?.ANTICIPOS || '');
     setFinanciamiento(savedReference?.FINANCIAMIENTO || '');
-    setWasGastosConfirmed(false);
-    setWasGastosAmericanaConfirmed(false);
+    setWasGastosConfirmed(savedReference?.WAS_GASTOS_CONFIRMED === 1);
+    setWasGastosAmericanaConfirmed(savedReference?.WAS_GASTOS_AMERICANA_CONFIRMED === 1);
   }, [referencePayload]);
 
   const value = useMemo(
@@ -187,12 +191,14 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
       isLoading,
       error: (error as Error | undefined) ?? null,
       swrKey,
+      refreshReference: () => mutate(),
     }),
     [
       anticipos,
       error,
       financiamiento,
       isLoading,
+      mutate,
       reference,
       referencePayload,
       swrKey,
