@@ -36,13 +36,13 @@ import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import { X } from 'lucide-react';
 import { EditarSolicitudDiariaDialog } from './EditarSolicitudDiariaDialog';
 import type { SolicitudDiariaRow } from './types';
+import { useAuth } from '@/hooks/useAuth';
+import { PERM } from '@/lib/modules/permissions';
 
 export type { SolicitudDiariaRow } from './types';
 
 type ColumnSearchKey =
   | 'CLIENT'
-  | 'REPROGRAMACION'
-  | 'MOTIVO_REPROGRAMACION'
   | 'TIPO_REFERENCIA'
   | 'TIPO_PAGO'
   | 'TIPO'
@@ -54,11 +54,10 @@ type ColumnSearchKey =
   | 'HAS_ANTICIPO'
   | 'OBSERVACIONES'
   | 'CREATED_BY'
-  | 'CREATED_AT';
+  | 'CREATED_AT'
+  | 'UPDATED_AT';
 
 type SelectFilterState = {
-  reprogramacion: string;
-  motivoReprogramacion: string;
   tipoReferencia: string;
   tipoPago: string;
   tipo: string;
@@ -71,8 +70,6 @@ const currencyFormatter = new Intl.NumberFormat('es-MX', {
 });
 
 const initialSelectFilters: SelectFilterState = {
-  reprogramacion: 'ALL',
-  motivoReprogramacion: 'ALL',
   tipoReferencia: 'ALL',
   tipoPago: 'ALL',
   tipo: 'ALL',
@@ -81,8 +78,6 @@ const initialSelectFilters: SelectFilterState = {
 
 const initialColumnSearches: Record<ColumnSearchKey, string> = {
   CLIENT: '',
-  REPROGRAMACION: '',
-  MOTIVO_REPROGRAMACION: '',
   TIPO_REFERENCIA: '',
   TIPO_PAGO: '',
   TIPO: '',
@@ -95,16 +90,13 @@ const initialColumnSearches: Record<ColumnSearchKey, string> = {
   OBSERVACIONES: '',
   CREATED_BY: '',
   CREATED_AT: '',
+  UPDATED_AT: '',
 };
 
 const getColumnSearchValue = (row: SolicitudDiariaRow, columnId: ColumnSearchKey) => {
   switch (columnId) {
     case 'CLIENT':
       return row.CLIENT ?? '';
-    case 'REPROGRAMACION':
-      return row.REPROGRAMACION ? 'SI' : 'NO';
-    case 'MOTIVO_REPROGRAMACION':
-      return row.MOTIVO_REPROGRAMACION ?? '';
     case 'TIPO_REFERENCIA':
       return row.TIPO_REFERENCIA ?? '';
     case 'TIPO_PAGO':
@@ -133,50 +125,35 @@ const getColumnSearchValue = (row: SolicitudDiariaRow, columnId: ColumnSearchKey
       return row.CREATED_BY ?? '';
     case 'CREATED_AT':
       return row.CREATED_AT_FMT ?? row.CREATED_AT ?? '';
+    case 'UPDATED_AT':
+      return row.UPDATED_AT_FMT ?? row.UPDATED_AT ?? '';
     default:
       return '';
   }
 };
 
-const parseCreatedAt = (value: string | null | undefined) => {
-  if (!value) {
-    return null;
-  }
+const startOfDay = (value: Date) => {
+  const result = new Date(value);
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
 
-  const [datePart, timePart = '00:00:00'] = value.trim().split(' ');
-  const [year, month, day] = datePart.split('-').map(Number);
+const endOfDay = (value: Date) => {
+  const result = new Date(value);
+  result.setHours(23, 59, 59, 999);
+  return result;
+};
 
-  if (!year || !month || !day) {
-    return null;
-  }
+const getTodayDateRange = (): DateRange => {
+  const today = new Date();
 
-  const [hourRaw = '0', minuteRaw = '0', secondRaw = '0'] = timePart.split(':');
-  const hour = Number(hourRaw);
-  const minute = Number(minuteRaw);
-  const secondWithMs = Number(secondRaw);
-  const second = Math.trunc(secondWithMs);
-  const millisecond = Math.round((secondWithMs - second) * 1000);
-
-  const parsed = new Date(year, month - 1, day, hour, minute, second, millisecond);
-
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return {
+    from: startOfDay(today),
+    to: endOfDay(today),
+  };
 };
 
 const matchesSelectFilters = (row: SolicitudDiariaRow, filters: SelectFilterState) => {
-  if (filters.reprogramacion !== 'ALL') {
-    const value = row.REPROGRAMACION ? 'SI' : 'NO';
-    if (value !== filters.reprogramacion) {
-      return false;
-    }
-  }
-
-  if (
-    filters.motivoReprogramacion !== 'ALL' &&
-    (row.MOTIVO_REPROGRAMACION ?? '') !== filters.motivoReprogramacion
-  ) {
-    return false;
-  }
-
   if (filters.tipoReferencia !== 'ALL' && row.TIPO_REFERENCIA !== filters.tipoReferencia) {
     return false;
   }
@@ -196,22 +173,6 @@ const matchesSelectFilters = (row: SolicitudDiariaRow, filters: SelectFilterStat
   return true;
 };
 
-const matchesCreatedAtRange = (row: SolicitudDiariaRow, range: DateRange | undefined) => {
-  if (!range?.from) {
-    return true;
-  }
-
-  const createdAt = parseCreatedAt(row.CREATED_AT);
-  if (!createdAt) {
-    return false;
-  }
-
-  const from = range.from;
-  const to = range.to ?? range.from;
-
-  return createdAt >= from && createdAt <= to;
-};
-
 const matchesColumnSearches = (
   row: SolicitudDiariaRow,
   searches: Record<ColumnSearchKey, string>
@@ -229,37 +190,22 @@ const matchesColumnSearches = (
   });
 };
 
-const columns: ColumnDef<SolicitudDiariaRow>[] = [
-  {
-    id: 'acciones',
-    header: 'Acciones',
-    cell: ({ row }) => <EditarSolicitudDiariaDialog row={row.original} />,
-    meta: {
-      label: 'Acciones',
-      searchable: false,
-    },
+const actionColumn: ColumnDef<SolicitudDiariaRow> = {
+  id: 'acciones',
+  header: 'Acciones',
+  cell: ({ row }) => <EditarSolicitudDiariaDialog row={row.original} />,
+  meta: {
+    label: 'Acciones',
+    searchable: false,
   },
+};
+
+const dataColumns: ColumnDef<SolicitudDiariaRow>[] = [
   {
     accessorKey: 'CLIENT',
     header: 'Cliente',
     meta: {
       label: 'Cliente',
-    },
-  },
-  {
-    accessorKey: 'REPROGRAMACION',
-    header: 'Reprogramación',
-    cell: ({ row }) => (row.original.REPROGRAMACION ? 'SI' : 'NO'),
-    meta: {
-      label: 'Reprogramación',
-    },
-  },
-  {
-    accessorKey: 'MOTIVO_REPROGRAMACION',
-    header: 'Motivo',
-    cell: ({ row }) => row.original.MOTIVO_REPROGRAMACION || '-',
-    meta: {
-      label: 'Motivo',
     },
   },
   {
@@ -299,10 +245,10 @@ const columns: ColumnDef<SolicitudDiariaRow>[] = [
   },
   {
     accessorKey: 'INGRESO_ESTIMADO',
-    header: 'Ingreso Estimado',
+    header: 'Monto',
     cell: ({ row }) => currencyFormatter.format(Number(row.original.INGRESO_ESTIMADO || 0)),
     meta: {
-      label: 'Ingreso Estimado',
+      label: 'Monto',
     },
   },
   {
@@ -365,23 +311,45 @@ const columns: ColumnDef<SolicitudDiariaRow>[] = [
       label: 'Creado En',
     },
   },
+  {
+    accessorKey: 'UPDATED_AT',
+    header: 'Actualizado En',
+    cell: ({ row }) => row.original.UPDATED_AT_FMT || '-',
+    meta: {
+      label: 'Actualizado En',
+    },
+  },
 ];
 
-export function SolicitudesDiariasDataTable({ data }: { data: SolicitudDiariaRow[] }) {
+type SolicitudesDiariasDataTableProps = {
+  data: SolicitudDiariaRow[];
+  createdAtRange: DateRange | undefined;
+  setCreatedAtRange: (value: DateRange | undefined) => void;
+};
+
+export function SolicitudesDiariasDataTable({
+  data,
+  createdAtRange,
+  setCreatedAtRange,
+}: SolicitudesDiariasDataTableProps) {
+  const { getCasaUsername, hasPermission } = useAuth();
   const [selectFilters, setSelectFilters] = React.useState<SelectFilterState>(initialSelectFilters);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
-  const [createdAtRange, setCreatedAtRange] = React.useState<DateRange | undefined>(undefined);
   const [columnSearches, setColumnSearches] =
     React.useState<Record<ColumnSearchKey, string>>(initialColumnSearches);
+  const canEditAllSolicitudes = hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN);
+  const casaUsername = getCasaUsername().trim().toUpperCase();
+  const columns = React.useMemo(() => [actionColumn, ...dataColumns], []);
+  const todayDateRange = React.useMemo(() => getTodayDateRange(), []);
 
   const filteredData = React.useMemo(() => {
     return data.filter(
       (row) =>
+        (canEditAllSolicitudes || (row.CREATED_BY ?? '').trim().toUpperCase() === casaUsername) &&
         matchesSelectFilters(row, selectFilters) &&
-        matchesCreatedAtRange(row, createdAtRange) &&
         matchesColumnSearches(row, columnSearches)
     );
-  }, [columnSearches, createdAtRange, data, selectFilters]);
+  }, [canEditAllSolicitudes, casaUsername, columnSearches, data, selectFilters]);
 
   const setSelectFilter = (key: keyof SelectFilterState, value: string) => {
     setSelectFilters((prev) => ({
@@ -409,11 +377,11 @@ export function SolicitudesDiariasDataTable({ data }: { data: SolicitudDiariaRow
 
   const hasActiveFilters = React.useMemo(() => {
     const hasSelectFilters = Object.values(selectFilters).some((value) => value !== 'ALL');
+    const hasDateFilter = canEditAllSolicitudes && Boolean(createdAtRange?.from || createdAtRange?.to);
     const hasColumnFilters = Object.values(columnSearches).some((value) => value.trim() !== '');
-    const hasDateFilter = Boolean(createdAtRange?.from || createdAtRange?.to);
 
-    return hasSelectFilters || hasColumnFilters || hasDateFilter;
-  }, [columnSearches, createdAtRange, selectFilters]);
+    return hasSelectFilters || hasDateFilter || hasColumnFilters;
+  }, [canEditAllSolicitudes, columnSearches, createdAtRange, selectFilters]);
 
   const table = useReactTable({
     data: filteredData,
@@ -449,47 +417,6 @@ export function SolicitudesDiariasDataTable({ data }: { data: SolicitudDiariaRow
 
       <CardContent className="min-w-0 overflow-hidden">
         <div className="mb-4 grid w-full min-w-0 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          <div className="grid w-full min-w-0 gap-2">
-            <Label>Reprogramación</Label>
-            <Select
-              value={selectFilters.reprogramacion}
-              onValueChange={(value) => setSelectFilter('reprogramacion', value)}
-            >
-              <SelectTrigger className="w-full min-w-0">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="ALL">Todas</SelectItem>
-                  <SelectItem value="SI">SI</SelectItem>
-                  <SelectItem value="NO">NO</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid w-full min-w-0 gap-2">
-            <Label>Motivo de Reprogramación</Label>
-            <Select
-              value={selectFilters.motivoReprogramacion}
-              onValueChange={(value) => setSelectFilter('motivoReprogramacion', value)}
-            >
-              <SelectTrigger className="w-full min-w-0">
-                <SelectValue placeholder="Todos los motivos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="ALL">Todos</SelectItem>
-                  <SelectItem value="NO_ANTICIPO">No se recibió anticipo</SelectItem>
-                  <SelectItem value="INSTRUCCION_CLIENTE">Instrucción del Cliente</SelectItem>
-                  <SelectItem value="FALTA_DOCUMENTACION">Falta de Documentación</SelectItem>
-                  <SelectItem value="MERCANCIA_PARCIAL">Mercancía Parcial</SelectItem>
-                  <SelectItem value="OTROS">Otros</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="grid w-full min-w-0 gap-2">
             <Label>Tipo de Referencia</Label>
             <Select
@@ -569,13 +496,15 @@ export function SolicitudesDiariasDataTable({ data }: { data: SolicitudDiariaRow
             </Select>
           </div>
 
-          <div className="grid w-full min-w-0 gap-2">
-            <MyGPCalendar
-              dateRange={createdAtRange}
-              setDateRange={setCreatedAtRange}
-              label="Creado En"
-            />
-          </div>
+          {canEditAllSolicitudes && (
+            <div className="grid w-full min-w-0 gap-2">
+              <MyGPCalendar
+                dateRange={createdAtRange ?? todayDateRange}
+                setDateRange={setCreatedAtRange}
+                label="Creado En"
+              />
+            </div>
+          )}
         </div>
 
         <Table className="min-w-full w-max max-w-full">
@@ -628,7 +557,7 @@ export function SolicitudesDiariasDataTable({ data }: { data: SolicitudDiariaRow
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={table.getAllLeafColumns().length} className="h-24 text-center">
                   Sin solicitudes
                 </TableCell>
               </TableRow>

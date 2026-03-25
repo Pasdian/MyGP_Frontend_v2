@@ -9,12 +9,35 @@ import {
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { IconPlus } from '@tabler/icons-react';
 import React from 'react';
+import { type DateRange } from 'react-day-picker';
 import useSWR from 'swr';
+
+const formatDateParam = (value: Date) => {
+  const year = value.getFullYear();
+  const month = `${value.getMonth() + 1}`.padStart(2, '0');
+  const day = `${value.getDate()}`.padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
 
 export default function SolicitudDiaria() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [createdAtRange, setCreatedAtRange] = React.useState<DateRange | undefined>(undefined);
+  const solicitudesDiariasUrl = React.useMemo(() => {
+    const params = new URLSearchParams();
+
+    if (createdAtRange?.from) {
+      const to = createdAtRange.to ?? createdAtRange.from;
+      params.set('created_at_from', formatDateParam(createdAtRange.from));
+      params.set('created_at_to', formatDateParam(to));
+    }
+
+    const query = params.toString();
+    return query ? `/pyapi/dipp/solicitudDiaria?${query}` : '/pyapi/dipp/solicitudDiaria';
+  }, [createdAtRange]);
+
   const { data, mutate, isLoading } = useSWR<SolicitudDiariaRow[]>(
-    '/pyapi/dipp/solicitudDiaria',
+    solicitudesDiariasUrl,
     axiosFetcher
   );
 
@@ -42,7 +65,13 @@ export default function SolicitudDiaria() {
         )}
       </MyGPDialog>
 
-      {!isLoading && <SolicitudesDiariasDataTable data={data ?? []} />}
+      {!isLoading && (
+        <SolicitudesDiariasDataTable
+          data={data ?? []}
+          createdAtRange={createdAtRange}
+          setCreatedAtRange={setCreatedAtRange}
+        />
+      )}
     </div>
   );
 }
