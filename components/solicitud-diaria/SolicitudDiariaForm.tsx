@@ -21,14 +21,12 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { SaveAllIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { PERM } from '@/lib/modules/permissions';
 
 export type SolicitudDiariaFormMode = 'create' | 'edit';
 
 export type SolicitudDiariaFormValues = {
-  reprogramacion: boolean | null;
   client: string;
-  motivoReprogramacion: string;
-  otrosDescripcion: string;
   tipoReferencia: string;
   tipoPago: string;
   tipo: string;
@@ -63,15 +61,13 @@ export const getSolicitudDiariaErrorMessage = (error: unknown, fallback: string)
 
 export const buildSolicitudDiariaBasePayload = (values: SolicitudDiariaFormValues) => ({
   client: values.client,
-  reprogramacion: values.reprogramacion === true,
-  motivoReprogramacion: values.reprogramacion === true ? values.motivoReprogramacion || null : null,
   tipoReferencia: values.tipoReferencia,
   tipoPago: values.tipoPago,
   tipo: values.tipo,
   concepto: values.concepto,
   numeroReferencia: values.numeroReferencia,
   ingresoEstimado: Number(values.ingresoEstimado),
-  observaciones: values.observaciones,
+  observaciones: values.observaciones.trim() || null,
 });
 
 export const buildSolicitudDiariaUpdatePayload = (values: SolicitudDiariaFormValues) => ({
@@ -83,13 +79,7 @@ export const buildSolicitudDiariaUpdatePayload = (values: SolicitudDiariaFormVal
 const getSolicitudDiariaFormSchema = (mode: SolicitudDiariaFormMode) =>
   z
     .object({
-      reprogramacion: z
-        .boolean()
-        .nullable()
-        .refine((value) => value !== null, 'Selecciona si es una reprogramación'),
       client: z.string().min(1, 'Selecciona un cliente'),
-      motivoReprogramacion: z.string(),
-      otrosDescripcion: z.string(),
       tipoReferencia: z.string().min(1, 'Selecciona el tipo de referencia'),
       tipoPago: z.string().min(1, 'Selecciona el tipo de pago'),
       tipo: z.string().min(1, 'Selecciona el tipo'),
@@ -97,12 +87,12 @@ const getSolicitudDiariaFormSchema = (mode: SolicitudDiariaFormMode) =>
       numeroReferencia: z.string().min(1, 'Ingresa el número de referencia'),
       ingresoEstimado: z
         .string()
-        .min(1, 'Ingresa el ingreso estimado')
+        .min(1, 'Ingresa el monto')
         .refine((value) => !Number.isNaN(Number(value)), 'Ingresa un importe válido')
-        .refine((value) => Number(value) > 0, 'El ingreso estimado debe ser mayor a 0'),
+        .refine((value) => Number(value) > 0, 'El monto debe ser mayor a 0'),
       ingresoReal: z.string(),
       hasAnticipo: z.boolean(),
-      observaciones: z.string().min(1, 'Ingresa las observaciones'),
+      observaciones: z.string(),
     })
     .superRefine((values, ctx) => {
       if (mode === 'edit') {
@@ -126,39 +116,17 @@ const getSolicitudDiariaFormSchema = (mode: SolicitudDiariaFormMode) =>
           });
         }
       }
-
-      if (values.reprogramacion !== true) {
-        return;
-      }
-
-      if (!values.motivoReprogramacion?.trim()) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['motivoReprogramacion'],
-          message: 'Selecciona el motivo de reprogramación',
-        });
-      }
-
-      if (values.motivoReprogramacion === 'OTROS' && !values.otrosDescripcion?.trim()) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['otrosDescripcion'],
-          message: 'Ingresa la descripción',
-        });
-      }
     });
 
 const getSolicitudDiariaDefaultValues = (
   mode: SolicitudDiariaFormMode,
-  defaultValues?: Partial<SolicitudDiariaFormValues>
+  defaultValues?: Partial<SolicitudDiariaFormValues>,
+  canEditTipo: boolean = true
 ): SolicitudDiariaFormValues => ({
-  reprogramacion: false,
   client: '',
-  motivoReprogramacion: '',
-  otrosDescripcion: '',
   tipoReferencia: '',
   tipoPago: '',
-  tipo: '',
+  tipo: canEditTipo ? '' : 'NO_PAGADA',
   concepto: '',
   numeroReferencia: '',
   ingresoEstimado: '',
@@ -170,21 +138,19 @@ const getSolicitudDiariaDefaultValues = (
 
 export function SolicitudDiariaForm({ mode, defaultValues, onSubmit }: SolicitudDiariaFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { hasPermission } = useAuth();
+  const canEditTipo = hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN);
   const formSchema = React.useMemo(() => getSolicitudDiariaFormSchema(mode), [mode]);
   const {
     control,
     handleSubmit,
     register,
-    watch,
     formState: { errors },
   } = useForm<SolicitudDiariaFormValues>({
     resolver: zodResolver(formSchema),
     mode: 'onChange',
-    defaultValues: getSolicitudDiariaDefaultValues(mode, defaultValues),
+    defaultValues: getSolicitudDiariaDefaultValues(mode, defaultValues, canEditTipo),
   });
-
-  const reprogramacion = watch('reprogramacion');
-  const motivoReprogramacion = watch('motivoReprogramacion');
 
   const handleFormSubmit = async (values: SolicitudDiariaFormValues) => {
     try {
@@ -197,74 +163,7 @@ export function SolicitudDiariaForm({ mode, defaultValues, onSubmit }: Solicitud
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="grid w-full gap-4">
-      <Controller
-        control={control}
-        name="reprogramacion"
-        render={({ field, fieldState }) => (
-          <div className="grid w-full gap-2">
-            <Label>Reprogramación</Label>
-            <Select
-              value={field.value === null ? '' : String(field.value)}
-              onValueChange={(value) => field.onChange(value === 'true')}
-            >
-              <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                <SelectValue placeholder="Selecciona una opción" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="true">SI</SelectItem>
-                  <SelectItem value="false">NO</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <FieldError errors={[fieldState.error]} />
-          </div>
-        )}
-      />
-
       <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
-        {reprogramacion && (
-          <>
-            <Controller
-              control={control}
-              name="motivoReprogramacion"
-              render={({ field, fieldState }) => (
-                <div className="grid w-full gap-2">
-                  <Label>Motivo de Reprogramación</Label>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                      <SelectValue placeholder="Selecciona el motivo de reprogramación" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="NO_ANTICIPO">No se recibió anticipo</SelectItem>
-                        <SelectItem value="INSTRUCCION_CLIENTE">Instruccion del Cliente</SelectItem>
-                        <SelectItem value="FALTA_DOCUMENTACION">Falta de Documentación</SelectItem>
-                        <SelectItem value="MERCANCIA_PARCIAL">Mercancía Parcial</SelectItem>
-                        <SelectItem value="OTROS">Otros</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <FieldError errors={[fieldState.error]} />
-                </div>
-              )}
-            />
-
-            {motivoReprogramacion === 'OTROS' ? (
-              <div className="grid w-full gap-2">
-                <Label>Otra Descripción</Label>
-                <Input
-                  className="w-full"
-                  placeholder="Otra descripción"
-                  aria-invalid={!!errors.otrosDescripcion}
-                  {...register('otrosDescripcion')}
-                />
-                <FieldError errors={[errors.otrosDescripcion]} />
-              </div>
-            ) : null}
-          </>
-        )}
-
         <div className="w-full">
           <ClientsController control={control} isModal={true} />
         </div>
@@ -313,27 +212,29 @@ export function SolicitudDiariaForm({ mode, defaultValues, onSubmit }: Solicitud
           )}
         />
 
-        <Controller
-          control={control}
-          name="tipo"
-          render={({ field, fieldState }) => (
-            <div className="grid w-full gap-2">
-              <Label>Tipo</Label>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                  <SelectValue placeholder="Selecciona tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="PAGADA">Pagada</SelectItem>
-                    <SelectItem value="NO_PAGADA">No Pagada</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FieldError errors={[fieldState.error]} />
-            </div>
-          )}
-        />
+        {canEditTipo ? (
+          <Controller
+            control={control}
+            name="tipo"
+            render={({ field, fieldState }) => (
+              <div className="grid w-full gap-2">
+                <Label>Tipo</Label>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
+                    <SelectValue placeholder="Selecciona tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="PAGADA">Pagada</SelectItem>
+                      <SelectItem value="NO_PAGADA">No Pagada</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <FieldError errors={[fieldState.error]} />
+              </div>
+            )}
+          />
+        ) : null}
 
         <Controller
           control={control}
@@ -372,7 +273,7 @@ export function SolicitudDiariaForm({ mode, defaultValues, onSubmit }: Solicitud
         </div>
 
         <div className="grid w-full gap-2">
-          <Label>Ingreso Estimado</Label>
+          <Label>Monto</Label>
           <Input
             className="w-full"
             type="text"
@@ -384,7 +285,7 @@ export function SolicitudDiariaForm({ mode, defaultValues, onSubmit }: Solicitud
           <FieldError errors={[errors.ingresoEstimado]} />
         </div>
 
-        {mode === 'edit' ? (
+        {mode === 'edit' && hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN) ? (
           <>
             <div className="grid w-full gap-2">
               <Label>Ingreso Real</Label>

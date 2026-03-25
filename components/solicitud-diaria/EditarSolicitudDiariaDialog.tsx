@@ -18,15 +18,17 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function EditarSolicitudDiariaDialog({ row }: { row: SolicitudDiariaRow }) {
   const { mutate } = useSWRConfig();
-  const { hasPermission } = useAuth();
+  const { getCasaUsername, hasPermission } = useAuth();
   const [isOpen, setIsOpen] = React.useState(false);
+  const casaUsername = getCasaUsername().trim().toUpperCase();
+  const canSkipDeadline = hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN);
+  const canEditSolicitud =
+    canSkipDeadline ||
+    (row.CREATED_BY ?? '').trim().toUpperCase() === casaUsername;
 
   const defaultValues = React.useMemo(
     () => ({
-      reprogramacion: row.REPROGRAMACION,
       client: row.CLIENT,
-      motivoReprogramacion: row.MOTIVO_REPROGRAMACION ?? '',
-      otrosDescripcion: '',
       tipoReferencia: row.TIPO_REFERENCIA,
       tipoPago: row.TIPO_PAGO,
       tipo: row.TIPO,
@@ -35,13 +37,19 @@ export function EditarSolicitudDiariaDialog({ row }: { row: SolicitudDiariaRow }
       ingresoEstimado: String(row.INGRESO_ESTIMADO ?? ''),
       ingresoReal: row.INGRESO_REAL != null ? String(row.INGRESO_REAL) : '',
       hasAnticipo: row.HAS_ANTICIPO,
-      observaciones: row.OBSERVACIONES,
+      observaciones: row.OBSERVACIONES ?? '',
     }),
     [row]
   );
 
   const handleSubmit = async (values: Parameters<typeof buildSolicitudDiariaUpdatePayload>[0]) => {
     try {
+      const now = new Date();
+      if (!canSkipDeadline && now.getHours() >= 12) {
+        toast.error('El horario para actualizar una solicitud es antes de las 12 p.m');
+        return;
+      }
+
       await GPClient.patch(
         `/pyapi/dipp/solicitudDiaria/${row.ID_SOLICITUD}`,
         buildSolicitudDiariaUpdatePayload(values)
@@ -54,6 +62,10 @@ export function EditarSolicitudDiariaDialog({ row }: { row: SolicitudDiariaRow }
       toast.error(getSolicitudDiariaErrorMessage(error, 'Error al actualizar la solicitud diaria'));
     }
   };
+
+  if (!canEditSolicitud) {
+    return null;
+  }
 
   return (
     <MyGPDialog
@@ -72,7 +84,7 @@ export function EditarSolicitudDiariaDialog({ row }: { row: SolicitudDiariaRow }
         </MyGPButtonWarning>
       }
     >
-      {isOpen && hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN) && (
+      {isOpen && (
         <SolicitudDiariaForm mode="edit" defaultValues={defaultValues} onSubmit={handleSubmit} />
       )}
     </MyGPDialog>

@@ -1,4 +1,3 @@
-import { SaveAllIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
@@ -7,15 +6,17 @@ import {
   getSolicitudDiariaErrorMessage,
   SolicitudDiariaForm,
 } from './SolicitudDiariaForm';
+import { PERM } from '@/lib/modules/permissions';
 
 export function NuevaSolicitudDiaria({ onSuccess }: { onSuccess?: () => void }) {
-  const isDev = process.env.NODE_ENV === 'development';
-  const { getCasaUsername } = useAuth();
+  const { getCasaUsername, hasPermission } = useAuth();
 
   const handleSubmit = async (values: Parameters<typeof buildSolicitudDiariaBasePayload>[0]) => {
     try {
       const now = new Date();
-      if (!isDev && now.getHours() >= 12) {
+      const canSkipDeadline = hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN);
+
+      if (!canSkipDeadline && now.getHours() >= 12) {
         toast.error('El horario para subir una solicitud es antes de las 12 p.m');
         return;
       }
@@ -23,7 +24,6 @@ export function NuevaSolicitudDiaria({ onSuccess }: { onSuccess?: () => void }) 
       await GPClient.post('/pyapi/dipp/solicitudDiaria', {
         ...buildSolicitudDiariaBasePayload(values),
         createdBy: getCasaUsername() || 'MYGP',
-        createdAt: new Date().toISOString(),
       });
 
       toast.success('Solicitud diaria guardada correctamente');
