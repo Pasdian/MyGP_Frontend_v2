@@ -154,7 +154,13 @@ export default function Addenda() {
 
   return (
     <div className="grid gap-4">
-      <form className="grid gap-4">
+      <form
+        className="grid gap-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void onSearchReference();
+        }}
+      >
         <Field data-invalid={!!form.formState.errors.reference}>
           <FieldLabel htmlFor="reference">
             <SearchIcon /> Buscar referencia
