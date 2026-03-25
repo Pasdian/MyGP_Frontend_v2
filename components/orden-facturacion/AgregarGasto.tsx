@@ -16,17 +16,36 @@ import { Label } from '../ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import { toast } from 'sonner';
+import { Checkbox } from '../ui/checkbox';
 
-const formSchema = z.object({
-  concepto: z.string().min(1, 'Selecciona un concepto'),
-  clave_proveedor: z.string().min(1, 'Selecciona un proveedor'),
-  factura: z.string().min(1, 'El número de factura es obligatorio'),
-  importe: z
-    .string()
-    .min(1, 'El total a pagar es obligatorio')
-    .refine((value) => !Number.isNaN(Number(value)), 'Ingresa un importe válido')
-    .refine((value) => Number(value) > 0, 'El importe debe ser mayor a 0'),
-});
+const formSchema = z
+  .object({
+    concepto: z.string().min(1, 'Selecciona un concepto'),
+    clave_proveedor: z.string().min(1, 'Selecciona un proveedor'),
+    factura: z.string().min(1, 'El número de factura es obligatorio'),
+    importe: z.string().min(1, 'El total a pagar es obligatorio'),
+    noConozcoImporte: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.noConozcoImporte) return;
+
+    if (Number.isNaN(Number(data.importe))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['importe'],
+        message: 'Ingresa un importe válido',
+      });
+      return;
+    }
+
+    if (Number(data.importe) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['importe'],
+        message: 'El importe debe ser mayor a 0',
+      });
+    }
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -77,6 +96,8 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -85,8 +106,11 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
       clave_proveedor: isAmericana ? '00025' : '',
       factura: '',
       importe: '',
+      noConozcoImporte: false,
     },
   });
+
+  const noConozcoImporte = watch('noConozcoImporte');
 
   React.useEffect(() => {
     reset({
@@ -94,12 +118,14 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
       clave_proveedor: isAmericana ? '00025' : '',
       factura: '',
       importe: '',
+      noConozcoImporte: false,
     });
   }, [referencePayload, reset, isAmericana]);
 
   const onSubmit = async (payload: FormValues) => {
     try {
       setIsSubmitting(true);
+      const { noConozcoImporte: _noConozcoImporte, ...formPayload } = payload;
 
       const proveedor_name = isAmericana
         ? 'CUSTOMS & SHIPPING SERVICES INC'
@@ -113,7 +139,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
         )?.label ?? '';
 
       await GPClient.post('/pyapi/dipp/agregarGasto', {
-        ...payload,
+        ...formPayload,
         isAmericana,
         referencia: reference,
         userEmail: getUserEmail() || '',
@@ -131,6 +157,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
         clave_proveedor: isAmericana ? '00025' : '',
         factura: '',
         importe: '',
+        noConozcoImporte: false,
       });
     } catch (error) {
       console.error(error);
@@ -231,10 +258,35 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
             {...register('importe')}
             type="text"
             inputMode="decimal"
-            placeholder="1234"
+            placeholder={noConozcoImporte ? 'N/A' : '1234'}
+            readOnly={noConozcoImporte}
             aria-invalid={!!errors.importe}
             aria-errormessage={errors.importe ? 'importe-error' : undefined}
-            className={errorClass(!!errors.importe)}
+            className={`${errorClass(!!errors.importe)} ${
+              noConozcoImporte ? 'bg-muted cursor-not-allowed opacity-70' : ''
+            }`}
+          />
+          <Controller
+            control={control}
+            name="noConozcoImporte"
+            render={({ field }) => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="no-conozco-importe"
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    const isChecked = checked === true;
+                    field.onChange(isChecked);
+                    setValue('importe', isChecked ? 'N/A' : '', {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    });
+                  }}
+                />
+                <Label htmlFor="no-conozco-importe">No conozco el importe</Label>
+              </div>
+            )}
           />
           {errors.importe && (
             <p id="importe-error" className="text-sm text-red-500">
