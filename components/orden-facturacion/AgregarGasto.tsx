@@ -246,6 +246,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
                 helperText={fieldState.error?.message}
                 aria-invalid={!!fieldState.error}
                 aria-errormessage={fieldState.error ? 'proveedor-error' : undefined}
+                showValue
               />
             )}
           />
