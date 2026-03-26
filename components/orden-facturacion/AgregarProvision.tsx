@@ -388,7 +388,7 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
           )}
         </div>
 
-        <ClientsController control={control} isModal />
+        <ClientsController control={control} isModal showValue />
 
         <div className="grid grid-rows gap-2">
           <Label htmlFor="totalPagar">Total a Pagar:</Label>
