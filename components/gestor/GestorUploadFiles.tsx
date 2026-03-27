@@ -238,7 +238,7 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
   return (
     <form id="form-gestor-upload-files" onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Field>
             <Label className="text-sm font-medium">Cliente</Label>
             <Input

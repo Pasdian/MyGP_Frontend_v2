@@ -305,7 +305,7 @@ export function ClientMain({
                       <Field data-invalid={fieldState.invalid} className="grid gap-3 w-full">
                         <Label className="text-lg font-medium">¿Es un cliente nuevo?</Label>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           <Button
                             type="button"
                             variant="outline"
@@ -354,7 +354,7 @@ export function ClientMain({
                   />
 
                   <FieldGroup>
-                    <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="mb-4 grid grid-cols-1 gap-2 md:grid-cols-2">
                       {isNew ? (
                         <Controller
                           name="legal_name"

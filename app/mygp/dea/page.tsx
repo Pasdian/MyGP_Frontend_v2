@@ -113,7 +113,7 @@ export default function DEA() {
   return (
     <>
       {client.reference && client.number ? (
-        <div className="grid grid-cols-[20%_20%_60%] grid-rows-3 gap-2 h-full">
+        <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-[20%_20%_60%] lg:grid-rows-3">
           {/* Cuenta de Gastos */}
           <DocumentCard
             title="Cuenta de Gastos"
@@ -138,7 +138,7 @@ export default function DEA() {
           />
 
           {/* VIEWER */}
-          <Card className="row-span-3 p-0">
+          <Card className="p-0 lg:row-span-3">
             <div className="grid grid-rows-[auto_1fr] h-full min-h-0">
               <div className="bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center">
                 <p className="text-[13px] font-bold truncate">

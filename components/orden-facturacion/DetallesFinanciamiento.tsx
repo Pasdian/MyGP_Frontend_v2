@@ -89,10 +89,10 @@ function DetallesFinanciamientoSelect({
   value: string;
 }) {
   return (
-    <div className="grid grid-cols-[100px_1fr] gap-2">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[100px_1fr]">
       <Label>{label} </Label>
       <Select onValueChange={onValueChange} value={value}>
-        <SelectTrigger className="w-64">
+        <SelectTrigger className="w-full sm:w-64">
           <SelectValue placeholder="Selecciona una opción" />
         </SelectTrigger>
         <SelectContent>

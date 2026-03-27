@@ -184,7 +184,7 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
         </MyGPButtonSubmit>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Controller
           control={control}
           name="cuentaBancaria"
@@ -360,9 +360,9 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
           )}
         </div>
 
-        <Separator className="bg-slate-300 my-4 col-span-2" />
+        <Separator className="bg-slate-300 col-span-full my-4" />
 
-        <div className="grid grid-rows gap-2 col-span-2">
+        <div className="col-span-full grid grid-rows gap-2">
           <Label>Referencia:</Label>
           <Input
             value={reference}
@@ -371,7 +371,7 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
           />
         </div>
 
-        <div className="grid grid-rows gap-2 col-span-2">
+        <div className="col-span-full grid grid-rows gap-2">
           <Label htmlFor="descripcion">Descripción</Label>
           <Input
             id="descripcion"
@@ -435,7 +435,7 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
           )}
         </div>
 
-        <div className="flex justify-end col-span-2">
+        <div className="col-span-full flex justify-end">
           <MyGPButtonSubmit isSubmitting={isSubmitting} type="submit">
             <SaveIcon /> Guardar
           </MyGPButtonSubmit>

@@ -43,7 +43,7 @@ export function DatosReferencia() {
 
   return (
     <OrdenFacturacionCard title="Datos de la Referencia">
-      <div className="grid grid-cols-4 gap-4 items-center">
+      <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <p className="font-semibold">Estado</p>
         <div
           className={`inline-flex h-8 w-fit items-center justify-center rounded-full px-4 text-sm font-semibold text-white shadow-sm ${

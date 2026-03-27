@@ -126,6 +126,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
     try {
       setIsSubmitting(true);
       const { noConozcoImporte: _noConozcoImporte, ...formPayload } = payload;
+      void _noConozcoImporte;
 
       const proveedor_name = isAmericana
         ? 'CUSTOMS & SHIPPING SERVICES INC'
@@ -178,7 +179,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
         </MyGPButtonPrimary>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Controller
           control={control}
           name="concepto"
@@ -296,7 +297,7 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
           )}
         </div>
 
-        <div className="flex justify-end col-span-2">
+        <div className="col-span-full flex justify-end">
           <MyGPButtonSubmit isSubmitting={isSubmitting} type="submit">
             <SaveIcon /> Guardar
           </MyGPButtonSubmit>

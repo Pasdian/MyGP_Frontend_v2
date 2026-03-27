@@ -119,12 +119,18 @@ export function SiteHeader() {
       axiosFetcher
     );
   return (
-    <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-1">
+    <header
+      className={`bg-background sticky top-0 z-1 shrink-0 gap-2 border-b px-4 ${
+        pathname === '/mygp/dea'
+          ? 'flex min-h-16 flex-wrap items-start py-2'
+          : 'flex h-16 items-center'
+      }`}
+    >
       <div className="flex">
         <SidebarTrigger className="-ml-1" />
       </div>
       {pathname == '/mygp/dea' && (
-        <div className="font-bold grid grid-cols-[auto_auto_auto_auto_auto_auto_auto_auto_auto_auto] items-center gap-2 w-fit">
+        <div className="flex w-full flex-wrap items-center gap-2 font-bold">
           <p className="text-xs">Periodo:</p>
           <MyGPCalendar
             dateRange={filters.dateRange}
@@ -140,7 +146,7 @@ export function SiteHeader() {
             }}
             value={client.number}
             onSelect={() => resetFileState()}
-            className="h-5 text-xs w-[300px]"
+            className="h-5 w-full text-xs sm:w-[300px]"
             popoverContentClassName="w-[600px]"
             placeholder="Selecciona un cliente"
             showValue
@@ -154,14 +160,14 @@ export function SiteHeader() {
           )}
           <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
             {client.reference && (
-              <PreviosDialog key={client.reference} className="text-xs h-5 w-[150px]" />
+              <PreviosDialog key={client.reference} className="h-5 w-full text-xs sm:w-[150px]" />
             )}
           </PermissionGuard>
 
           <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
             {client.reference && client.number && (
               <MyGPButtonPrimary
-                className="h-5 text-xs w-[200px]"
+                className="h-5 w-full text-xs sm:w-[200px]"
                 disabled={hasDigitalFile || hasExpediente || isDigitalRecordGenerationMutating}
                 onClick={async () => {
                   try {

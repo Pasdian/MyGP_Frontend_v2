@@ -323,8 +323,8 @@ export function InterfaceDataTable() {
           </div>
         )}
       </div>
-      <div className="grid grid-cols-2 w-[950px] items-center mb-4">
-        <div className="w-[450px]">
+      <div className="mb-4 grid w-full max-w-[950px] grid-cols-1 gap-4 md:grid-cols-2 md:items-center">
+        <div className="w-full md:w-[450px]">
           <MyGPTabs
             value={tabValue}
             onValueChange={(v) => isTabValue(v) && setTabValue?.(v)}

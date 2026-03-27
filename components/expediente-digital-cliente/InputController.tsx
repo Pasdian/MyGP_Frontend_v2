@@ -35,7 +35,9 @@ export function InputController({
 
   const showMiddle = Boolean(formatoDoc) || showFile;
 
-  const gridCols = showMiddle ? 'grid-cols-[auto_1fr_auto]' : 'grid-cols-[1fr_auto]';
+  const gridCols = showMiddle
+    ? 'grid-cols-1 sm:grid-cols-[auto_1fr_auto]'
+    : 'grid-cols-1 sm:grid-cols-[1fr_auto]';
 
   return (
     <>
@@ -82,7 +84,7 @@ export function InputController({
           <IsComplete docKey={docKey} />
         </div>
       ) : (
-        <div className="grid grid-cols-[auto_1fr_auto] gap-6 items-end">
+        <div className="grid grid-cols-1 gap-6 items-end sm:grid-cols-[auto_1fr_auto]">
           <ShowFile
             client={casa_id}
             docKey={docKey}

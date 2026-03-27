@@ -42,7 +42,9 @@ export function InputControllerWithCheck({
   const { casa_id } = useCliente();
 
   const showMiddle = showFile;
-  const gridCols = showMiddle ? 'grid-cols-[auto_auto_1fr_auto]' : 'grid-cols-[auto_1fr_auto]';
+  const gridCols = showMiddle
+    ? 'grid-cols-1 sm:grid-cols-[auto_auto_1fr_auto]'
+    : 'grid-cols-1 sm:grid-cols-[auto_1fr_auto]';
 
   return (
     <>

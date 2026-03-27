@@ -83,8 +83,8 @@ export function HaciendaAgenteAduanalSub() {
     >
       <form id="form-datos-hacienda-agente" onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
-          <div className="grid w-full grid-cols-[auto_1fr] gap-2 items-center">
-            <div className="col-span-2 grid w-full gap-2">
+          <div className="grid w-full gap-2">
+            <div className="grid w-full gap-2">
               <InputController
                 form={form}
                 controllerName="certificado.file"

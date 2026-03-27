@@ -185,7 +185,7 @@ function UploadManifestacionContent({ makeSections }: { makeSections: () => Sect
         {sections.map(({ label, dest, mandatory, file }) => (
           <div
             key={dest}
-            className="grid grid-cols-[1fr_auto] items-center gap-3 border-b border-gray-100 pb-2"
+            className="grid grid-cols-1 items-center gap-3 border-b border-gray-100 pb-2 sm:grid-cols-[1fr_auto]"
           >
             <p className={`text-sm leading-snug ${mandatory ? 'text-red-600' : 'text-gray-700'}`}>
               {label}

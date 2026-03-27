@@ -65,7 +65,7 @@ export default function UploadFile({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2 w-[340px]">
+    <div className="grid w-full grid-cols-1 gap-2 sm:w-[340px] sm:grid-cols-2">
       <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} />
 
       <Button

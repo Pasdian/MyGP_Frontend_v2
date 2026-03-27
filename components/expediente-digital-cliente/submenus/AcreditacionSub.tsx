@@ -104,7 +104,7 @@ export function AcreditacionSub() {
               fieldLabel="Opinión de Cumplimiento de Obligaciones Fiscales (mes en curso):"
             />
 
-            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+            <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_auto]">
               <InputController
                 form={form}
                 controllerName="datosBancarios.file"
@@ -114,7 +114,7 @@ export function AcreditacionSub() {
               <ExpiraEnController form={form} controllerName="datosBancariosExp" />
             </div>
 
-            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+            <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_auto]">
               <InputController
                 form={form}
                 controllerName="conferidoJosePascal.file"
@@ -124,7 +124,7 @@ export function AcreditacionSub() {
               <ExpiraEnController form={form} controllerName="conferidoJosePascalExp" />
             </div>
 
-            <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+            <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_auto]">
               <InputController
                 form={form}
                 controllerName="conferidoMarcoBremer.file"
