@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, XIcon } from "lucide-react"
 
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 function Select({
@@ -54,32 +55,66 @@ function SelectContent({
   className,
   children,
   position = "popper",
+  mobileTitle,
+  onMobileClose,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+  mobileTitle?: React.ReactNode
+  onMobileClose?: () => void
+}) {
+  const isMobile = useIsMobile()
+  const resolvedPosition = isMobile ? "item-aligned" : position
+  const showMobileHeader = isMobile && (mobileTitle || onMobileClose)
+
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
-          position === "popper" &&
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 z-50 overflow-hidden border shadow-md",
+          isMobile
+            ? "fixed top-0 left-0 flex h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-0 p-0"
+            : "relative max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)] origin-(--radix-select-content-transform-origin) rounded-md",
+          !isMobile &&
+            resolvedPosition === "popper" &&
+            "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          !isMobile &&
+            resolvedPosition === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
         )}
-        position={position}
+        position={resolvedPosition}
         {...props}
       >
-        <SelectScrollUpButton />
+        {showMobileHeader && (
+          <div className="border-b px-4 py-3">
+            <div className="flex items-center justify-between gap-4 text-left">
+              <div className="min-w-0 flex-1 pr-2 text-base font-semibold">{mobileTitle}</div>
+              {onMobileClose && (
+                <button
+                  type="button"
+                  onClick={onMobileClose}
+                  className="ring-offset-background focus:ring-ring rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
+                >
+                  <XIcon className="size-4" />
+                  <span className="sr-only">Close</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        {!isMobile && <SelectScrollUpButton />}
         <SelectPrimitive.Viewport
           className={cn(
             "p-1",
-            position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
+            isMobile
+              ? "min-h-0 flex-1 overscroll-contain"
+              : "w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
           )}
         >
           {children}
         </SelectPrimitive.Viewport>
-        <SelectScrollDownButton />
+        {!isMobile && <SelectScrollDownButton />}
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )

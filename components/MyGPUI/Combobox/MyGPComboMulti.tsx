@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -13,6 +14,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '../../ui/label';
 
@@ -43,6 +45,13 @@ export function MyGPComboMulti({
   'aria-invalid'?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
+  const reactId = React.useId();
+  const isMobile = useIsMobile();
+
+  const comboId = `mygp-combo-multi-${reactId}`;
+  const labelId = `${comboId}-label`;
+  const popoverId = `${comboId}-popover`;
+  const mobileTitleId = `${comboId}-dialog-title`;
 
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const scrollRef = React.useRef(0);
@@ -79,6 +88,8 @@ export function MyGPComboMulti({
     return `${values.length} seleccionados`;
   }, [values, selectedLabels, placeholder]);
 
+  const contentLabelId = label ? labelId : isMobile ? mobileTitleId : undefined;
+
   const toggleValue = React.useCallback(
     (value: string) => {
       // Capture current scroll before list reorders
@@ -106,104 +117,146 @@ export function MyGPComboMulti({
     }
   });
 
+  const trigger = (
+    <Button
+      variant="outline"
+      role="combobox"
+      aria-expanded={open}
+      aria-haspopup={isMobile ? 'dialog' : 'listbox'}
+      aria-controls={popoverId}
+      aria-labelledby={label ? `${labelId} ${comboId}` : undefined}
+      aria-invalid={ariaInvalid}
+      id={comboId}
+      className={cn(
+        'flex w-full min-w-0 cursor-pointer items-center justify-between text-left',
+        ariaInvalid && 'border-destructive focus-visible:ring-destructive',
+        className
+      )}
+      {...props}
+    >
+      <span className="flex-1 truncate text-left" title={selectedLabels.join(', ')}>
+        {buttonText}
+      </span>
+      <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
+    </Button>
+  );
+
+  const commandContent = (
+    <Command
+      filter={(value, search) => {
+        const v = value
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{Diacritic}/gu, '');
+        const s = search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{Diacritic}/gu, '');
+
+        if (!s) return 1;
+        if (v.startsWith(s)) return 3;
+        if (v.includes(s)) return 2;
+        return 0;
+      }}
+      className={cn(isMobile && 'h-full')}
+    >
+      <CommandInput placeholder={label || placeholder} className="h-9" />
+
+      <CommandList
+        ref={listRef}
+        role="listbox"
+        aria-labelledby={contentLabelId}
+        className={cn(isMobile ? 'flex-1 max-h-none' : 'max-h-[300px]')}
+      >
+        <CommandEmpty>No se encontraron elementos.</CommandEmpty>
+
+        <CommandGroup>
+          {sortedOptions.map((item, idx) => {
+            const isSelected = selectedSet.has(item.value);
+
+            // Optional: draw a separator between selected and unselected
+            const prev = sortedOptions[idx - 1];
+            const prevSelected = prev ? selectedSet.has(prev.value) : true;
+            const needsSeparator = idx > 0 && prevSelected && !isSelected;
+
+            return (
+              <React.Fragment key={item.value}>
+                {needsSeparator && <CommandSeparator />}
+
+                <CommandItem
+                  value={`${item.label} ${item.value}`}
+                  role="option"
+                  aria-selected={isSelected}
+                  onSelect={() => toggleValue(item.value)}
+                >
+                  <div className="flex w-full min-w-0 items-center gap-2">
+                    {showValue && (
+                      <span className="shrink-0 text-xs text-muted-foreground">({item.value})</span>
+                    )}
+
+                    <span className="min-w-0 flex-1 truncate text-xs font-semibold">
+                      {item.label}
+                    </span>
+                  </div>
+
+                  <Check
+                    className={cn(
+                      'ml-auto h-4 w-4 shrink-0',
+                      isSelected ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                </CommandItem>
+              </React.Fragment>
+            );
+          })}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  );
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex w-full min-w-0 flex-col gap-2">
       {label && (
-        <Label className="cursor-pointer" htmlFor={label}>
+        <Label id={labelId} className="cursor-pointer" htmlFor={comboId}>
           {label}
         </Label>
       )}
 
-      <Popover open={open} onOpenChange={setOpen} modal={isModal}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            aria-invalid={ariaInvalid}
-            id={label}
-            className={cn(
-              'cursor-pointer flex justify-between items-center text-left',
-              ariaInvalid && 'border-destructive focus-visible:ring-destructive',
-              className
-            )}
-            {...props}
+      {isMobile ? (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>{trigger}</DialogTrigger>
+          <DialogContent
+            id={popoverId}
+            className="
+              top-0 left-0
+              flex h-[100dvh] max-h-[100dvh]
+              w-screen max-w-none
+              translate-x-0 translate-y-0
+              flex-col gap-0 overflow-hidden
+              rounded-none border-0 p-0
+            "
           >
-            <span className="flex-1 truncate text-left" title={selectedLabels.join(', ')}>
-              {buttonText}
-            </span>
-            <ChevronsUpDown className="ml-2 opacity-50 shrink-0" />
-          </Button>
-        </PopoverTrigger>
+            <DialogHeader className="border-b px-4 py-3 text-left">
+              <DialogTitle id={mobileTitleId} className="pr-10 text-base">
+                {label || placeholder || 'Selecciona clientes'}
+              </DialogTitle>
+            </DialogHeader>
 
-        <PopoverContent className="p-0 w-[350px] max-h-[320px] overflow-y-hidden">
-          <Command
-            filter={(value, search) => {
-              const v = value
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/\p{Diacritic}/gu, '');
-              const s = search
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/\p{Diacritic}/gu, '');
+            <div className="min-h-0 flex-1 overflow-hidden">{commandContent}</div>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Popover open={open} onOpenChange={setOpen} modal={isModal}>
+          <PopoverTrigger asChild>{trigger}</PopoverTrigger>
 
-              if (!s) return 1;
-              if (v.startsWith(s)) return 3;
-              if (v.includes(s)) return 2;
-              return 0;
-            }}
+          <PopoverContent
+            id={popoverId}
+            className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-hidden p-0"
           >
-            <CommandInput placeholder={label} className="h-9" />
-
-            {/* Attach ref here so we can preserve scrollTop */}
-            <CommandList ref={listRef}>
-              <CommandEmpty>No se encontraron elementos.</CommandEmpty>
-
-              <CommandGroup>
-                {sortedOptions.map((item, idx) => {
-                  const isSelected = selectedSet.has(item.value);
-
-                  // Optional: draw a separator between selected and unselected
-                  const prev = sortedOptions[idx - 1];
-                  const prevSelected = prev ? selectedSet.has(prev.value) : true;
-                  const needsSeparator = idx > 0 && prevSelected && !isSelected;
-
-                  return (
-                    <React.Fragment key={item.value}>
-                      {needsSeparator && <CommandSeparator />}
-
-                      <CommandItem
-                        value={`${item.label} ${item.value}`}
-                        onSelect={() => toggleValue(item.value)}
-                      >
-                        <div className="flex items-center min-w-0 gap-2 w-full">
-                          {showValue && (
-                            <span className="text-xs text-muted-foreground shrink-0">
-                              ({item.value})
-                            </span>
-                          )}
-
-                          <span className="text-xs font-semibold truncate min-w-0 flex-1">
-                            {item.label}
-                          </span>
-                        </div>
-
-                        <Check
-                          className={cn(
-                            'ml-auto h-4 w-4 shrink-0',
-                            isSelected ? 'opacity-100' : 'opacity-0'
-                          )}
-                        />
-                      </CommandItem>
-                    </React.Fragment>
-                  );
-                })}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+            {commandContent}
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }
