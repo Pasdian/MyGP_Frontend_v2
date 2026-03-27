@@ -179,128 +179,129 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
         </MyGPButtonPrimary>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Controller
-          control={control}
-          name="concepto"
-          render={({ field, fieldState }) => (
-            <MyGPCombo
-              id="concepto"
-              value={field.value}
-              setValue={field.onChange}
-              label="Concepto:"
-              options={conceptoProvisionOptions}
-              placeholder="Selecciona un concepto"
-              isModal={true}
-              isLoading={isConceptosLoading}
-              error={!!fieldState.error}
-              helperText={fieldState.error?.message}
-              aria-invalid={!!fieldState.error}
-              aria-errormessage={fieldState.error ? 'concepto-error' : undefined}
-            />
-          )}
-        />
-
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="factura">No. Factura</Label>
-          <Input
-            id="factura"
-            {...register('factura')}
-            placeholder="1234"
-            aria-invalid={!!errors.factura}
-            aria-errormessage={errors.factura ? 'factura-error' : undefined}
-            className={errorClass(!!errors.factura)}
-          />
-          {errors.factura && (
-            <p id="factura-error" className="text-sm text-red-500">
-              {errors.factura.message}
-            </p>
-          )}
-        </div>
-
-        {isAmericana ? (
-          <div className="grid gap-2">
-            <Label htmlFor="proveedor">Proveedor (CUSTOMS & SHIPPING SERVICES INC)</Label>
-            <Input
-              id="proveedor"
-              defaultValue="00025"
-              readOnly
-              className="bg-muted cursor-not-allowed opacity-70"
-              {...register('clave_proveedor')}
-            />
-          </div>
-        ) : (
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
           <Controller
             control={control}
-            name="clave_proveedor"
+            name="concepto"
             render={({ field, fieldState }) => (
               <MyGPCombo
-                id="clave_proveedor"
+                id="concepto"
                 value={field.value}
                 setValue={field.onChange}
-                label="Proveedor:"
-                options={proveedoresOptions}
-                placeholder="Selecciona un proveedor"
+                label="Concepto:"
+                options={conceptoProvisionOptions}
+                placeholder="Selecciona un concepto"
                 isModal={true}
-                isLoading={isProveedoresLoading}
+                isLoading={isConceptosLoading}
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
                 aria-invalid={!!fieldState.error}
-                aria-errormessage={fieldState.error ? 'proveedor-error' : undefined}
-                showValue
+                aria-errormessage={fieldState.error ? 'concepto-error' : undefined}
               />
             )}
           />
-        )}
 
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="importe">Importe</Label>
-          <Input
-            id="importe"
-            {...register('importe')}
-            type="text"
-            inputMode="decimal"
-            placeholder={noConozcoImporte ? 'N/A' : '1234'}
-            readOnly={noConozcoImporte}
-            aria-invalid={!!errors.importe}
-            aria-errormessage={errors.importe ? 'importe-error' : undefined}
-            className={`${errorClass(!!errors.importe)} ${
-              noConozcoImporte ? 'bg-muted cursor-not-allowed opacity-70' : ''
-            }`}
-          />
-          <Controller
-            control={control}
-            name="noConozcoImporte"
-            render={({ field }) => (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="no-conozco-importe"
-                  checked={field.value}
-                  onCheckedChange={(checked) => {
-                    const isChecked = checked === true;
-                    field.onChange(isChecked);
-                    setValue('importe', isChecked ? 'N/A' : '', {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: true,
-                    });
-                  }}
-                />
-                <Label htmlFor="no-conozco-importe">No conozco el importe</Label>
-              </div>
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="factura">No. Factura</Label>
+            <Input
+              id="factura"
+              {...register('factura')}
+              placeholder="1234"
+              aria-invalid={!!errors.factura}
+              aria-errormessage={errors.factura ? 'factura-error' : undefined}
+              className={errorClass(!!errors.factura)}
+            />
+            {errors.factura && (
+              <p id="factura-error" className="text-sm text-red-500">
+                {errors.factura.message}
+              </p>
             )}
-          />
-          {errors.importe && (
-            <p id="importe-error" className="text-sm text-red-500">
-              {errors.importe.message}
-            </p>
-          )}
-        </div>
+          </div>
 
-        <div className="col-span-full flex justify-end">
-          <MyGPButtonSubmit isSubmitting={isSubmitting} type="submit">
-            <SaveIcon /> Guardar
-          </MyGPButtonSubmit>
+          {isAmericana ? (
+            <div className="grid gap-2">
+              <Label htmlFor="proveedor">Proveedor (CUSTOMS & SHIPPING SERVICES INC)</Label>
+              <Input
+                id="proveedor"
+                defaultValue="00025"
+                readOnly
+                className="bg-muted cursor-not-allowed opacity-70"
+                {...register('clave_proveedor')}
+              />
+            </div>
+          ) : (
+            <Controller
+              control={control}
+              name="clave_proveedor"
+              render={({ field, fieldState }) => (
+                <MyGPCombo
+                  id="clave_proveedor"
+                  value={field.value}
+                  setValue={field.onChange}
+                  label="Proveedor:"
+                  options={proveedoresOptions}
+                  placeholder="Selecciona un proveedor"
+                  isModal={true}
+                  isLoading={isProveedoresLoading}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                  aria-invalid={!!fieldState.error}
+                  aria-errormessage={fieldState.error ? 'proveedor-error' : undefined}
+                />
+              )}
+            />
+          )}
+
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="importe">Importe</Label>
+            <Input
+              id="importe"
+              {...register('importe')}
+              type="text"
+              inputMode="decimal"
+              placeholder={noConozcoImporte ? 'N/A' : '1234'}
+              readOnly={noConozcoImporte}
+              aria-invalid={!!errors.importe}
+              aria-errormessage={errors.importe ? 'importe-error' : undefined}
+              className={`${errorClass(!!errors.importe)} ${
+                noConozcoImporte ? 'bg-muted cursor-not-allowed opacity-70' : ''
+              }`}
+            />
+            <Controller
+              control={control}
+              name="noConozcoImporte"
+              render={({ field }) => (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="no-conozco-importe"
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked === true;
+                      field.onChange(isChecked);
+                      setValue('importe', isChecked ? 'N/A' : '', {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: true,
+                      });
+                    }}
+                  />
+                  <Label htmlFor="no-conozco-importe">No conozco el importe</Label>
+                </div>
+              )}
+            />
+            {errors.importe && (
+              <p id="importe-error" className="text-sm text-red-500">
+                {errors.importe.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-end md:col-span-2">
+            <MyGPButtonSubmit isSubmitting={isSubmitting} type="submit">
+              <SaveIcon /> Guardar
+            </MyGPButtonSubmit>
+          </div>
         </div>
       </form>
     </MyGPDialog>

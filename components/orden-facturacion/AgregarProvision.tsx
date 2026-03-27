@@ -184,261 +184,248 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
         </MyGPButtonSubmit>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Controller
-          control={control}
-          name="cuentaBancaria"
-          render={({ field, fieldState }) => (
-            <MyGPCombo
-              id="cuentaBancaria"
-              value={field.value}
-              setValue={field.onChange}
-              label="Cuenta Bancaria:"
-              options={cuentasBancariasOptions}
-              placeholder="Selecciona una cuenta bancaria"
-              isModal={true}
-              isLoading={isCuentasBancariasLoading}
-              error={!!fieldState.error}
-              helperText={fieldState.error?.message}
-              aria-invalid={!!fieldState.error}
-              aria-errormessage={fieldState.error ? 'cuentaBancaria-error' : undefined}
-            />
-          )}
-        />
-
-        <div className="grid grid-rows gap-2">
-          <Label>Período</Label>
-          <Input value={yyyymm} disabled />
-        </div>
-
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="factura">No. Factura</Label>
-          <Input
-            id="factura"
-            {...register('factura')}
-            placeholder="1234"
-            aria-invalid={!!errors.factura}
-            aria-errormessage={errors.factura ? 'factura-error' : undefined}
-            className={errorClass(!!errors.factura)}
-          />
-          {errors.factura && (
-            <p id="factura-error" className="text-sm text-red-500">
-              {errors.factura.message}
-            </p>
-          )}
-        </div>
-
-        {isAmericana ? (
-          <div className="grid gap-2">
-            <Label htmlFor="beneficiario">Beneficiario (CUSTOMS & SHIPPING SERVICES INC)</Label>
-            <Input
-              id="beneficiario"
-              defaultValue="00025"
-              readOnly
-              className="bg-muted cursor-not-allowed opacity-70"
-              {...register('beneficiario')}
-            />
-          </div>
-        ) : (
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
           <Controller
             control={control}
-            name="beneficiario"
+            name="cuentaBancaria"
             render={({ field, fieldState }) => (
               <MyGPCombo
-                id="beneficiario"
+                id="cuentaBancaria"
                 value={field.value}
                 setValue={field.onChange}
-                label="Beneficiario:"
-                options={beneficiariosOptions}
-                placeholder="Selecciona un beneficiario"
+                label="Cuenta Bancaria:"
+                options={cuentasBancariasOptions}
+                placeholder="Selecciona una cuenta bancaria"
                 isModal={true}
-                isLoading={isBeneficiariosLoading}
+                isLoading={isCuentasBancariasLoading}
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
                 aria-invalid={!!fieldState.error}
-                aria-errormessage={fieldState.error ? 'beneficiario-error' : undefined}
+                aria-errormessage={fieldState.error ? 'cuentaBancaria-error' : undefined}
               />
             )}
           />
-        )}
 
-        <Controller
-          control={control}
-          name="concepto"
-          render={({ field, fieldState }) => (
-            <MyGPCombo
-              id="concepto"
-              value={field.value}
-              setValue={field.onChange}
-              label="Concepto:"
-              options={conceptoProvisionOptions}
-              placeholder="Selecciona un concepto"
-              isModal={true}
-              isLoading={isConceptosLoading}
-              error={!!fieldState.error}
-              helperText={fieldState.error?.message}
-              aria-invalid={!!fieldState.error}
-              aria-errormessage={fieldState.error ? 'concepto-error' : undefined}
+          <div className="grid grid-rows gap-2">
+            <Label>Período</Label>
+            <Input value={yyyymm} disabled />
+          </div>
+
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="factura">No. Factura</Label>
+            <Input
+              id="factura"
+              {...register('factura')}
+              placeholder="1234"
+              aria-invalid={!!errors.factura}
+              aria-errormessage={errors.factura ? 'factura-error' : undefined}
+              className={errorClass(!!errors.factura)}
+            />
+            {errors.factura && (
+              <p id="factura-error" className="text-sm text-red-500">
+                {errors.factura.message}
+              </p>
+            )}
+          </div>
+
+          {isAmericana ? (
+            <div className="grid gap-2">
+              <Label htmlFor="beneficiario">Beneficiario (CUSTOMS & SHIPPING SERVICES INC)</Label>
+              <Input
+                id="beneficiario"
+                defaultValue="00025"
+                readOnly
+                className="bg-muted cursor-not-allowed opacity-70"
+                {...register('beneficiario')}
+              />
+            </div>
+          ) : (
+            <Controller
+              control={control}
+              name="beneficiario"
+              render={({ field, fieldState }) => (
+                <MyGPCombo
+                  id="beneficiario"
+                  value={field.value}
+                  setValue={field.onChange}
+                  label="Beneficiario:"
+                  options={beneficiariosOptions}
+                  placeholder="Selecciona un beneficiario"
+                  isModal={true}
+                  isLoading={isBeneficiariosLoading}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                  aria-invalid={!!fieldState.error}
+                  aria-errormessage={fieldState.error ? 'beneficiario-error' : undefined}
+                />
+              )}
             />
           )}
-        />
 
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="fechaProvision">Fecha de la Provisión</Label>
-          <Input
-            id="fechaProvision"
-            type="date"
-            {...register('fechaProvision')}
-            aria-invalid={!!errors.fechaProvision}
-            aria-errormessage={errors.fechaProvision ? 'fechaProvision-error' : undefined}
-            className={errorClass(!!errors.fechaProvision)}
+          <Controller
+            control={control}
+            name="concepto"
+            render={({ field, fieldState }) => (
+              <MyGPCombo
+                id="concepto"
+                value={field.value}
+                setValue={field.onChange}
+                label="Concepto:"
+                options={conceptoProvisionOptions}
+                placeholder="Selecciona un concepto"
+                isModal={true}
+                isLoading={isConceptosLoading}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+                aria-invalid={!!fieldState.error}
+                aria-errormessage={fieldState.error ? 'concepto-error' : undefined}
+              />
+            )}
           />
-          {errors.fechaProvision && (
-            <p id="fechaProvision-error" className="text-sm text-red-500">
-              {errors.fechaProvision.message}
-            </p>
-          )}
-        </div>
 
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="fechaRevision">Fecha de Revisión</Label>
-          <Input
-            id="fechaRevision"
-            type="date"
-            {...register('fechaRevision')}
-            aria-invalid={!!errors.fechaRevision}
-            aria-errormessage={errors.fechaRevision ? 'fechaRevision-error' : undefined}
-            className={errorClass(!!errors.fechaRevision)}
-          />
-          {errors.fechaRevision && (
-            <p id="fechaRevision-error" className="text-sm text-red-500">
-              {errors.fechaRevision.message}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="fechaProvision">Fecha de la Provisión</Label>
+            <Input
+              id="fechaProvision"
+              type="date"
+              {...register('fechaProvision')}
+              aria-invalid={!!errors.fechaProvision}
+              aria-errormessage={errors.fechaProvision ? 'fechaProvision-error' : undefined}
+              className={errorClass(!!errors.fechaProvision)}
+            />
+            {errors.fechaProvision && (
+              <p id="fechaProvision-error" className="text-sm text-red-500">
+                {errors.fechaProvision.message}
+              </p>
+            )}
+          </div>
 
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="fechaVencimiento">Fecha de Vencimiento</Label>
-          <Input
-            id="fechaVencimiento"
-            type="date"
-            {...register('fechaVencimiento')}
-            aria-invalid={!!errors.fechaVencimiento}
-            aria-errormessage={errors.fechaVencimiento ? 'fechaVencimiento-error' : undefined}
-            className={errorClass(!!errors.fechaVencimiento)}
-          />
-          {errors.fechaVencimiento && (
-            <p id="fechaVencimiento-error" className="text-sm text-red-500">
-              {errors.fechaVencimiento.message}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="fechaRevision">Fecha de Revisión</Label>
+            <Input
+              id="fechaRevision"
+              type="date"
+              {...register('fechaRevision')}
+              aria-invalid={!!errors.fechaRevision}
+              aria-errormessage={errors.fechaRevision ? 'fechaRevision-error' : undefined}
+              className={errorClass(!!errors.fechaRevision)}
+            />
+            {errors.fechaRevision && (
+              <p id="fechaRevision-error" className="text-sm text-red-500">
+                {errors.fechaRevision.message}
+              </p>
+            )}
+          </div>
 
-        <div className="grid grid-rows gap-2">
-          <Label>Tipo de Póliza</Label>
-          <Input
-            value="CXP"
-            className="bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-            disabled
-          />
-        </div>
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="fechaVencimiento">Fecha de Vencimiento</Label>
+            <Input
+              id="fechaVencimiento"
+              type="date"
+              {...register('fechaVencimiento')}
+              aria-invalid={!!errors.fechaVencimiento}
+              aria-errormessage={errors.fechaVencimiento ? 'fechaVencimiento-error' : undefined}
+              className={errorClass(!!errors.fechaVencimiento)}
+            />
+            {errors.fechaVencimiento && (
+              <p id="fechaVencimiento-error" className="text-sm text-red-500">
+                {errors.fechaVencimiento.message}
+              </p>
+            )}
+          </div>
 
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="numPoliza">Cuenta por Pagar:</Label>
-          <Input
-            id="numPoliza"
-            {...register('numPoliza')}
-            placeholder="CTAPAG"
-            aria-invalid={!!errors.numPoliza}
-            aria-errormessage={errors.numPoliza ? 'numPoliza-error' : undefined}
-            className={errorClass(!!errors.numPoliza)}
-          />
-          {errors.numPoliza && (
-            <p id="numPoliza-error" className="text-sm text-red-500">
-              {errors.numPoliza.message}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-rows gap-2">
+            <Label>Tipo de Póliza</Label>
+            <Input
+              value="CXP"
+              className="bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+              disabled
+            />
+          </div>
 
-        <Separator className="bg-slate-300 col-span-full my-4" />
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="numPoliza">Cuenta por Pagar:</Label>
+            <Input
+              id="numPoliza"
+              {...register('numPoliza')}
+              placeholder="CTAPAG"
+              aria-invalid={!!errors.numPoliza}
+              aria-errormessage={errors.numPoliza ? 'numPoliza-error' : undefined}
+              className={errorClass(!!errors.numPoliza)}
+            />
+            {errors.numPoliza && (
+              <p id="numPoliza-error" className="text-sm text-red-500">
+                {errors.numPoliza.message}
+              </p>
+            )}
+          </div>
 
-        <div className="col-span-full grid grid-rows gap-2">
-          <Label>Referencia:</Label>
-          <Input
-            value={reference}
-            className="bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-            disabled
-          />
-        </div>
+          <div className="md:col-span-2">
+            <Separator className="bg-slate-300 my-4" />
+          </div>
 
-        <div className="col-span-full grid grid-rows gap-2">
-          <Label htmlFor="descripcion">Descripción</Label>
-          <Input
-            id="descripcion"
-            {...register('descripcion')}
-            placeholder="Descripción.."
-            aria-invalid={!!errors.descripcion}
-            aria-errormessage={errors.descripcion ? 'descripcion-error' : undefined}
-            className={errorClass(!!errors.descripcion)}
-          />
-          {errors.descripcion && (
-            <p id="descripcion-error" className="text-sm text-red-500">
-              {errors.descripcion.message}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-rows gap-2 md:col-span-2">
+            <Label>Referencia:</Label>
+            <Input
+              value={reference}
+              className="bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+              disabled
+            />
+          </div>
 
-        <ClientsController control={control} isModal showValue />
+          <ClientsController control={control} isModal />
 
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="totalPagar">Total a Pagar:</Label>
-          <Input
-            id="totalPagar"
-            {...register('totalPagar')}
-            type="text"
-            inputMode="decimal"
-            placeholder="12345"
-            aria-invalid={!!errors.totalPagar}
-            aria-errormessage={errors.totalPagar ? 'totalFactura2-error' : undefined}
-            className={errorClass(!!errors.totalPagar)}
-          />
-          {errors.totalPagar && (
-            <p id="totalFactura2-error" className="text-sm text-red-500">
-              {errors.totalPagar.message}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="totalPagar">Total a Pagar:</Label>
+            <Input
+              id="totalPagar"
+              {...register('totalPagar')}
+              type="text"
+              inputMode="decimal"
+              placeholder="12345"
+              aria-invalid={!!errors.totalPagar}
+              aria-errormessage={errors.totalPagar ? 'totalFactura2-error' : undefined}
+              className={errorClass(!!errors.totalPagar)}
+            />
+            {errors.totalPagar && (
+              <p id="totalFactura2-error" className="text-sm text-red-500">
+                {errors.totalPagar.message}
+              </p>
+            )}
+          </div>
 
-        <div className="grid grid-rows gap-2">
-          <Label>Tasa IVA:</Label>
-          <Input
-            value="0.16"
-            className="bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-            disabled
-          />
-        </div>
+          <div className="grid grid-rows gap-2">
+            <Label>Tasa IVA:</Label>
+            <Input
+              value="0.16"
+              className="bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+              disabled
+            />
+          </div>
 
-        <div className="grid grid-rows gap-2">
-          <Label htmlFor="fechaFactura">Fecha de la Factura</Label>
-          <Input
-            id="fechaFactura"
-            type="date"
-            {...register('fechaFactura')}
-            aria-invalid={!!errors.fechaFactura}
-            aria-errormessage={errors.fechaFactura ? 'fechaFactura-error' : undefined}
-            className={errorClass(!!errors.fechaFactura)}
-          />
-          {errors.fechaFactura && (
-            <p id="fechaFactura-error" className="text-sm text-red-500">
-              {errors.fechaFactura.message}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-rows gap-2">
+            <Label htmlFor="fechaFactura">Fecha de la Factura</Label>
+            <Input
+              id="fechaFactura"
+              type="date"
+              {...register('fechaFactura')}
+              aria-invalid={!!errors.fechaFactura}
+              aria-errormessage={errors.fechaFactura ? 'fechaFactura-error' : undefined}
+              className={errorClass(!!errors.fechaFactura)}
+            />
+            {errors.fechaFactura && (
+              <p id="fechaFactura-error" className="text-sm text-red-500">
+                {errors.fechaFactura.message}
+              </p>
+            )}
+          </div>
 
-        <div className="col-span-full flex justify-end">
-          <MyGPButtonSubmit isSubmitting={isSubmitting} type="submit">
-            <SaveIcon /> Guardar
-          </MyGPButtonSubmit>
+          <div className="flex justify-end md:col-span-2">
+            <MyGPButtonSubmit isSubmitting={isSubmitting} type="submit">
+              <SaveIcon /> Guardar
+            </MyGPButtonSubmit>
+          </div>
         </div>
       </form>
     </MyGPDialog>
