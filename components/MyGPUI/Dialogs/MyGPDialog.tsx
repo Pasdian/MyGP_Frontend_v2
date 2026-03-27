@@ -37,19 +37,18 @@ export function MyGPDialog({
           overflow-y-auto
           rounded-none border-0 p-4
           sm:top-[50%] sm:left-[50%]
-          sm:grid
           sm:h-auto sm:w-full
           sm:max-h-[80vh] sm:max-w-[900px]
           sm:translate-x-[-50%] sm:translate-y-[-50%]
           sm:rounded-lg sm:border sm:p-6
         "
       >
-        <DialogHeader className="text-left">
+        <DialogHeader className="w-full text-left">
           <DialogTitle>{title || ''}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <div className="w-full">{children}</div>
+        <div className="w-full min-w-0 [&>*]:w-full">{children}</div>
       </DialogContent>
     </Dialog>
   );
