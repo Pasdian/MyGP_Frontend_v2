@@ -21,6 +21,7 @@ import MyGPCalendar from '../MyGPUI/Datepickers/MyGPCalendar';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
 import { COMPANY } from '@/lib/companies/companies';
+import { DateRange } from 'react-day-picker';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -57,6 +58,21 @@ export function SiteHeader() {
   const hasExpediente = (file?.filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
 
   const { rows: companies } = useCompanies(isDEA);
+
+  const effectiveDateRange = React.useMemo<DateRange>(() => {
+    if (filters.dateRange?.from) {
+      return filters.dateRange;
+    }
+
+    const today = new Date();
+    const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    return {
+      from: lastMonthStart,
+      to: currentMonthEnd,
+    };
+  }, [filters.dateRange]);
 
   const [companySelect, setCompanySelect] = React.useState<string[]>([]);
 
@@ -129,19 +145,19 @@ export function SiteHeader() {
 
   return (
     <header className="bg-background sticky top-0 z-10 shrink-0 border-b">
-      <div className="flex flex-wrap items-end gap-x-4 gap-y-3 px-2 py-3 sm:px-4 xl:gap-x-5">
+      <div className="flex flex-wrap items-end gap-x-6 gap-y-3 px-2 py-3 sm:px-4">
         <SidebarTrigger className="-ml-1 size-9 shrink-0 self-start sm:size-7 sm:self-auto" />
 
-        <div className="flex min-w-[14rem] flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex min-w-[14rem] flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
           <p className="text-xs font-semibold sm:shrink-0">Periodo:</p>
           <MyGPCalendar
-            dateRange={filters.dateRange}
+            dateRange={effectiveDateRange}
             setDateRange={(dr) => setFilters({ dateRange: dr })}
             className="h-9 text-sm sm:h-8 sm:min-w-[13rem] sm:text-xs"
           />
         </div>
 
-        <div className="flex min-w-[18rem] flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex min-w-[18rem] flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
           <p className="text-xs font-semibold sm:shrink-0">Cliente:</p>
           <MyGPCombo
             options={companyOptions}
@@ -172,7 +188,7 @@ export function SiteHeader() {
           {client.reference && (
             <PreviosDialog
               key={client.reference}
-              className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[10.5rem] sm:basis-auto sm:text-xs"
+              className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[10.5rem] sm:basis-auto sm:text-xs sm:whitespace-nowrap"
             />
           )}
         </PermissionGuard>
@@ -180,7 +196,7 @@ export function SiteHeader() {
         <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
           {client.reference && client.number && (
             <MyGPButtonPrimary
-              className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[12.5rem] sm:basis-auto sm:text-xs"
+              className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[12.5rem] sm:basis-auto sm:text-xs sm:whitespace-nowrap"
               disabled={hasDigitalFile || hasExpediente || isDigitalRecordGenerationMutating}
               onClick={async () => {
                 try {
