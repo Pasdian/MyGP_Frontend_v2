@@ -119,12 +119,6 @@ export function SiteHeader() {
       axiosFetcher
     );
 
-  const deaSummary = client.reference
-    ? `${client.number} · ${client.reference}`
-    : client.number
-      ? `Cliente ${client.number}`
-      : 'Consulta de referencias';
-
   if (!isDEA) {
     return (
       <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -135,106 +129,98 @@ export function SiteHeader() {
 
   return (
     <header className="bg-background sticky top-0 z-10 shrink-0 border-b">
-      <div className="space-y-3 px-2 py-3 sm:px-4">
-        <div className="flex items-center gap-3">
-          <SidebarTrigger className="-ml-1 size-9 shrink-0 sm:size-7" />
-          <div className="min-w-0">
-            <p className="text-sm font-semibold tracking-tight">DEA</p>
-            <p className="truncate text-xs text-muted-foreground">{deaSummary}</p>
-          </div>
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-3 px-2 py-3 sm:px-4 xl:gap-x-5">
+        <SidebarTrigger className="-ml-1 size-9 shrink-0 self-start sm:size-7 sm:self-auto" />
+
+        <div className="flex min-w-[14rem] flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+          <p className="text-xs font-semibold sm:shrink-0">Periodo:</p>
+          <MyGPCalendar
+            dateRange={filters.dateRange}
+            setDateRange={(dr) => setFilters({ dateRange: dr })}
+            className="h-9 text-sm sm:h-8 sm:min-w-[13rem] sm:text-xs"
+          />
         </div>
 
-        <div className="grid gap-2 xl:grid-cols-[minmax(0,16rem)_minmax(0,22rem)_auto_auto_auto] xl:items-center">
-          <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-            <p className="text-xs font-semibold">Periodo:</p>
-            <MyGPCalendar
-              dateRange={filters.dateRange}
-              setDateRange={(dr) => setFilters({ dateRange: dr })}
-              className="h-9 text-sm sm:h-7 sm:text-xs"
+        <div className="flex min-w-[18rem] flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+          <p className="text-xs font-semibold sm:shrink-0">Cliente:</p>
+          <MyGPCombo
+            options={companyOptions}
+            setValue={(val) => {
+              setClient({ number: val });
+              setClient({ reference: '' });
+            }}
+            value={client.number}
+            onSelect={() => resetFileState()}
+            className="h-9 w-full text-sm sm:h-8 sm:w-[18rem] sm:text-xs xl:w-[19rem]"
+            popoverContentClassName="w-[min(90vw,600px)]"
+            placeholder="Selecciona un cliente"
+            showValue
+            pickFirst
+          />
+        </div>
+
+        {isAAP && (
+          <div className="min-w-[12rem] flex-1 sm:flex-none xl:w-[14rem]">
+            <DEAFilterCompanyDriver
+              companySelect={companySelect}
+              setCompanySelect={setCompanySelect}
             />
           </div>
+        )}
 
-          <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
-            <p className="text-xs font-semibold">Cliente:</p>
-            <MyGPCombo
-              options={companyOptions}
-              setValue={(val) => {
-                setClient({ number: val });
-                setClient({ reference: '' });
-              }}
-              value={client.number}
-              onSelect={() => resetFileState()}
-              className="h-9 w-full text-sm sm:h-7 sm:text-xs xl:w-[320px]"
-              popoverContentClassName="w-[min(90vw,600px)]"
-              placeholder="Selecciona un cliente"
-              showValue
-              pickFirst
+        <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
+          {client.reference && (
+            <PreviosDialog
+              key={client.reference}
+              className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[10.5rem] sm:basis-auto sm:text-xs"
             />
-          </div>
-
-          {isAAP && (
-            <div className="w-full xl:w-auto">
-              <DEAFilterCompanyDriver
-                companySelect={companySelect}
-                setCompanySelect={setCompanySelect}
-              />
-            </div>
           )}
+        </PermissionGuard>
 
-          <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
-            {client.reference && (
-              <PreviosDialog
-                key={client.reference}
-                className="h-9 w-full text-sm sm:h-7 sm:w-[150px] sm:text-xs"
-              />
-            )}
-          </PermissionGuard>
+        <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
+          {client.reference && client.number && (
+            <MyGPButtonPrimary
+              className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[12.5rem] sm:basis-auto sm:text-xs"
+              disabled={hasDigitalFile || hasExpediente || isDigitalRecordGenerationMutating}
+              onClick={async () => {
+                try {
+                  const response = await triggerDigitalRecordGeneration();
 
-          <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
-            {client.reference && client.number && (
-              <MyGPButtonPrimary
-                className="h-9 w-full text-sm sm:h-7 sm:w-[200px] sm:text-xs"
-                disabled={hasDigitalFile || hasExpediente || isDigitalRecordGenerationMutating}
-                onClick={async () => {
-                  try {
-                    const response = await triggerDigitalRecordGeneration();
-
-                    if (file.filesByReference) {
-                      const updated = {
-                        ...file.filesByReference,
-                        files: {
-                          ...file.filesByReference.files,
-                          '05-EXP-DIGITAL': [...digitalFiles, response.filename],
-                        },
-                      };
-                      setFile({ filesByReference: updated });
-                    }
-
-                    toast.success(`Expediente digital generado: ${response.filename}`);
-                    posthog.capture(posthogEvent);
-                  } catch (err) {
-                    console.error('Generation Failed', err);
-                    toast.error('No se pudo generar el expediente digital.');
+                  if (file.filesByReference) {
+                    const updated = {
+                      ...file.filesByReference,
+                      files: {
+                        ...file.filesByReference.files,
+                        '05-EXP-DIGITAL': [...digitalFiles, response.filename],
+                      },
+                    };
+                    setFile({ filesByReference: updated });
                   }
-                }}
-              >
-                {isDigitalRecordGenerationMutating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generando...
-                  </>
-                ) : hasDigitalFile || hasExpediente ? (
-                  <>Ya Existe Expediente Digital</>
-                ) : (
-                  <>
-                    <RocketIcon className="mr-2 h-4 w-4" />
-                    Expediente Digital
-                  </>
-                )}
-              </MyGPButtonPrimary>
-            )}
-          </PermissionGuard>
-        </div>
+
+                  toast.success(`Expediente digital generado: ${response.filename}`);
+                  posthog.capture(posthogEvent);
+                } catch (err) {
+                  console.error('Generation Failed', err);
+                  toast.error('No se pudo generar el expediente digital.');
+                }
+              }}
+            >
+              {isDigitalRecordGenerationMutating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generando...
+                </>
+              ) : hasDigitalFile || hasExpediente ? (
+                <>Ya Existe Expediente Digital</>
+              ) : (
+                <>
+                  <RocketIcon className="mr-2 h-4 w-4" />
+                  Expediente Digital
+                </>
+              )}
+            </MyGPButtonPrimary>
+          )}
+        </PermissionGuard>
       </div>
     </header>
   );
