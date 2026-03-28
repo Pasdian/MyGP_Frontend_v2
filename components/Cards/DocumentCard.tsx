@@ -93,14 +93,14 @@ export default function DocumentCard({
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
   return (
-    <Card className="rounded-none p-0 h-full min-h-0">
+    <Card className="h-full min-h-[16rem] rounded-none p-0">
       <div className="grid grid-rows-[auto_auto_1fr] h-full min-h-0">
-        <div className="bg-blue-500 p-1 text-[13px] text-white grid grid-cols-[1fr_auto] items-center gap-2 overflow-x-hidden">
-          <p className="min-w-0 break-words overflow-x-hidden font-bold">
+        <div className="grid grid-cols-[1fr_auto] items-center gap-2 overflow-x-hidden bg-blue-500 p-2 text-xs text-white sm:p-1 sm:text-[13px]">
+          <p className="min-w-0 overflow-x-hidden break-words font-bold leading-tight">
             {`${title} - ${visibleFiles.length} archivos`}
           </p>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <PermissionGuard requiredPermissions={[PERM.DEA_SUBIR_ARCHIVOS]}>
               <IconUpload
                 size={iconSize}
@@ -130,9 +130,9 @@ export default function DocumentCard({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar archivo..."
-          className="w-full px-2 py-0.5 h-7 rounded-none !text-[12px]"
+          className="h-8 w-full rounded-none px-2 text-xs sm:h-7 sm:py-0.5 sm:!text-[12px]"
         />
-        <div className="w-full h-full p-1 overflow-y-auto min-h-0">
+        <div className="h-full min-h-0 w-full overflow-y-auto p-1.5 sm:p-1">
           {isLoading && <MyGPSpinner />}
 
           {!isLoading &&
@@ -143,7 +143,7 @@ export default function DocumentCard({
               return (
                 <div
                   key={item}
-                  className={`flex justify-between items-center cursor-pointer mb-1 p-1 ${
+                  className={`mb-1 flex cursor-pointer items-start justify-between gap-2 rounded-sm p-1.5 sm:items-center sm:p-1 ${
                     isActive
                       ? 'bg-green-100 text-slate-900 font-semibold'
                       : isPedimentoSimplificado
@@ -153,12 +153,13 @@ export default function DocumentCard({
                   onClick={() => onFileSelect(item)}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] break-words">{item}</p>
+                    <p className="break-words text-xs leading-4 sm:text-[11px]">{item}</p>
                   </div>
 
                   <PermissionGuard requiredPermissions={[PERM.DEA_DESCARGAR_ARCHIVOS]}>
                     <DownloadIcon
                       size={iconSize}
+                      className="mt-0.5 shrink-0 sm:mt-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDownloadFile(

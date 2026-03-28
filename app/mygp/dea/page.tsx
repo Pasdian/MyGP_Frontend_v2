@@ -113,7 +113,7 @@ export default function DEA() {
   return (
     <>
       {client.reference && client.number ? (
-        <div className="grid h-full grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,20%)_minmax(0,20%)_minmax(0,60%)] xl:grid-rows-3">
+        <div className="grid h-full grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-[minmax(0,20%)_minmax(0,20%)_minmax(0,60%)] 2xl:grid-rows-3">
           {/* Cuenta de Gastos */}
           <DocumentCard
             title="Cuenta de Gastos"
@@ -138,7 +138,7 @@ export default function DEA() {
           />
 
           {/* VIEWER */}
-          <Card className="order-first min-h-[50vh] p-0 md:col-span-2 xl:order-none xl:col-start-3 xl:row-span-3 xl:row-start-1 xl:min-h-0">
+          <Card className="order-first min-h-[45vh] p-0 lg:col-span-2 2xl:order-none 2xl:col-start-3 2xl:row-span-3 2xl:row-start-1 2xl:min-h-0">
             <div className="grid h-full min-h-0 grid-rows-[auto_1fr]">
               <div className="flex items-center justify-between gap-2 bg-blue-500 p-2 text-[10px] text-white">
                 <p className="min-w-0 text-[13px] font-bold truncate">
@@ -153,13 +153,13 @@ export default function DEA() {
 
               <div className="h-full min-h-0 w-full overflow-x-hidden">
                 {isViewerContentLoading ? (
-                  <div className="flex h-full min-h-[240px] w-full items-center justify-center text-gray-400 xl:min-h-0">
+                  <div className="flex h-full min-h-[240px] w-full items-center justify-center text-gray-400 2xl:min-h-0">
                     <Loader2Icon className="animate-spin" />
                   </div>
                 ) : isPdf && fileUrl ? (
                   <iframe
                     src={withPdfParams(fileUrl, { showToolbar: true })}
-                    className="h-full min-h-[240px] w-full border-none xl:min-h-0"
+                    className="h-full min-h-[240px] w-full border-none 2xl:min-h-0"
                     title="PDF"
                     allow="fullscreen"
                     allowFullScreen
@@ -167,23 +167,25 @@ export default function DEA() {
                 ) : file.textContent ? (
                   <pre
                     className="
-            p-4
+            p-3
             bg-gray-50
             w-full
             h-full
             min-h-[240px]
-            text-sm
+            text-xs
             overflow-y-auto
             overflow-x-hidden
             whitespace-pre-wrap
             break-words
-            xl:min-h-0
+            sm:p-4
+            sm:text-sm
+            2xl:min-h-0
           "
                   >
                     {file.textContent}
                   </pre>
                 ) : (
-                  <div className="flex h-full min-h-[240px] w-full items-center justify-center text-gray-400 text-sm xl:min-h-0">
+                  <div className="flex h-full min-h-[240px] w-full items-center justify-center px-4 text-center text-gray-400 text-sm 2xl:min-h-0">
                     No hay contenido disponible
                   </div>
                 )}

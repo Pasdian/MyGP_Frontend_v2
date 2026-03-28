@@ -7,6 +7,7 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
+  useSidebar,
 } from '../sidebar';
 import { ChevronRight, DownloadIcon } from 'lucide-react';
 import { useDEAStore } from '@/app/providers/dea-store-provider';
@@ -57,6 +58,7 @@ function fuzzyFilter(
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
   const { client, setClient, filters, resetFileState } = useDEAStore((state) => state);
+  const { isMobile, setOpenMobile } = useSidebar();
   const [isFuzzy, setIsFuzzy] = React.useState(true);
 
   const { refs, isLoading: isRefsLoading } = useRefsByClient(
@@ -102,10 +104,10 @@ export default function CollapsibleReferences() {
           </SidebarGroupLabel>
 
           <CollapsibleContent>
-            <SidebarGroupContent className="pl-4">
+            <SidebarGroupContent className="pl-2 sm:pl-4">
               <SidebarMenu>
-                <Label className="mb-4">Buscar por Referencia o Pedimento</Label>
-                <div className="flex gap-2 items-center">
+                <Label className="mb-3 text-xs leading-tight">Buscar por Referencia o Pedimento</Label>
+                <div className="flex items-center gap-2">
                   <Checkbox
                     checked={isFuzzy}
                     onCheckedChange={(checked) => setIsFuzzy(Boolean(checked))}
@@ -115,7 +117,7 @@ export default function CollapsibleReferences() {
                 <Input
                   type="text"
                   placeholder="PAI123456"
-                  className="mb-3"
+                  className="mb-3 h-9 text-sm sm:h-8 sm:text-xs"
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
                 />
@@ -145,6 +147,9 @@ export default function CollapsibleReferences() {
 
                             setClient({ reference: NUM_REFE, custom });
                             resetFileState();
+                            if (isMobile) {
+                              setOpenMobile(false);
+                            }
                           }}
                         >
                           <div className="grid grid-cols-[1fr_auto] items-center gap-2">
@@ -161,8 +166,8 @@ export default function CollapsibleReferences() {
                               <p
                                 className={
                                   isActive
-                                    ? 'min-w-0 text-[14px] break-words text-slate-100 font-bold'
-                                    : 'min-w-0 text-[14px] break-words'
+                                    ? 'min-w-0 break-words text-[13px] font-bold text-slate-100 sm:text-[14px]'
+                                    : 'min-w-0 break-words text-[13px] sm:text-[14px]'
                                 }
                               >
                                 {NUM_REFE}

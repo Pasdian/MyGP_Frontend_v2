@@ -26,6 +26,7 @@ const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const isDEA = pathname === '/mygp/dea';
 
   // === Pull nested state & minimal setters from the refactored DEA store ===
   const { client, filters, file, setClient, setFilters, setFile, resetFileState } = useDEAStore(
@@ -55,7 +56,6 @@ export function SiteHeader() {
 
   const hasExpediente = (file?.filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
 
-  const isDEA = pathname === '/mygp/dea';
   const { rows: companies } = useCompanies(isDEA);
 
   const [companySelect, setCompanySelect] = React.useState<string[]>([]);
@@ -118,56 +118,82 @@ export function SiteHeader() {
         `/pyapi/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
       axiosFetcher
     );
-  return (
-    <header
-      className={`bg-background sticky top-0 z-1 shrink-0 gap-2 border-b px-4 ${
-        pathname === '/mygp/dea'
-          ? 'flex min-h-16 flex-wrap items-start py-2'
-          : 'flex h-16 items-center'
-      }`}
-    >
-      <div className="flex">
+
+  const deaSummary = client.reference
+    ? `${client.number} · ${client.reference}`
+    : client.number
+      ? `Cliente ${client.number}`
+      : 'Consulta de referencias';
+
+  if (!isDEA) {
+    return (
+      <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
         <SidebarTrigger className="-ml-1" />
-      </div>
-      {pathname == '/mygp/dea' && (
-        <div className="flex w-full flex-wrap items-center gap-2 font-bold">
-          <p className="text-xs">Periodo:</p>
-          <MyGPCalendar
-            dateRange={filters.dateRange}
-            setDateRange={(dr) => setFilters({ dateRange: dr })}
-            className="text-xs h-5"
-          />
-          <p className="font-bold text-xs mr-1">Cliente:</p>
-          <MyGPCombo
-            options={companyOptions}
-            setValue={(val) => {
-              setClient({ number: val });
-              setClient({ reference: '' });
-            }}
-            value={client.number}
-            onSelect={() => resetFileState()}
-            className="h-5 w-full text-xs sm:w-[300px]"
-            popoverContentClassName="w-[600px]"
-            placeholder="Selecciona un cliente"
-            showValue
-            pickFirst
-          />
-          {isAAP && (
-            <DEAFilterCompanyDriver
-              companySelect={companySelect}
-              setCompanySelect={setCompanySelect}
+      </header>
+    );
+  }
+
+  return (
+    <header className="bg-background sticky top-0 z-10 shrink-0 border-b">
+      <div className="space-y-3 px-2 py-3 sm:px-4">
+        <div className="flex items-center gap-3">
+          <SidebarTrigger className="-ml-1 size-9 shrink-0 sm:size-7" />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold tracking-tight">DEA</p>
+            <p className="truncate text-xs text-muted-foreground">{deaSummary}</p>
+          </div>
+        </div>
+
+        <div className="grid gap-2 xl:grid-cols-[minmax(0,16rem)_minmax(0,22rem)_auto_auto_auto] xl:items-center">
+          <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+            <p className="text-xs font-semibold">Periodo:</p>
+            <MyGPCalendar
+              dateRange={filters.dateRange}
+              setDateRange={(dr) => setFilters({ dateRange: dr })}
+              className="h-9 text-sm sm:h-7 sm:text-xs"
             />
+          </div>
+
+          <div className="grid gap-1 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+            <p className="text-xs font-semibold">Cliente:</p>
+            <MyGPCombo
+              options={companyOptions}
+              setValue={(val) => {
+                setClient({ number: val });
+                setClient({ reference: '' });
+              }}
+              value={client.number}
+              onSelect={() => resetFileState()}
+              className="h-9 w-full text-sm sm:h-7 sm:text-xs xl:w-[320px]"
+              popoverContentClassName="w-[min(90vw,600px)]"
+              placeholder="Selecciona un cliente"
+              showValue
+              pickFirst
+            />
+          </div>
+
+          {isAAP && (
+            <div className="w-full xl:w-auto">
+              <DEAFilterCompanyDriver
+                companySelect={companySelect}
+                setCompanySelect={setCompanySelect}
+              />
+            </div>
           )}
+
           <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
             {client.reference && (
-              <PreviosDialog key={client.reference} className="h-5 w-full text-xs sm:w-[150px]" />
+              <PreviosDialog
+                key={client.reference}
+                className="h-9 w-full text-sm sm:h-7 sm:w-[150px] sm:text-xs"
+              />
             )}
           </PermissionGuard>
 
           <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
             {client.reference && client.number && (
               <MyGPButtonPrimary
-                className="h-5 w-full text-xs sm:w-[200px]"
+                className="h-9 w-full text-sm sm:h-7 sm:w-[200px] sm:text-xs"
                 disabled={hasDigitalFile || hasExpediente || isDigitalRecordGenerationMutating}
                 onClick={async () => {
                   try {
@@ -209,7 +235,7 @@ export function SiteHeader() {
             )}
           </PermissionGuard>
         </div>
-      )}
+      </div>
     </header>
   );
 }
