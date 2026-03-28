@@ -113,7 +113,7 @@ export default function DEA() {
   return (
     <>
       {client.reference && client.number ? (
-        <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-[20%_20%_60%] lg:grid-rows-3">
+        <div className="grid h-full grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,20%)_minmax(0,20%)_minmax(0,60%)] xl:grid-rows-3">
           {/* Cuenta de Gastos */}
           <DocumentCard
             title="Cuenta de Gastos"
@@ -138,10 +138,10 @@ export default function DEA() {
           />
 
           {/* VIEWER */}
-          <Card className="p-0 lg:row-span-3">
-            <div className="grid grid-rows-[auto_1fr] h-full min-h-0">
-              <div className="bg-blue-500 p-1 text-[10px] text-white flex justify-between items-center">
-                <p className="text-[13px] font-bold truncate">
+          <Card className="order-first min-h-[50vh] p-0 md:col-span-2 xl:order-none xl:col-start-3 xl:row-span-3 xl:row-start-1 xl:min-h-0">
+            <div className="grid h-full min-h-0 grid-rows-[auto_1fr]">
+              <div className="flex items-center justify-between gap-2 bg-blue-500 p-2 text-[10px] text-white">
+                <p className="min-w-0 text-[13px] font-bold truncate">
                   Visor de Archivos{file.activeFile ? ` - ${file.activeFile}` : ''}
                 </p>
                 <div className="flex items-center gap-2">
@@ -151,15 +151,15 @@ export default function DEA() {
                 </div>
               </div>
 
-              <div className="w-full h-full min-h-0 overflow-x-hidden">
+              <div className="h-full min-h-0 w-full overflow-x-hidden">
                 {isViewerContentLoading ? (
-                  <div className="flex w-full h-full items-center justify-center text-gray-400">
+                  <div className="flex h-full min-h-[240px] w-full items-center justify-center text-gray-400 xl:min-h-0">
                     <Loader2Icon className="animate-spin" />
                   </div>
                 ) : isPdf && fileUrl ? (
                   <iframe
                     src={withPdfParams(fileUrl, { showToolbar: true })}
-                    className="w-full h-full border-none"
+                    className="h-full min-h-[240px] w-full border-none xl:min-h-0"
                     title="PDF"
                     allow="fullscreen"
                     allowFullScreen
@@ -169,20 +169,21 @@ export default function DEA() {
                     className="
             p-4
             bg-gray-50
-            rounded-md
             w-full
             h-full
+            min-h-[240px]
             text-sm
             overflow-y-auto
             overflow-x-hidden
             whitespace-pre-wrap
             break-words
+            xl:min-h-0
           "
                   >
                     {file.textContent}
                   </pre>
                 ) : (
-                  <div className="flex w-full h-full items-center justify-center text-gray-400 text-sm">
+                  <div className="flex h-full min-h-[240px] w-full items-center justify-center text-gray-400 text-sm xl:min-h-0">
                     No hay contenido disponible
                   </div>
                 )}
@@ -276,7 +277,11 @@ function ClientLogoSection({ client }: { client: string }) {
 
       {!logoUrl && (
         <div className="flex justify-center">
-          <UploadFile to={`/GESTION/${client}`} url="/pyapi/dea/uploadLogo" onUploaded={handleUploaded} />
+          <UploadFile
+            to={`/GESTION/${client}`}
+            url="/pyapi/dea/uploadLogo"
+            onUploaded={handleUploaded}
+          />
         </div>
       )}
     </div>
