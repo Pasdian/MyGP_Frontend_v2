@@ -41,7 +41,7 @@ export default function DEAFilterCompanyDriver({
 
   return (
     <CompanySelect
-      className="h-9 w-full text-sm sm:h-7 sm:w-auto sm:text-xs"
+      className="h-9 w-full text-sm sm:h-8 sm:w-[14rem] sm:text-xs"
       value={companySelect}
       onChange={setCompanySelect}
       placeHolder="Filtrar"

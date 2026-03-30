@@ -60,6 +60,7 @@ export default function CollapsibleReferences() {
   const { client, setClient, filters, resetFileState } = useDEAStore((state) => state);
   const { isMobile, setOpenMobile } = useSidebar();
   const [isFuzzy, setIsFuzzy] = React.useState(true);
+  const isSpecialRefLayout = client.number === '005009';
 
   const { refs, isLoading: isRefsLoading } = useRefsByClient(
     client.number,
@@ -135,7 +136,7 @@ export default function CollapsibleReferences() {
                       return (
                         <SidebarMenuItem
                           key={`${NUM_REFE}-${i}`}
-                          className={`${base} ${isActive ? active : normal}`}
+                          className={`min-w-0 overflow-hidden ${base} ${isActive ? active : normal}`}
                           onClick={() => {
                             if (!FOLDER_HAS_CONTENT) return;
 
@@ -152,12 +153,22 @@ export default function CollapsibleReferences() {
                             }
                           }}
                         >
-                          <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                            <div>
+                          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                            <div className="min-w-0 overflow-hidden">
                               {(client.number == '005009' || client.number == '000259') && (
                                 <p
                                   className={
-                                    isActive ? 'text-slate-100 font-bold' : 'text-muted-foreground'
+                                    isActive
+                                      ? `min-w-0 overflow-hidden text-slate-100 font-bold ${
+                                          isSpecialRefLayout
+                                            ? 'break-all text-[12px] leading-4 [overflow-wrap:anywhere]'
+                                            : 'break-words'
+                                        }`
+                                      : `min-w-0 overflow-hidden text-muted-foreground ${
+                                          isSpecialRefLayout
+                                            ? 'break-all text-[12px] leading-4 [overflow-wrap:anywhere]'
+                                            : 'break-words'
+                                        }`
                                   }
                                 >
                                   {EE__GE}
@@ -166,8 +177,16 @@ export default function CollapsibleReferences() {
                               <p
                                 className={
                                   isActive
-                                    ? 'min-w-0 break-words text-[13px] font-bold text-slate-100 sm:text-[14px]'
-                                    : 'min-w-0 break-words text-[13px] sm:text-[14px]'
+                                    ? `min-w-0 overflow-hidden font-bold text-slate-100 ${
+                                        isSpecialRefLayout
+                                          ? 'break-all text-[13px] leading-4 [overflow-wrap:anywhere]'
+                                          : 'break-words text-[13px] sm:text-[14px]'
+                                      }`
+                                    : `min-w-0 overflow-hidden ${
+                                        isSpecialRefLayout
+                                          ? 'break-all text-[13px] leading-4 [overflow-wrap:anywhere]'
+                                          : 'break-words text-[13px] sm:text-[14px]'
+                                      }`
                                 }
                               >
                                 {NUM_REFE}
