@@ -21,15 +21,17 @@ import { Checkbox } from '../ui/checkbox';
 const formSchema = z
   .object({
     concepto: z.string().min(1, 'Selecciona un concepto'),
-    clave_proveedor: z.string().min(1, 'Selecciona un proveedor'),
-    factura: z.string().min(1, 'El número de factura es obligatorio'),
-    importe: z.string().min(1, 'El total a pagar es obligatorio'),
+    clave_proveedor: z.string(),
+    factura: z.string(),
+    importe: z.string(),
     noConozcoImporte: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    if (data.noConozcoImporte) return;
+    const importe = data.importe.trim();
 
-    if (Number.isNaN(Number(data.importe))) {
+    if (data.noConozcoImporte || !importe) return;
+
+    if (Number.isNaN(Number(importe))) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['importe'],
@@ -38,7 +40,7 @@ const formSchema = z
       return;
     }
 
-    if (Number(data.importe) <= 0) {
+    if (Number(importe) <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['importe'],
@@ -127,20 +129,27 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
       setIsSubmitting(true);
       const { noConozcoImporte: _noConozcoImporte, ...formPayload } = payload;
       void _noConozcoImporte;
+      const normalizedPayload = {
+        ...formPayload,
+        factura: formPayload.factura.trim(),
+        clave_proveedor: formPayload.clave_proveedor.trim(),
+        importe: formPayload.importe.trim() || 'N/A',
+      };
 
       const proveedor_name = isAmericana
         ? 'CUSTOMS & SHIPPING SERVICES INC'
         : (proveedoresOptions.find(
-            (p: { value: string; label: string }) => p.value === payload.clave_proveedor
+            (p: { value: string; label: string }) =>
+              p.value === normalizedPayload.clave_proveedor
           )?.label ?? '');
 
       const concepto_name =
         conceptoProvisionOptions.find(
-          (c: { value: string; label: string }) => c.value === payload.concepto
+          (c: { value: string; label: string }) => c.value === normalizedPayload.concepto
         )?.label ?? '';
 
       await GPClient.post('/pyapi/dipp/agregarGasto', {
-        ...formPayload,
+        ...normalizedPayload,
         isAmericana,
         referencia: reference,
         userEmail: getUserEmail() || '',
