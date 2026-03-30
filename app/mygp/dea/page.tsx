@@ -138,7 +138,7 @@ export default function DEA() {
           />
 
           {/* VIEWER */}
-          <Card className="order-first min-h-[45vh] p-0 lg:col-span-2 2xl:order-none 2xl:col-start-3 2xl:row-span-3 2xl:row-start-1 2xl:min-h-0">
+          <Card className="order-first h-[58vh] min-h-[360px] p-0 sm:h-[78vh] md:h-[86vh] lg:col-span-2 2xl:order-none 2xl:col-start-3 2xl:row-span-3 2xl:row-start-1 2xl:h-full 2xl:min-h-0">
             <div className="grid h-full min-h-0 grid-rows-[auto_1fr]">
               <div className="flex items-center justify-between gap-2 bg-blue-500 p-2 text-[10px] text-white">
                 <p className="min-w-0 text-[13px] font-bold truncate">
