@@ -1,0 +1,20 @@
+Refactor this code to be explicit and maintainable.
+
+Constraints:
+
+- Prioritize readability over brevity.
+- Do not use clever or condensed logic.
+- Do not introduce abstractions unless they remove obvious duplication and improve clarity.
+- Prefer explicit conditionals over nested expressions.
+- Prefer named intermediate variables over inline compound expressions.
+- Keep control flow boring and obvious.
+- Use descriptive function and variable names.
+- Keep functions small, but do not split code into tiny helpers unless it improves readability.
+- Match the existing project style.
+
+Done when:
+
+- A mid-level engineer can understand the code quickly.
+- The main path is easy to trace line by line.
+- There are no surprising shortcuts or “smart” tricks.
+- Behavior stays the same.
