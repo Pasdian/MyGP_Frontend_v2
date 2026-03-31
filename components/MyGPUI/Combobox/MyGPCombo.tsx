@@ -13,7 +13,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '../../ui/label';
 
@@ -35,6 +41,7 @@ type MyGPComboProps = {
   isModal?: boolean;
   pickFirst?: boolean;
   isLoading?: boolean;
+  disabled?: boolean; // ADDED PROP
   error?: boolean;
   helperText?: string;
   id?: string;
@@ -57,6 +64,7 @@ export function MyGPCombo({
   onSelect,
   isModal = false,
   isLoading = false,
+  disabled = false, // DEFAULT VALUE
   error,
   helperText,
   id,
@@ -101,9 +109,12 @@ export function MyGPCombo({
       aria-describedby={describedBy}
       aria-errormessage={ariaErrorMessage}
       aria-required={ariaRequired}
-      disabled={isLoading}
+      // UPDATE: Combines loading state and the new disabled prop
+      disabled={isLoading || disabled}
       className={cn(
-        'flex w-full min-w-0 cursor-pointer items-center justify-between text-left',
+        'flex w-full min-w-0 items-center justify-between text-left',
+        // Change cursor if disabled
+        disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
         (ariaInvalid ?? error) && 'border-destructive focus-visible:ring-destructive',
         className
       )}
@@ -184,13 +195,17 @@ export function MyGPCombo({
   return (
     <div className="flex w-full min-w-0 flex-col gap-2">
       {label && (
-        <Label id={labelId} className="cursor-pointer" htmlFor={comboId}>
+        <Label
+          id={labelId}
+          className={cn('cursor-pointer', disabled && 'opacity-50 cursor-not-allowed')}
+          htmlFor={comboId}
+        >
           {label}
         </Label>
       )}
 
       {isMobile ? (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={disabled ? undefined : setOpen}>
           <DialogTrigger asChild>{trigger}</DialogTrigger>
           <DialogContent
             id={popoverId}
@@ -213,7 +228,7 @@ export function MyGPCombo({
           </DialogContent>
         </Dialog>
       ) : (
-        <Popover open={open} onOpenChange={setOpen} modal={isModal}>
+        <Popover open={open} onOpenChange={disabled ? undefined : setOpen} modal={isModal}>
           <PopoverTrigger asChild>{trigger}</PopoverTrigger>
 
           <PopoverContent

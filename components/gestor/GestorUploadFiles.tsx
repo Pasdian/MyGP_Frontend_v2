@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import useSWR from 'swr';
+import { GPClient, axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { z } from 'zod/v4';
@@ -12,16 +13,20 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { FileController } from '../expediente-digital-cliente/form-controllers/FileController';
-import { useGestor } from '@/contexts/Gestor/GestorContext';
 import MyGPButtonSubmit from '../MyGPUI/Buttons/MyGPButtonSubmit';
+import UploadFile from '../UploadFiles/UploadFile';
+import { UploadIcon } from 'lucide-react';
 
 const PDF_MAX_SIZE = 25_000_000;
 const INVALID_FILENAME_SEGMENT_CHARACTERS = /[<>:"/\\|?*\u0000-\u001F]+/g;
+const MAN_VAL_CATEGORY = 'MAN_VAL';
+const HOJ_CAL_CATEGORY = 'HOJ_CAL'; // Added constant for clarity
+const FAC_PAS_CATEGORY = 'FAC_PAS';
+const HIDDEN_FILE_CATEGORIES = new Set([HOJ_CAL_CATEGORY]);
 
 const getFileExtension = (file: File) => {
   const filename = file.name || '';
-  const extension = filename.includes('.') ? filename.split('.').pop() : '';
-  return extension ? extension.toLowerCase() : '';
+  return filename.includes('.') ? filename.split('.').pop()?.toLowerCase() || '' : '';
 };
 
 const getUtcDateStamp = () => new Date().toISOString().slice(0, 10).replaceAll('-', '');
@@ -40,11 +45,13 @@ const buildFrontendFilenameBase = ({
   reference,
   fileCategory,
   casaUsername,
+  suffix,
 }: {
   client: string;
   reference: string;
   fileCategory: string;
   casaUsername: string;
+  suffix?: string;
 }) => {
   const parts = [
     normalizeFilenameSegment(client) || 'CLIENTE',
@@ -54,54 +61,34 @@ const buildFrontendFilenameBase = ({
     normalizeFilenameSegment(casaUsername) || 'MYGP',
   ];
 
+  if (suffix) parts.push(normalizeFilenameSegment(suffix));
+
   return parts.join('_');
 };
 
-const buildFrontendFilename = ({
-  client,
-  reference,
-  fileCategory,
-  file,
-  casaUsername,
-}: {
+const buildFrontendFilename = (params: {
   client: string;
   reference: string;
   fileCategory: string;
   file: File;
   casaUsername: string;
+  suffix?: string;
 }) => {
-  const extension = getFileExtension(file) || 'bin';
-  const baseFilename = buildFrontendFilenameBase({
-    client,
-    reference,
-    fileCategory,
-    casaUsername,
-  });
-
+  const extension = getFileExtension(params.file) || 'bin';
+  const baseFilename = buildFrontendFilenameBase(params);
   return `${baseFilename}.${extension}`;
 };
 
-const buildFrontendFilenamePreview = ({
-  client,
-  reference,
-  fileCategory,
-  extension,
-  casaUsername,
-}: {
+const buildFrontendFilenamePreview = (params: {
   client: string;
   reference: string;
   fileCategory: string;
   extension: string;
   casaUsername: string;
+  suffix?: string;
 }) => {
-  const safeExtension = extension.trim() || 'bin';
-  const baseFilename = buildFrontendFilenameBase({
-    client,
-    reference,
-    fileCategory,
-    casaUsername,
-  });
-
+  const safeExtension = params.extension.trim() || 'bin';
+  const baseFilename = buildFrontendFilenameBase(params);
   return `${baseFilename}.${safeExtension}`;
 };
 
@@ -111,175 +98,135 @@ const buildRenamedFile = (file: File, finalName: string) =>
     lastModified: file.lastModified,
   });
 
-export default function GestorUploadFiles() {
-  const { searchRefData, fileCategories } = useGestor();
+type GestorUploadFilesProps = {
+  client: string;
+  reference: string;
+  defaultFileCategory?: string;
+  disableCategorySelect?: boolean;
+};
+
+export default function GestorUploadFiles({
+  client: initialClient,
+  reference: initialReference,
+  defaultFileCategory = '',
+  disableCategorySelect = false, // Default to false
+}: GestorUploadFilesProps) {
+  const { data: fileCategories } = useSWR('/pyapi/gestor/fileCategories', axiosFetcher);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { getCasaUsername } = useAuth();
 
   const formSchema = z
     .object({
       reference: z.string().min(1, 'Falta referencia'),
-
       client: z.string().min(1, 'Ingresa un cliente'),
       fileCategory: z.string().min(1, 'Selecciona una categoría'),
-
       pdf_file: z
-        .union([z.instanceof(File, { message: 'Archivo inválido' }), z.undefined()])
-        .refine(
-          (file) => !file || file.size <= PDF_MAX_SIZE,
-          `Máximo ${PDF_MAX_SIZE / 1_000_000} MB`
-        )
-        .refine(
-          (file) => !file || file.type === 'application/pdf',
-          'Solo se aceptan archivos .pdf'
-        ),
-
+        .instanceof(File)
+        .optional()
+        .refine((f) => !f || f.size <= PDF_MAX_SIZE, `Máximo 25MB`)
+        .refine((f) => !f || f.type === 'application/pdf', 'Solo PDF'),
       xml_file: z
-        .union([z.instanceof(File, { message: 'Archivo inválido' }), z.undefined()])
-        .refine(
-          (file) => !file || file.size <= PDF_MAX_SIZE,
-          `Máximo ${PDF_MAX_SIZE / 1_000_000} MB`
-        )
-        .refine(
-          (file) => !file || ['application/xml', 'text/xml'].includes(file.type),
-          'Solo se aceptan archivos .xml'
-        ),
+        .instanceof(File)
+        .optional()
+        .refine((f) => !f || f.size <= PDF_MAX_SIZE, `Máximo 25MB`)
+        .refine((f) => !f || ['application/xml', 'text/xml'].includes(f.type), 'Solo XML'),
+      hoja_calculo_pdf_file: z
+        .instanceof(File)
+        .optional()
+        .refine((f) => !f || f.size <= PDF_MAX_SIZE, `Máximo 25MB`)
+        .refine((f) => !f || f.type === 'application/pdf', 'Solo PDF'),
     })
     .superRefine((data, ctx) => {
-      if (!data.pdf_file) {
+      if (!data.pdf_file)
+        ctx.addIssue({ code: 'custom', path: ['pdf_file'], message: 'Obligatorio' });
+      if (data.fileCategory === FAC_PAS_CATEGORY && !data.xml_file)
+        ctx.addIssue({ code: 'custom', path: ['xml_file'], message: 'Requiere XML' });
+      if (data.fileCategory === MAN_VAL_CATEGORY && !data.hoja_calculo_pdf_file)
         ctx.addIssue({
           code: 'custom',
-          path: ['pdf_file'],
-          message: 'El archivo es obligatorio',
+          path: ['hoja_calculo_pdf_file'],
+          message: 'Requiere Hoja de Cálculo',
         });
-      }
-
-      if (data.fileCategory === 'FAC_PAS' && !data.xml_file) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['xml_file'],
-          message: 'Para factura pascal debes subir PDF + XML',
-        });
-      }
-
-      if (data.fileCategory !== 'FAC_PAS' && data.xml_file) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['xml_file'],
-          message: 'El XML solo se permite para la categoría FAC_PAS',
-        });
-      }
     });
-
-  const fileCategoryOptions = React.useMemo(() => {
-    if (!fileCategories) return [];
-    return fileCategories.map((item: { value: string; key: string }) => ({
-      value: item.value,
-      label: item.key,
-    }));
-  }, [fileCategories]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      client: '',
-      reference: '',
-      fileCategory: '',
-      pdf_file: undefined,
-      xml_file: undefined,
+      client: initialClient,
+      reference: initialReference,
+      fileCategory: defaultFileCategory,
     },
-    mode: 'onChange',
   });
-  const pdfFile = form.watch('pdf_file');
-  const xmlFile = form.watch('xml_file');
-  const fileCategory = form.watch('fileCategory');
-  const client = form.watch('client') ?? '';
-  const reference = form.watch('reference') ?? '';
-  const casaUsername = normalizeFilenameSegment(getCasaUsername() || 'MYGP') || 'MYGP';
+
+  const { pdf_file, xml_file, hoja_calculo_pdf_file, fileCategory, client, reference } =
+    form.watch();
+  const casaUsername = normalizeFilenameSegment(getCasaUsername() || 'MYGP');
+
+  const fileCategoryOptions = React.useMemo(() => {
+    if (!fileCategories) return [];
+    return fileCategories
+      .filter((item: any) => !HIDDEN_FILE_CATEGORIES.has(item.value))
+      .map((item: any) => ({ value: item.value, label: item.key }));
+  }, [fileCategories]);
+
+  // --- Filename Previews ---
   const pdfTargetFilenameDisplay = React.useMemo(() => {
-    const previewClient = client || 'CLIENTE';
-    const previewReference = reference || 'REFERENCIA';
-    const previewCategory = fileCategory || 'CATEGORIA';
-    const previewCasaUsername = casaUsername || 'MYGP';
-    const previewPdfExtension = (pdfFile && getFileExtension(pdfFile)) || 'pdf';
-
     return buildFrontendFilenamePreview({
-      client: previewClient,
-      reference: previewReference,
-      fileCategory: previewCategory,
-      extension: previewPdfExtension,
-      casaUsername: previewCasaUsername,
+      client: client || 'CLIENTE',
+      reference: reference || 'REFERENCIA',
+      fileCategory: fileCategory || 'CATEGORIA',
+      extension: (pdf_file && getFileExtension(pdf_file)) || 'pdf',
+      casaUsername,
     });
-  }, [client, reference, fileCategory, casaUsername, pdfFile]);
+  }, [client, reference, fileCategory, casaUsername, pdf_file]);
 
-  const xmlTargetFilenameDisplay = React.useMemo(() => {
-    if (fileCategory !== 'FAC_PAS') {
-      return '';
-    }
-
-    const previewClient = client || 'CLIENTE';
-    const previewReference = reference || 'REFERENCIA';
-    const previewCategory = fileCategory || 'CATEGORIA';
-    const previewCasaUsername = casaUsername || 'MYGP';
-    const previewXmlExtension = (xmlFile && getFileExtension(xmlFile)) || 'xml';
-
+  const hojaCalculoTargetFilenameDisplay = React.useMemo(() => {
+    if (fileCategory !== MAN_VAL_CATEGORY) return '';
     return buildFrontendFilenamePreview({
-      client: previewClient,
-      reference: previewReference,
-      fileCategory: previewCategory,
-      extension: previewXmlExtension,
-      casaUsername: previewCasaUsername,
+      client: client || 'CLIENTE',
+      reference: reference || 'REFERENCIA',
+      fileCategory: HOJ_CAL_CATEGORY, // Force HOJ_CAL code here
+      extension: (hoja_calculo_pdf_file && getFileExtension(hoja_calculo_pdf_file)) || 'pdf',
+      casaUsername,
     });
-  }, [client, reference, fileCategory, casaUsername, xmlFile]);
+  }, [client, reference, fileCategory, casaUsername, hoja_calculo_pdf_file]);
 
-  React.useEffect(() => {
-    form.register('client');
-    form.register('reference');
-  }, [form]);
+  const currentCategoryLabel = React.useMemo(() => {
+    // We look through the options list for the object that matches the current form value
+    const selectedOption = fileCategoryOptions.find(
+      (opt: { label: string; value: string }) => opt.value === fileCategory
+    );
 
-  React.useEffect(() => {
-    if (searchRefData.length === 0) return;
-
-    const first = searchRefData[0];
-
-    form.setValue('client', first.CVE_IMPO, { shouldValidate: true });
-    form.setValue('reference', first.NUM_REFE, { shouldValidate: true });
-  }, [searchRefData, form]);
-
-  React.useEffect(() => {
-    form.setValue('pdf_file', undefined, { shouldValidate: true, shouldDirty: true });
-    form.setValue('xml_file', undefined, { shouldValidate: true, shouldDirty: true });
-    form.clearErrors(['pdf_file', 'xml_file']);
-  }, [fileCategory, form]);
+    // If found, return the label (e.g. "Factura Pascal");
+    // otherwise, a default placeholder
+    return selectedOption ? selectedOption.label : 'Archivo';
+  }, [fileCategory, fileCategoryOptions]);
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    if (!data.pdf_file) {
-      toast.error('Selecciona un PDF');
-      return;
-    }
-
     try {
       setIsSubmitting(true);
-
       const uploadedBy = getCasaUsername() || 'MYGP';
+
+      // Renaming logic using the shorthand codes
       const renamedPdfFile = buildRenamedFile(
-        data.pdf_file,
+        data.pdf_file!,
         buildFrontendFilename({
           client: data.client,
           reference: data.reference,
           fileCategory: data.fileCategory,
-          file: data.pdf_file,
+          file: data.pdf_file!,
           casaUsername: uploadedBy,
         })
       );
-      const renamedXmlFile = data.xml_file
+
+      const renamedHojaCalculoPdfFile = data.hoja_calculo_pdf_file
         ? buildRenamedFile(
-            data.xml_file,
+            data.hoja_calculo_pdf_file,
             buildFrontendFilename({
               client: data.client,
               reference: data.reference,
-              fileCategory: data.fileCategory,
-              file: data.xml_file,
+              fileCategory: HOJ_CAL_CATEGORY, // Use HOJ_CAL shorthand
+              file: data.hoja_calculo_pdf_file,
               casaUsername: uploadedBy,
             })
           )
@@ -291,29 +238,27 @@ export default function GestorUploadFiles() {
       fd.append('reference', data.reference);
       fd.append('uploaded_by', uploadedBy);
       fd.append('upload_files', renamedPdfFile);
-      if (renamedXmlFile) fd.append('upload_files', renamedXmlFile);
+      if (renamedHojaCalculoPdfFile) fd.append('upload_files', renamedHojaCalculoPdfFile);
+      if (data.xml_file) {
+        const renamedXml = buildRenamedFile(
+          data.xml_file,
+          buildFrontendFilename({
+            client: data.client,
+            reference: data.reference,
+            fileCategory: data.fileCategory,
+            file: data.xml_file,
+            casaUsername: uploadedBy,
+          })
+        );
+        fd.append('upload_files', renamedXml);
+      }
 
-      const uploadRes = await GPClient.post('/pyapi/gestor/uploads', fd, {
+      await GPClient.post('/pyapi/gestor/uploads', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      toast.success('Archivo(s) subido(s) exitosamente');
-      console.log('UPLOAD RESPONSE:', uploadRes.data);
-    } catch (error: unknown) {
-      const axiosLikeError = error as {
-        response?: {
-          data?: {
-            detail?: string;
-            message?: string;
-          };
-        };
-      };
-
-      toast.error(
-        axiosLikeError?.response?.data?.detail ??
-          axiosLikeError?.response?.data?.message ??
-          'Error al subir el archivo al gestor'
-      );
+      toast.success('Archivos subidos correctamente');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail ?? 'Error al subir');
     } finally {
       setIsSubmitting(false);
     }
@@ -325,51 +270,38 @@ export default function GestorUploadFiles() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Field>
             <Label className="text-sm font-medium">Cliente</Label>
-            <Input
-              className="w-full rounded-md border px-3 py-2 text-sm bg-muted"
-              value={form.watch('client') ?? ''}
-              disabled
-              readOnly
-            />
+            <Input className="bg-muted" value={client} disabled readOnly />
           </Field>
           <Field>
             <Label className="text-sm font-medium">Referencia</Label>
-            <Input
-              className="w-full rounded-md border px-3 py-2 text-sm bg-muted"
-              value={form.watch('reference') ?? ''}
-              disabled
-              readOnly
-            />
+            <Input className="bg-muted" value={reference} disabled readOnly />
           </Field>
         </div>
+
         <div className="flex flex-col gap-2">
           <Field>
-            <Label className="text-sm font-medium">
-              {fileCategory === 'FAC_PAS' ? 'Nombre Archivo .pdf' : 'Nombre del Archivo'}
-            </Label>
+            <Label className="text-sm font-medium">Nombre Destino PDF</Label>
             <Input
-              className="w-full rounded-md border bg-muted px-3 py-2 font-mono text-sm text-foreground disabled:text-foreground disabled:opacity-100"
+              className="bg-muted font-mono text-xs"
               value={pdfTargetFilenameDisplay}
               disabled
               readOnly
-              title={pdfTargetFilenameDisplay}
             />
           </Field>
 
-          {fileCategory === 'FAC_PAS' && (
+          {fileCategory === MAN_VAL_CATEGORY && (
             <Field>
-              <Label className="text-sm font-medium">Nombre Archivo .xml</Label>
+              <Label className="text-sm font-medium">Nombre Destino Hoja de Cálculo</Label>
               <Input
-                className="w-full rounded-md border bg-muted px-3 py-2 font-mono text-sm text-foreground disabled:text-foreground disabled:opacity-100"
-                value={xmlTargetFilenameDisplay}
+                className="bg-muted font-mono text-xs"
+                value={hojaCalculoTargetFilenameDisplay}
                 disabled
                 readOnly
-                title={xmlTargetFilenameDisplay}
               />
             </Field>
           )}
 
-          <div className="w-58">
+          <div className="w-full">
             <Controller
               name="fileCategory"
               control={form.control}
@@ -378,11 +310,9 @@ export default function GestorUploadFiles() {
                   <MyGPCombo
                     options={fileCategoryOptions}
                     value={field.value ?? ''}
-                    setValue={(val) => {
-                      field.onChange(val); // only update RHF
-                    }}
-                    placeholder="Selecciona una categoría"
-                    label="Selecciona una categoría"
+                    setValue={field.onChange}
+                    label="Categoría de Archivo"
+                    disabled={disableCategorySelect}
                   />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
@@ -392,24 +322,36 @@ export default function GestorUploadFiles() {
 
           <FileController
             form={form}
-            fieldLabel="Selecciona un archivo .pdf"
+            fieldLabel={`${currentCategoryLabel} (.pdf)`}
             controllerName="pdf_file"
             accept="application/pdf"
-            buttonText="Selecciona un archivo .pdf"
+            buttonText="Adjuntar PDF"
           />
 
-          {fileCategory === 'FAC_PAS' && (
+          {fileCategory === MAN_VAL_CATEGORY && (
             <FileController
               form={form}
-              fieldLabel="Selecciona un archivo .xml"
+              fieldLabel="Hoja de Cálculo (.pdf)"
+              controllerName="hoja_calculo_pdf_file"
+              accept="application/pdf"
+              buttonText="Adjuntar PDF"
+            />
+          )}
+
+          {fileCategory === FAC_PAS_CATEGORY && (
+            <FileController
+              form={form}
+              fieldLabel="Archivo XML"
               controllerName="xml_file"
               accept="application/xml,text/xml"
-              buttonText="Selecciona un archivo .xml"
+              buttonText="Adjuntar XML"
             />
           )}
         </div>
-        <div>
-          <MyGPButtonSubmit isSubmitting={isSubmitting}>Subir archivo(s)</MyGPButtonSubmit>
+        <div className="flex justify-end">
+          <MyGPButtonSubmit isSubmitting={isSubmitting}>
+            <UploadIcon /> Subir archivo(s)
+          </MyGPButtonSubmit>
         </div>
       </FieldGroup>
     </form>
