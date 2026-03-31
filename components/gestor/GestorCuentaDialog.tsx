@@ -3,12 +3,12 @@
 import React from 'react';
 import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
 import { IconBallpenFilled } from '@tabler/icons-react';
-import { GestorCuenta } from '@/types/gestor/GestorCuenta';
-import { Row } from '@tanstack/react-table';
 import GestorUploadFiles from './GestorUploadFiles';
 import { MyGPButtonWarning } from '../MyGPUI/Buttons/MyGPButtonWarning';
+import { UploadIcon } from 'lucide-react';
+import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 
-export default function GestorCuentaDialog({ row }: { row: Row<GestorCuenta> }) {
+export default function GestorCuentaDialog() {
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
@@ -16,14 +16,16 @@ export default function GestorCuentaDialog({ row }: { row: Row<GestorCuenta> }) 
       <MyGPDialog
         open={isOpen}
         onOpenChange={setIsOpen}
+        title="Modificar"
+        description="Aquí podrás subir archivos al gestor para la referencia consultada."
         trigger={
-          <MyGPButtonWarning>
-            <IconBallpenFilled />
-            <span>Modificar</span>
-          </MyGPButtonWarning>
+          <MyGPButtonPrimary className="h-10">
+            <UploadIcon />
+            <span>Subir Archivo</span>
+          </MyGPButtonPrimary>
         }
       >
-        <GestorUploadFiles row={row} />
+        <GestorUploadFiles />
       </MyGPDialog>
     </div>
   );

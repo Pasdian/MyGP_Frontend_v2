@@ -1,4 +1,3 @@
-import GestorCuentaDialog from "@/components/gestor/GestorCuentaDialog";
 import { GestorCuenta } from "@/types/gestor/GestorCuenta";
 import { ColumnDef } from "@tanstack/react-table";
 
@@ -9,13 +8,6 @@ const Header = ({ label }: { label: string }) => (
 );
 
 export const gestorRefCuentaColumns: ColumnDef<GestorCuenta>[] = [
-  {
-    accessorKey: "Acciones",
-    header: () => <Header label="Acciones" />,
-    cell: ({ row }) => {
-      return <GestorCuentaDialog row={row} />
-    },
-  },
   {
     accessorKey: "Clave Concepto",
     header: () => <Header label="Clave Concepto" />,

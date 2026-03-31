@@ -1,6 +1,7 @@
 'use client';
 
 import { GestorRefCuentaDataTable } from '@/components/datatables/gestor/GestorRefCuentaDataTable';
+import GestorCuentaDialog from '@/components/gestor/GestorCuentaDialog';
 import { GestorSearchRef } from '@/components/gestor/GestorSearchRef';
 import { gestorRefCuentaColumns } from '@/lib/columns/gestorRefCuentaColumns';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,11 +25,14 @@ export function GestorContent() {
       {searchRefData.length > 0 && (
         <Card>
           <CardContent>
-            <p className="font-semibold text-2xl mb-4">Subir archivo(s) al Gestor</p>
-
-            {refCuenta && <GestorRefCuentaDataTable data={refCuenta} columns={gestorRefCuentaColumns} />}
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <p className="font-semibold text-2xl">Subir archivo(s) al Gestor</p>
+            </div>
+            <GestorCuentaDialog />
+            {refCuenta && (
+              <GestorRefCuentaDataTable data={refCuenta} columns={gestorRefCuentaColumns} />
+            )}
           </CardContent>
-
         </Card>
       )}
     </>

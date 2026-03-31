@@ -22,8 +22,61 @@ type ParsedCfdi = {
   uuid: string | null;
   total: string | null;
   fecha: string | null;
-  folio: string | null;
 };
+
+function normalizeXmlName(value: string | null | undefined): string {
+  return (value ?? '').split(':').pop()?.trim().toLowerCase() ?? '';
+}
+
+function getFirstElementByLocalName(doc: Document, localName: string): Element | null {
+  const expectedName = localName.trim().toLowerCase();
+
+  const namespacedMatch = doc.getElementsByTagNameNS('*', localName)[0];
+  if (namespacedMatch) {
+    return namespacedMatch;
+  }
+
+  if (normalizeXmlName(doc.documentElement?.localName) === expectedName) {
+    return doc.documentElement;
+  }
+
+  return (
+    Array.from(doc.getElementsByTagName('*')).find((element) => {
+      return (
+        normalizeXmlName(element.localName) === expectedName ||
+        normalizeXmlName(element.tagName) === expectedName ||
+        normalizeXmlName(element.nodeName) === expectedName
+      );
+    }) ?? null
+  );
+}
+
+function getAttributeCaseInsensitive(element: Element | null, attributeName: string): string | null {
+  if (!element) {
+    return null;
+  }
+
+  const directValue = element.getAttribute(attributeName);
+  if (directValue !== null) {
+    return directValue;
+  }
+
+  const expectedName = attributeName.trim().toLowerCase();
+  return (
+    Array.from(element.attributes).find((attribute) => attribute.name.trim().toLowerCase() === expectedName)
+      ?.value ?? null
+  );
+}
+
+function getTagAttributesFromXmlText(xmlText: string, tagName: string): string {
+  const tagPattern = new RegExp(`<(?:[\\w.-]+:)?${tagName}\\b([^>]*)>`, 'i');
+  return xmlText.match(tagPattern)?.[1] ?? '';
+}
+
+function getAttributeFromRawTag(rawAttributes: string, attributeName: string): string | null {
+  const attributePattern = new RegExp(`\\b${attributeName}\\s*=\\s*["']([^"']*)["']`, 'i');
+  return rawAttributes.match(attributePattern)?.[1] ?? null;
+}
 
 export function parseCfdiXml(xmlText: string): ParsedCfdi {
   const parser = new DOMParser();
@@ -33,19 +86,26 @@ export function parseCfdiXml(xmlText: string): ParsedCfdi {
   const parseError = doc.getElementsByTagName('parsererror')[0];
   if (parseError) throw new Error('XML inválido');
 
-  const comprobante = doc.getElementsByTagName('cfdi:Comprobante')[0];
-  const receptor = doc.getElementsByTagName('cfdi:Receptor')[0];
-  if (!receptor) throw new Error('No se encontró cfdi:Receptor');
+  const comprobante = getFirstElementByLocalName(doc, 'Comprobante');
+  const receptor = getFirstElementByLocalName(doc, 'Receptor');
+  const timbre = getFirstElementByLocalName(doc, 'TimbreFiscalDigital');
+  const rawComprobante = getTagAttributesFromXmlText(xmlText, 'Comprobante');
+  const rawReceptor = getTagAttributesFromXmlText(xmlText, 'Receptor');
+  const rawTimbre = getTagAttributesFromXmlText(xmlText, 'TimbreFiscalDigital');
 
-  const timbre = doc.getElementsByTagName('tfd:TimbreFiscalDigital')[0] ?? null;
+  const receptorRfc =
+    getAttributeCaseInsensitive(receptor, 'Rfc') ?? getAttributeFromRawTag(rawReceptor, 'Rfc') ?? '';
 
   return {
-    receptorRfc: receptor.getAttribute('Rfc') ?? '',
-    receptorNombre: receptor.getAttribute('Nombre') ?? '',
-    usoCfdi: receptor.getAttribute('UsoCFDI') ?? '',
-    uuid: timbre?.getAttribute('UUID') ?? null,
-    total: comprobante?.getAttribute('Total') ?? null,
-    fecha: comprobante?.getAttribute('Fecha') ?? null,
-    folio: comprobante?.getAttribute('Folio') ?? null,
+    receptorRfc,
+    receptorNombre:
+      getAttributeCaseInsensitive(receptor, 'Nombre') ?? getAttributeFromRawTag(rawReceptor, 'Nombre') ?? '',
+    usoCfdi:
+      getAttributeCaseInsensitive(receptor, 'UsoCFDI') ?? getAttributeFromRawTag(rawReceptor, 'UsoCFDI') ?? '',
+    uuid: getAttributeCaseInsensitive(timbre, 'UUID') ?? getAttributeFromRawTag(rawTimbre, 'UUID') ?? null,
+    total:
+      getAttributeCaseInsensitive(comprobante, 'Total') ?? getAttributeFromRawTag(rawComprobante, 'Total') ?? null,
+    fecha:
+      getAttributeCaseInsensitive(comprobante, 'Fecha') ?? getAttributeFromRawTag(rawComprobante, 'Fecha') ?? null,
   };
 }

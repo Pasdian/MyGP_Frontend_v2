@@ -12,15 +12,106 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { FileController } from '../expediente-digital-cliente/form-controllers/FileController';
-import { isValidRfc, isValidUuid, parseCfdiXml } from './rfcValidator';
 import { useGestor } from '@/contexts/Gestor/GestorContext';
-import { GestorCuenta } from '@/types/gestor/GestorCuenta';
-import { Row } from '@tanstack/react-table';
 import MyGPButtonSubmit from '../MyGPUI/Buttons/MyGPButtonSubmit';
 
 const PDF_MAX_SIZE = 25_000_000;
+const INVALID_FILENAME_SEGMENT_CHARACTERS = /[<>:"/\\|?*\u0000-\u001F]+/g;
 
-export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
+const getFileExtension = (file: File) => {
+  const filename = file.name || '';
+  const extension = filename.includes('.') ? filename.split('.').pop() : '';
+  return extension ? extension.toLowerCase() : '';
+};
+
+const getUtcDateStamp = () => new Date().toISOString().slice(0, 10).replaceAll('-', '');
+
+const normalizeFilenameSegment = (value: string) =>
+  value
+    .trim()
+    .toUpperCase()
+    .replace(INVALID_FILENAME_SEGMENT_CHARACTERS, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+const buildFrontendFilenameBase = ({
+  client,
+  reference,
+  fileCategory,
+  casaUsername,
+}: {
+  client: string;
+  reference: string;
+  fileCategory: string;
+  casaUsername: string;
+}) => {
+  const parts = [
+    normalizeFilenameSegment(client) || 'CLIENTE',
+    normalizeFilenameSegment(reference) || 'REFERENCIA',
+    normalizeFilenameSegment(fileCategory) || 'CATEGORIA',
+    getUtcDateStamp(),
+    normalizeFilenameSegment(casaUsername) || 'MYGP',
+  ];
+
+  return parts.join('_');
+};
+
+const buildFrontendFilename = ({
+  client,
+  reference,
+  fileCategory,
+  file,
+  casaUsername,
+}: {
+  client: string;
+  reference: string;
+  fileCategory: string;
+  file: File;
+  casaUsername: string;
+}) => {
+  const extension = getFileExtension(file) || 'bin';
+  const baseFilename = buildFrontendFilenameBase({
+    client,
+    reference,
+    fileCategory,
+    casaUsername,
+  });
+
+  return `${baseFilename}.${extension}`;
+};
+
+const buildFrontendFilenamePreview = ({
+  client,
+  reference,
+  fileCategory,
+  extension,
+  casaUsername,
+}: {
+  client: string;
+  reference: string;
+  fileCategory: string;
+  extension: string;
+  casaUsername: string;
+}) => {
+  const safeExtension = extension.trim() || 'bin';
+  const baseFilename = buildFrontendFilenameBase({
+    client,
+    reference,
+    fileCategory,
+    casaUsername,
+  });
+
+  return `${baseFilename}.${safeExtension}`;
+};
+
+const buildRenamedFile = (file: File, finalName: string) =>
+  new File([file], finalName, {
+    type: file.type,
+    lastModified: file.lastModified,
+  });
+
+export default function GestorUploadFiles() {
   const { searchRefData, fileCategories } = useGestor();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { getCasaUsername } = useAuth();
@@ -30,9 +121,7 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
       reference: z.string().min(1, 'Falta referencia'),
 
       client: z.string().min(1, 'Ingresa un cliente'),
-      client_rfc: z.string().min(1, 'Ingresa un RFC'),
       fileCategory: z.string().min(1, 'Selecciona una categoría'),
-      uuid_factura: z.string().min(1, 'Selecciona un UUID de factura'),
 
       pdf_file: z
         .union([z.instanceof(File, { message: 'Archivo inválido' }), z.undefined()])
@@ -94,7 +183,6 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       client: '',
-      client_rfc: '',
       reference: '',
       fileCategory: '',
       pdf_file: undefined,
@@ -102,14 +190,50 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
     },
     mode: 'onChange',
   });
+  const pdfFile = form.watch('pdf_file');
   const xmlFile = form.watch('xml_file');
-
   const fileCategory = form.watch('fileCategory');
+  const client = form.watch('client') ?? '';
+  const reference = form.watch('reference') ?? '';
+  const casaUsername = normalizeFilenameSegment(getCasaUsername() || 'MYGP') || 'MYGP';
+  const pdfTargetFilenameDisplay = React.useMemo(() => {
+    const previewClient = client || 'CLIENTE';
+    const previewReference = reference || 'REFERENCIA';
+    const previewCategory = fileCategory || 'CATEGORIA';
+    const previewCasaUsername = casaUsername || 'MYGP';
+    const previewPdfExtension = (pdfFile && getFileExtension(pdfFile)) || 'pdf';
+
+    return buildFrontendFilenamePreview({
+      client: previewClient,
+      reference: previewReference,
+      fileCategory: previewCategory,
+      extension: previewPdfExtension,
+      casaUsername: previewCasaUsername,
+    });
+  }, [client, reference, fileCategory, casaUsername, pdfFile]);
+
+  const xmlTargetFilenameDisplay = React.useMemo(() => {
+    if (fileCategory !== 'FAC_PAS') {
+      return '';
+    }
+
+    const previewClient = client || 'CLIENTE';
+    const previewReference = reference || 'REFERENCIA';
+    const previewCategory = fileCategory || 'CATEGORIA';
+    const previewCasaUsername = casaUsername || 'MYGP';
+    const previewXmlExtension = (xmlFile && getFileExtension(xmlFile)) || 'xml';
+
+    return buildFrontendFilenamePreview({
+      client: previewClient,
+      reference: previewReference,
+      fileCategory: previewCategory,
+      extension: previewXmlExtension,
+      casaUsername: previewCasaUsername,
+    });
+  }, [client, reference, fileCategory, casaUsername, xmlFile]);
 
   React.useEffect(() => {
     form.register('client');
-    form.register('client_rfc');
-    form.register('uuid_factura');
     form.register('reference');
   }, [form]);
 
@@ -119,8 +243,6 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
     const first = searchRefData[0];
 
     form.setValue('client', first.CVE_IMPO, { shouldValidate: true });
-    form.setValue('client_rfc', first.RFC_IMP, { shouldValidate: true });
-    form.setValue('uuid_factura', row.original['UUID Factura'] || '', { shouldValidate: true });
     form.setValue('reference', first.NUM_REFE, { shouldValidate: true });
   }, [searchRefData, form]);
 
@@ -129,69 +251,6 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
     form.setValue('xml_file', undefined, { shouldValidate: true, shouldDirty: true });
     form.clearErrors(['pdf_file', 'xml_file']);
   }, [fileCategory, form]);
-
-  React.useEffect(() => {
-    if (!xmlFile) return;
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        form.clearErrors('xml_file');
-
-        const xmlText = await xmlFile.text();
-        if (cancelled) return;
-
-        const parsed = parseCfdiXml(xmlText);
-
-        if (!parsed.receptorRfc) {
-          form.setError('xml_file', { type: 'custom', message: 'El XML no tiene Receptor@Rfc' });
-          return;
-        }
-
-        if (!isValidRfc(parsed.receptorRfc)) {
-          form.setError('xml_file', {
-            type: 'custom',
-            message: `RFC inválido en Receptor: ${parsed.receptorRfc}`,
-          });
-          return;
-        }
-
-        if (!parsed.uuid) {
-          form.setError('xml_file', {
-            type: 'custom',
-            message: 'El XML no tiene TimbreFiscalDigital@UUID',
-          });
-          return;
-        }
-
-        if (!isValidUuid(parsed.uuid)) {
-          form.setError('xml_file', { type: 'custom', message: `UUID inválido: ${parsed.uuid}` });
-          return;
-        }
-
-        const clientRfc = (form.getValues('client_rfc') ?? '').trim().toUpperCase();
-        if (clientRfc && parsed.receptorRfc.trim().toUpperCase() !== clientRfc) {
-          form.setError('xml_file', {
-            type: 'custom',
-            message: `El RFC del Receptor (${parsed.receptorRfc}) no coincide con el cliente (${clientRfc})`,
-          });
-          return;
-        }
-
-        form.clearErrors('xml_file');
-      } catch (e: any) {
-        form.setError('xml_file', {
-          type: 'custom',
-          message: e?.message ?? 'No se pudo leer el XML',
-        });
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [xmlFile]);
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     if (!data.pdf_file) {
@@ -203,31 +262,56 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
       setIsSubmitting(true);
 
       const uploadedBy = getCasaUsername() || 'MYGP';
-
-      const base = new FormData();
-      base.append('fileCategory', data.fileCategory);
-      base.append('client', data.client);
-      base.append('reference', data.reference);
-      base.append('uploaded_by', uploadedBy);
-      base.append('client_rfc', data.client_rfc);
-      base.append('xml_uuid', data.uuid_factura);
-      base.append('suffix', row.original.Sufijo || '');
+      const renamedPdfFile = buildRenamedFile(
+        data.pdf_file,
+        buildFrontendFilename({
+          client: data.client,
+          reference: data.reference,
+          fileCategory: data.fileCategory,
+          file: data.pdf_file,
+          casaUsername: uploadedBy,
+        })
+      );
+      const renamedXmlFile = data.xml_file
+        ? buildRenamedFile(
+            data.xml_file,
+            buildFrontendFilename({
+              client: data.client,
+              reference: data.reference,
+              fileCategory: data.fileCategory,
+              file: data.xml_file,
+              casaUsername: uploadedBy,
+            })
+          )
+        : null;
 
       const fd = new FormData();
-      for (const [k, v] of base.entries()) fd.append(k, v as any);
-      fd.append('upload_files', data.pdf_file);
-      if (data.xml_file) fd.append('upload_files', data.xml_file);
+      fd.append('fileCategory', data.fileCategory);
+      fd.append('client', data.client);
+      fd.append('reference', data.reference);
+      fd.append('uploaded_by', uploadedBy);
+      fd.append('upload_files', renamedPdfFile);
+      if (renamedXmlFile) fd.append('upload_files', renamedXmlFile);
 
       const uploadRes = await GPClient.post('/pyapi/gestor/uploads', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success('Listo');
+      toast.success('Archivo(s) subido(s) exitosamente');
       console.log('UPLOAD RESPONSE:', uploadRes.data);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosLikeError = error as {
+        response?: {
+          data?: {
+            detail?: string;
+            message?: string;
+          };
+        };
+      };
+
       toast.error(
-        error?.response?.data?.detail ??
-          error?.response?.data?.message ??
+        axiosLikeError?.response?.data?.detail ??
+          axiosLikeError?.response?.data?.message ??
           'Error al subir el archivo al gestor'
       );
     } finally {
@@ -249,15 +333,6 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
             />
           </Field>
           <Field>
-            <Label className="text-sm font-medium">RFC</Label>
-            <Input
-              className="w-full rounded-md border px-3 py-2 text-sm bg-muted"
-              value={form.watch('client_rfc') ?? ''}
-              disabled
-              readOnly
-            />
-          </Field>
-          <Field>
             <Label className="text-sm font-medium">Referencia</Label>
             <Input
               className="w-full rounded-md border px-3 py-2 text-sm bg-muted"
@@ -266,26 +341,34 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
               readOnly
             />
           </Field>
-          <Field>
-            <Label className="text-sm font-medium">UUID Factura</Label>
-            <Input
-              className="w-full rounded-md border px-3 py-2 text-sm bg-muted"
-              value={form.watch('uuid_factura') ?? ''}
-              disabled
-              readOnly
-            />
-          </Field>
-          <Field>
-            <Label className="text-sm font-medium">Sufijo</Label>
-            <Input
-              className="w-full rounded-md border px-3 py-2 text-sm bg-muted"
-              value={row.original.Sufijo || ''}
-              disabled
-              readOnly
-            />
-          </Field>
         </div>
         <div className="flex flex-col gap-2">
+          <Field>
+            <Label className="text-sm font-medium">
+              {fileCategory === 'FAC_PAS' ? 'Nombre Archivo .pdf' : 'Nombre del Archivo'}
+            </Label>
+            <Input
+              className="w-full rounded-md border bg-muted px-3 py-2 font-mono text-sm text-foreground disabled:text-foreground disabled:opacity-100"
+              value={pdfTargetFilenameDisplay}
+              disabled
+              readOnly
+              title={pdfTargetFilenameDisplay}
+            />
+          </Field>
+
+          {fileCategory === 'FAC_PAS' && (
+            <Field>
+              <Label className="text-sm font-medium">Nombre Archivo .xml</Label>
+              <Input
+                className="w-full rounded-md border bg-muted px-3 py-2 font-mono text-sm text-foreground disabled:text-foreground disabled:opacity-100"
+                value={xmlTargetFilenameDisplay}
+                disabled
+                readOnly
+                title={xmlTargetFilenameDisplay}
+              />
+            </Field>
+          )}
+
           <div className="w-58">
             <Controller
               name="fileCategory"
@@ -326,7 +409,7 @@ export default function GestorUploadFiles({ row }: { row: Row<GestorCuenta> }) {
           )}
         </div>
         <div>
-          <MyGPButtonSubmit isSubmitting={isSubmitting}>Guardar Cambios</MyGPButtonSubmit>
+          <MyGPButtonSubmit isSubmitting={isSubmitting}>Subir archivo(s)</MyGPButtonSubmit>
         </div>
       </FieldGroup>
     </form>
