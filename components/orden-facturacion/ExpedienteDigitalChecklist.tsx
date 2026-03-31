@@ -35,7 +35,7 @@ const GESTOR_CATEGORY_BY_CHECKLIST_ITEM: Partial<
 };
 
 export function ExpedienteDigitalChecklist() {
-  const { referencePayload, isLoading, refreshReference } = useOrdenFacturacion();
+  const { referencePayload, isLoading, isReferenceSent, refreshReference } = useOrdenFacturacion();
 
   if (isLoading || !referencePayload) return null;
 
@@ -77,7 +77,11 @@ export function ExpedienteDigitalChecklist() {
               return (
                 <TableRow key={key}>
                   <TableCell className="text-left">
-                    {gestorClient && gestorReference && defaultFileCategory ? (
+                    {gestorClient &&
+                    gestorReference &&
+                    defaultFileCategory &&
+                    !found &&
+                    !isReferenceSent ? (
                       <GestorUploadFileDialog
                         client={gestorClient}
                         reference={gestorReference}

@@ -173,14 +173,21 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
     return typeof status === 'string' && status.trim().toUpperCase() === 'ENVIADA';
   }, [referencePayload?.REFERENCIA_GUARDADA?.STATUS]);
 
-  useEffect(() => {
-    const savedReference = referencePayload?.REFERENCIA_GUARDADA;
+  const savedReference = referencePayload?.REFERENCIA_GUARDADA;
+  const loadedReference = referencePayload?.PROVISION?.[0]?.NUM_REFE ?? savedReference?.REFERENCIA;
 
+  useEffect(() => {
     setAnticipos(savedReference?.ANTICIPOS || '');
     setFinanciamiento(savedReference?.FINANCIAMIENTO || '');
     setWasGastosConfirmed(savedReference?.WAS_GASTOS_CONFIRMED === 1);
     setWasGastosAmericanaConfirmed(savedReference?.WAS_GASTOS_AMERICANA_CONFIRMED === 1);
-  }, [referencePayload]);
+  }, [
+    loadedReference,
+    savedReference?.ANTICIPOS,
+    savedReference?.FINANCIAMIENTO,
+    savedReference?.WAS_GASTOS_CONFIRMED,
+    savedReference?.WAS_GASTOS_AMERICANA_CONFIRMED,
+  ]);
 
   const value = useMemo(
     () => ({

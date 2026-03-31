@@ -69,12 +69,12 @@ function GuardarReferenciaSection() {
   const [submitMode, setSubmitMode] = React.useState<'save' | 'send' | null>(null);
   const [observaciones, setObservaciones] = React.useState('');
   const isDev = process.env.NODE_ENV === 'development';
+  const savedReference = referencePayload?.REFERENCIA_GUARDADA;
+  const loadedReference = referencePayload?.PROVISION?.[0]?.NUM_REFE ?? savedReference?.REFERENCIA;
 
   React.useEffect(() => {
-    const savedReference = referencePayload?.REFERENCIA_GUARDADA;
-
     setObservaciones(savedReference?.OBSERVACIONES || '');
-  }, [referencePayload]);
+  }, [loadedReference, savedReference?.OBSERVACIONES]);
 
   if (isLoading) return null;
 
