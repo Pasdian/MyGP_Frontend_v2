@@ -35,7 +35,7 @@ const GESTOR_CATEGORY_BY_CHECKLIST_ITEM: Partial<
 };
 
 export function ExpedienteDigitalChecklist() {
-  const { referencePayload, isLoading } = useOrdenFacturacion();
+  const { referencePayload, isLoading, refreshReference } = useOrdenFacturacion();
 
   if (isLoading || !referencePayload) return null;
 
@@ -43,6 +43,20 @@ export function ExpedienteDigitalChecklist() {
   const provision = referencePayload.PROVISION?.[0];
   const gestorClient = provision?.CVE_IMPO || referencePayload.CVE_IMP || '';
   const gestorReference = provision?.NUM_REFE || '';
+
+  const handleUploadSuccess = () => {
+    void refreshReference();
+
+    if (typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        void refreshReference();
+      }, 1200);
+
+      window.setTimeout(() => {
+        void refreshReference();
+      }, 3000);
+    }
+  };
 
   return (
     <OrdenFacturacionCard title="Expediente Digital">
@@ -71,6 +85,7 @@ export function ExpedienteDigitalChecklist() {
                         triggerLabel="Subir Archivo"
                         triggerClassName="h-8 px-3"
                         disableCategorySelect={true}
+                        onUploadSuccess={handleUploadSuccess}
                       />
                     ) : null}
                   </TableCell>

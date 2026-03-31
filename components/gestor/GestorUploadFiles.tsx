@@ -14,7 +14,6 @@ import { Input } from '../ui/input';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { FileController } from '../expediente-digital-cliente/form-controllers/FileController';
 import MyGPButtonSubmit from '../MyGPUI/Buttons/MyGPButtonSubmit';
-import UploadFile from '../UploadFiles/UploadFile';
 import { UploadIcon } from 'lucide-react';
 
 const PDF_MAX_SIZE = 25_000_000;
@@ -23,6 +22,11 @@ const MAN_VAL_CATEGORY = 'MAN_VAL';
 const HOJ_CAL_CATEGORY = 'HOJ_CAL'; // Added constant for clarity
 const FAC_PAS_CATEGORY = 'FAC_PAS';
 const HIDDEN_FILE_CATEGORIES = new Set([HOJ_CAL_CATEGORY]);
+
+type FileCategoryOption = {
+  value: string;
+  key: string;
+};
 
 const getFileExtension = (file: File) => {
   const filename = file.name || '';
@@ -103,6 +107,7 @@ type GestorUploadFilesProps = {
   reference: string;
   defaultFileCategory?: string;
   disableCategorySelect?: boolean;
+  onUploadSuccess?: () => void | Promise<void>;
 };
 
 export default function GestorUploadFiles({
@@ -110,6 +115,7 @@ export default function GestorUploadFiles({
   reference: initialReference,
   defaultFileCategory = '',
   disableCategorySelect = false, // Default to false
+  onUploadSuccess,
 }: GestorUploadFilesProps) {
   const { data: fileCategories } = useSWR('/pyapi/gestor/fileCategories', axiosFetcher);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -158,15 +164,14 @@ export default function GestorUploadFiles({
     },
   });
 
-  const { pdf_file, xml_file, hoja_calculo_pdf_file, fileCategory, client, reference } =
-    form.watch();
+  const { pdf_file, hoja_calculo_pdf_file, fileCategory, client, reference } = form.watch();
   const casaUsername = normalizeFilenameSegment(getCasaUsername() || 'MYGP');
 
   const fileCategoryOptions = React.useMemo(() => {
     if (!fileCategories) return [];
-    return fileCategories
-      .filter((item: any) => !HIDDEN_FILE_CATEGORIES.has(item.value))
-      .map((item: any) => ({ value: item.value, label: item.key }));
+    return (fileCategories as FileCategoryOption[])
+      .filter((item) => !HIDDEN_FILE_CATEGORIES.has(item.value))
+      .map((item) => ({ value: item.value, label: item.key }));
   }, [fileCategories]);
 
   // --- Filename Previews ---
@@ -256,9 +261,19 @@ export default function GestorUploadFiles({
       await GPClient.post('/pyapi/gestor/uploads', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
+      await onUploadSuccess?.();
       toast.success('Archivos subidos correctamente');
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail ?? 'Error al subir');
+    } catch (error: unknown) {
+      const axiosLikeError = error as {
+        response?: {
+          data?: {
+            detail?: string;
+          };
+        };
+      };
+
+      toast.error(axiosLikeError?.response?.data?.detail ?? 'Error al subir');
     } finally {
       setIsSubmitting(false);
     }

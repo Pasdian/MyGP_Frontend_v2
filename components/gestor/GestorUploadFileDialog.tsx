@@ -13,6 +13,7 @@ type GestorUploadFileDialogProps = {
   triggerLabel?: string;
   triggerClassName?: string;
   disableCategorySelect?: boolean;
+  onUploadSuccess?: () => void | Promise<void>;
 };
 
 export default function GestorUploadFileDialog({
@@ -22,8 +23,14 @@ export default function GestorUploadFileDialog({
   triggerLabel = 'Subir Archivo',
   triggerClassName = 'h-10',
   disableCategorySelect = false, // Default to false
+  onUploadSuccess,
 }: GestorUploadFileDialogProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleUploadSuccess = React.useCallback(async () => {
+    await onUploadSuccess?.();
+    setIsOpen(false);
+  }, [onUploadSuccess]);
 
   return (
     <div>
@@ -44,6 +51,7 @@ export default function GestorUploadFileDialog({
           reference={reference}
           defaultFileCategory={defaultFileCategory}
           disableCategorySelect={disableCategorySelect}
+          onUploadSuccess={handleUploadSuccess}
         />
       </MyGPDialog>
     </div>
