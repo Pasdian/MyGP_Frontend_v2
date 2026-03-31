@@ -35,48 +35,31 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import { X } from 'lucide-react';
 import { EditarSolicitudDiariaDialog } from './EditarSolicitudDiariaDialog';
-import type { SolicitudDiariaRow } from './types';
+import type {
+  SolicitudDiariaColumnSearchKey,
+  SolicitudDiariaColumnSearches,
+  SolicitudDiariaReportContext,
+  SolicitudDiariaRow,
+  SolicitudDiariaSelectFilters,
+} from './types';
 import { useAuth } from '@/hooks/useAuth';
 import { PERM } from '@/lib/modules/permissions';
 
-export type { SolicitudDiariaRow } from './types';
-
-type ColumnSearchKey =
-  | 'CLIENT'
-  | 'TIPO_REFERENCIA'
-  | 'TIPO_PAGO'
-  | 'TIPO'
-  | 'CONCEPTO'
-  | 'NUMERO_REFERENCIA'
-  | 'INGRESO_ESTIMADO'
-  | 'INGRESO_REAL'
-  | 'DIFERENCIA'
-  | 'HAS_ANTICIPO'
-  | 'OBSERVACIONES'
-  | 'CREATED_BY'
-  | 'CREATED_AT'
-  | 'UPDATED_AT';
-
-type SelectFilterState = {
-  tipoReferencia: string;
-  tipoPago: string;
-  tipo: string;
-  concepto: string;
-};
+export type { SolicitudDiariaReportContext, SolicitudDiariaRow } from './types';
 
 const currencyFormatter = new Intl.NumberFormat('es-MX', {
   style: 'currency',
   currency: 'MXN',
 });
 
-const initialSelectFilters: SelectFilterState = {
+const initialSelectFilters: SolicitudDiariaSelectFilters = {
   tipoReferencia: 'ALL',
   tipoPago: 'ALL',
   tipo: 'ALL',
   concepto: 'ALL',
 };
 
-const initialColumnSearches: Record<ColumnSearchKey, string> = {
+const initialColumnSearches: SolicitudDiariaColumnSearches = {
   CLIENT: '',
   TIPO_REFERENCIA: '',
   TIPO_PAGO: '',
@@ -93,7 +76,7 @@ const initialColumnSearches: Record<ColumnSearchKey, string> = {
   UPDATED_AT: '',
 };
 
-const getColumnSearchValue = (row: SolicitudDiariaRow, columnId: ColumnSearchKey) => {
+const getColumnSearchValue = (row: SolicitudDiariaRow, columnId: SolicitudDiariaColumnSearchKey) => {
   switch (columnId) {
     case 'CLIENT':
       return row.CLIENT ?? '';
@@ -153,7 +136,15 @@ const getTodayDateRange = (): DateRange => {
   };
 };
 
-const matchesSelectFilters = (row: SolicitudDiariaRow, filters: SelectFilterState) => {
+const formatDateParam = (value: Date) => {
+  const year = value.getFullYear();
+  const month = `${value.getMonth() + 1}`.padStart(2, '0');
+  const day = `${value.getDate()}`.padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+const matchesSelectFilters = (row: SolicitudDiariaRow, filters: SolicitudDiariaSelectFilters) => {
   if (filters.tipoReferencia !== 'ALL' && row.TIPO_REFERENCIA !== filters.tipoReferencia) {
     return false;
   }
@@ -175,7 +166,7 @@ const matchesSelectFilters = (row: SolicitudDiariaRow, filters: SelectFilterStat
 
 const matchesColumnSearches = (
   row: SolicitudDiariaRow,
-  searches: Record<ColumnSearchKey, string>
+  searches: SolicitudDiariaColumnSearches
 ) => {
   return Object.entries(searches).every(([columnId, rawQuery]) => {
     const query = rawQuery.trim().toLowerCase();
@@ -184,7 +175,7 @@ const matchesColumnSearches = (
       return true;
     }
 
-    return getColumnSearchValue(row, columnId as ColumnSearchKey)
+    return getColumnSearchValue(row, columnId as SolicitudDiariaColumnSearchKey)
       .toLowerCase()
       .includes(query);
   });
@@ -325,18 +316,21 @@ type SolicitudesDiariasDataTableProps = {
   data: SolicitudDiariaRow[];
   createdAtRange: DateRange | undefined;
   setCreatedAtRange: (value: DateRange | undefined) => void;
+  onReportContextChange?: (value: SolicitudDiariaReportContext) => void;
 };
 
 export function SolicitudesDiariasDataTable({
   data,
   createdAtRange,
   setCreatedAtRange,
+  onReportContextChange,
 }: SolicitudesDiariasDataTableProps) {
   const { getCasaUsername, hasPermission } = useAuth();
-  const [selectFilters, setSelectFilters] = React.useState<SelectFilterState>(initialSelectFilters);
+  const [selectFilters, setSelectFilters] =
+    React.useState<SolicitudDiariaSelectFilters>(initialSelectFilters);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [columnSearches, setColumnSearches] =
-    React.useState<Record<ColumnSearchKey, string>>(initialColumnSearches);
+    React.useState<SolicitudDiariaColumnSearches>(initialColumnSearches);
   const canEditAllSolicitudes = hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN);
   const casaUsername = getCasaUsername().trim().toUpperCase();
   const columns = React.useMemo(() => [actionColumn, ...dataColumns], []);
@@ -351,14 +345,14 @@ export function SolicitudesDiariasDataTable({
     );
   }, [canEditAllSolicitudes, casaUsername, columnSearches, data, selectFilters]);
 
-  const setSelectFilter = (key: keyof SelectFilterState, value: string) => {
+  const setSelectFilter = (key: keyof SolicitudDiariaSelectFilters, value: string) => {
     setSelectFilters((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const setColumnSearch = (key: ColumnSearchKey, value: string) => {
+  const setColumnSearch = (key: SolicitudDiariaColumnSearchKey, value: string) => {
     setColumnSearches((prev) => ({
       ...prev,
       [key]: value,
@@ -400,6 +394,34 @@ export function SolicitudesDiariasDataTable({
       pageIndex: 0,
     }));
   }, [selectFilters, createdAtRange, columnSearches]);
+
+  React.useEffect(() => {
+    if (!onReportContextChange) {
+      return;
+    }
+
+    const effectiveDateRange = createdAtRange ?? todayDateRange;
+    const fallbackDate = todayDateRange.from ?? new Date();
+    const from = effectiveDateRange.from ?? fallbackDate;
+    const to = effectiveDateRange.to ?? from;
+
+    onReportContextChange({
+      rows: filteredData,
+      filters: {
+        createdAtFrom: formatDateParam(from),
+        createdAtTo: formatDateParam(to),
+        selectFilters,
+        columnSearches,
+      },
+    });
+  }, [
+    columnSearches,
+    createdAtRange,
+    filteredData,
+    onReportContextChange,
+    selectFilters,
+    todayDateRange,
+  ]);
 
   return (
     <Card className="w-full min-w-0 overflow-hidden">
@@ -525,7 +547,7 @@ export function SolicitudesDiariasDataTable({
                 const meta = column.columnDef.meta as
                   | { label?: string; searchable?: boolean }
                   | undefined;
-                const columnId = column.id as ColumnSearchKey;
+                const columnId = column.id as SolicitudDiariaColumnSearchKey;
 
                 if (meta?.searchable === false) {
                   return <TableHead key={`${column.id}-search`} className="h-auto align-top" />;

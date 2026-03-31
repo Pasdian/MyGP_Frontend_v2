@@ -17,3 +17,38 @@ export type SolicitudDiariaRow = {
   CREATED_AT_FMT?: string | null;
   UPDATED_AT_FMT?: string | null;
 };
+
+export type SolicitudDiariaColumnSearchKey =
+  | 'CLIENT'
+  | 'TIPO_REFERENCIA'
+  | 'TIPO_PAGO'
+  | 'TIPO'
+  | 'CONCEPTO'
+  | 'NUMERO_REFERENCIA'
+  | 'INGRESO_ESTIMADO'
+  | 'INGRESO_REAL'
+  | 'DIFERENCIA'
+  | 'HAS_ANTICIPO'
+  | 'OBSERVACIONES'
+  | 'CREATED_BY'
+  | 'CREATED_AT'
+  | 'UPDATED_AT';
+
+export type SolicitudDiariaColumnSearches = Record<SolicitudDiariaColumnSearchKey, string>;
+
+export type SolicitudDiariaSelectFilters = {
+  tipoReferencia: string;
+  tipoPago: string;
+  tipo: string;
+  concepto: string;
+};
+
+export type SolicitudDiariaReportContext = {
+  rows: SolicitudDiariaRow[];
+  filters: {
+    createdAtFrom: string;
+    createdAtTo: string;
+    selectFilters: SolicitudDiariaSelectFilters;
+    columnSearches: SolicitudDiariaColumnSearches;
+  };
+};

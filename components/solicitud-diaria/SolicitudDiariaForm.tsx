@@ -59,6 +59,8 @@ export const getSolicitudDiariaErrorMessage = (error: unknown, fallback: string)
   );
 };
 
+const normalizeSolicitudDiariaText = (value: string) => value.trim();
+
 export const buildSolicitudDiariaBasePayload = (values: SolicitudDiariaFormValues) => ({
   client: values.client,
   tipoReferencia: values.tipoReferencia,
@@ -67,7 +69,7 @@ export const buildSolicitudDiariaBasePayload = (values: SolicitudDiariaFormValue
   concepto: values.concepto,
   numeroReferencia: values.numeroReferencia,
   ingresoEstimado: Number(values.ingresoEstimado),
-  observaciones: values.observaciones.trim() || null,
+  observaciones: normalizeSolicitudDiariaText(values.observaciones),
 });
 
 export const buildSolicitudDiariaUpdatePayload = (values: SolicitudDiariaFormValues) => ({
