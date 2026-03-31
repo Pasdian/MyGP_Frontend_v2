@@ -13,6 +13,8 @@ type GenerarSolicitudDiariaReporteButtonProps = {
   reportContext: SolicitudDiariaReportContext | null;
   fallbackRows: SolicitudDiariaRow[];
   createdAtRange: DateRange | undefined;
+  saldoBancario: number | null;
+  disabledReason?: string;
   disabled?: boolean;
 };
 
@@ -127,6 +129,8 @@ export function GenerarSolicitudDiariaReporteButton({
   reportContext,
   fallbackRows,
   createdAtRange,
+  saldoBancario,
+  disabledReason,
   disabled = false,
 }: GenerarSolicitudDiariaReporteButtonProps) {
   const { getCasaUsername } = useAuth();
@@ -140,6 +144,11 @@ export function GenerarSolicitudDiariaReporteButton({
   const handleDownload = async () => {
     const fallbackFilename = `solicitud_diaria_${effectiveReportContext.filters.createdAtFrom}_a_${effectiveReportContext.filters.createdAtTo}.pdf`;
 
+    if (saldoBancario === null) {
+      toast.error(disabledReason || 'Guarda el saldo bancario para generar el reporte');
+      return;
+    }
+
     try {
       setIsDownloading(true);
 
@@ -148,6 +157,7 @@ export function GenerarSolicitudDiariaReporteButton({
         {
           rows: effectiveReportContext.rows,
           filters: effectiveReportContext.filters,
+          saldoBancario,
           requestedBy: getCasaUsername()?.trim().toUpperCase() || 'MYGP',
           generatedAt: new Date().toISOString(),
         },
@@ -189,10 +199,11 @@ export function GenerarSolicitudDiariaReporteButton({
       variant="outline"
       onClick={handleDownload}
       disabled={disabled || isDownloading}
-      className="w-full justify-center border-slate-300 bg-white text-slate-800 shadow-sm transition-colors hover:bg-slate-50 cursor-pointer"
+      title={disabled ? disabledReason : undefined}
+      className="h-11 w-full justify-center border-slate-300 bg-white text-slate-800 shadow-sm transition-colors hover:bg-slate-50 cursor-pointer"
     >
       {isDownloading ? <Loader2 className="animate-spin" /> : <FileDown />}
-      <span>Generar Reporte</span>
+      <span className="font-semibold tracking-wide">Generar Reporte</span>
     </Button>
   );
 }
