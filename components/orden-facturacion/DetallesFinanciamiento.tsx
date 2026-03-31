@@ -46,6 +46,7 @@ export function DetallesFinanciamiento() {
   const {
     anticipos,
     financiamiento,
+    isReferenceSent,
     reference,
     referencePayload,
     isLoading,
@@ -65,6 +66,7 @@ export function DetallesFinanciamiento() {
           options={anticiposOptions}
           value={anticipos}
           onValueChange={setAnticipos}
+          disabled={isReferenceSent}
         />
       </div>
       <DetallesFinanciamientoSelect
@@ -72,6 +74,7 @@ export function DetallesFinanciamiento() {
         options={financiamientoOptions}
         value={financiamiento}
         onValueChange={setFinanciamiento}
+        disabled={isReferenceSent}
       />
     </OrdenFacturacionCard>
   );
@@ -82,16 +85,18 @@ function DetallesFinanciamientoSelect({
   onValueChange,
   options,
   value,
+  disabled = false,
 }: {
   label: string;
   onValueChange: (value: string) => void;
   options: { value: string; label: string }[];
   value: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-[100px_1fr]">
       <Label>{label} </Label>
-      <Select onValueChange={onValueChange} value={value}>
+      <Select onValueChange={onValueChange} value={value} disabled={disabled}>
         <SelectTrigger className="w-full sm:w-64">
           <SelectValue placeholder="Selecciona una opción" />
         </SelectTrigger>

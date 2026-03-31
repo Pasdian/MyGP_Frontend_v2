@@ -22,7 +22,7 @@ function formatValue(value: number | null | undefined) {
 }
 
 export function InstruccionesAdicionales() {
-  const { reference, referencePayload, isLoading } = useOrdenFacturacion();
+  const { reference, referencePayload, isLoading, isReferenceSent } = useOrdenFacturacion();
 
   if (isLoading) return null;
   if (!reference || !referencePayload) return null;
@@ -31,9 +31,11 @@ export function InstruccionesAdicionales() {
 
   return (
     <OrdenFacturacionCard title="Instrucciones Adicionales">
-      <div className="mb-4 flex gap-2">
-        <AgregarInstruccionAdicional />
-      </div>
+      {!isReferenceSent ? (
+        <div className="mb-4 flex gap-2">
+          <AgregarInstruccionAdicional />
+        </div>
+      ) : null}
 
       <div className="overflow-x-auto">
         <Table>
@@ -65,7 +67,7 @@ export function InstruccionesAdicionales() {
                   <TableCell>{instruccion.CREATED_AT_FMT || '--'}</TableCell>
                   <TableCell>{instruccion.UPDATED_AT_FMT || '--'}</TableCell>
                   <TableCell className="text-center">
-                    {instruccion.UUID ? (
+                    {instruccion.UUID && !isReferenceSent ? (
                       <div className="flex justify-center">
                         <ModificarInstruccionAdicional item={instruccion} />
                       </div>

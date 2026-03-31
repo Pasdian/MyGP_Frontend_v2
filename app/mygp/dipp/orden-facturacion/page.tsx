@@ -57,6 +57,7 @@ function GuardarReferenciaSection() {
   const {
     anticipos,
     financiamiento,
+    isReferenceSent,
     reference,
     referencePayload,
     isLoading,
@@ -160,48 +161,51 @@ function GuardarReferenciaSection() {
             placeholder="Agrega observaciones"
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
+            readOnly={isReferenceSent}
           />
         </div>
-        <div className="flex flex-wrap gap-8">
-          <MyGPButtonSubmit
-            isSubmitting={submitMode === 'save'}
-            isSubmittingText="Guardando..."
-            disabled={submitMode !== null}
-            onClick={() => onSubmit('save')}
-          >
-            <SaveAllIcon /> Guardar Referencia
-          </MyGPButtonSubmit>
-          {!sendDisabledReason ? (
+        {!isReferenceSent ? (
+          <div className="flex flex-wrap gap-8">
             <MyGPButtonSubmit
-              isSubmitting={submitMode === 'send'}
-              isSubmittingText="Enviando..."
+              isSubmitting={submitMode === 'save'}
+              isSubmittingText="Guardando..."
               disabled={submitMode !== null}
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => onSubmit('send')}
+              onClick={() => onSubmit('save')}
             >
-              <SendIcon /> Enviar Referencia
+              <SaveAllIcon /> Guardar Referencia
             </MyGPButtonSubmit>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex">
-                  <MyGPButtonSubmit
-                    isSubmitting={submitMode === 'send'}
-                    isSubmittingText="Enviando..."
-                    disabled={true}
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => onSubmit('send')}
-                  >
-                    <SendIcon /> Enviar Referencia
-                  </MyGPButtonSubmit>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                {sendDisabledReason}
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+            {!sendDisabledReason ? (
+              <MyGPButtonSubmit
+                isSubmitting={submitMode === 'send'}
+                isSubmittingText="Enviando..."
+                disabled={submitMode !== null}
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => onSubmit('send')}
+              >
+                <SendIcon /> Enviar Referencia
+              </MyGPButtonSubmit>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <MyGPButtonSubmit
+                      isSubmitting={submitMode === 'send'}
+                      isSubmittingText="Enviando..."
+                      disabled={true}
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => onSubmit('send')}
+                    >
+                      <SendIcon /> Enviar Referencia
+                    </MyGPButtonSubmit>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {sendDisabledReason}
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        ) : null}
       </div>
     </OrdenFacturacionCard>
   );

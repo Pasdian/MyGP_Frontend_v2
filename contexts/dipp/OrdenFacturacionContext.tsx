@@ -132,6 +132,7 @@ type OrdenFacturacionContextType = {
   reference: string;
   setReference: React.Dispatch<React.SetStateAction<string>>;
   referencePayload: DippReferenceData | null;
+  isReferenceSent: boolean;
   anticipos: string;
   setAnticipos: React.Dispatch<React.SetStateAction<string>>;
   financiamiento: string;
@@ -167,6 +168,11 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
     return data;
   }, [data]);
 
+  const isReferenceSent = useMemo(() => {
+    const status = referencePayload?.REFERENCIA_GUARDADA?.STATUS;
+    return typeof status === 'string' && status.trim().toUpperCase() === 'ENVIADA';
+  }, [referencePayload?.REFERENCIA_GUARDADA?.STATUS]);
+
   useEffect(() => {
     const savedReference = referencePayload?.REFERENCIA_GUARDADA;
 
@@ -181,6 +187,7 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
       reference,
       setReference,
       referencePayload,
+      isReferenceSent,
       anticipos,
       setAnticipos,
       financiamiento,
@@ -199,6 +206,7 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
       error,
       financiamiento,
       isLoading,
+      isReferenceSent,
       mutate,
       reference,
       referencePayload,

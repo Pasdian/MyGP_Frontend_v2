@@ -44,7 +44,7 @@ const errorClass = (hasError: boolean) => (hasError ? 'border-red-500' : '');
 
 export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolean }) {
   const { getCasaUsername } = useAuth();
-  const { reference, referencePayload } = useOrdenFacturacion();
+  const { isReferenceSent, reference, referencePayload } = useOrdenFacturacion();
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -171,6 +171,8 @@ export function AgregarProvision({ isAmericana = false }: { isAmericana?: boolea
       setIsSubmitting(false);
     }
   };
+
+  if (isReferenceSent) return null;
 
   return (
     <MyGPDialog

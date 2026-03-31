@@ -55,7 +55,7 @@ const errorClass = (hasError: boolean) => (hasError ? 'border-red-500' : '');
 
 export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean }) {
   const { getUserEmail, getUserFullName } = useAuth();
-  const { reference, referencePayload, swrKey } = useOrdenFacturacion();
+  const { isReferenceSent, reference, referencePayload, swrKey } = useOrdenFacturacion();
   const { mutate } = useSWR(swrKey, axiosFetcher);
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -175,6 +175,8 @@ export function AgregarGasto({ isAmericana = false }: { isAmericana?: boolean })
       setIsSubmitting(false);
     }
   };
+
+  if (isReferenceSent) return null;
 
   return (
     <MyGPDialog

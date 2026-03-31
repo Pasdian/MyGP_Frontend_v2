@@ -47,7 +47,7 @@ function InstruccionAdicionalDialog({
   successMessage,
   item,
 }: InstruccionAdicionalDialogProps) {
-  const { reference, referencePayload, refreshReference } = useOrdenFacturacion();
+  const { isReferenceSent, reference, referencePayload, refreshReference } = useOrdenFacturacion();
   const { getCasaUsername } = useAuth();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -148,6 +148,8 @@ function InstruccionAdicionalDialog({
       setIsSubmitting(false);
     }
   };
+
+  if (isReferenceSent) return null;
 
   return (
     <MyGPDialog

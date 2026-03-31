@@ -36,6 +36,7 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
   const [loadingCheckbox, setLoadingCheckbox] = React.useState<string | null>(null);
 
   const {
+    isReferenceSent,
     reference,
     referencePayload,
     isLoading,
@@ -115,12 +116,14 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
 
   return (
     <OrdenFacturacionCard title={title}>
-      <div className="flex gap-2 mb-4">
-        <AgregarGasto isAmericana={isAmericana} />
-        <PermissionGuard requiredPermissions={[PERM.DIPP_ORDEN_FACTURACION_ADMIN]}>
-          <AgregarProvision isAmericana={isAmericana} />
-        </PermissionGuard>
-      </div>
+      {!isReferenceSent ? (
+        <div className="mb-4 flex gap-2">
+          <AgregarGasto isAmericana={isAmericana} />
+          <PermissionGuard requiredPermissions={[PERM.DIPP_ORDEN_FACTURACION_ADMIN]}>
+            <AgregarProvision isAmericana={isAmericana} />
+          </PermissionGuard>
+        </div>
+      ) : null}
       <Table>
         <TableHeader>
           <TableRow>
@@ -138,7 +141,7 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
               key={`${gasto.CVE_MOVI} ${gasto.FOL_EROG} ${gasto.MON_EGRE} ${gasto.CVE_BENE} ${gasto.canDelete} ${gasto.CHECKED}`}
             >
               <TableCell>
-                {gasto.canDelete && (
+                {gasto.canDelete && !isReferenceSent && (
                   <MyGPDialog
                     open={isOpen}
                     onOpenChange={setIsOpen}
@@ -165,7 +168,9 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
                   const key = `${gasto.CVE_MOVI}-${gasto.FOL_EROG}-${gasto.CVE_BENE}`;
                   const isRowLoading = loadingCheckbox === key;
                   console.log(gasto);
-                  return isRowLoading ? (
+                  return isReferenceSent ? (
+                    <span className="text-sm font-medium">{gasto.CHECKED === true ? 'SI' : 'NO'}</span>
+                  ) : isRowLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin text-black" />
                   ) : (
                     <Checkbox
@@ -186,28 +191,30 @@ export function GastosAComprobar({ isAmericana = false }: GastosAComprobarProps)
         </TableBody>
       </Table>
 
-      <div className="mt-4 flex items-center gap-2">
-        <Checkbox
-          id={isAmericana ? 'was_gastos_americana_confirmed' : 'was_gastos_confirmed'}
-          checked={isAmericana ? wasGastosAmericanaConfirmed : wasGastosConfirmed}
-          onCheckedChange={(checked) => {
-            const isChecked = checked === true;
-            if (isAmericana) {
-              setWasGastosAmericanaConfirmed(isChecked);
-              return;
-            }
-            setWasGastosConfirmed(isChecked);
-          }}
-        />
-        <Label
-          htmlFor={isAmericana ? 'was_gastos_americana_confirmed' : 'was_gastos_confirmed'}
-          className="text-sm font-medium"
-        >
-          {isAmericana
-            ? 'Confirmo que los gastos de la cuenta americana son correctos'
-            : 'Confirmo que los gastos de gastos a comprobar son correctos'}
-        </Label>
-      </div>
+      {!isReferenceSent ? (
+        <div className="mt-4 flex items-center gap-2">
+          <Checkbox
+            id={isAmericana ? 'was_gastos_americana_confirmed' : 'was_gastos_confirmed'}
+            checked={isAmericana ? wasGastosAmericanaConfirmed : wasGastosConfirmed}
+            onCheckedChange={(checked) => {
+              const isChecked = checked === true;
+              if (isAmericana) {
+                setWasGastosAmericanaConfirmed(isChecked);
+                return;
+              }
+              setWasGastosConfirmed(isChecked);
+            }}
+          />
+          <Label
+            htmlFor={isAmericana ? 'was_gastos_americana_confirmed' : 'was_gastos_confirmed'}
+            className="text-sm font-medium"
+          >
+            {isAmericana
+              ? 'Confirmo que los gastos de la cuenta americana son correctos'
+              : 'Confirmo que los gastos de gastos a comprobar son correctos'}
+          </Label>
+        </div>
+      ) : null}
     </OrdenFacturacionCard>
   );
 }
