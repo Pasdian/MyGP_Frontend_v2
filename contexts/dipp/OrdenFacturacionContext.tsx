@@ -40,16 +40,17 @@ export type ExpedienteDigitalData = {
   };
 };
 
-export type InstruccionesAdicionalesData = {
+export type InstruccionAdicionalItem = {
+  UUID: string | null;
   NUM_REFE: string | null;
-  CAPTURA_FACTURA_COVE: number | null;
-  CAPTURA_FACTURA_COVE_MONTO: number | null;
-  EXTRAORDINARIO_AA: number | null;
-  EXTRAORDINARIO_AA_MONTO: number | null;
-  CANDADOS_FISCALES: number | null;
-  CANDADOS_FISC_MONTO: number | null;
-  CANDADOS_FISC_CANT: number | null;
-  FIRMA_DIGITAL: number | null;
+  CONCEPTO: string | null;
+  IMPORTE: number | null;
+  CANTIDAD: number | null;
+  CREATED_BY: string | null;
+  CREATED_AT: string | null;
+  CREATED_AT_FMT?: string | null;
+  UPDATED_AT: string | null;
+  UPDATED_AT_FMT?: string | null;
 };
 
 export type GastoAmericanoItem = {
@@ -117,7 +118,7 @@ export type DippReferenceData = {
     CREATED_AT: string | null;
     SENT_AT: string | null;
   } | null;
-  INSTRUCCIONES_ADICIONALES: InstruccionesAdicionalesData | null;
+  INSTRUCCIONES_ADICIONALES: InstruccionAdicionalItem[];
   EXPEDIENTE_DIGITAL: ExpedienteDigitalData | null;
   PROVISION: {
     CVE_IMPO: string | null;
