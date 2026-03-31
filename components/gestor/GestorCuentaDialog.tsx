@@ -16,7 +16,7 @@ export default function GestorCuentaDialog() {
       <MyGPDialog
         open={isOpen}
         onOpenChange={setIsOpen}
-        title="Modificar"
+        title="Subir archivo al Gestor"
         description="Aquí podrás subir archivos al gestor para la referencia consultada."
         trigger={
           <MyGPButtonPrimary className="h-10">
