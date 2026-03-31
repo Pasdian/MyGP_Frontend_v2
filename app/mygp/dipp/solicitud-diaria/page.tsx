@@ -8,7 +8,9 @@ import {
   type SolicitudDiariaReportContext,
   type SolicitudDiariaRow,
 } from '@/components/solicitud-diaria/SolicitudesDiariasDataTable';
+import { useAuth } from '@/hooks/useAuth';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { PERM } from '@/lib/modules/permissions';
 import { IconPlus } from '@tabler/icons-react';
 import React from 'react';
 import { type DateRange } from 'react-day-picker';
@@ -23,9 +25,11 @@ const formatDateParam = (value: Date) => {
 };
 
 export default function SolicitudDiaria() {
+  const { hasPermission } = useAuth();
   const [isOpen, setIsOpen] = React.useState(false);
   const [createdAtRange, setCreatedAtRange] = React.useState<DateRange | undefined>(undefined);
   const [reportContext, setReportContext] = React.useState<SolicitudDiariaReportContext | null>(null);
+  const canGenerateReport = hasPermission(PERM.DIPP_SOLICITUDES_DIARIAS_ADMIN);
   const solicitudesDiariasUrl = React.useMemo(() => {
     const params = new URLSearchParams();
 
@@ -46,7 +50,11 @@ export default function SolicitudDiaria() {
 
   return (
     <div className="grid gap-4">
-      <div className="grid w-full gap-3 sm:max-w-[400px] sm:grid-cols-2">
+      <div
+        className={`grid w-full gap-3 ${
+          canGenerateReport ? 'sm:max-w-[400px] sm:grid-cols-2' : 'sm:max-w-[200px]'
+        }`}
+      >
         <MyGPDialog
           open={isOpen}
           onOpenChange={setIsOpen}
@@ -69,12 +77,14 @@ export default function SolicitudDiaria() {
           )}
         </MyGPDialog>
 
-        <GenerarSolicitudDiariaReporteButton
-          reportContext={reportContext}
-          fallbackRows={data ?? []}
-          createdAtRange={createdAtRange}
-          disabled={isLoading || isValidating}
-        />
+        {canGenerateReport ? (
+          <GenerarSolicitudDiariaReporteButton
+            reportContext={reportContext}
+            fallbackRows={data ?? []}
+            createdAtRange={createdAtRange}
+            disabled={isLoading || isValidating}
+          />
+        ) : null}
       </div>
 
       {!isLoading && (
