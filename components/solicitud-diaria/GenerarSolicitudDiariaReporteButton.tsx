@@ -142,15 +142,32 @@ export function GenerarSolicitudDiariaReporteButton({
   );
 
   const handleDownload = async () => {
-    const fallbackFilename = `solicitud_diaria_${effectiveReportContext.filters.createdAtFrom}_a_${effectiveReportContext.filters.createdAtTo}.pdf`;
-
     if (saldoBancario === null) {
       toast.error(disabledReason || 'Guarda el saldo bancario para generar el reporte');
       return;
     }
 
+    const reportWindow = window.open('', '_blank');
+
+    if (!reportWindow) {
+      toast.error('No se pudo abrir la nueva pestaña del reporte');
+      return;
+    }
+
     try {
       setIsDownloading(true);
+
+      reportWindow.document.write(`
+      <html>
+        <head>
+          <title>Generando reporte...</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; padding: 24px;">
+          Generando reporte...
+        </body>
+      </html>
+    `);
+      reportWindow.document.close();
 
       const response = await GPClient.post(
         '/pyapi/dipp/solicitudDiaria/report',
@@ -161,32 +178,29 @@ export function GenerarSolicitudDiariaReporteButton({
           requestedBy: getCasaUsername()?.trim().toUpperCase() || 'MYGP',
           generatedAt: new Date().toISOString(),
         },
-        { responseType: 'blob' }
+        {
+          responseType: 'text',
+          headers: {
+            Accept: 'text/html',
+          },
+        }
       );
 
-      const blob = response.data as Blob;
+      const html = typeof response.data === 'string' ? response.data : '';
 
-      if (!blob || blob.size === 0) {
-        toast.error('El PDF del reporte está vacío');
+      if (!html.trim()) {
+        reportWindow.close();
+        toast.error('El HTML del reporte está vacío');
         return;
       }
 
-      const filename = getFilenameFromDisposition(
-        response.headers?.['content-disposition'],
-        fallbackFilename
-      );
+      reportWindow.document.open();
+      reportWindow.document.write(html);
+      reportWindow.document.close();
 
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename || fallbackFilename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-
-      toast.success('Reporte descargado correctamente');
+      toast.success('Reporte abierto en una nueva pestaña');
     } catch (error: unknown) {
+      reportWindow.close();
       toast.error(await getErrorMessage(error, 'No se pudo generar el reporte'));
     } finally {
       setIsDownloading(false);
