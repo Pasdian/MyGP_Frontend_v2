@@ -25,6 +25,10 @@ const anticiposOptions = [
     value: 'ANTICIPOS_TOTAL',
     label: 'Anticipos Total',
   },
+  {
+    value: 'NO_APLICA',
+    label: 'No Aplica',
+  },
 ];
 
 const financiamientoOptions = [
@@ -39,6 +43,10 @@ const financiamientoOptions = [
   {
     value: 'FINANCIAMIENTO_TOTAL',
     label: 'Financiamiento Total',
+  },
+  {
+    value: 'NO_APLICA',
+    label: 'No Aplica',
   },
 ];
 
