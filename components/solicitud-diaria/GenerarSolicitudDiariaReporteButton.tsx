@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
+import { cn } from '@/lib/utils';
 import type { SolicitudDiariaReportContext, SolicitudDiariaRow } from './types';
 
 type GenerarSolicitudDiariaReporteButtonProps = {
@@ -16,6 +17,7 @@ type GenerarSolicitudDiariaReporteButtonProps = {
   saldoBancario: number | null;
   disabledReason?: string;
   disabled?: boolean;
+  className?: string;
 };
 
 const getTodayDateRange = (): DateRange => {
@@ -132,6 +134,7 @@ export function GenerarSolicitudDiariaReporteButton({
   saldoBancario,
   disabledReason,
   disabled = false,
+  className,
 }: GenerarSolicitudDiariaReporteButtonProps) {
   const { getCasaUsername } = useAuth();
   const [isDownloading, setIsDownloading] = React.useState(false);
@@ -214,10 +217,13 @@ export function GenerarSolicitudDiariaReporteButton({
       onClick={handleDownload}
       disabled={disabled || isDownloading}
       title={disabled ? disabledReason : undefined}
-      className="h-11 w-full justify-center border-slate-300 bg-white text-slate-800 shadow-sm transition-colors hover:bg-slate-50 cursor-pointer"
+      className={cn(
+        'h-11 w-full justify-center border-slate-300 bg-white text-slate-800 shadow-sm transition-colors hover:bg-slate-50 cursor-pointer',
+        className
+      )}
     >
       {isDownloading ? <Loader2 className="animate-spin" /> : <FileDown />}
-      <span className="font-semibold tracking-wide">Generar Reporte</span>
+      <span className="font-semibold tracking-wide">Generar reporte</span>
     </Button>
   );
 }

@@ -55,7 +55,10 @@ export function EditarSolicitudDiariaDialog({ row }: { row: SolicitudDiariaRow }
         buildSolicitudDiariaUpdatePayload(values)
       );
 
-      await mutate('/pyapi/dipp/solicitudDiaria');
+      await mutate(
+        (key) =>
+          typeof key === 'string' && key.startsWith('/pyapi/dipp/solicitudDiaria')
+      );
       toast.success('Solicitud diaria actualizada correctamente');
       setIsOpen(false);
     } catch (error: unknown) {
