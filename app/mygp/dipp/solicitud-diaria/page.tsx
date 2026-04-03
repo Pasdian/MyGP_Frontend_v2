@@ -80,6 +80,7 @@ export default function SolicitudDiaria() {
     solicitudesDiariasUrl,
     axiosFetcher
   );
+  const rows = React.useMemo(() => data ?? [], [data]);
   const parsedSaldoBancario = React.useMemo(
     () => parseSaldoBancario(saldoBancarioInput),
     [saldoBancarioInput]
@@ -149,7 +150,7 @@ export default function SolicitudDiaria() {
                 />
                 <GenerarSolicitudDiariaReporteButton
                   reportContext={reportContext}
-                  fallbackRows={data ?? []}
+                  fallbackRows={rows}
                   createdAtRange={createdAtRange}
                   saldoBancario={parsedSaldoBancario}
                   disabledReason={reportButtonDisabledReason}
@@ -175,7 +176,7 @@ export default function SolicitudDiaria() {
 
       {!isLoading && (
         <SolicitudesDiariasDataTable
-          data={data ?? []}
+          data={rows}
           createdAtRange={createdAtRange}
           setCreatedAtRange={setCreatedAtRange}
           onReportContextChange={setReportContext}
