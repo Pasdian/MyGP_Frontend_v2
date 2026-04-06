@@ -38,6 +38,11 @@ export type ExpedienteDigitalData = {
     filename: string | null;
     filenames: string[];
   };
+  HAS_GUIA: {
+    found: boolean;
+    filename: string | null;
+    filenames: string[];
+  };
 };
 
 export type InstruccionAdicionalItem = {

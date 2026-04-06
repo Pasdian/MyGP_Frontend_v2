@@ -20,6 +20,8 @@ export function OrdenFacturacionHeader() {
         <div className="w-[260px]">
           <p className="mb-1 text-sm font-semibold">Referencia</p>
           <Input
+            name="reference"
+            autoComplete="on"
             value={referenceInput}
             onChange={(e) => setReferenceInput(e.target.value)}
             placeholder="Ej. PFI12455"

@@ -15,16 +15,17 @@ import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { FileController } from '../expediente-digital-cliente/form-controllers/FileController';
 import MyGPButtonSubmit from '../MyGPUI/Buttons/MyGPButtonSubmit';
 import { UploadIcon } from 'lucide-react';
+import type { GestorCategoryKey } from '@/types/gestor/GestorCategoryKey';
 
 const PDF_MAX_SIZE = 25_000_000;
 const INVALID_FILENAME_SEGMENT_CHARACTERS = /[<>:"/\\|?*\u0000-\u001F]+/g;
-const MAN_VAL_CATEGORY = 'MAN_VAL';
-const HOJ_CAL_CATEGORY = 'HOJ_CAL'; // Added constant for clarity
-const FAC_PAS_CATEGORY = 'FAC_PAS';
-const HIDDEN_FILE_CATEGORIES = new Set([HOJ_CAL_CATEGORY]);
+const MAN_VAL_CATEGORY: GestorCategoryKey = 'MAN_VAL';
+const HOJ_CAL_CATEGORY: GestorCategoryKey = 'HOJ_CAL'; // Added constant for clarity
+const FAC_PAS_CATEGORY: GestorCategoryKey = 'FAC_PAS';
+const HIDDEN_FILE_CATEGORIES = new Set<GestorCategoryKey>([HOJ_CAL_CATEGORY]);
 
 type FileCategoryOption = {
-  value: string;
+  value: GestorCategoryKey;
   key: string;
 };
 
@@ -105,7 +106,7 @@ const buildRenamedFile = (file: File, finalName: string) =>
 type GestorUploadFilesProps = {
   client: string;
   reference: string;
-  defaultFileCategory?: string;
+  defaultFileCategory?: GestorCategoryKey;
   disableCategorySelect?: boolean;
   onUploadSuccess?: () => void | Promise<void>;
 };
@@ -113,7 +114,7 @@ type GestorUploadFilesProps = {
 export default function GestorUploadFiles({
   client: initialClient,
   reference: initialReference,
-  defaultFileCategory = '',
+  defaultFileCategory,
   disableCategorySelect = false, // Default to false
   onUploadSuccess,
 }: GestorUploadFilesProps) {
@@ -160,7 +161,7 @@ export default function GestorUploadFiles({
     defaultValues: {
       client: initialClient,
       reference: initialReference,
-      fileCategory: defaultFileCategory,
+      fileCategory: defaultFileCategory ?? '',
     },
   });
 

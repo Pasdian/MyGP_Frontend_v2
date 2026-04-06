@@ -15,6 +15,7 @@ import {
   useOrdenFacturacion,
 } from '@/contexts/dipp/OrdenFacturacionContext';
 import GestorUploadFileDialog from '@/components/gestor/GestorUploadFileDialog';
+import type { GestorCategoryKey } from '@/types/gestor/GestorCategoryKey';
 
 const CHECKLIST_ITEMS = [
   { key: 'HAS_FACTURA_ORIGEN', label: 'Factura Origen' },
@@ -24,14 +25,16 @@ const CHECKLIST_ITEMS = [
     label: 'Manifestación de Valor',
   },
   { key: 'HAS_CARTAS_COMERCIO_EXTERIOR', label: 'Cartas de Comercio Exterior' },
+  { key: 'HAS_GUIA', label: 'Guía / BL' },
 ] as const;
 
 const GESTOR_CATEGORY_BY_CHECKLIST_ITEM: Partial<
-  Record<(typeof CHECKLIST_ITEMS)[number]['key'], string>
+  Record<(typeof CHECKLIST_ITEMS)[number]['key'], GestorCategoryKey>
 > = {
   HAS_FACTURA_ORIGEN: 'FAC_COM',
   HAS_PEDIMENTO: 'PED_NOR',
   HAS_MANIFESTACION_VALOR: 'MAN_VAL',
+  HAS_GUIA: 'GUIA',
 };
 
 export function ExpedienteDigitalChecklist() {

@@ -5,11 +5,12 @@ import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
 import GestorUploadFiles from './GestorUploadFiles';
 import { UploadIcon } from 'lucide-react';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
+import type { GestorCategoryKey } from '@/types/gestor/GestorCategoryKey';
 
 type GestorUploadFileDialogProps = {
   client: string;
   reference: string;
-  defaultFileCategory?: string;
+  defaultFileCategory?: GestorCategoryKey;
   triggerLabel?: string;
   triggerClassName?: string;
   disableCategorySelect?: boolean;
@@ -19,7 +20,7 @@ type GestorUploadFileDialogProps = {
 export default function GestorUploadFileDialog({
   client,
   reference,
-  defaultFileCategory = '',
+  defaultFileCategory,
   triggerLabel = 'Subir Archivo',
   triggerClassName = 'h-10',
   disableCategorySelect = false, // Default to false
