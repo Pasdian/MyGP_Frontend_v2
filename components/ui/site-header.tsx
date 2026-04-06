@@ -14,7 +14,6 @@ import useSWRMutation from 'swr/mutation';
 import { useCompanies } from '@/hooks/useCompanies';
 import { MyGPCombo } from '../MyGPUI/Combobox/MyGPCombo';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
-import DEAFilterCompanyDriver from '../driver/DEAFilterCompanyDriver';
 import { useAuth } from '@/hooks/useAuth';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
 import MyGPCalendar from '../MyGPUI/Datepickers/MyGPCalendar';
@@ -174,15 +173,6 @@ export function SiteHeader() {
             pickFirst
           />
         </div>
-
-        {isAAP && (
-          <div className="min-w-[12rem] flex-1 sm:flex-none xl:w-[14rem]">
-            <DEAFilterCompanyDriver
-              companySelect={companySelect}
-              setCompanySelect={setCompanySelect}
-            />
-          </div>
-        )}
 
         <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
           {client.reference && (
