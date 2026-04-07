@@ -31,7 +31,6 @@ export function SiteHeader() {
   const {
     client,
     reference,
-    custom,
     startDate,
     endDate,
     setClient,
@@ -174,11 +173,6 @@ export function SiteHeader() {
           />
         </div>
 
-        {reference && custom && (
-          <div className="flex items-center gap-1">
-            <p className="text-xs font-semibold text-muted-foreground">Aduana: {custom}</p>
-          </div>
-        )}
 
         <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
           {reference && (
