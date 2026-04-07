@@ -10,9 +10,8 @@ import {
   useSidebar,
 } from '../sidebar';
 import { ChevronRight, DownloadIcon } from 'lucide-react';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
 import { Input } from '../input';
-import { getCustomKeyByRef } from '@/lib/customs/customs';
 import { useRefsByClient } from '@/hooks/useRefsByClient';
 import { toast } from 'sonner';
 import MyGPSpinner from '@/components/MyGPUI/Spinners/MyGPSpinner';
@@ -57,15 +56,15 @@ function fuzzyFilter(
 
 export default function CollapsibleReferences() {
   const [filterValue, setFilterValue] = React.useState('');
-  const { client, setClient, filters, resetFileState } = useDEAStore((state) => state);
+  const { client, reference, startDate, endDate, setReference } = useDEAParams();
   const { isMobile, setOpenMobile } = useSidebar();
   const [isFuzzy, setIsFuzzy] = React.useState(true);
-  const isSpecialRefLayout = client.number === '005009';
+  const isSpecialRefLayout = client === '005009';
 
   const { refs, isLoading: isRefsLoading } = useRefsByClient(
-    client.number,
-    filters.dateRange?.from,
-    filters.dateRange?.to
+    client || null,
+    startDate,
+    endDate
   );
 
   function handleDownloadZip(clientNumber: string, reference: string) {
@@ -80,7 +79,7 @@ export default function CollapsibleReferences() {
     document.body.removeChild(a);
   }
   const filterKeys: (keyof getRefsByClient)[] =
-    client.number === '005009' || client.number == '000259'
+    client === '005009' || client === '000259'
       ? (['EE__GE', 'NUM_REFE'] as const)
       : (['NUM_REFE', 'NUM_PEDI'] as const);
 
@@ -123,10 +122,10 @@ export default function CollapsibleReferences() {
                   onChange={(e) => setFilterValue(e.target.value)}
                 />
 
-                {client.number &&
+                {client &&
                   filteredItems.map(
                     ({ NUM_REFE, EE__GE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
-                      const isActive = client.reference === NUM_REFE;
+                      const isActive = reference === NUM_REFE;
                       const base = 'cursor-pointer mb-1 px-1 transition-colors duration-150';
                       const active = FOLDER_HAS_CONTENT
                         ? 'bg-blue-500'
@@ -139,15 +138,8 @@ export default function CollapsibleReferences() {
                           className={`min-w-0 overflow-hidden ${base} ${isActive ? active : normal}`}
                           onClick={() => {
                             if (!FOLDER_HAS_CONTENT) return;
-
-                            if (client.reference === NUM_REFE) {
-                              return;
-                            }
-
-                            const custom = getCustomKeyByRef(NUM_REFE) || '';
-
-                            setClient({ reference: NUM_REFE, custom });
-                            resetFileState();
+                            if (reference === NUM_REFE) return;
+                            setReference(NUM_REFE);
                             if (isMobile) {
                               setOpenMobile(false);
                             }
@@ -155,7 +147,7 @@ export default function CollapsibleReferences() {
                         >
                           <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                             <div className="min-w-0 overflow-hidden">
-                              {(client.number == '005009' || client.number == '000259') && (
+                              {(client === '005009' || client === '000259') && (
                                 <p
                                   className={
                                     isActive
@@ -205,7 +197,7 @@ export default function CollapsibleReferences() {
                                   }
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDownloadZip(client.number, NUM_REFE);
+                                    handleDownloadZip(client, NUM_REFE);
                                     toast.success(`${NUM_REFE} descargando...`);
                                   }}
                                   title="Descargar ZIP"
