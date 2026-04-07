@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import type { getFilesByReference } from '@/types/dea/getFilesByReferences';
-import { useDEAParams } from '@/hooks/useDEAParams';
 
 // --- Ephemeral state types ---
 
@@ -42,8 +41,6 @@ export function DEAProvider({ children }: { children: React.ReactNode }) {
     emptyFilesByReference()
   );
 
-  const { client, reference } = useDEAParams();
-
   const resetFile = React.useCallback(() => {
     setPdfUrl((prev) => {
       if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
@@ -53,12 +50,12 @@ export function DEAProvider({ children }: { children: React.ReactNode }) {
     setFilesByReference(emptyFilesByReference());
   }, []);
 
-  // Auto-reset ephemeral state when client or reference URL params change.
-  // INTENTIONALLY omit resetFile from deps to avoid infinite re-render loop.
-  React.useEffect(() => {
-    resetFile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, reference]);
+  // NOTE: No auto-reset here — resetting via useEffect caused a race condition
+  // where this parent effect fired AFTER dea/page.tsx (child) had already set
+  // filesByReference from SWR cache, clearing files on every reference click.
+  // filesByReference is owned by dea/page.tsx (re-fetches on reference change).
+  // pdfUrl/textContent clear naturally: file URL param is wiped by setReference,
+  // so useClientFile returns null and the viewer goes blank without explicit reset.
 
   const value = React.useMemo<DEAContextValue>(
     () => ({
