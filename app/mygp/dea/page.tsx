@@ -13,6 +13,54 @@ import UploadFile from '@/components/UploadFiles/UploadFile';
 import DEAFloatingWindowDriver from '@/components/driver/DEAFloatingWindowDriver';
 import { Loader2Icon } from 'lucide-react';
 
+function parseCsvTable(input: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < input.length; i += 1) {
+    const char = input[i];
+    const nextChar = input[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        cell += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') {
+        i += 1;
+      }
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = '';
+      continue;
+    }
+
+    cell += char;
+  }
+
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows.filter((currentRow) => currentRow.some((value) => value.length > 0));
+}
+
 export default function DEA() {
   const { client, reference, folder, file: activeFile, setActiveFile } = useDEAParams();
   const { filesByReference, setFilesByReference, setPdfUrl, setTextContent, textContent } =
@@ -52,6 +100,20 @@ export default function DEA() {
     const name = activeFile?.toLowerCase() ?? '';
     return ct.includes('image/') || /\.(jpg|jpeg|png)$/i.test(name);
   }, [contentType, activeFile]);
+
+  const isCsv = React.useMemo(() => {
+    const ct = contentType?.toLowerCase() ?? '';
+    const name = activeFile?.toLowerCase() ?? '';
+    return ct.includes('csv') || name.endsWith('.csv');
+  }, [contentType, activeFile]);
+
+  const csvRows = React.useMemo(() => {
+    if (!isCsv || !textContent) {
+      return [];
+    }
+
+    return parseCsvTable(textContent);
+  }, [isCsv, textContent]);
 
   React.useEffect(() => {
     if (!fileUrl) {
@@ -179,6 +241,28 @@ export default function DEA() {
                     allow="fullscreen"
                     allowFullScreen
                   />
+                ) : isCsv && csvRows.length > 0 ? (
+                  <div className="h-full min-h-[240px] overflow-auto bg-white 2xl:min-h-0">
+                    <table className="min-w-full border-collapse text-xs sm:text-sm">
+                      <tbody>
+                        {csvRows.map((row, rowIndex) => (
+                          <tr
+                            key={`${rowIndex}-${row.join('|')}`}
+                            className={rowIndex === 0 ? 'bg-gray-100 font-semibold' : 'bg-white'}
+                          >
+                            {row.map((cell, cellIndex) => (
+                              <td
+                                key={`${rowIndex}-${cellIndex}`}
+                                className="border border-gray-200 px-3 py-2 align-top whitespace-pre-wrap break-words"
+                              >
+                                {cell}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : textContent ? (
                   <pre
                     className="
