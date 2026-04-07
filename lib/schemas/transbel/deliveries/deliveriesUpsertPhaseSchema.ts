@@ -18,9 +18,9 @@ export const deliveriesUpsertPhaseSchema = z
     cdp: DATE_VALIDATION,
     user: USER_CASA_USERNAME_VALIDATION,
     transporte: TRANSPORTE_VALIDATION,
-    podFile: z.instanceof(File, { message: "Adjunta la prueba de entrega (POD)" }),
-    gpsFile: z.instanceof(File, { message: "Adjunta el archivo GPS" }),
-    otherFile: z.instanceof(File, { message: "Adjunta el archivo Otros" }),
+    podFile: z.instanceof(File).optional(),
+    gpsFile: z.instanceof(File).optional(),
+    otherFile: z.instanceof(File).optional(),
   })
   .refine(
     (data) => !(data.transporte && data.cdp && data.cdp < data.transporte),

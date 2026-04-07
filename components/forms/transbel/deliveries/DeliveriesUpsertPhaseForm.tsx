@@ -77,10 +77,14 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
     try {
       const casaUsername = getCasaUsername() || 'MYGP';
       const uploadFiles = [
-        renameFile(data.podFile, `${data.ref}-POD${getFileExtension(data.podFile.name)}`),
-        renameFile(data.gpsFile, `${data.ref}-GPS${getFileExtension(data.gpsFile.name)}`),
-        renameFile(data.otherFile, `${data.ref}-${data.otherFile.name}`),
-      ];
+        data.podFile
+          ? renameFile(data.podFile, `${data.ref}-POD${getFileExtension(data.podFile.name)}`)
+          : null,
+        data.gpsFile
+          ? renameFile(data.gpsFile, `${data.ref}-GPS${getFileExtension(data.gpsFile.name)}`)
+          : null,
+        data.otherFile ? renameFile(data.otherFile, `${data.ref}-${data.otherFile.name}`) : null,
+      ].filter((file): file is File => file !== null);
 
       const uploadsFormData = new FormData();
       uploadsFormData.append('client', GESTOR_CLIENT_CODE);
@@ -104,9 +108,11 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
         return;
       }
 
-      await GPClient.post('/pyapi/gestor/uploads', uploadsFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      if (uploadFiles.length > 0) {
+        await GPClient.post('/pyapi/gestor/uploads', uploadsFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
 
       const response = phaseResponse.data.data;
       const { NUM_REFE, FEC_ETAP } = response;
