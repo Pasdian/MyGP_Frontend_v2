@@ -20,9 +20,20 @@ import type { GestorCategoryKey } from '@/types/gestor/GestorCategoryKey';
 const PDF_MAX_SIZE = 25_000_000;
 const INVALID_FILENAME_SEGMENT_CHARACTERS = /[<>:"/\\|?*\u0000-\u001F]+/g;
 const MAN_VAL_CATEGORY: GestorCategoryKey = 'MAN_VAL';
-const HOJ_CAL_CATEGORY: GestorCategoryKey = 'HOJ_CAL'; // Added constant for clarity
+const HOJ_CAL_CATEGORY: GestorCategoryKey = 'HOJ_CAL';
 const FAC_PAS_CATEGORY: GestorCategoryKey = 'FAC_PAS';
 const HIDDEN_FILE_CATEGORIES = new Set<GestorCategoryKey>([HOJ_CAL_CATEGORY]);
+const GESTOR_CATEGORY_DIR_MAP: Record<GestorCategoryKey, string> = {
+  CTA_GAS: '01-CTA-GASTOS',
+  PED_NOR: '02-EXPEDIENTE-ADUANAL',
+  MAN_VAL: '02-EXPEDIENTE-ADUANAL',
+  HOJ_CAL: '02-EXPEDIENTE-ADUANAL',
+  FAC_TER: '03-FISCALES',
+  FAC_PAS: '03-FISCALES',
+  FAC_COM: '04-VUCEM',
+  GUIA: '04-VUCEM',
+  CER_ORI: '04-VUCEM',
+};
 
 type FileCategoryOption = {
   value: GestorCategoryKey;
@@ -102,6 +113,8 @@ const buildRenamedFile = (file: File, finalName: string) =>
     type: file.type,
     lastModified: file.lastModified,
   });
+
+const getDestFolderForCategory = (category: GestorCategoryKey) => GESTOR_CATEGORY_DIR_MAP[category];
 
 type GestorUploadFilesProps = {
   client: string;
@@ -198,22 +211,52 @@ export default function GestorUploadFiles({
   }, [client, reference, fileCategory, casaUsername, hoja_calculo_pdf_file]);
 
   const currentCategoryLabel = React.useMemo(() => {
-    // We look through the options list for the object that matches the current form value
     const selectedOption = fileCategoryOptions.find(
       (opt: { label: string; value: string }) => opt.value === fileCategory
     );
 
-    // If found, return the label (e.g. "Factura Pascal");
-    // otherwise, a default placeholder
     return selectedOption ? selectedOption.label : 'Archivo';
   }, [fileCategory, fileCategoryOptions]);
+
+  async function uploadBatch({
+    files,
+    destFolder,
+    client,
+    reference,
+    uploadedBy,
+  }: {
+    files: File[];
+    destFolder: string;
+    client: string;
+    reference: string;
+    uploadedBy: string;
+  }) {
+    const fd = new FormData();
+    fd.append('client', client);
+    fd.append('reference', reference);
+    fd.append('dest_folder', destFolder);
+    fd.append('uploaded_by', uploadedBy);
+    files.forEach((file) => {
+      fd.append('filenames', file.name);
+      fd.append('upload_files', file);
+    });
+
+    await GPClient.post('/pyapi/gestor/uploads', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true);
       const uploadedBy = getCasaUsername() || 'MYGP';
+      const selectedDestFolder = getDestFolderForCategory(data.fileCategory as GestorCategoryKey);
 
-      // Renaming logic using the shorthand codes
+      if (!selectedDestFolder) {
+        throw new Error('No se encontró carpeta destino para la categoría seleccionada');
+      }
+      const filesToUpload: File[] = [];
+
       const renamedPdfFile = buildRenamedFile(
         data.pdf_file!,
         buildFrontendFilename({
@@ -224,6 +267,7 @@ export default function GestorUploadFiles({
           casaUsername: uploadedBy,
         })
       );
+      filesToUpload.push(renamedPdfFile);
 
       const renamedHojaCalculoPdfFile = data.hoja_calculo_pdf_file
         ? buildRenamedFile(
@@ -237,14 +281,10 @@ export default function GestorUploadFiles({
             })
           )
         : null;
+      if (renamedHojaCalculoPdfFile) {
+        filesToUpload.push(renamedHojaCalculoPdfFile);
+      }
 
-      const fd = new FormData();
-      fd.append('fileCategory', data.fileCategory);
-      fd.append('client', data.client);
-      fd.append('reference', data.reference);
-      fd.append('uploaded_by', uploadedBy);
-      fd.append('upload_files', renamedPdfFile);
-      if (renamedHojaCalculoPdfFile) fd.append('upload_files', renamedHojaCalculoPdfFile);
       if (data.xml_file) {
         const renamedXml = buildRenamedFile(
           data.xml_file,
@@ -256,11 +296,15 @@ export default function GestorUploadFiles({
             casaUsername: uploadedBy,
           })
         );
-        fd.append('upload_files', renamedXml);
+        filesToUpload.push(renamedXml);
       }
 
-      await GPClient.post('/pyapi/gestor/uploads', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      await uploadBatch({
+        files: filesToUpload,
+        destFolder: selectedDestFolder,
+        client: data.client,
+        reference: data.reference,
+        uploadedBy,
       });
 
       await onUploadSuccess?.();
