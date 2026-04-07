@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import localFont from 'next/font/local';
-import { DEAStoreProvider } from './providers/dea-store-provider';
+import { DEAProvider } from './providers/dea-store-provider';
 import SWRProvider from './providers/SWRProvider';
 import { VersionGate } from '@/components/VersionGate/VersionGate';
 
@@ -58,7 +59,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} overflow-y-hidden`}>
         <SWRProvider>
           <VersionGate />
-          <DEAStoreProvider>{children}</DEAStoreProvider>
+          <Suspense fallback={null}>
+            <DEAProvider>{children}</DEAProvider>
+          </Suspense>
           <Toaster position="top-center" />
         </SWRProvider>
       </body>
