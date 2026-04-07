@@ -3,7 +3,7 @@ import { DownloadIcon } from 'lucide-react';
 import React from 'react';
 import { IconUpload } from '@tabler/icons-react';
 import UploadFileDialog from '../Dialogs/UploadFileDialog';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
 import { toast } from 'sonner';
 import { deaModuleEvents } from '@/lib/posthog/events';
 import posthog from 'posthog-js';
@@ -47,7 +47,7 @@ export default function DocumentCard({
   currentFolder,
   filterFn = () => true,
 }: DocumentCardProps) {
-  const { client, file } = useDEAStore((state) => state);
+  const { client, reference, file: activeFile } = useDEAParams();
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
   const [query, setQuery] = React.useState('');
@@ -116,7 +116,7 @@ export default function DocumentCard({
                   className="cursor-pointer"
                   onClick={() =>
                     handleDownloadZip(
-                      `/GESTION/${client.number}/${client.reference}/${currentFolder}`
+                      `/GESTION/${client}/${reference}/${currentFolder}`
                     )
                   }
                 />
@@ -137,7 +137,7 @@ export default function DocumentCard({
 
           {!isLoading &&
             visibleFiles.map((item) => {
-              const isActive = item === file.activeFile;
+              const isActive = item === activeFile;
               const isPedimentoSimplificado = item.includes('PSIM');
 
               return (
@@ -163,7 +163,7 @@ export default function DocumentCard({
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDownloadFile(
-                          `/GESTION/${client.number}/${client.reference}/${currentFolder}/${item}`,
+                          `/GESTION/${client}/${reference}/${currentFolder}/${item}`,
                           item
                         );
                         posthog.capture(deaDownloadFileEvent);
