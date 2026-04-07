@@ -7,7 +7,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Carousel } from '../ui/carousel';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
+import { useDEAContext } from '@/app/providers/dea-store-provider';
 import UploadFile from '../UploadFiles/UploadFile';
 import { FolderKey } from '@/types/dea/getFilesByReferences';
 
@@ -22,41 +23,35 @@ export default function UploadFileDialog({
   title: string;
   currentFolder: FolderKey;
 }) {
-  const { client, file, setFile } = useDEAStore((state) => state);
+  const { client, reference } = useDEAParams();
+  const { filesByReference, setFilesByReference } = useDEAContext();
 
   const [filename, setFilename] = React.useState('');
   const [successfulUpload, setSuccessfulUpload] = React.useState(false);
 
-  // Update store safely after success (supports legacy + new shapes)
+  // Update store safely after success (optimistic merge)
   React.useEffect(() => {
     if (successfulUpload && filename) {
-      // Ensure base structure exists
-      const base = file.filesByReference ?? { message: '', files: {} };
+      const base = filesByReference ?? { message: '', files: {} };
       const files = base.files ?? {};
 
-      // Ensure folder exists
       const selectedFolder = currentFolder || 'SIN_CLASIFICAR';
       const currentFiles = files[selectedFolder] || [];
 
-      // Add new file if not already there
       if (!currentFiles.includes(filename)) {
-        setFile({
-          ...file,
-          filesByReference: {
-            ...base,
-            files: {
-              ...files,
-              [currentFolder]: [...currentFiles, filename],
-            },
+        setFilesByReference({
+          ...base,
+          files: {
+            ...files,
+            [currentFolder]: [...currentFiles, filename],
           },
         });
       }
 
-      // Reset flags
       setSuccessfulUpload(false);
       setFilename('');
     }
-  }, [successfulUpload, filename, currentFolder, file, setFile]);
+  }, [successfulUpload, filename, currentFolder, filesByReference, setFilesByReference]);
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <Carousel>
@@ -68,7 +63,7 @@ export default function UploadFileDialog({
 
           <div className="overflow-hidden">
             <UploadFile
-              to={`/GESTION/${client.number}/${client.reference}/${currentFolder}`}
+              to={`/GESTION/${client}/${reference}/${currentFolder}`}
               setFilename={setFilename}
               setSuccess={setSuccessfulUpload}
             />

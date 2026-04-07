@@ -4,9 +4,7 @@ import { TreeView } from '@/components/ui/tree-view'; // adjust import to your T
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { toTreeData } from '@/lib/utilityFunctions/toTreeData';
 import { Folder } from 'lucide-react';
-import { Client } from '@/app/stores/dea-store';
-
-export function ManifestacionTree({ client }: { client: Client }) {
+export function ManifestacionTree({ client }: { client: { number: string; reference: string } }) {
   const {
     data: list,
     isLoading,

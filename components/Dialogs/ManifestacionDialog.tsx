@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import { ManifestacionTree } from '../Trees/ManifestacionTree';
 import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
@@ -22,56 +22,56 @@ type Section = {
 };
 
 export function ManifestacionDialog({ className }: { className: string }) {
-  const { client } = useDEAStore((s) => s);
+  const { client, reference } = useDEAParams();
   const [tabValue, setTabValue] = React.useState<'upload' | 'list'>('upload');
 
   const makeSections = React.useCallback(
     (): Section[] => [
       {
         label: 'Factura Comercial (Obligatorio)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/FACTURA-COMERCIAL`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/FACTURA-COMERCIAL`,
         mandatory: true,
         file: null,
       },
       {
         label: 'Embarque (Obligatorio)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/EMBARQUE`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/EMBARQUE`,
         mandatory: true,
         file: null,
       },
       {
         label: 'Compruebe de Origen (Opcional)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/COMPRUEBE-ORIGEN`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/COMPRUEBE-ORIGEN`,
         file: null,
       },
       {
         label: 'Garantía (Opcional)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/GARANTIA`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/GARANTIA`,
         file: null,
       },
       {
         label: 'Pago de Mercancías (Obligatorio)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/PAGO-MERCANCIAS`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/PAGO-MERCANCIAS`,
         mandatory: true,
         file: null,
       },
       {
         label: 'Gastos Transporte / Seguros / Gastos Conexos (Opcional)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/GASTOS-TRANSPORTE-SEGUROS-GASTOS-CONEXOS`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/GASTOS-TRANSPORTE-SEGUROS-GASTOS-CONEXOS`,
         file: null,
       },
       {
         label: 'Contratos (Opcional)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/CONTRATOS`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/CONTRATOS`,
         file: null,
       },
       {
         label: 'Incrementables (Opcional)',
-        dest: `/GESTION/${client.number}/${client.reference}/06-MANIFESTACION-VALOR/INCREMENTABLES`,
+        dest: `/GESTION/${client}/${reference}/06-MANIFESTACION-VALOR/INCREMENTABLES`,
         file: null,
       },
     ],
-    [client]
+    [client, reference]
   );
 
   return (
@@ -103,7 +103,7 @@ export function ManifestacionDialog({ className }: { className: string }) {
       {tabValue === 'upload' ? (
         <UploadManifestacionContent makeSections={makeSections} />
       ) : (
-        <ManifestacionTree client={client} />
+        <ManifestacionTree client={{ number: client, reference }} />
       )}
     </MyGPDialog>
   );

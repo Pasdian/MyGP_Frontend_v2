@@ -24,13 +24,15 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
+import { useDEAContext } from '@/app/providers/dea-store-provider';
 import { usePathname } from 'next/navigation';
 
 const APP_VERSION = process.env.NEXT_PUBLIC_RELEASE_VERSION ?? 'dev';
 
 export function NavUser() {
-  const { resetFileState } = useDEAStore((state) => state);
+  const { clearAll } = useDEAParams();
+  const { resetFile } = useDEAContext();
   const { user, logout, isLoading, getCasaUsername } = useAuth();
   const { isMobile } = useSidebar();
   const pathname = usePathname();
@@ -80,7 +82,8 @@ export function NavUser() {
               <DropdownMenuItem
                 onClick={() => {
                   logout();
-                  resetFileState();
+                  clearAll();
+                  resetFile();
                 }}
               >
                 <IconLogout className="mr-2 h-4 w-4" />
