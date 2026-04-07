@@ -222,17 +222,23 @@ export default function DEA() {
                 </div>
               </div>
 
-              <div className="h-full min-h-0 w-full overflow-x-hidden">
+              <div
+                className={`h-full min-h-0 w-full ${
+                  isImage ? 'overflow-auto' : 'overflow-x-hidden'
+                }`}
+              >
                 {isViewerContentLoading ? (
                   <div className="flex h-full min-h-[240px] w-full items-center justify-center text-gray-400 2xl:min-h-0">
                     <Loader2Icon className="animate-spin" />
                   </div>
                 ) : isImage && fileUrl ? (
-                  <img
-                    src={fileUrl}
-                    alt={activeFile ?? ''}
-                    className="max-h-full max-w-full object-contain"
-                  />
+                  <div className="min-h-full w-full min-w-0 bg-white">
+                    <img
+                      src={fileUrl}
+                      alt={activeFile ?? ''}
+                      className="block h-auto w-full max-w-none"
+                    />
+                  </div>
                 ) : isPdf && fileUrl ? (
                   <iframe
                     src={withPdfParams(fileUrl, { showToolbar: true })}
