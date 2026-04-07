@@ -42,7 +42,9 @@ export function GestorSearchRef({
     try {
       setIsSubmitting(true);
 
-      const { data } = await GPClient.get<GestorRefInfo[]>(`/pyapi/gestor/refInfo?ref=${dataForm.ref}`);
+      const { data } = await GPClient.get<GestorRefInfo[]>(
+        `/pyapi/gestor/refInfo?ref=${dataForm.ref}`
+      );
 
       setSearchData(data);
       toast.success('Referencia correcta');
@@ -51,8 +53,8 @@ export function GestorSearchRef({
     } catch (error: any) {
       toast.error(
         error?.response?.data?.detail ??
-        error?.response?.data?.message ??
-        'Error al buscar la referencia'
+          error?.response?.data?.message ??
+          'Error al buscar la referencia'
       );
       setIsSubmitting(false);
     }
@@ -81,7 +83,7 @@ export function GestorSearchRef({
                     id="gastos-form-title"
                     aria-invalid={fieldState.invalid}
                     placeholder="PAI123456..."
-                    autoComplete="off"
+                    autoComplete="on"
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                   />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
