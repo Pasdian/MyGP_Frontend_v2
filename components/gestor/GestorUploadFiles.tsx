@@ -218,6 +218,11 @@ export default function GestorUploadFiles({
     return selectedOption ? selectedOption.label : 'Archivo';
   }, [fileCategory, fileCategoryOptions]);
 
+  const currentDestFolder = React.useMemo(() => {
+    if (!fileCategory) return '';
+    return getDestFolderForCategory(fileCategory as GestorCategoryKey) || '';
+  }, [fileCategory]);
+
   async function uploadBatch({
     files,
     destFolder,
@@ -339,6 +344,16 @@ export default function GestorUploadFiles({
         </div>
 
         <div className="flex flex-col gap-2">
+          <Field>
+            <Label className="text-sm font-medium">Carpeta Destino</Label>
+            <Input
+              className="bg-muted font-mono text-xs"
+              value={currentDestFolder}
+              disabled
+              readOnly
+            />
+          </Field>
+
           <Field>
             <Label className="text-sm font-medium">Nombre Destino PDF</Label>
             <Input
