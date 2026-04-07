@@ -20,6 +20,12 @@ import { PERM } from '@/lib/modules/permissions';
 import { OperacionesDespachadasChart } from '@/components/charts/OperacionesDespachadasChart';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+  type ReadonlyURLSearchParams,
+} from 'next/navigation';
 
 const TAB_VALUES = ['all', 'open', 'closed'] as const;
 type TabValue = (typeof TAB_VALUES)[number];
@@ -39,6 +45,106 @@ function getDefaultDashboardRanges(): {
     fechaEntradaRange: { from: lastMonthSameDay, to: today },
     MSARange: undefined,
   };
+}
+
+type DashboardDates = {
+  fechaEntradaRange: DateRange | undefined;
+  MSARange: DateRange | undefined;
+};
+
+type DashboardMetaState = {
+  casaId: string;
+  customValue: string;
+  clientValue: string;
+  currentPhaseValue: string;
+  tabValue: TabValue;
+};
+
+function parseDate(value: string | null) {
+  if (!value) return undefined;
+  const parsed = new Date(`${value}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function formatDate(value: Date | undefined) {
+  if (!value) return undefined;
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getDatesFromSearchParams(searchParams: URLSearchParams | ReadonlyURLSearchParams): DashboardDates {
+  const defaults = getDefaultDashboardRanges();
+  const msaFrom = parseDate(searchParams.get('msaFrom'));
+  const msaTo = parseDate(searchParams.get('msaTo'));
+
+  return {
+    fechaEntradaRange: {
+      from: parseDate(searchParams.get('fechaEntradaFrom')) ?? defaults.fechaEntradaRange.from,
+      to: parseDate(searchParams.get('fechaEntradaTo')) ?? defaults.fechaEntradaRange.to,
+    },
+    MSARange: msaFrom || msaTo ? { from: msaFrom, to: msaTo } : undefined,
+  };
+}
+
+function getMetaStateFromSearchParams(
+  searchParams: URLSearchParams | ReadonlyURLSearchParams
+): DashboardMetaState {
+  const tabParam = searchParams.get('tab') ?? '';
+  const tabValue: TabValue = isTabValue(tabParam) ? tabParam : 'open';
+
+  return {
+    casaId: searchParams.get('casaId') ?? '',
+    customValue: searchParams.get('customValue') ?? '',
+    clientValue: searchParams.get('clientValue') ?? '',
+    currentPhaseValue: searchParams.get('currentPhaseValue') ?? '',
+    tabValue,
+  };
+}
+
+function buildDashboardSearchParams(dates: DashboardDates, metaState: DashboardMetaState) {
+  const params = new URLSearchParams();
+
+  const fechaEntradaFrom = formatDate(dates.fechaEntradaRange?.from);
+  const fechaEntradaTo = formatDate(dates.fechaEntradaRange?.to);
+  const msaFrom = formatDate(dates.MSARange?.from);
+  const msaTo = formatDate(dates.MSARange?.to);
+
+  if (fechaEntradaFrom) params.set('fechaEntradaFrom', fechaEntradaFrom);
+  if (fechaEntradaTo) params.set('fechaEntradaTo', fechaEntradaTo);
+  if (msaFrom) params.set('msaFrom', msaFrom);
+  if (msaTo) params.set('msaTo', msaTo);
+  if (metaState.casaId) params.set('casaId', metaState.casaId);
+  if (metaState.customValue) params.set('customValue', metaState.customValue);
+  if (metaState.clientValue) params.set('clientValue', metaState.clientValue);
+  if (metaState.currentPhaseValue) params.set('currentPhaseValue', metaState.currentPhaseValue);
+  if (metaState.tabValue) params.set('tab', metaState.tabValue);
+
+  return params;
+}
+
+function areDateRangesEqual(left: DateRange | undefined, right: DateRange | undefined) {
+  return (
+    formatDate(left?.from) === formatDate(right?.from) && formatDate(left?.to) === formatDate(right?.to)
+  );
+}
+
+function areDatesEqual(left: DashboardDates, right: DashboardDates) {
+  return (
+    areDateRangesEqual(left.fechaEntradaRange, right.fechaEntradaRange) &&
+    areDateRangesEqual(left.MSARange, right.MSARange)
+  );
+}
+
+function areMetaStatesEqual(left: DashboardMetaState, right: DashboardMetaState) {
+  return (
+    left.casaId === right.casaId &&
+    left.customValue === right.customValue &&
+    left.clientValue === right.clientValue &&
+    left.currentPhaseValue === right.currentPhaseValue &&
+    left.tabValue === right.tabValue
+  );
 }
 
 const LS_SHOW_CHARTS = 'dashboard:showCharts';
@@ -65,6 +171,10 @@ function usePersistedBool(key: string, defaultValue: boolean) {
 
 export default function Dashboard() {
   const { isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
 
   const showChartsState = usePersistedBool(LS_SHOW_CHARTS, true);
   const showOperativeState = usePersistedBool(LS_SHOW_OPERATIVE, true);
@@ -77,18 +187,28 @@ export default function Dashboard() {
 
   const flagsReady = showChartsState.ready && showOperativeState.ready;
 
-  const [dates, setDates] = React.useState<{
-    fechaEntradaRange: DateRange | undefined;
-    MSARange: DateRange | undefined;
-  }>(() => getDefaultDashboardRanges());
+  const [dates, setDates] = React.useState<DashboardDates>(() => getDatesFromSearchParams(searchParams));
 
-  const [metaState, setMetaState] = React.useState({
-    casaId: '',
-    customValue: '',
-    clientValue: '',
-    currentPhaseValue: '',
-    tabValue: 'open' as TabValue,
-  });
+  const [metaState, setMetaState] = React.useState<DashboardMetaState>(() =>
+    getMetaStateFromSearchParams(searchParams)
+  );
+
+  React.useEffect(() => {
+    const nextDates = getDatesFromSearchParams(searchParams);
+    const nextMetaState = getMetaStateFromSearchParams(searchParams);
+
+    setDates((prev) => (areDatesEqual(prev, nextDates) ? prev : nextDates));
+    setMetaState((prev) => (areMetaStatesEqual(prev, nextMetaState) ? prev : nextMetaState));
+  }, [searchParams, searchParamsString]);
+
+  React.useEffect(() => {
+    const nextParams = buildDashboardSearchParams(dates, metaState);
+    const nextQuery = nextParams.toString();
+
+    if (nextQuery === searchParamsString) return;
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [dates, metaState, pathname, router, searchParamsString]);
 
   const { data: meta } = useSWR<
     | {
