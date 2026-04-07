@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { PartidasPrevios } from '@/types/dea/PartidasPrevios';
 import ImageDialog from './ImageDialog';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
 import { IconEye } from '@tabler/icons-react';
 import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 import { MyGPDialog } from '../MyGPUI/Dialogs/MyGPDialog';
@@ -21,7 +21,7 @@ function getCurrentFolderFromReference(reference?: string) {
 }
 
 export default function PreviosDialog({ className }: { className?: string }) {
-  const { client } = useDEAStore((state) => state);
+  const { custom, reference } = useDEAParams();
   const [open, setOpen] = React.useState(false);
   const [currentFolder, setCurrentFolder] = React.useState('');
   const [openImageDialog, setOpenImageDialog] = React.useState(false);
@@ -30,15 +30,14 @@ export default function PreviosDialog({ className }: { className?: string }) {
 
   // Stable SWR key
   const baseFolder = React.useMemo(
-    () =>
-      client.custom && client.reference ? getCurrentFolderFromReference(client.reference) : null,
-    [client]
+    () => (custom && reference ? getCurrentFolderFromReference(reference) : null),
+    [custom, reference]
   );
 
   const partidasPreviosKey = React.useMemo(() => {
-    if (!client.custom || !client.reference || !baseFolder) return null;
-    return `/pyapi/dea/scan?source=/centralizada/${baseFolder}/${client.custom}/Previos/${client.reference}`;
-  }, [client, baseFolder]);
+    if (!custom || !reference || !baseFolder) return null;
+    return `/pyapi/dea/scan?source=/centralizada/${baseFolder}/${custom}/Previos/${reference}`;
+  }, [custom, reference, baseFolder]);
 
   const {
     data: partidasPrevios,
@@ -109,7 +108,7 @@ export default function PreviosDialog({ className }: { className?: string }) {
     []
   );
 
-  const disabled = !client.custom || !client.reference;
+  const disabled = !custom || !reference;
   const hasAnyData = !!treeData.length;
   const showNoPreviosInDialog =
     !isPartidasPreviosLoading && !partidasPreviosError && partidasPrevios && !hasAnyData;
@@ -126,9 +125,9 @@ export default function PreviosDialog({ className }: { className?: string }) {
       <MyGPDialog
         open={open}
         onOpenChange={setOpen}
-        title={`Previos${client.reference && ` - ${client.reference}`}`}
+        title={`Previos${reference && ` - ${reference}`}`}
         description={`Aquí se listan los previos y las partidas de la referencia ${
-          client.reference ?? '—'
+          reference || '—'
         }`}
         // keep your height & scroll behavior
         trigger={
@@ -155,14 +154,14 @@ export default function PreviosDialog({ className }: { className?: string }) {
 
           {showNoPreviosInDialog && <p className="text-sm ml-3">No se encontraron datos.</p>}
 
-          {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && client && (
+          {!isPartidasPreviosLoading && !partidasPreviosError && hasAnyData && (
             <TreeView defaultNodeIcon={Folder} defaultLeafIcon={Image} data={treeData} />
           )}
         </div>
       </MyGPDialog>
 
       {/* Image dialog */}
-      {openImageDialog && currentFolder && client && currentItem && partidasPrevios && (
+      {openImageDialog && currentFolder && currentItem && partidasPrevios && (
         <ImageDialog
           key={`${currentFolder}/${currentItem}`}
           open={openImageDialog}
@@ -170,8 +169,8 @@ export default function PreviosDialog({ className }: { className?: string }) {
           partidasPrevios={partidasPrevios}
           getImageKey={getImageKey}
           previoInfo={{
-            custom: client.custom,
-            reference: client.reference,
+            custom,
+            reference,
             currentFolder,
             imageName: currentItem,
           }}
