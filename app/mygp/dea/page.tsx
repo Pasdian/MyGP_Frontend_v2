@@ -1,6 +1,7 @@
 'use client';
 
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
+import { useDEAContext } from '@/app/providers/dea-store-provider';
 import { Card } from '@/components/ui/card';
 import React from 'react';
 import DocumentCard from '@/components/Cards/DocumentCard';
@@ -13,45 +14,53 @@ import DEAFloatingWindowDriver from '@/components/driver/DEAFloatingWindowDriver
 import { Loader2Icon } from 'lucide-react';
 
 export default function DEA() {
-  const { client, file, setFile } = useDEAStore((state) => state);
+  const { client, reference, folder, file: activeFile, setActiveFile } = useDEAParams();
+  const { filesByReference, setFilesByReference, setPdfUrl, setTextContent, textContent } =
+    useDEAContext();
 
-  const { refs: filesByReference, isLoading: isFilesByRefLoading } = useFilesByRef(
-    client.reference,
-    client.number
+  const { refs: fetchedFiles, isLoading: isFilesByRefLoading } = useFilesByRef(
+    reference || null,
+    client || null
   );
 
   React.useEffect(() => {
-    if (!isFilesByRefLoading && filesByReference) {
-      setFile({ filesByReference });
+    if (!isFilesByRefLoading && fetchedFiles) {
+      setFilesByReference(fetchedFiles);
     }
-  }, [filesByReference, isFilesByRefLoading, setFile]);
+  }, [fetchedFiles, isFilesByRefLoading, setFilesByReference]);
 
-  const CTA = file.filesByReference?.files?.['01-CTA-GASTOS'] ?? [];
-  const ExpAduanal = file.filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
-  const Fiscales = file.filesByReference?.files?.['03-FISCALES'] ?? [];
-  const VUCEM = file.filesByReference?.files?.['04-VUCEM'] ?? [];
-  const ExpDigital = file.filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
+  const CTA = filesByReference?.files?.['01-CTA-GASTOS'] ?? [];
+  const ExpAduanal = filesByReference?.files?.['02-EXPEDIENTE-ADUANAL'] ?? [];
+  const Fiscales = filesByReference?.files?.['03-FISCALES'] ?? [];
+  const VUCEM = filesByReference?.files?.['04-VUCEM'] ?? [];
+  const ExpDigital = filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
 
   const {
     fileUrl,
     contentType,
     isLoading: isViewerContentLoading,
-  } = useClientFile(client.number, client.reference, file.folder, file.activeFile);
+  } = useClientFile(client || null, reference || null, folder || null, activeFile || null);
 
   const isPdf = React.useMemo(() => {
     const ct = contentType?.toLowerCase() ?? '';
-    const name = file.activeFile?.toLowerCase() ?? '';
+    const name = activeFile?.toLowerCase() ?? '';
     return ct.includes('pdf') || name.endsWith('.pdf');
-  }, [contentType, file.activeFile]);
+  }, [contentType, activeFile]);
+
+  const isImage = React.useMemo(() => {
+    const ct = contentType?.toLowerCase() ?? '';
+    const name = activeFile?.toLowerCase() ?? '';
+    return ct.includes('image/') || /\.(jpg|jpeg|png)$/i.test(name);
+  }, [contentType, activeFile]);
 
   React.useEffect(() => {
     if (!fileUrl) {
       return;
     }
 
-    // PDFs are handled by iframe / new window; no need to fetch as text
-    if (isPdf) {
-      setFile({ textContent: null });
+    // PDFs are handled by iframe / new window; images are rendered natively — no need to fetch as text
+    if (isPdf || isImage) {
+      setTextContent(null);
       return;
     }
 
@@ -62,12 +71,12 @@ export default function DEA() {
         const res = await fetch(fileUrl);
         const text = await res.text();
         if (!cancelled) {
-          setFile({ textContent: text });
+          setTextContent(text);
         }
       } catch (err) {
         console.error('Error reading text content:', err);
         if (!cancelled) {
-          setFile({ textContent: '⚠️ Error reading file contents' });
+          setTextContent('Error reading file contents');
         }
       }
     })();
@@ -75,7 +84,7 @@ export default function DEA() {
     return () => {
       cancelled = true;
     };
-  }, [fileUrl, isPdf, setFile]);
+  }, [fileUrl, isPdf, isImage, setTextContent]);
 
   const withPdfParams = (url?: string, { showToolbar = true } = {}) => {
     if (!url) return '';
@@ -112,7 +121,7 @@ export default function DEA() {
 
   return (
     <>
-      {client.reference && client.number ? (
+      {reference && client ? (
         <div className="grid h-full grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-[minmax(0,20%)_minmax(0,20%)_minmax(0,60%)] 2xl:grid-rows-3">
           {/* Cuenta de Gastos */}
           <DocumentCard
@@ -121,7 +130,7 @@ export default function DEA() {
             currentFolder="01-CTA-GASTOS"
             isLoading={isFilesByRefLoading}
             onFileSelect={(item) => {
-              setFile({ activeFile: item, folder: '01-CTA-GASTOS' });
+              setActiveFile('01-CTA-GASTOS', item);
             }}
           />
 
@@ -132,7 +141,7 @@ export default function DEA() {
             isLoading={isFilesByRefLoading}
             currentFolder="04-VUCEM"
             onFileSelect={(item) => {
-              setFile({ activeFile: item, folder: '04-VUCEM' });
+              setActiveFile('04-VUCEM', item);
             }}
             filterFn={(item) => item.includes('COVE') || item.includes('PSIM')}
           />
@@ -142,11 +151,11 @@ export default function DEA() {
             <div className="grid h-full min-h-0 grid-rows-[auto_1fr]">
               <div className="flex items-center justify-between gap-2 bg-blue-500 p-2 text-[10px] text-white">
                 <p className="min-w-0 text-[13px] font-bold truncate">
-                  Visor de Archivos{file.activeFile ? ` - ${file.activeFile}` : ''}
+                  Visor de Archivos{activeFile ? ` - ${activeFile}` : ''}
                 </p>
                 <div className="flex items-center gap-2">
-                  {file.activeFile && fileUrl && (
-                    <DEAFloatingWindowDriver filename={file.activeFile} spawnWindow={spawnWindow} />
+                  {activeFile && fileUrl && (
+                    <DEAFloatingWindowDriver filename={activeFile} spawnWindow={spawnWindow} />
                   )}
                 </div>
               </div>
@@ -156,6 +165,12 @@ export default function DEA() {
                   <div className="flex h-full min-h-[240px] w-full items-center justify-center text-gray-400 2xl:min-h-0">
                     <Loader2Icon className="animate-spin" />
                   </div>
+                ) : isImage && fileUrl ? (
+                  <img
+                    src={fileUrl}
+                    alt={activeFile ?? ''}
+                    className="max-h-full max-w-full object-contain"
+                  />
                 ) : isPdf && fileUrl ? (
                   <iframe
                     src={withPdfParams(fileUrl, { showToolbar: true })}
@@ -164,7 +179,7 @@ export default function DEA() {
                     allow="fullscreen"
                     allowFullScreen
                   />
-                ) : file.textContent ? (
+                ) : textContent ? (
                   <pre
                     className="
             p-3
@@ -182,7 +197,7 @@ export default function DEA() {
             2xl:min-h-0
           "
                   >
-                    {file.textContent}
+                    {textContent}
                   </pre>
                 ) : (
                   <div className="flex h-full min-h-[240px] w-full items-center justify-center px-4 text-center text-gray-400 text-sm 2xl:min-h-0">
@@ -200,7 +215,7 @@ export default function DEA() {
             isLoading={isFilesByRefLoading}
             currentFolder="02-EXPEDIENTE-ADUANAL"
             onFileSelect={(item) => {
-              setFile({ activeFile: item, folder: '02-EXPEDIENTE-ADUANAL' });
+              setActiveFile('02-EXPEDIENTE-ADUANAL', item);
             }}
           />
 
@@ -211,7 +226,7 @@ export default function DEA() {
             isLoading={isFilesByRefLoading}
             currentFolder="04-VUCEM"
             onFileSelect={(item) => {
-              setFile({ activeFile: item, folder: '04-VUCEM' });
+              setActiveFile('04-VUCEM', item);
             }}
             filterFn={(item) => !item.includes('COVE') && !item.includes('PSIM')}
           />
@@ -223,7 +238,7 @@ export default function DEA() {
             currentFolder="03-FISCALES"
             isLoading={isFilesByRefLoading}
             onFileSelect={(item) => {
-              setFile({ activeFile: item, folder: '03-FISCALES' });
+              setActiveFile('03-FISCALES', item);
             }}
           />
 
@@ -234,13 +249,13 @@ export default function DEA() {
             isLoading={isFilesByRefLoading}
             currentFolder="05-EXP-DIGITAL"
             onFileSelect={(item) => {
-              setFile({ activeFile: item, folder: '05-EXP-DIGITAL' });
+              setActiveFile('05-EXP-DIGITAL', item);
             }}
           />
         </div>
       ) : (
         <div className="flex w-full h-full items-center justify-center">
-          <ClientLogoSection client={client.number} />
+          <ClientLogoSection client={client} />
         </div>
       )}
     </>
