@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
-import { useDEAStore } from '@/app/providers/dea-store-provider';
+import { useDEAParams } from '@/hooks/useDEAParams';
+import { useDEAContext } from '@/app/providers/dea-store-provider';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import PreviosDialog from '../Dialogs/PreviosDialog';
 import { toast } from 'sonner';
@@ -20,7 +21,6 @@ import MyGPCalendar from '../MyGPUI/Datepickers/MyGPCalendar';
 import PermissionGuard from '../PermissionGuard/PermissionGuard';
 import { PERM } from '@/lib/modules/permissions';
 import { COMPANY } from '@/lib/companies/companies';
-import { DateRange } from 'react-day-picker';
 
 const posthogEvent = deaModuleEvents.find((e) => e.alias === 'DEA_DIGITAL_RECORD')?.eventName || '';
 
@@ -28,12 +28,19 @@ export function SiteHeader() {
   const pathname = usePathname();
   const isDEA = pathname === '/mygp/dea';
 
-  // === Pull nested state & minimal setters from the refactored DEA store ===
-  const { client, filters, file, setClient, setFilters, setFile, resetFileState } = useDEAStore(
-    (state) => state
-  );
+  const {
+    client,
+    reference,
+    custom,
+    startDate,
+    endDate,
+    setClient,
+    setReference,
+    setDateRange,
+  } = useDEAParams();
+  const { filesByReference, setFilesByReference } = useDEAContext();
 
-  const digitalFiles = file?.filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
+  const digitalFiles = filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
   const hasDigitalFile = digitalFiles.length > 0;
 
   const { user, hasCompany } = useAuth();
@@ -54,24 +61,14 @@ export function SiteHeader() {
   // Define AAP: user has 004108 originally, not after exclusion
   const isAAP = hasCompany(COMPANY.AGENCIA_ADUANAL_PASCAL_SC);
 
-  const hasExpediente = (file?.filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
+  const hasExpediente = (filesByReference?.files?.['05-EXP-DIGITAL'] ?? []).length >= 1;
 
   const { rows: companies } = useCompanies(isDEA);
 
-  const effectiveDateRange = React.useMemo<DateRange>(() => {
-    if (filters.dateRange?.from) {
-      return filters.dateRange;
-    }
-
-    const today = new Date();
-    const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    return {
-      from: lastMonthStart,
-      to: currentMonthEnd,
-    };
-  }, [filters.dateRange]);
+  const calendarDateRange = React.useMemo(
+    () => ({ from: startDate, to: endDate }),
+    [startDate, endDate]
+  );
 
   const [companySelect, setCompanySelect] = React.useState<string[]>([]);
 
@@ -128,9 +125,9 @@ export function SiteHeader() {
 
   const { trigger: triggerDigitalRecordGeneration, isMutating: isDigitalRecordGenerationMutating } =
     useSWRMutation(
-      client.number &&
-        client.reference &&
-        `/pyapi/dea/generateDigitalRecord?client=${client.number}&reference=${client.reference}`,
+      client &&
+        reference &&
+        `/pyapi/dea/generateDigitalRecord?client=${client}&reference=${reference}`,
       axiosFetcher
     );
 
@@ -150,8 +147,12 @@ export function SiteHeader() {
         <div className="flex min-w-[14rem] flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
           <p className="text-xs font-semibold sm:shrink-0">Periodo:</p>
           <MyGPCalendar
-            dateRange={effectiveDateRange}
-            setDateRange={(dr) => setFilters({ dateRange: dr })}
+            dateRange={calendarDateRange}
+            setDateRange={(dr) => {
+              if (dr?.from && dr?.to) {
+                setDateRange(dr.from, dr.to);
+              }
+            }}
             className="h-9 text-sm sm:h-8 sm:min-w-[13rem] sm:text-xs"
           />
         </div>
@@ -161,11 +162,10 @@ export function SiteHeader() {
           <MyGPCombo
             options={companyOptions}
             setValue={(val) => {
-              setClient({ number: val });
-              setClient({ reference: '' });
+              setClient(val);
             }}
-            value={client.number}
-            onSelect={() => resetFileState()}
+            value={client}
+            onSelect={() => {}}
             className="h-9 w-full text-sm sm:h-8 sm:w-[18rem] sm:text-xs xl:w-[19rem]"
             popoverContentClassName="w-[min(90vw,600px)]"
             placeholder="Selecciona un cliente"
@@ -174,17 +174,23 @@ export function SiteHeader() {
           />
         </div>
 
+        {reference && custom && (
+          <div className="flex items-center gap-1">
+            <p className="text-xs font-semibold text-muted-foreground">Aduana: {custom}</p>
+          </div>
+        )}
+
         <PermissionGuard requiredPermissions={[PERM.DEA_PREVIOS]}>
-          {client.reference && (
+          {reference && (
             <PreviosDialog
-              key={client.reference}
+              key={reference}
               className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[10.5rem] sm:basis-auto sm:text-xs sm:whitespace-nowrap"
             />
           )}
         </PermissionGuard>
 
         <PermissionGuard requiredPermissions={[PERM.DEA_EXP_DIGITAL]}>
-          {client.reference && client.number && (
+          {reference && client && (
             <MyGPButtonPrimary
               className="h-9 basis-full px-4 text-sm sm:h-8 sm:min-w-[12.5rem] sm:basis-auto sm:text-xs sm:whitespace-nowrap"
               disabled={hasDigitalFile || hasExpediente || isDigitalRecordGenerationMutating}
@@ -192,15 +198,15 @@ export function SiteHeader() {
                 try {
                   const response = await triggerDigitalRecordGeneration();
 
-                  if (file.filesByReference) {
+                  if (filesByReference) {
                     const updated = {
-                      ...file.filesByReference,
+                      ...filesByReference,
                       files: {
-                        ...file.filesByReference.files,
+                        ...filesByReference.files,
                         '05-EXP-DIGITAL': [...digitalFiles, response.filename],
                       },
                     };
-                    setFile({ filesByReference: updated });
+                    setFilesByReference(updated);
                   }
 
                   toast.success(`Expediente digital generado: ${response.filename}`);
