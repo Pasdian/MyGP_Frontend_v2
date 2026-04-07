@@ -108,6 +108,7 @@ export function useDEAParams() {
     file,
     startDate,
     endDate,
+    hasDateParams: Boolean(rawStart && rawEnd),
     setClient,
     setReference,
     setActiveFile,

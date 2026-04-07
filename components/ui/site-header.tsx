@@ -33,11 +33,21 @@ export function SiteHeader() {
     reference,
     startDate,
     endDate,
+    hasDateParams,
     setClient,
     setReference,
     setDateRange,
   } = useDEAParams();
   const { filesByReference, setFilesByReference } = useDEAContext();
+
+  // Initialize start_date / end_date URL params on first DEA load if absent
+  React.useEffect(() => {
+    if (isDEA && !hasDateParams) {
+      setDateRange(startDate, endDate);
+    }
+    // Only run when isDEA changes (page navigation) or on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDEA]);
 
   const digitalFiles = filesByReference?.files?.['05-EXP-DIGITAL'] ?? [];
   const hasDigitalFile = digitalFiles.length > 0;
