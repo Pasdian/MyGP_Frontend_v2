@@ -124,7 +124,7 @@ export default function CollapsibleReferences() {
 
                 {client &&
                   filteredItems.map(
-                    ({ NUM_REFE, EE__GE, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
+                    ({ NUM_REFE, EE__GE, ADU_DESP, FOLDER_HAS_CONTENT }: getRefsByClient, i) => {
                       const isActive = reference === NUM_REFE;
                       const base = 'cursor-pointer mb-1 px-1 transition-colors duration-150';
                       const active = FOLDER_HAS_CONTENT
@@ -139,7 +139,7 @@ export default function CollapsibleReferences() {
                           onClick={() => {
                             if (!FOLDER_HAS_CONTENT) return;
                             if (reference === NUM_REFE) return;
-                            setReference(NUM_REFE);
+                            setReference(NUM_REFE, ADU_DESP);
                             if (isMobile) {
                               setOpenMobile(false);
                             }

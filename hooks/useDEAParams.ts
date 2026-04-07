@@ -2,7 +2,6 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCallback } from 'react';
-import { getCustomKeyByRef } from '@/lib/customs/customs';
 
 /** Serialize Date to YYYY-MM-DD (local time). Matches useRefsByClient pattern. */
 const toYMD = (d: Date): string => d.toISOString().slice(0, 10);
@@ -52,13 +51,12 @@ export function useDEAParams() {
   );
 
   const setReference = useCallback(
-    (val: string) => {
+    (val: string, customVal?: string) => {
       const next = new URLSearchParams(searchParams.toString());
       next.set('reference', val);
-      // Derive and set custom atomically
-      const customKey = getCustomKeyByRef(val);
-      if (customKey) {
-        next.set('custom', customKey);
+      // Set custom from caller (ADU_DESP from API) — clear if not provided
+      if (customVal) {
+        next.set('custom', customVal);
       } else {
         next.delete('custom');
       }
