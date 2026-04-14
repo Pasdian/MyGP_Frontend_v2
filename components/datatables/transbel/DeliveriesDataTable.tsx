@@ -13,7 +13,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { deliveriesColumns } from '@/lib/columns/deliveriesColumns';
+import { getDeliveriesColumns } from '@/lib/columns/deliveriesColumns';
 import React from 'react';
 import DeliveriesDataTableFilter from '../filters/DeliveriesDataTableFilter';
 import TablePagination from '../pagination/TablePagination';
@@ -40,9 +40,14 @@ export default function DeliveriesDataTable() {
     });
   }, [deliveries, shouldFilterErrors]);
 
+  const columns = React.useMemo(
+    () => getDeliveriesColumns({ uploadOnly: !shouldFilterErrors }),
+    [shouldFilterErrors]
+  );
+
   const table = useReactTable({
     data: rowsForTable ?? [],
-    columns: deliveriesColumns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     onPaginationChange: setPagination, // Pagination
     getFilteredRowModel: getFilteredRowModel(), // Filtering
@@ -69,7 +74,7 @@ export default function DeliveriesDataTable() {
           />
         </div>
       </div>
-      <Table>
+      <Table key={shouldFilterErrors ? 'errors-table' : 'not-errors-table'}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -105,7 +110,7 @@ export default function DeliveriesDataTable() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={deliveriesColumns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length} className="h-24 text-center">
                 Sin resultados.
               </TableCell>
             </TableRow>

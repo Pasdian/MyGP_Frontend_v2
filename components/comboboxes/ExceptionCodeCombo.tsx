@@ -24,16 +24,23 @@ import { MyGPButtonPrimary } from '../MyGPUI/Buttons/MyGPButtonPrimary';
 export default function ExceptionCodeCombo({
   onSelect,
   currentValue,
+  disabled = false,
 }: {
   onSelect: (value: string) => void;
   currentValue?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!disabled) setOpen(nextOpen);
+      }}
+    >
       <DropdownMenuTrigger asChild>
-        <MyGPButtonPrimary type="button" className="w-[200px]">
+        <MyGPButtonPrimary type="button" className="w-[200px]" disabled={disabled}>
           <IconBug stroke={2} className="mr-1" />
           {currentValue || 'Código de Excepción'}
         </MyGPButtonPrimary>
@@ -78,3 +85,5 @@ export default function ExceptionCodeCombo({
     </DropdownMenu>
   );
 }
+
+export { ExceptionCodeCombo };

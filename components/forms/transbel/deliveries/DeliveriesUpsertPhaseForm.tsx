@@ -49,28 +49,66 @@ const renameFile = (file: File, nextName: string) =>
     lastModified: file.lastModified,
   });
 
-export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliveries> }) {
+const normalizeString = (value?: string | null) => value?.trim() ?? '';
+
+const toDateInputValue = (value?: string | null) => {
+  if (!value) return '';
+
+  const trimmed = normalizeString(value);
+  const isoDateMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoDateMatch) return isoDateMatch[1];
+
+  const slashDateMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (slashDateMatch) {
+    const [, day, month, year] = slashDateMatch;
+    return `${year}-${month}-${day}`;
+  }
+
+  const shortSlashDateMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{2})$/);
+  if (shortSlashDateMatch) {
+    const [, day, month, shortYear] = shortSlashDateMatch;
+    return `20${shortYear}-${month}-${day}`;
+  }
+
+  return '';
+};
+
+export default function DeliveriesUpsertPhaseForm({
+  row,
+  uploadOnly = false,
+}: {
+  row: Row<getDeliveries>;
+  uploadOnly?: boolean;
+}) {
   const { user, getCasaUsername } = useAuth();
   const { setDeliveries } = React.useContext(DeliveriesContext);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const defaultValues = React.useMemo(
+    () => ({
+      ref: normalizeString(row?.original?.REFERENCIA),
+      phase: '140',
+      exceptionCode: normalizeString(row?.original?.CE_140),
+      cdp: toDateInputValue(row?.original?.ENTREGA_CDP_140),
+      user: user.complete_user.user.casa_user_name
+        ? user.complete_user.user.casa_user_name
+        : 'MYGP',
+      transporte: toDateInputValue(row?.original?.ENTREGA_TRANSPORTE_138),
+      podFile: undefined,
+      gpsFile: undefined,
+      otherFile: undefined,
+    }),
+    [row?.original, user.complete_user.user.casa_user_name]
+  );
 
   const form = useForm<z.infer<typeof deliveriesUpsertPhaseSchema>>({
     resolver: zodResolver(deliveriesUpsertPhaseSchema),
     mode: 'onChange',
-    defaultValues: {
-      ref: row?.original?.REFERENCIA || '',
-      phase: '140',
-      exceptionCode: row?.original?.CE_140 || '',
-      cdp: row?.original?.ENTREGA_CDP_140 || '',
-      user: user.complete_user.user.casa_user_name
-        ? user.complete_user.user.casa_user_name
-        : 'MYGP',
-      transporte: row?.original?.ENTREGA_TRANSPORTE_138?.split(' ')[0],
-      podFile: undefined,
-      gpsFile: undefined,
-      otherFile: undefined,
-    },
+    defaultValues,
   });
+
+  React.useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
   async function onSubmit(data: z.infer<typeof deliveriesUpsertPhaseSchema>) {
     setIsSubmitting(true);
@@ -204,7 +242,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
               <FormItem>
                 <FormLabel>Fecha de Entrega a CDP</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input type="date" disabled={uploadOnly} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -245,6 +283,7 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                   <div className="flex">
                     <div className="mr-2">
                       <ExceptionCodeCombo
+                        disabled={uploadOnly}
                         onSelect={(value) => {
                           field.onChange(value);
                           form.trigger();
@@ -252,16 +291,18 @@ export default function DeliveriesUpsertPhaseForm({ row }: { row: Row<getDeliver
                         currentValue={field.value}
                       />
                     </div>
-                    <Button
-                      className="cursor-pointer bg-red-500 hover:bg-red-600"
-                      type="button"
-                      onClick={() => {
-                        form.setValue('exceptionCode', '');
-                        form.trigger();
-                      }}
-                    >
-                      <IconTrashFilled />
-                    </Button>
+                    {!uploadOnly ? (
+                      <Button
+                        className="cursor-pointer bg-red-500 hover:bg-red-600"
+                        type="button"
+                        onClick={() => {
+                          form.setValue('exceptionCode', '');
+                          form.trigger();
+                        }}
+                      >
+                        <IconTrashFilled />
+                      </Button>
+                    ) : null}
                   </div>
                 </FormControl>
                 <FormMessage />

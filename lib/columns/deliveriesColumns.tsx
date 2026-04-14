@@ -1,22 +1,28 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { getDeliveries } from "@/types/transbel/getDeliveries";
-import DeliveriesUpsertPhaseButton from "@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton";
-import ErrorTooltip from "@/components/errortooltip/ErrorTooltip";
-import { createFuzzyFilter } from "../utilityFunctions/createFuzzyFilter";
+import { ColumnDef } from '@tanstack/react-table';
+import { getDeliveries } from '@/types/transbel/getDeliveries';
+import DeliveriesUpsertPhaseButton from '@/components/buttons/upsertPhase/DeliveriesUpsertPhaseButton';
+import ErrorTooltip from '@/components/errortooltip/ErrorTooltip';
+import { createFuzzyFilter } from '../utilityFunctions/createFuzzyFilter';
 
 const fuzzyFilter = createFuzzyFilter<getDeliveries>();
 
-export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
+export function getDeliveriesColumns({
+  uploadOnly = false,
+}: {
+  uploadOnly?: boolean;
+} = {}): ColumnDef<getDeliveries>[] {
+  return [
   {
-    accessorKey: "ACCIONES",
-    header: "Acciones",
+    id: uploadOnly ? 'ACCIONES_UPLOAD_ONLY' : 'ACCIONES_EDIT',
+    accessorKey: 'ACCIONES',
+    header: 'Acciones',
     cell: ({ row }) => {
-      return <DeliveriesUpsertPhaseButton row={row} />;
+      return <DeliveriesUpsertPhaseButton row={row} uploadOnly={uploadOnly} />;
     },
   },
   {
-    accessorKey: "REFERENCIA",
-    header: "Referencia",
+    accessorKey: 'REFERENCIA',
+    header: 'Referencia',
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.REFERENCIA) {
@@ -28,12 +34,12 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
         );
       }
 
-      return <p className="text-center">{row.original.REFERENCIA ?? "--"}</p>;
+      return <p className="text-center">{row.original.REFERENCIA ?? '--'}</p>;
     },
   },
   {
-    accessorKey: "EE__GE",
-    header: "Entrega Entrante",
+    accessorKey: 'EE__GE',
+    header: 'Entrega Entrante',
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (!row.original.EE__GE) {
@@ -50,17 +56,17 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
   //   },
   // },
   {
-    accessorKey: "ENTREGA_TRANSPORTE_138_FORMATTED",
-    header: "Entrega a Transporte",
+    accessorKey: 'ENTREGA_TRANSPORTE_138_FORMATTED',
+    header: 'Entrega a Transporte',
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (row.original.has_entrega_transporte_error) {
         return (
           <ErrorTooltip
-            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
+            value={row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? '--'}
             errorMessage={
               row.original.ENTREGA_TRANSPORTE_138_ERROR_MSG ??
-              "Error desconocido"
+              'Error desconocido'
             }
           />
         );
@@ -68,22 +74,22 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
 
       return (
         <p className="text-center">
-          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? "--"}
+          {row.original.ENTREGA_TRANSPORTE_138_FORMATTED ?? '--'}
         </p>
       );
     },
   },
   {
-    accessorKey: "ENTREGA_CDP_140_FORMATTED",
-    header: "Entrega a CDP",
+    accessorKey: 'ENTREGA_CDP_140_FORMATTED',
+    header: 'Entrega a CDP',
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
       if (row.original.has_entrega_cdp_error) {
         return (
           <ErrorTooltip
-            value={row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
+            value={row.original.ENTREGA_CDP_140_FORMATTED ?? '--'}
             errorMessage={
-              row.original.ENTREGA_CDP_140_ERROR_MSG ?? "Error desconocido"
+              row.original.ENTREGA_CDP_140_ERROR_MSG ?? 'Error desconocido'
             }
           />
         );
@@ -91,17 +97,20 @@ export const deliveriesColumns: ColumnDef<getDeliveries>[] = [
 
       return (
         <p className="text-center">
-          {row.original.ENTREGA_CDP_140_FORMATTED ?? "--"}
+          {row.original.ENTREGA_CDP_140_FORMATTED ?? '--'}
         </p>
       );
     },
   },
   {
-    accessorKey: "CE_140",
-    header: "Código de Excepción",
+    accessorKey: 'CE_140',
+    header: 'Código de Excepción',
     filterFn: fuzzyFilter,
     cell: ({ row }) => {
-      return <p className="text-center">{row.original.CE_140 ?? "--"}</p>;
+      return <p className="text-center">{row.original.CE_140 ?? '--'}</p>;
     },
   },
-];
+  ];
+}
+
+export const deliveriesColumns = getDeliveriesColumns();
