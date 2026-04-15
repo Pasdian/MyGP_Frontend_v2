@@ -31,11 +31,30 @@ import { formatISOtoDDMMYYYY } from '@/lib/utilityFunctions/formatISOtoDDMMYYYY'
 import { MyGPButtonGhost } from '@/components/MyGPUI/Buttons/MyGPButtonGhost';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { FileController } from '@/components/expediente-digital-cliente/form-controllers/FileController';
+import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 
 const posthogEvent =
   transbelModuleEvents.find((e) => e.alias === 'TRANSBEL_MODIFY_DELIVERY')?.eventName || '';
 const GESTOR_CLIENT_CODE = '005009';
 const GESTOR_DEST_FOLDER = '04-VUCEM';
+const DEA_PATHS = {
+  HAS_POD: String.raw`/04-VUCEM/.*[Pp][Oo][Dd].*`,
+  HAS_GPS: String.raw`/04-VUCEM/.*[Gg][Pp][Ss].*`,
+  HAS_OTROS: String.raw`/04-VUCEM/.*[Oo][Tt][Rr][Oo][Ss]?.*`,
+} as const;
+
+type TransbelFileKey = keyof typeof DEA_PATHS;
+type TransbelFileStatus = {
+  found: boolean;
+  filename: string | null;
+};
+type TransbelFilesState = Record<TransbelFileKey, TransbelFileStatus | null>;
+
+const EMPTY_TRANSBEL_FILES: TransbelFilesState = {
+  HAS_POD: null,
+  HAS_GPS: null,
+  HAS_OTROS: null,
+};
 
 const getFileExtension = (filename: string) => {
   const trimmed = filename.trim();
@@ -83,6 +102,8 @@ export default function DeliveriesUpsertPhaseForm({
   const { user, getCasaUsername } = useAuth();
   const { setDeliveries } = React.useContext(DeliveriesContext);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isCheckingTransbelFiles, setIsCheckingTransbelFiles] = React.useState(false);
+  const [transbelFiles, setTransbelFiles] = React.useState<TransbelFilesState>(EMPTY_TRANSBEL_FILES);
   const defaultValues = React.useMemo(
     () => ({
       ref: normalizeString(row?.original?.REFERENCIA),
@@ -109,6 +130,102 @@ export default function DeliveriesUpsertPhaseForm({
   React.useEffect(() => {
     form.reset(defaultValues);
   }, [defaultValues, form]);
+
+  React.useEffect(() => {
+    let isCancelled = false;
+
+    const fetchTransbelFiles = async () => {
+      setIsCheckingTransbelFiles(true);
+      setTransbelFiles(EMPTY_TRANSBEL_FILES);
+
+      try {
+        const entries = await Promise.all(
+          (Object.entries(DEA_PATHS) as [TransbelFileKey, string][]).map(async ([key, path]) => {
+            const response = await GPClient.get('/pyapi/dea/fileExists', {
+              params: {
+                client: GESTOR_CLIENT_CODE,
+                reference: defaultValues.ref,
+                path,
+              },
+            });
+
+            return [
+              key,
+              {
+                found: Boolean(response.data?.exists),
+                filename: response.data?.filename ?? null,
+              },
+            ] as const;
+          })
+        );
+
+        if (!isCancelled) {
+          setTransbelFiles(
+            entries.reduce(
+              (acc, [key, value]) => {
+                acc[key] = value;
+                return acc;
+              },
+              { ...EMPTY_TRANSBEL_FILES }
+            )
+          );
+        }
+      } catch {
+        if (!isCancelled) {
+          toast.error('No se pudo verificar TRANSBEL_FILES en DEA');
+          setTransbelFiles(EMPTY_TRANSBEL_FILES);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsCheckingTransbelFiles(false);
+        }
+      }
+    };
+
+    if (uploadOnly && defaultValues.ref) {
+      void fetchTransbelFiles();
+    } else {
+      setIsCheckingTransbelFiles(false);
+      setTransbelFiles(EMPTY_TRANSBEL_FILES);
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [defaultValues.ref, uploadOnly]);
+
+  const renderTransbelFileStatus = React.useCallback(
+    (key: TransbelFileKey) => {
+      const fileStatus = transbelFiles[key];
+
+      if (isCheckingTransbelFiles && !fileStatus) {
+        return (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="animate-spin" size={16} />
+            <span>Buscando en DEA...</span>
+          </div>
+        );
+      }
+
+      if (!fileStatus) {
+        return null;
+      }
+
+      const { found, filename } = fileStatus;
+
+      return (
+        <div className="text-sm text-muted-foreground">
+          {found ? (
+            <CheckCircle2 className="inline-block text-emerald-500" size={18} />
+          ) : (
+            <XCircle className="inline-block text-rose-500" size={18} />
+          )}{' '}
+          <span>{found ? `Encontrado en DEA${filename ? `: ${filename}` : ''}` : 'No encontrado en DEA'}</span>
+        </div>
+      );
+    },
+    [isCheckingTransbelFiles, transbelFiles]
+  );
 
   async function onSubmit(data: z.infer<typeof deliveriesUpsertPhaseSchema>) {
     setIsSubmitting(true);
@@ -256,6 +373,7 @@ export default function DeliveriesUpsertPhaseForm({
             accept=""
             buttonText="Adjuntar POD"
           />
+          {uploadOnly ? renderTransbelFileStatus('HAS_POD') : null}
 
           <FileController
             form={form}
@@ -264,6 +382,7 @@ export default function DeliveriesUpsertPhaseForm({
             accept=""
             buttonText="Adjuntar GPS"
           />
+          {uploadOnly ? renderTransbelFileStatus('HAS_GPS') : null}
 
           <FileController
             form={form}
@@ -272,6 +391,7 @@ export default function DeliveriesUpsertPhaseForm({
             accept=""
             buttonText="Adjuntar archivo"
           />
+          {uploadOnly ? renderTransbelFileStatus('HAS_OTROS') : null}
 
           <FormField
             control={form.control}
