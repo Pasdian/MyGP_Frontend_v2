@@ -1,6 +1,22 @@
 import pkg from './package.json' assert { type: 'json' };
 
+const isDev = process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development';
+
 const nextConfig = {
+  allowedDevOrigins: isDev ? ['localhost', '*.localhost', '**.localhost', '127.0.0.1', '*.*.*.*'] : undefined,
+  headers: async () =>
+    isDev
+      ? [
+          {
+            source: '/:path*',
+            headers: [
+              { key: 'Access-Control-Allow-Origin', value: '*' },
+              { key: 'Access-Control-Allow-Methods', value: '*' },
+              { key: 'Access-Control-Allow-Headers', value: '*' },
+            ],
+          },
+        ]
+      : [],
   experimental: {
     serverActions: { bodySizeLimit: '20mb' },
     webpackBuildWorker: true,
