@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import useSWR from 'swr/immutable';
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
 import { getAllCompanies } from '@/types/getAllCompanies/getAllCompanies';
@@ -26,10 +26,6 @@ export default function CompanySelect({
     '/api/companies/getAllCompanies',
     axiosFetcher
   );
-
-  useEffect(() => {
-    localStorage.setItem('dea-user-companies', JSON.stringify(value));
-  }, [value]);
 
   const options = useMemo(
     () =>

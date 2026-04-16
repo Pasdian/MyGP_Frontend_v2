@@ -81,22 +81,6 @@ export function SiteHeader() {
 
   const [companySelect, setCompanySelect] = React.useState<string[]>([]);
 
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const saved = localStorage.getItem('dea-user-companies');
-    if (!saved) return;
-
-    try {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
-        setCompanySelect(parsed);
-      }
-    } catch {
-      console.warn('Invalid data in dea-user-companies');
-    }
-  }, []);
-
   const companyOptions = React.useMemo(() => {
     if (!companies || companies.length === 0) return [];
 
