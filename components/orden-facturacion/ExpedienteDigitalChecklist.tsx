@@ -74,7 +74,7 @@ export function ExpedienteDigitalChecklist() {
           </TableHeader>
 
           <TableBody>
-            {CHECKLIST_ITEMS.map(({ key, label }) => {
+            {CHECKLIST_ITEMS.filter(({ key }) => expediente[key]?.skipped !== true).map(({ key, label }) => {
               const found = Boolean(expediente[key]?.found);
               const defaultFileCategory = GESTOR_CATEGORY_BY_CHECKLIST_ITEM[key];
               return (
