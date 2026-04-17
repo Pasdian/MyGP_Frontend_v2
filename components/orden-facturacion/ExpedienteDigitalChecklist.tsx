@@ -74,13 +74,16 @@ export function ExpedienteDigitalChecklist() {
           </TableHeader>
 
           <TableBody>
-            {CHECKLIST_ITEMS.filter(({ key }) => expediente[key]?.skipped !== true).map(({ key, label }) => {
-              const found = Boolean(expediente[key]?.found);
+            {CHECKLIST_ITEMS.map(({ key, label }) => {
+              const entry = expediente[key];
+              const skipped = Boolean(entry?.skipped);
+              const found = Boolean(entry?.found);
               const defaultFileCategory = GESTOR_CATEGORY_BY_CHECKLIST_ITEM[key];
               return (
-                <TableRow key={key}>
+                <TableRow key={key} className={skipped ? 'opacity-50' : ''}>
                   <TableCell className="text-left">
-                    {gestorClient &&
+                    {!skipped &&
+                    gestorClient &&
                     gestorReference &&
                     defaultFileCategory &&
                     !found &&
@@ -98,12 +101,16 @@ export function ExpedienteDigitalChecklist() {
                   </TableCell>
                   <TableCell className="text-sm ">
                     <p className="font-medium">{label}</p>
-                    {expediente[key]?.filenames.map((filename) => {
+                    {entry?.filenames.map((filename) => {
                       return <p key={filename}>{filename}</p>;
                     })}
                   </TableCell>
                   <TableCell className="text-center">
-                    {found ? (
+                    {skipped ? (
+                      <span className="inline-block text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        N/A
+                      </span>
+                    ) : found ? (
                       <CheckCircle2 className="inline-block text-emerald-500" size={18} />
                     ) : (
                       <XCircle className="inline-block text-rose-500" size={18} />
