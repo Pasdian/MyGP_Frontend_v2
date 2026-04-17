@@ -22,26 +22,31 @@ export type ExpedienteDigitalData = {
     found: boolean;
     filename: string | null;
     filenames: string[];
+    skipped?: boolean;
   };
   HAS_PEDIMENTO: {
     found: boolean;
     filename: string | null;
     filenames: string[];
+    skipped?: boolean;
   };
   HAS_MANIFESTACION_VALOR: {
     found: boolean;
     filename: string | null;
     filenames: string[];
+    skipped?: boolean;
   };
   HAS_CARTAS_COMERCIO_EXTERIOR: {
     found: boolean;
     filename: string | null;
     filenames: string[];
+    skipped?: boolean;
   };
   HAS_GUIA: {
     found: boolean;
     filename: string | null;
     filenames: string[];
+    skipped?: boolean;
   };
 };
 
