@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import MyGPButtonSubmit from '@/components/MyGPUI/Buttons/MyGPButtonSubmit';
 import { useOrdenFacturacion } from '@/contexts/dipp/OrdenFacturacionContext';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { GPClient } from '@/lib/axiosUtils/axios-instance';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ import { SaveAllIcon, SendIcon } from 'lucide-react';
 
 export default function OrdenFacturacion() {
   return (
+    <Suspense>
     <OrdenFacturacionProvider>
       <div>
         <div className="mb-4">
@@ -50,6 +51,7 @@ export default function OrdenFacturacion() {
         </div>
       </div>
     </OrdenFacturacionProvider>
+    </Suspense>
   );
 }
 

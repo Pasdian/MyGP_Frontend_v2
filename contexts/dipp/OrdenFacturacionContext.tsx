@@ -1,7 +1,8 @@
 'use client';
 
 import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 export type GastoItem = {
@@ -160,11 +161,29 @@ type OrdenFacturacionContextType = {
 const OrdenFacturacionContext = createContext<OrdenFacturacionContextType | undefined>(undefined);
 
 export function OrdenFacturacionProvider({ children }: { children: React.ReactNode }) {
-  const [reference, setReference] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [reference, setReferenceState] = useState(() => searchParams.get('ref') ?? '');
   const [anticipos, setAnticipos] = useState('');
   const [financiamiento, setFinanciamiento] = useState('');
   const [wasGastosConfirmed, setWasGastosConfirmed] = useState(false);
   const [wasGastosAmericanaConfirmed, setWasGastosAmericanaConfirmed] = useState(false);
+
+  const setReference = useCallback(
+    (value: React.SetStateAction<string>) => {
+      const next = typeof value === 'function' ? value(reference) : value;
+      setReferenceState(next);
+      const params = new URLSearchParams(searchParams.toString());
+      if (next) {
+        params.set('ref', next);
+      } else {
+        params.delete('ref');
+      }
+      router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [reference, router, searchParams],
+  );
 
   const normalizedReference = reference.trim().toUpperCase();
   const swrKey = normalizedReference
@@ -227,6 +246,7 @@ export function OrdenFacturacionProvider({ children }: { children: React.ReactNo
       mutate,
       reference,
       referencePayload,
+      setReference,
       swrKey,
       wasGastosAmericanaConfirmed,
       wasGastosConfirmed,
