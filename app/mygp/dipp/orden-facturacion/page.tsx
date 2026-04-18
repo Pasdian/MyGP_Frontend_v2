@@ -70,7 +70,6 @@ function GuardarReferenciaSection() {
   const { getCasaUsername, getUserEmail, getUserFullName } = useAuth();
   const [submitMode, setSubmitMode] = React.useState<'save' | 'send' | null>(null);
   const [observaciones, setObservaciones] = React.useState('');
-  const isDev = process.env.NODE_ENV === 'development';
   const savedReference = referencePayload?.REFERENCIA_GUARDADA;
   const loadedReference = referencePayload?.PROVISION?.[0]?.NUM_REFE ?? savedReference?.REFERENCIA;
 
@@ -82,12 +81,26 @@ function GuardarReferenciaSection() {
 
   if (!reference || !referencePayload) return null;
 
-  const isExpedienteDigitalComplete =
-    referencePayload.EXPEDIENTE_DIGITAL !== null &&
-    Object.values(referencePayload.EXPEDIENTE_DIGITAL).every((file) => file.found);
-  const sendDisabledReason = !isDev && !isExpedienteDigitalComplete
-    ? 'Debes completar todos los archivos del expediente digital antes de enviar la referencia.'
-    : null;
+  const EXPEDIENTE_DIGITAL_LABELS: Record<string, string> = {
+    HAS_FACTURA_ORIGEN: 'Factura Origen',
+    HAS_PEDIMENTO: 'Pedimento',
+    HAS_MANIFESTACION_VALOR: 'Manifestación de Valor',
+    HAS_CARTAS_COMERCIO_EXTERIOR: 'Cartas de Comercio Exterior',
+    HAS_GUIA: 'Guía / BL',
+  };
+
+  const missingExpedienteItems =
+    referencePayload.EXPEDIENTE_DIGITAL === null
+      ? Object.values(EXPEDIENTE_DIGITAL_LABELS)
+      : Object.entries(referencePayload.EXPEDIENTE_DIGITAL)
+          .filter(([, file]) => !file.skipped && !file.found)
+          .map(([key]) => EXPEDIENTE_DIGITAL_LABELS[key] ?? key);
+
+  const isExpedienteDigitalComplete = missingExpedienteItems.length === 0;
+  const sendDisabledReason =
+    missingExpedienteItems.length > 0
+      ? `Faltan documentos en el expediente digital: ${missingExpedienteItems.join(', ')}.`
+      : null;
 
   async function onSubmit(mode: 'save' | 'send') {
     if (!anticipos) {
@@ -110,10 +123,8 @@ function GuardarReferenciaSection() {
       return;
     }
 
-    if (mode === 'send' && !isDev && !isExpedienteDigitalComplete) {
-      toast.error(
-        'Debes completar todos los archivos del expediente digital antes de enviar la referencia.'
-      );
+    if (mode === 'send' && sendDisabledReason) {
+      toast.error(sendDisabledReason);
       return;
     }
 
