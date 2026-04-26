@@ -31,8 +31,7 @@ const modifyEtapaSchema = z.object({
   observaciones: z.string().max(250, 'Máximo 250 caracteres').optional(),
 
   fecha: z
-    .date({ required_error: 'Ingresa una fecha' })
-    .refine((date) => date <= new Date(), { message: 'La fecha no puede ser mayor a hoy' }),
+    .date({ required_error: 'Ingresa una fecha' }),
 
   modificadoPor: z.string({ required_error: 'Usuario requerido' }).min(1, 'Usuario requerido'),
 });
