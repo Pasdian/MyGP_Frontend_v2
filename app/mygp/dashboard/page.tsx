@@ -40,9 +40,10 @@ function getDefaultDashboardRanges(): {
 } {
   const today = new Date();
   const lastMonthSameDay = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
 
   return {
-    fechaEntradaRange: { from: lastMonthSameDay, to: today },
+    fechaEntradaRange: { from: lastMonthSameDay, to: nextMonth },
     MSARange: undefined,
   };
 }
@@ -103,50 +104,6 @@ function getMetaStateFromSearchParams(
   };
 }
 
-function buildDashboardSearchParams(dates: DashboardDates, metaState: DashboardMetaState) {
-  const params = new URLSearchParams();
-
-  const fechaEntradaFrom = formatDate(dates.fechaEntradaRange?.from);
-  const fechaEntradaTo = formatDate(dates.fechaEntradaRange?.to);
-  const msaFrom = formatDate(dates.MSARange?.from);
-  const msaTo = formatDate(dates.MSARange?.to);
-
-  if (fechaEntradaFrom) params.set('fechaEntradaFrom', fechaEntradaFrom);
-  if (fechaEntradaTo) params.set('fechaEntradaTo', fechaEntradaTo);
-  if (msaFrom) params.set('msaFrom', msaFrom);
-  if (msaTo) params.set('msaTo', msaTo);
-  if (metaState.casaId) params.set('casaId', metaState.casaId);
-  if (metaState.customValue) params.set('customValue', metaState.customValue);
-  if (metaState.clientValue) params.set('clientValue', metaState.clientValue);
-  if (metaState.currentPhaseValue) params.set('currentPhaseValue', metaState.currentPhaseValue);
-  if (metaState.tabValue) params.set('tab', metaState.tabValue);
-
-  return params;
-}
-
-function areDateRangesEqual(left: DateRange | undefined, right: DateRange | undefined) {
-  return (
-    formatDate(left?.from) === formatDate(right?.from) && formatDate(left?.to) === formatDate(right?.to)
-  );
-}
-
-function areDatesEqual(left: DashboardDates, right: DashboardDates) {
-  return (
-    areDateRangesEqual(left.fechaEntradaRange, right.fechaEntradaRange) &&
-    areDateRangesEqual(left.MSARange, right.MSARange)
-  );
-}
-
-function areMetaStatesEqual(left: DashboardMetaState, right: DashboardMetaState) {
-  return (
-    left.casaId === right.casaId &&
-    left.customValue === right.customValue &&
-    left.clientValue === right.clientValue &&
-    left.currentPhaseValue === right.currentPhaseValue &&
-    left.tabValue === right.tabValue
-  );
-}
-
 const LS_SHOW_CHARTS = 'dashboard:showCharts';
 const LS_SHOW_OPERATIVE = 'dashboard:showOperative';
 
@@ -174,7 +131,6 @@ export default function Dashboard() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const searchParamsString = searchParams.toString();
 
   const showChartsState = usePersistedBool(LS_SHOW_CHARTS, true);
   const showOperativeState = usePersistedBool(LS_SHOW_OPERATIVE, true);
@@ -187,28 +143,17 @@ export default function Dashboard() {
 
   const flagsReady = showChartsState.ready && showOperativeState.ready;
 
-  const [dates, setDates] = React.useState<DashboardDates>(() => getDatesFromSearchParams(searchParams));
+  const dates = getDatesFromSearchParams(searchParams);
+  const metaState = getMetaStateFromSearchParams(searchParams);
 
-  const [metaState, setMetaState] = React.useState<DashboardMetaState>(() =>
-    getMetaStateFromSearchParams(searchParams)
-  );
-
-  React.useEffect(() => {
-    const nextDates = getDatesFromSearchParams(searchParams);
-    const nextMetaState = getMetaStateFromSearchParams(searchParams);
-
-    setDates((prev) => (areDatesEqual(prev, nextDates) ? prev : nextDates));
-    setMetaState((prev) => (areMetaStatesEqual(prev, nextMetaState) ? prev : nextMetaState));
-  }, [searchParams, searchParamsString]);
-
-  React.useEffect(() => {
-    const nextParams = buildDashboardSearchParams(dates, metaState);
-    const nextQuery = nextParams.toString();
-
-    if (nextQuery === searchParamsString) return;
-
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [dates, metaState, pathname, router, searchParamsString]);
+  function updateParams(updates: Record<string, string | undefined>) {
+    const next = new URLSearchParams(searchParams.toString());
+    for (const [key, value] of Object.entries(updates)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }
 
   const { data: meta } = useSWR<
     | {
@@ -292,12 +237,22 @@ export default function Dashboard() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start mb-4">
             <MyGPCalendar
               dateRange={dates.fechaEntradaRange}
-              setDateRange={(value) => setDates((prev) => ({ ...prev, fechaEntradaRange: value }))}
+              setDateRange={(value) =>
+                updateParams({
+                  fechaEntradaFrom: formatDate(value?.from),
+                  fechaEntradaTo: formatDate(value?.to),
+                })
+              }
               label="Fecha de Entrada"
             />
             <MyGPCalendar
               dateRange={dates.MSARange}
-              setDateRange={(value) => setDates((prev) => ({ ...prev, MSARange: value }))}
+              setDateRange={(value) =>
+                updateParams({
+                  msaFrom: formatDate(value?.from),
+                  msaTo: formatDate(value?.to),
+                })
+              }
               label="MSA"
             />
 
@@ -306,7 +261,7 @@ export default function Dashboard() {
                 <PermissionGuard requiredPermissions={[PERM.DASHBOARD_TRAFICO_ADMIN]}>
                   <MyGPCombo
                     value={metaState.casaId}
-                    setValue={(newValue) => setMetaState((prev) => ({ ...prev, casaId: newValue }))}
+                    setValue={(newValue) => updateParams({ casaId: newValue })}
                     label="Ejecutivo"
                     options={kamsOptions}
                     placeholder="Selecciona un ejecutivo"
@@ -316,9 +271,7 @@ export default function Dashboard() {
 
                 <MyGPCombo
                   value={metaState.customValue}
-                  setValue={(newValue) =>
-                    setMetaState((prev) => ({ ...prev, customValue: newValue }))
-                  }
+                  setValue={(newValue) => updateParams({ customValue: newValue })}
                   label="Aduana"
                   options={customsOptions}
                   placeholder="Selecciona una aduana"
@@ -326,9 +279,7 @@ export default function Dashboard() {
 
                 <MyGPCombo
                   value={metaState.clientValue}
-                  setValue={(newValue) =>
-                    setMetaState((prev) => ({ ...prev, clientValue: newValue }))
-                  }
+                  setValue={(newValue) => updateParams({ clientValue: newValue })}
                   label="Cliente"
                   options={clientOptions}
                   placeholder="Selecciona un cliente"
@@ -337,9 +288,7 @@ export default function Dashboard() {
 
                 <MyGPCombo
                   value={metaState.currentPhaseValue}
-                  setValue={(newValue) =>
-                    setMetaState((prev) => ({ ...prev, currentPhaseValue: newValue }))
-                  }
+                  setValue={(newValue) => updateParams({ currentPhaseValue: newValue })}
                   label="Etapa Actual"
                   placeholder="Selecciona la etapa actual"
                   options={phasesOptions}
@@ -350,19 +299,18 @@ export default function Dashboard() {
                   <MyGPButtonPrimary
                     className="cursor-pointer h-9 px-3 w-[150px]"
                     onClick={() => {
-                      setMetaState({
-                        casaId: '',
-                        clientValue: '',
-                        customValue: '',
-                        currentPhaseValue: '',
-                        tabValue: 'all',
+                      const defaults = getDefaultDashboardRanges();
+                      updateParams({
+                        fechaEntradaFrom: formatDate(defaults.fechaEntradaRange.from),
+                        fechaEntradaTo: formatDate(defaults.fechaEntradaRange.to),
+                        msaFrom: undefined,
+                        msaTo: undefined,
+                        casaId: undefined,
+                        customValue: undefined,
+                        clientValue: undefined,
+                        currentPhaseValue: undefined,
+                        tab: 'all',
                       });
-                      setDates({
-                        fechaEntradaRange: undefined,
-                        MSARange: undefined,
-                      });
-
-                      setDates(getDefaultDashboardRanges());
                     }}
                   >
                     <span className="flex items-center gap-2 min-w-0">
@@ -376,18 +324,25 @@ export default function Dashboard() {
           </div>
 
           <Card className="mb-8 p-4">
-            <div className="w-[300px]">
+            <div className="w-[330px]">
               <MyGPTabs
                 defaultValue="open"
                 tabs={[
-                  { value: 'all', label: 'Todas' },
+                  { value: 'all', label: 'Pre-alertas' },
                   { value: 'open', label: 'Abiertas' },
                   { value: 'closed', label: 'Despachadas' },
                 ]}
                 value={metaState.tabValue}
-                onValueChange={(v) =>
-                  isTabValue(v) && setMetaState((prev) => ({ ...prev, tabValue: v }))
-                }
+                onValueChange={(v) => {
+                  if (!isTabValue(v)) return;
+                  updateParams({
+                    tab: v,
+                    ...(v === 'all' && {
+                      fechaEntradaFrom: formatDate(new Date()),
+                      fechaEntradaTo: undefined,
+                    }),
+                  });
+                }}
               />
             </div>
             <DailyTrackingContext.Provider
