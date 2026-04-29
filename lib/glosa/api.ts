@@ -89,6 +89,7 @@ export async function createGlosa(payload: {
   comentario_kam?: string;
   ejecutivo_id: string;
   cliente?: string;
+  cliente_cve?: string;
   aduana_nombre?: string;
   num_pedimento?: string;
   monto_display?: string;

@@ -1,8 +1,12 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import useSWR from 'swr';
+import { axiosFetcher } from '@/lib/axiosUtils/axios-instance';
+import { ClientsController } from '@/components/expediente-digital-cliente/form-controllers/ClientsController';
 import { Send, Eye, X, Upload, Check, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -114,10 +118,14 @@ function DropZoneTile({
   );
 }
 
+type Company = { CVE_IMP: string; NOM_IMP: string };
+type ClientForm = { client: string };
+
 export default function UploadForm() {
   const router = useRouter();
+  const { control, getValues } = useForm<ClientForm>({ defaultValues: { client: '' } });
+  const { data: companies } = useSWR<Company[]>('/api/companies/getAllCompanies', axiosFetcher);
   const [ref, setRef] = useState('');
-  const [cliente, setCliente] = useState('');
   const [aduana, setAduana] = useState('');
   const [tipoOperacion, setTipoOperacion] = useState('exportacion');
   const [prioridad, setPrioridad] = useState('normal');
@@ -133,16 +141,19 @@ export default function UploadForm() {
     const fs = fileStates[e.key];
     return fs !== undefined ? fs !== null : e.file !== null;
   }).length;
-  const canSubmit = reqFilled === reqTotal && ref.trim().length > 0;
+  const canSubmit = reqFilled === reqTotal && ref.trim().length > 0 && !!getValues('client');
 
   const handleSubmit = async () => {
+    const cve = getValues('client');
+    const nombre = companies?.find((c) => c.CVE_IMP === cve)?.NOM_IMP ?? cve;
     try {
       await createGlosa({
         referencia: ref.trim(),
         tipo_operacion: tipoOperacion,
         prioridad,
         ejecutivo_id: '',
-        cliente: cliente.trim() || undefined,
+        cliente: nombre || undefined,
+        cliente_cve: cve || undefined,
         aduana_nombre: aduana.trim() || undefined,
       });
       toast.success('Glosa enviada correctamente.');
@@ -193,7 +204,9 @@ export default function UploadForm() {
                   </div>
                   <div>
                     <Label className="text-[10px] uppercase text-[#737373] font-semibold">Cliente</Label>
-                    <Input value={cliente} onChange={(e) => setCliente(e.target.value)} className="h-8 mt-1" placeholder="Nombre del cliente" />
+                    <div className="mt-1">
+                      <ClientsController control={control} name="client" label="" placeholder="Selecciona un cliente" />
+                    </div>
                   </div>
                   <div>
                     <Label className="text-[10px] uppercase text-[#737373] font-semibold">Tipo de operación</Label>
