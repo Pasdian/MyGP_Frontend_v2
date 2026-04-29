@@ -19,19 +19,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MOCK_EXPEDIENTE } from '@/lib/glosa/mockData';
 import { createGlosa } from '@/lib/glosa/api';
 import type { ExpedienteRow } from '@/lib/glosa/types';
 
 type FileState = { file: string; size: string; uploaded: string } | null;
 
+const INITIAL_EXPEDIENTE: ExpedienteRow[] = [
+  { key: 'proforma',  label: 'Proforma de pedimento',       required: true,  file: null, size: null, uploaded: null },
+  { key: 'bl',        label: 'Guía Aérea / Bill of Lading', required: true,  file: null, size: null, uploaded: null },
+  { key: 'factura',   label: 'Factura comercial',           required: true,  file: null, size: null, uploaded: null },
+  { key: 'carta318',  label: 'Carta 3.1.8',                 required: false, file: null, size: null, uploaded: null, hint: 'Sólo importación' },
+  { key: 'cove',      label: 'COVE',                        required: true,  file: null, size: null, uploaded: null },
+  { key: 'm',         label: 'Archivo M (CAAAREM)',         required: true,  file: null, size: null, uploaded: null },
+  { key: 'extras',    label: 'Soporte adicional',           required: false, file: null, size: null, uploaded: null },
+];
+
 const VALIDACIONES = [
-  { label: 'Archivo M pre-validado sin errores (CAAAREM)', ok: true, hint: 'M1914460 · 0 errores' },
-  { label: 'COVE firmado y vigente', ok: true, hint: '01702619PS4O2' },
-  { label: 'Formato y cantidad de archivos correctos', ok: true, hint: '6 de 6 archivos válidos' },
-  { label: 'Referencia existe en CASA', ok: true, hint: 'Operación encontrada' },
-  { label: 'Valor factura vs pedimento', ok: false, hint: 'Diferencia 10 USD — El glosador revisará' },
-  { label: 'Incoterm pedimento vs factura', ok: false, hint: 'FCA vs FOB — El glosador revisará' },
+  { label: 'Formato y cantidad de archivos correctos', ok: true,  hint: 'Verificado al subir' },
+  { label: 'Valor factura vs pedimento',               ok: false, hint: 'El glosador revisará' },
+  { label: 'Incoterm pedimento vs factura',            ok: false, hint: 'El glosador revisará' },
 ];
 
 function DropZoneTile({
@@ -110,10 +116,14 @@ function DropZoneTile({
 
 export default function UploadForm() {
   const router = useRouter();
-  const [ref, setRef] = useState('PAE260036');
+  const [ref, setRef] = useState('');
+  const [cliente, setCliente] = useState('');
+  const [aduana, setAduana] = useState('');
+  const [tipoOperacion, setTipoOperacion] = useState('exportacion');
+  const [prioridad, setPrioridad] = useState('normal');
+  const [expediente] = useState<ExpedienteRow[]>(INITIAL_EXPEDIENTE);
   const [fileStates, setFileStates] = useState<Record<string, FileState>>({});
 
-  const expediente = MOCK_EXPEDIENTE;
   const reqTotal = expediente.filter((e) => e.required).length;
   const reqFilled = expediente.filter((e) => {
     const fs = fileStates[e.key];
@@ -123,15 +133,17 @@ export default function UploadForm() {
     const fs = fileStates[e.key];
     return fs !== undefined ? fs !== null : e.file !== null;
   }).length;
-  const canSubmit = reqFilled === reqTotal;
+  const canSubmit = reqFilled === reqTotal && ref.trim().length > 0;
 
   const handleSubmit = async () => {
     try {
       await createGlosa({
-        referencia: ref,
-        tipo_operacion: 'exportacion',
-        prioridad: 'normal',
-        ejecutivo_id: 'mock-ejecutivo',
+        referencia: ref.trim(),
+        tipo_operacion: tipoOperacion,
+        prioridad,
+        ejecutivo_id: '',
+        cliente: cliente.trim() || undefined,
+        aduana_nombre: aduana.trim() || undefined,
       });
       toast.success('Glosa enviada correctamente.');
       router.push('/mygp/glosa/mis-glosas');
@@ -171,22 +183,21 @@ export default function UploadForm() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm">Datos de la operación</CardTitle>
-                  <Badge variant="outline" className="text-blue-700">Pre-cargado desde CASA</Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-3 text-[12px]">
                   <div>
                     <Label className="text-[10px] uppercase text-[#737373] font-semibold">Referencia</Label>
-                    <Input value={ref} onChange={(e) => setRef(e.target.value)} className="h-8 mt-1" />
+                    <Input value={ref} onChange={(e) => setRef(e.target.value)} className="h-8 mt-1" placeholder="Ej. PAE260036" />
                   </div>
                   <div>
                     <Label className="text-[10px] uppercase text-[#737373] font-semibold">Cliente</Label>
-                    <Input value="TRANSBEL, S.A. DE C.V." readOnly className="h-8 mt-1" />
+                    <Input value={cliente} onChange={(e) => setCliente(e.target.value)} className="h-8 mt-1" placeholder="Nombre del cliente" />
                   </div>
                   <div>
                     <Label className="text-[10px] uppercase text-[#737373] font-semibold">Tipo de operación</Label>
-                    <Select defaultValue="exportacion">
+                    <Select value={tipoOperacion} onValueChange={setTipoOperacion}>
                       <SelectTrigger className="h-8 mt-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -198,15 +209,11 @@ export default function UploadForm() {
                   </div>
                   <div>
                     <Label className="text-[10px] uppercase text-[#737373] font-semibold">Aduana</Label>
-                    <Input value="370 — AICM" readOnly className="h-8 mt-1" />
-                  </div>
-                  <div>
-                    <Label className="text-[10px] uppercase text-[#737373] font-semibold">Fecha de entrada</Label>
-                    <Input value="04/03/2026" readOnly className="h-8 mt-1" />
+                    <Input value={aduana} onChange={(e) => setAduana(e.target.value)} className="h-8 mt-1" placeholder="Ej. AICM" />
                   </div>
                   <div>
                     <Label className="text-[10px] uppercase text-[#737373] font-semibold">Prioridad</Label>
-                    <Select defaultValue="normal">
+                    <Select value={prioridad} onValueChange={setPrioridad}>
                       <SelectTrigger className="h-8 mt-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -306,9 +313,6 @@ export default function UploadForm() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 pt-3 border-t border-[#E5E5E5] text-[11px] text-[#737373]">
-                  2 advertencias serán revisadas por el glosador. Puedes enviar de todas formas.
-                </div>
               </CardContent>
             </Card>
 
@@ -320,18 +324,15 @@ export default function UploadForm() {
                 <div className="flex items-center gap-3 rounded-lg bg-[#FAFAFA] p-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="text-white text-sm font-bold" style={{ background: '#8B5CF6' }}>
-                      M
+                      ?
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold">María G.</div>
-                    <div className="text-[11px] text-[#737373]">Carga actual: 3/5 · T. prom 1h 45m</div>
+                    <div className="text-sm font-semibold">Auto-asignado</div>
+                    <div className="text-[11px] text-[#737373]">Glosador con menor carga actual</div>
                   </div>
                   <Badge variant="outline" className="text-blue-700">Auto</Badge>
                 </div>
-                <button className="mt-2 text-[11px] text-[#3B82F6] hover:underline font-semibold">
-                  Cambiar glosador manualmente…
-                </button>
               </CardContent>
             </Card>
 
