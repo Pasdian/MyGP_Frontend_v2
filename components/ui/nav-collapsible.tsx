@@ -10,7 +10,6 @@ import {
   IconDoor,
   IconMoneybag,
   IconFileExcel,
-  IconZoomMoneyFilled,
   IconPigMoney,
   IconSend,
   IconClipboardList,
@@ -23,7 +22,6 @@ import CollapsibleNavItem from './Collapsibles/CollapsibleNavItem';
 import { NavItem } from '@/types/nav/navItem';
 import {
   BookPlusIcon,
-  ChartAreaIcon,
   ChartBarIcon,
   CodeXmlIcon,
   Container,

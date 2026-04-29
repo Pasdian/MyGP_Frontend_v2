@@ -110,11 +110,6 @@ export default function GlosaViewer({ glosaId, role, initialLayout = 'split', on
     router.push('/mygp/glosa/bandeja');
   };
 
-  const handleRespondKam = () => {
-    toast.success('Glosa reenviada.');
-    router.push('/mygp/glosa/mis-glosas');
-  };
-
   // Render a document panel (PinOverlay + file tab handling)
   const renderDoc = (fileKey: string, accent: string, side: 'left' | 'right' | 'single') => (
     <PinOverlay
@@ -163,11 +158,11 @@ export default function GlosaViewer({ glosaId, role, initialLayout = 'split', on
             <TabsContent value="casa" className="flex-1 overflow-auto m-0 p-3 text-[11px]">
               <div className="text-[#737373] mb-2">Datos traídos de Sistemas CASA (mock):</div>
               <div className="space-y-1 font-mono text-[10px] bg-[#FAFAFA] border border-[#E5E5E5] rounded p-2">
-                <div>op.referencia = "PAE260036"</div>
-                <div>op.cliente_id = 4021 (TRANSBEL)</div>
-                <div>op.ejecutivo = "javier@pascal.com.mx"</div>
-                <div>op.etapa_actual = "En glosa"</div>
-                <div>op.factura_valor = 24655.24</div>
+                <div>{'op.referencia = "PAE260036"'}</div>
+                <div>{'op.cliente_id = 4021 (TRANSBEL)'}</div>
+                <div>{'op.ejecutivo = "javier@pascal.com.mx"'}</div>
+                <div>{'op.etapa_actual = "En glosa"'}</div>
+                <div>{'op.factura_valor = 24655.24'}</div>
               </div>
             </TabsContent>
           </Tabs>

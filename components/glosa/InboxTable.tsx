@@ -39,6 +39,8 @@ export default function InboxTable<T extends Record<string, unknown>>({
   rowAction,
   emptyMessage = 'Sin registros',
 }: Props<T>) {
+  // TODO: wire filter state to actual row filtering in a future iteration
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_filters, setFilters] = useState<Record<string, string>>({});
 
   return (
