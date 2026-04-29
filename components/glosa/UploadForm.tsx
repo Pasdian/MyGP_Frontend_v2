@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { createGlosa } from '@/lib/glosa/api';
+import { checkReferencia, createGlosa } from '@/lib/glosa/api';
 import type { ExpedienteRow } from '@/lib/glosa/types';
 
 type FileState = { file: string; size: string; uploaded: string } | null;
@@ -147,6 +147,11 @@ export default function UploadForm() {
     const cve = getValues('client');
     const nombre = companies?.find((c) => c.CVE_IMP === cve)?.NOM_IMP ?? cve;
     try {
+      const refExists = await checkReferencia(ref.trim());
+      if (!refExists) {
+        toast.error('Referencia no existe');
+        return;
+      }
       await createGlosa({
         referencia: ref.trim(),
         tipo_operacion: tipoOperacion,
