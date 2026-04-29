@@ -12,6 +12,10 @@ import {
   IconFileExcel,
   IconZoomMoneyFilled,
   IconPigMoney,
+  IconSend,
+  IconClipboardList,
+  IconUsersGroup,
+  IconChartBar,
 } from '@tabler/icons-react';
 import { usePathname } from 'next/navigation';
 import CollapsibleReferences from './Collapsibles/CollapsibleReferences';
@@ -148,6 +152,47 @@ const nav: NavGroupDef[] = [
         url: '/mygp/dipp/solicitud-diaria',
         requires: [PERM.DIPP_SOLICITUDES_DIARIAS],
         icon: IconPigMoney,
+      },
+    ],
+  },
+  {
+    title: 'Glosa',
+    items: [
+      {
+        title: 'Bandeja',
+        url: '/mygp/glosa/bandeja',
+        requires: [PERM.GLOSA_GLOSADOR_BANDEJA],
+        icon: IconPackage,
+      },
+      {
+        title: 'Enviar a Glosa',
+        url: '/mygp/glosa/enviar',
+        requires: [PERM.GLOSA_KAM_UPLOAD],
+        icon: IconSend,
+      },
+      {
+        title: 'Mis Glosas',
+        url: '/mygp/glosa/mis-glosas',
+        requires: [PERM.GLOSA_KAM_INBOX],
+        icon: IconFolderBolt,
+      },
+      {
+        title: 'Todas las Glosas',
+        url: '/mygp/glosa/todas',
+        requires: [PERM.GLOSA_ADMIN_LIST],
+        icon: IconClipboardList,
+      },
+      {
+        title: 'Asignaciones',
+        url: '/mygp/glosa/asignaciones',
+        requires: [PERM.GLOSA_ADMIN_ASSIGN],
+        icon: IconUsersGroup,
+      },
+      {
+        title: 'KPIs',
+        url: '/mygp/glosa/kpis',
+        requires: [PERM.GLOSA_GLOSADOR_KPIS, PERM.GLOSA_ADMIN_KPIS],
+        icon: IconChartBar,
       },
     ],
   },
