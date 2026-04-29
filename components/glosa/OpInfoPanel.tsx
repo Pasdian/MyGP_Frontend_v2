@@ -1,30 +1,28 @@
 'use client';
 
-import { MOCK_OP_INFO } from '@/lib/glosa/mockData';
+import type { Glosa } from '@/lib/glosa/types';
 
-const ROWS: [string, string][] = [
-  ['Referencia',     MOCK_OP_INFO.ref],
-  ['Pedimento',      MOCK_OP_INFO.pedimento],
-  ['Patente',        MOCK_OP_INFO.patente],
-  ['Tipo',           MOCK_OP_INFO.tipoOp],
-  ['Aduana',         MOCK_OP_INFO.aduana],
-  ['Cliente',        MOCK_OP_INFO.cliente],
-  ['RFC Cliente',    MOCK_OP_INFO.clienteRFC],
-  ['Destinatario',   MOCK_OP_INFO.destinatario],
-  ['País destino',   MOCK_OP_INFO.paisDestino],
-  ['Incoterm',       MOCK_OP_INFO.incoterm],
-  ['Moneda',         MOCK_OP_INFO.moneda],
-  ['Valor comercial',MOCK_OP_INFO.valorComercial],
-  ['Fecha entrada',  MOCK_OP_INFO.fechaEntrada],
-  ['Peso bruto',     MOCK_OP_INFO.pesoBruto],
-  ['Bultos',         MOCK_OP_INFO.bultos],
-  ['Archivo M',      MOCK_OP_INFO.m],
-];
+type Props = { glosa: Glosa };
 
-export default function OpInfoPanel() {
+export default function OpInfoPanel({ glosa }: Props) {
+  const rows: [string, string][] = [
+    ['Referencia',  glosa.ref || '—'],
+    ['Tipo',        glosa.tipo || '—'],
+    ['Cliente',     glosa.cliente || '—'],
+    ['Aduana',      glosa.aduana || '—'],
+    ['Glosador',    glosa.glosador || '—'],
+    ['KAM',         glosa.kam || '—'],
+    ['Estado',      glosa.status || '—'],
+    ['Enviada',     glosa.enviada || '—'],
+    ['T. QA',       glosa.tiempoQA || '—'],
+    ['T. KAM',      glosa.tiempoKAM || '—'],
+    ['Pedimento',   glosa.m || '—'],
+    ['Monto',       glosa.monto || '—'],
+  ];
+
   return (
     <div className="divide-y divide-[#F0F0F0]">
-      {ROWS.map(([k, v]) => (
+      {rows.map(([k, v]) => (
         <div
           key={k}
           className="flex items-start justify-between gap-2 px-3 py-1.5 text-[11px]"
