@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Pin, Plus } from 'lucide-react';
+import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import PinOverlay from './PinOverlay';
@@ -13,9 +15,8 @@ import PinModal from './PinModal';
 import ViewerToolbar from './ViewerToolbar';
 import OpInfoPanel from './OpInfoPanel';
 import ValidationsPanel from './ValidationsPanel';
-import { MOCK_ERRORES_INITIAL, MOCK_FILES, MOCK_OP_INFO } from '@/lib/glosa/mockData';
-import { updateEstado } from '@/lib/glosa/api';
-import type { GlosaError, ViewerLayout, ViewerRole, ErrorType } from '@/lib/glosa/types';
+import { fetchGlosa, updateEstado } from '@/lib/glosa/api';
+import type { Glosa, GlosaError, ViewerLayout, ViewerRole, ErrorType } from '@/lib/glosa/types';
 
 type Props = {
   glosaId: string;
@@ -26,27 +27,83 @@ type Props = {
 
 type Draft = { x: number; y: number; file: string; fileKey: string; page: number } | null;
 
-// Admin can read but not annotate (read-only for v1 — annotation permission model TBD)
 function isReadOnly(role: ViewerRole) {
   return role === 'kam' || role === 'admin';
+}
+
+type DocTab = { key: string; name: string; label: string };
+
+function buildFileTabs(
+  documentos: { tipo: string; nombre_archivo: string }[]
+): DocTab[] {
+  if (!documentos || documentos.length === 0) {
+    return [{ key: 'sin_doc', name: '', label: 'Sin documentos' }];
+  }
+  return documentos.map((d) => ({
+    key: d.tipo || d.nombre_archivo,
+    name: d.nombre_archivo,
+    label: d.tipo || d.nombre_archivo,
+  }));
 }
 
 export default function GlosaViewer({ glosaId, role, initialLayout = 'split', onBack }: Props) {
   const router = useRouter();
   const readOnly = isReadOnly(role);
 
+  const { data, error, isLoading } = useSWR(
+    glosaId ? `glosa-${glosaId}` : null,
+    () => fetchGlosa(glosaId)
+  );
+
   const [layout, setLayout] = useState<ViewerLayout>(initialLayout);
   const [paused, setPaused] = useState(false);
-  const [pins, setPins] = useState<GlosaError[]>(() =>
-    MOCK_ERRORES_INITIAL.map((e, i) => ({ ...e, idx: i + 1 }))
-  );
+  const [pins, setPins] = useState<GlosaError[]>([]);
+  const [pinsLoaded, setPinsLoaded] = useState(false);
   const [activePinId, setActivePinId] = useState<number | null>(null);
   const [draft, setDraft] = useState<Draft>(null);
-  const [leftFile, setLeftFile] = useState('pedimento');
-  const [rightFile, setRightFile] = useState('factura');
-  const [singleFile, setSingleFile] = useState('pedimento');
+  const [leftFile, setLeftFile] = useState('');
+  const [rightFile, setRightFile] = useState('');
+  const [singleFile, setSingleFile] = useState('');
 
-  const fileOf = (k: string) => MOCK_FILES.find((f) => f.key === k) ?? MOCK_FILES[0];
+  // Initialise pins from SWR data once
+  if (data && !pinsLoaded) {
+    const initialPins = (data.errores ?? []).map((e, i) => ({ ...e, idx: i + 1 }));
+    setPins(initialPins);
+    const tabs = buildFileTabs(
+      (data as unknown as { glosa: Glosa; errores: GlosaError[]; documentos?: { tipo: string; nombre_archivo: string }[] }).documentos ?? []
+    );
+    if (tabs.length > 0) {
+      setLeftFile(tabs[0].key);
+      setRightFile(tabs[1]?.key ?? tabs[0].key);
+      setSingleFile(tabs[0].key);
+    }
+    setPinsLoaded(true);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full bg-white p-6 gap-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="flex-1 w-full" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col h-full bg-white items-center justify-center gap-2 text-[#737373]">
+        <span className="text-sm font-semibold">No se pudo cargar la glosa.</span>
+        <span className="text-xs">{String(error ?? 'Error desconocido')}</span>
+      </div>
+    );
+  }
+
+  const glosa: Glosa = data.glosa;
+  const documentos = (data as unknown as { documentos?: { tipo: string; nombre_archivo: string }[] }).documentos ?? [];
+  const files = buildFileTabs(documentos);
+
+  const fileOf = (k: string): DocTab =>
+    files.find((f) => f.key === k) ?? files[0];
 
   const addPinAt = (pos: { x: number; y: number }, fileKey: string) => {
     const f = fileOf(fileKey);
@@ -88,16 +145,14 @@ export default function GlosaViewer({ glosaId, role, initialLayout = 'split', on
     else setSingleFile(fileKey);
   };
 
-  // Toolbar title / badges
-  const title = `${MOCK_OP_INFO.ref} · ${MOCK_OP_INFO.destinatario}`;
+  const title = `${glosa.ref} · ${glosa.cliente || glosa.glosador}`;
   const badges = (
     <>
-      <Badge variant="outline" className="text-purple-700">Exportación A1</Badge>
-      <Badge variant="outline" className="text-blue-700">{MOCK_OP_INFO.m}</Badge>
+      <Badge variant="outline" className="text-purple-700">{glosa.tipo}</Badge>
+      {glosa.m && <Badge variant="outline" className="text-blue-700">{glosa.m}</Badge>}
     </>
   );
 
-  // Toolbar actions
   const handleRequestChanges = async () => {
     await updateEstado(glosaId, 'en_espera_cambios');
     toast.success(`Glosa enviada al KAM con ${pins.length} cambios solicitados.`);
@@ -110,10 +165,9 @@ export default function GlosaViewer({ glosaId, role, initialLayout = 'split', on
     router.push('/mygp/glosa/bandeja');
   };
 
-  // Render a document panel (PinOverlay + file tab handling)
   const renderDoc = (fileKey: string, accent: string, side: 'left' | 'right' | 'single') => (
     <PinOverlay
-      files={MOCK_FILES}
+      files={files}
       activeFileKey={fileKey}
       onFileChange={(k) => handleFileChange(k, side)}
       pins={pins}
@@ -153,16 +207,15 @@ export default function GlosaViewer({ glosaId, role, initialLayout = 'split', on
                 </TabsTrigger>
               ))}
             </TabsList>
-            <TabsContent value="op" className="flex-1 overflow-auto m-0"><OpInfoPanel /></TabsContent>
+            <TabsContent value="op" className="flex-1 overflow-auto m-0"><OpInfoPanel glosa={glosa} /></TabsContent>
             <TabsContent value="val" className="flex-1 overflow-auto m-0"><ValidationsPanel /></TabsContent>
             <TabsContent value="casa" className="flex-1 overflow-auto m-0 p-3 text-[11px]">
-              <div className="text-[#737373] mb-2">Datos traídos de Sistemas CASA (mock):</div>
+              <div className="text-[#737373] mb-2">Datos traídos de Sistemas CASA:</div>
               <div className="space-y-1 font-mono text-[10px] bg-[#FAFAFA] border border-[#E5E5E5] rounded p-2">
-                <div>{'op.referencia = "PAE260036"'}</div>
-                <div>{'op.cliente_id = 4021 (TRANSBEL)'}</div>
-                <div>{'op.ejecutivo = "javier@pascal.com.mx"'}</div>
-                <div>{'op.etapa_actual = "En glosa"'}</div>
-                <div>{'op.factura_valor = 24655.24'}</div>
+                <div>{`op.referencia = "${glosa.ref}"`}</div>
+                <div>{`op.ejecutivo = "${glosa.kam}"`}</div>
+                <div>{`op.glosador = "${glosa.glosador}"`}</div>
+                <div>{`op.etapa_actual = "${glosa.status}"`}</div>
               </div>
             </TabsContent>
           </Tabs>
@@ -232,16 +285,9 @@ export default function GlosaViewer({ glosaId, role, initialLayout = 'split', on
         onRequestChanges={handleRequestChanges}
         onAccept={handleAccept}
       />
-      {/* Override KAM toolbar action */}
-      {readOnly && role === 'kam' && (
-        <div className="absolute right-3 top-2 hidden" aria-hidden>
-          {/* KAM's "Responder" action is embedded in ViewerToolbar via readOnly prop */}
-        </div>
-      )}
 
       <div className="flex-1 min-h-0">{body}</div>
 
-      {/* Bottom dock — shown when layout is not 'errors' (which already has a side panel) */}
       {layout !== 'errors' && (
         <div className="shrink-0 border-t border-[#E5E5E5] bg-white max-h-44 overflow-auto">
           <div className="flex items-center justify-between px-3 py-1.5 sticky top-0 bg-[#FAFAFA] border-b border-[#E5E5E5]">
