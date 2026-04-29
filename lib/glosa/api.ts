@@ -102,3 +102,12 @@ export async function createGlosa(payload: {
   if (!res.ok) throw new Error('failed to create glosa');
   return res.json();
 }
+
+export async function checkReferencia(ref: string): Promise<boolean> {
+  const res = await fetch(
+    `/pyapi/glosa/check-referencia?ref=${encodeURIComponent(ref)}`,
+  );
+  if (res.status === 404) return false;
+  if (!res.ok) throw new Error('failed to check referencia');
+  return true;
+}
