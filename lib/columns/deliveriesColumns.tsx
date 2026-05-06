@@ -48,13 +48,6 @@ export function getDeliveriesColumns({
       return row.original.EE__GE;
     },
   },
-  // {
-  //   accessorKey: "GUIA_HOUSE",
-  //   header: "Guía House",
-  //   cell: ({ row }) => {
-  //     return <p className="text-center">{row.original.GUIA_HOUSE || "--"}</p>;
-  //   },
-  // },
   {
     accessorKey: 'ENTREGA_TRANSPORTE_138_FORMATTED',
     header: 'Entrega a Transporte',
@@ -98,6 +91,18 @@ export function getDeliveriesColumns({
       return (
         <p className="text-center">
           {row.original.ENTREGA_CDP_140_FORMATTED ?? '--'}
+        </p>
+      );
+    },
+  },
+  {
+    accessorKey: 'UPDATED_AT_FORMATTED',
+    header: 'Actualizado en',
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => {
+      return (
+        <p className="text-center">
+          {row.original.UPDATED_AT_FORMATTED ?? '--'}
         </p>
       );
     },
