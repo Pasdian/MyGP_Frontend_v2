@@ -270,7 +270,7 @@ export default function DeliveriesUpsertPhaseForm({
       }
 
       const response = phaseResponse.data.data;
-      const { NUM_REFE, FEC_ETAP } = response;
+      const { NUM_REFE, FEC_ETAP, UPDATED_AT } = response;
 
       setDeliveries((prev) =>
         prev.map((item) =>
@@ -293,6 +293,8 @@ export default function DeliveriesUpsertPhaseForm({
                 GUIA_HOUSE_ERROR_MSG: '',
                 ENTREGA_TRANSPORTE_138_FORMATTED: '',
                 ENTREGA_CDP_140_FORMATTED: formatISOtoDDMMYYYY(FEC_ETAP),
+                UPDATED_AT: item.UPDATED_AT,
+                UPDATED_AT_FORMATTED: formatISOtoDDMMYYYY(UPDATED_AT)
               }
             : item
         )
