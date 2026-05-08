@@ -87,7 +87,7 @@ export default function Addenda() {
     try {
       const normalizedReference = form.getValues('reference').trim().toUpperCase();
       const [embarqueResponse, xmlCheckResponse] = await Promise.all([
-        GPClient.get<DatosEmbarqueResponse>('/pyapi/transbel/datosEmbarque', {
+        GPClient.get<DatosEmbarqueResponse>('/task-orchestrator/transbel/datosEmbarque', {
           params: { reference: normalizedReference },
         }),
         GPClient.get<XmlCheckResult>('/pyapi/dea/fileExists', {
@@ -135,7 +135,7 @@ export default function Addenda() {
     setIsAddendando(true);
 
     try {
-      const { data } = await GPClient.post('/pyapi/transbel/addendar', {
+      const { data } = await GPClient.post('/task-orchestrator/transbel/addendar', {
         client: '005009',
         reference: form.getValues('reference').trim().toUpperCase(),
         eti_impr: selectedEtiImpr,

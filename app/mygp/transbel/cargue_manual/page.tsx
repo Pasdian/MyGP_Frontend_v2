@@ -85,7 +85,7 @@ export default function CargueManual() {
       };
 
       const res = await GPClient.post<{ task_id: string }>(
-        '/pyapi/transbel/uploadCargues',
+        '/task-orchestrator/transbel/uploadCargues',
         payload
       );
 
