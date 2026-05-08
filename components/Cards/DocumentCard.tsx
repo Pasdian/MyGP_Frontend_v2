@@ -55,7 +55,6 @@ export default function DocumentCard({
   async function handleDownloadFile(path: string, item: string) {
     const url = new URL('/pyapi/dea/downloadFile', window.location.origin);
     url.searchParams.set('source', path);
-    url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
     url.searchParams.set('_ts', String(Date.now()));
 
     const a = document.createElement('a');
@@ -72,7 +71,6 @@ export default function DocumentCard({
   async function handleDownloadZip(path: string) {
     const url = new URL('/pyapi/dea/zip', window.location.origin);
     url.searchParams.set('source', path);
-    url.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
     url.searchParams.set('_ts', String(Date.now()));
 
     const a = document.createElement('a');

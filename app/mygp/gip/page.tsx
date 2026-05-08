@@ -19,7 +19,6 @@ function parentDir(p: string) {
 function buildPreviewUrl(rel: string) {
   const u = new URL('/pyapi/gip/download', window.location.origin);
   u.searchParams.set('filepath', rel);
-  u.searchParams.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY || '');
 
   // Hide PDF toolbar
   return u.toString() + '#toolbar=0&navpanes=0&scrollbar=0';
@@ -30,10 +29,7 @@ export default function GipBrowserLite() {
   const [selected, setSelected] = React.useState('');
   const [loadingPrev, setLoadingPrev] = React.useState(false);
   const [prevErr, setPrevErr] = React.useState('');
-  const key = `/pyapi/gip/search${folder
-    ? `?filepath=${encodeURIComponent(folder)}&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`
-    : ''
-    }`;
+  const key = `/pyapi/gip/search${folder ? `?filepath=${encodeURIComponent(folder)}` : ''}`;
 
   const previewUrl = React.useMemo(() => {
     return selected ? buildPreviewUrl(selected) : '';

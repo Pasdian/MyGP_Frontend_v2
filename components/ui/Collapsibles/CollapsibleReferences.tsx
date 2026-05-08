@@ -68,8 +68,7 @@ export default function CollapsibleReferences() {
   );
 
   function handleDownloadZip(clientNumber: string, reference: string) {
-    const apiKey = process.env.NEXT_PUBLIC_PYTHON_API_KEY;
-    const url = `/pyapi/dea/zip?source=/GESTION/${clientNumber}/${reference}&api_key=${apiKey}`;
+    const url = `/pyapi/dea/zip?source=/GESTION/${clientNumber}/${reference}`;
 
     const a = document.createElement('a');
     a.href = url;

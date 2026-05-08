@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 type UseStreamedFileBlobOpts = {
-  apiKey?: string;
   credentials?: RequestCredentials; // 'include' by default
   onProgress?: (received: number, total?: number) => void;
 };
@@ -45,9 +44,6 @@ export function useStreamedFileBlob(
           method: 'GET',
           signal: ac.signal,
           credentials: opts?.credentials ?? 'include',
-          headers: {
-            'X-API-KEY': opts?.apiKey ?? (process.env.NEXT_PUBLIC_PYTHON_API_KEY || ''),
-          },
         });
 
         if (!res.ok) {
@@ -111,7 +107,7 @@ export function useStreamedFileBlob(
         objectUrlRef.current = null;
       }
     };
-  }, [url, opts?.apiKey, opts?.credentials]);
+  }, [url, opts?.credentials]);
 
   const download = React.useCallback(() => {
     if (!blobUrl) return;

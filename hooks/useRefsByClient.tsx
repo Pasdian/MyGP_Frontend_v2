@@ -25,10 +25,6 @@ export function useRefsByClient(client: string | null, initialDate?: Date, final
   params.set('initialDate', toYMDLocal(startDate));
   params.set('finalDate', toYMDLocal(endDate));
 
-  if (process.env.NEXT_PUBLIC_PYTHON_API_KEY) {
-    params.set('api_key', process.env.NEXT_PUBLIC_PYTHON_API_KEY);
-  }
-
   // SWR key — only fetch if client provided
   const key = hasParams ? `/pyapi/dea/getRefsByClient?${params.toString()}` : null;
 

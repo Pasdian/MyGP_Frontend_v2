@@ -18,8 +18,7 @@ export function useClientLogo(client: string | null, version = 0) {
     const url =
       `/pyapi/dea/getFileContent` +
       `?source=${encodeURIComponent(`/GESTION/${client}/logo.png`)}` +
-      `&v=${version}` + // cache buster
-      `&api_key=${process.env.NEXT_PUBLIC_PYTHON_API_KEY}`;
+      `&v=${version}`; // cache buster
 
     setIsLoading(true);
     setError(null);
