@@ -5,4 +5,5 @@ export type OperationHistory = {
   CHANGED_AT: string;
   CHANGED_AT_FORMATTED: string;
   CHANGED_BY: string;
+  COMMENT: string | null;
 };

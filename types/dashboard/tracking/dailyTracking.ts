@@ -12,6 +12,7 @@ export type DailyTracking = {
   CUSTOM: string | null;
   KAM: string | null;
   STATUS: string | null;
+  COMMENT: string | null;
   MODIFIED_AT: string | null;
   CASA_ID: string | null;
   MSA: string | null;

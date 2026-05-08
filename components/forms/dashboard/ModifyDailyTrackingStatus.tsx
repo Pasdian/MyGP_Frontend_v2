@@ -1,5 +1,6 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -64,6 +65,7 @@ export default function ModifyDailyTrackingStatusForm({
     category: z.string().optional(),
     status: z.string().min(1, 'Selecciona un estatus'),
     casaUserName: z.string().min(1, 'No puedes cambiar el estatus sin un nombre de usuario CASA'),
+    comment: z.string().max(500, 'El comentario no puede exceder 500 caracteres').optional(),
   });
 
   const form = useForm<z.infer<typeof schema>>({
@@ -73,6 +75,7 @@ export default function ModifyDailyTrackingStatusForm({
       category: initialCategory,
       status: initialStatus,
       casaUserName: user.complete_user.user.casa_user_name || 'MYGP',
+      comment: row.original.COMMENT ?? '',
     },
   });
 
@@ -107,6 +110,7 @@ export default function ModifyDailyTrackingStatusForm({
         {
           status: data.status || '',
           changedBy: data.casaUserName,
+          comment: data.comment || null,
         }
       );
 
@@ -126,6 +130,7 @@ export default function ModifyDailyTrackingStatusForm({
               ? {
                   ...r,
                   STATUS: newStatus,
+                  COMMENT: data.comment || null,
                   MODIFIED_AT: newModifiedAt,
                   MODIFIED_AT_FORMATTED: formatISOtoDDMMYYYY(newModifiedAt),
                 }
@@ -220,6 +225,25 @@ export default function ModifyDailyTrackingStatusForm({
                 <FormLabel>Modificado por</FormLabel>
                 <FormControl>
                   <Input disabled placeholder="Modificado por..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="comment"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Comentario</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Agrega un comentario (opcional)..."
+                    maxLength={500}
+                    rows={3}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

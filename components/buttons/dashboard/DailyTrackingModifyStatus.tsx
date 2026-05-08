@@ -86,6 +86,7 @@ function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
             <th className="px-2 py-1 border-b whitespace-nowrap">NUEVO ESTATUS</th>
             <th className="px-2 py-1 border-b whitespace-nowrap">MODIFICADO EN</th>
             <th className="px-2 py-1 border-b whitespace-nowrap">MODIFICADO POR</th>
+            <th className="px-2 py-1 border-b whitespace-nowrap">COMENTARIO</th>
           </tr>
         </thead>
         <tbody>
@@ -104,6 +105,14 @@ function OperationHistoryTable({ history }: { history: OperationHistory[] }) {
                   {op.CHANGED_AT_FORMATTED}
                 </td>
                 <td className="px-2 py-1 border-b whitespace-nowrap">{op.CHANGED_BY}</td>
+                <td
+                  className="px-2 py-1 border-b max-w-[200px]"
+                  title={op.COMMENT ?? undefined}
+                >
+                  <div className="line-clamp-3 break-words whitespace-normal">
+                    {op.COMMENT ?? '—'}
+                  </div>
+                </td>
               </tr>
             );
           })}
