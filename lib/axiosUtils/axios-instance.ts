@@ -2,9 +2,7 @@ import axios from "axios";
 
 const isServer = typeof window === "undefined";
 
-const APP_URL = isServer
-  ? process.env.APP_URL_INTERNAL
-  : process.env.NEXT_PUBLIC_APP_URL;
+const APP_URL = isServer ? process.env.APP_URL_INTERNAL : undefined;
 
 export const GPClient = axios.create({
   baseURL: APP_URL,
