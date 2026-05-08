@@ -94,6 +94,68 @@ export const dailyTrackingColumns: ColumnDef<DailyTracking>[] = [
     sortingFn: "alphanumeric",
   },
   {
+    accessorKey: "REVALIDACION_073_FORMATTED",
+    meta: {
+      label: "Fecha Revalidación",
+    },
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted(); // "asc" | "desc" | false
+
+      const Icon =
+        isSorted === "asc"
+          ? ArrowUp
+          : isSorted === "desc"
+            ? ArrowDown
+            : ArrowUpDown;
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(isSorted === "asc");
+          }}
+        >
+          Fecha Revalidación
+          <Icon className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => (
+      <p className="text-center">{row.original.REVALIDACION_073_FORMATTED || "--"}</p>
+    ),
+  },
+  {
+    accessorKey: "FEC_PAGO_FORMATTED",
+    meta: {
+      label: "Fecha de Pago",
+    },
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted(); // "asc" | "desc" | false
+
+      const Icon =
+        isSorted === "asc"
+          ? ArrowUp
+          : isSorted === "desc"
+            ? ArrowDown
+            : ArrowUpDown;
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(isSorted === "asc");
+          }}
+        >
+          Fecha de Pago
+          <Icon className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    filterFn: fuzzyFilter,
+    cell: ({ row }) => (
+      <p className="text-center">{row.original.FEC_PAGO_FORMATTED || "--"}</p>
+    ),
+  },
+  {
     accessorKey: "MSA",
     meta: {
       label: "MSA",

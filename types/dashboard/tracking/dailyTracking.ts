@@ -23,4 +23,8 @@ export type DailyTracking = {
   ULT_DOC_114: string | null;
   ULT_DOC_114_FORMATTED: string | null;
   PROVIDER: string | null;
+  FEC_PAGO_FORMATTED: string | null;
+  REVALIDACION_073: string | null;
+  REVALIDACION_073_FORMATTED: string | null;
+  FEC_PAGO: string | null
 };
